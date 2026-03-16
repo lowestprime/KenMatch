@@ -1,6 +1,6 @@
 # **KenMatch: Democratizing Frontier Agentic Compute**
 
-KenMatch democratizes access to continuous frontier AI by crowdsourcing which long-horizon tasks deserve sustained enterprise-grade compute—allocating days, weeks, and months of agentic runtime based on transparent, verifiable community value rather than personal wealth. (Derived from kenmatch.md L1–L4; model landscape context supported by frontier provider documentation.) ([1](https://deepmind.google/models/model-cards/gemini-3-1-pro/))([2](https://developers.openai.com/api/docs/models/gpt-5.4))([12](https://openai.com/index/introducing-gpt-5-4/))([5](https://platform.claude.com/docs/en/about-claude/models/overview))([3](https://www.anthropic.com/news/claude-opus-4-6))([4](https://x.ai/api))
+KenMatch democratizes access to continuous frontier AI by crowdsourcing which long-horizon tasks deserve sustained enterprise-grade compute—allocating days, weeks, and months of agentic runtime based on transparent, verifiable community value rather than personal wealth. [1](https://deepmind.google/models/model-cards/gemini-3-1-pro/))([2](https://developers.openai.com/api/docs/models/gpt-5.4))([12](https://openai.com/index/introducing-gpt-5-4/))([5](https://platform.claude.com/docs/en/about-claude/models/overview))([3](https://www.anthropic.com/news/claude-opus-4-6))([4](https://x.ai/api)
 
 ## **Details**
 
@@ -24,7 +24,7 @@ It is philosophically akin to the combination of:
 
 * and a curation engine (ranking what deserves attention),
 
-…while translating those intuitions into a concrete allocation protocol suitable for high-cost, long-running compute. (Conceptual basis: kenmatch.md L4, L25–L30.)
+…while translating those intuitions into a concrete allocation protocol suitable for high-cost, long-running compute.
 
 ### **What KenMatch coordinates**
 
@@ -83,8 +83,6 @@ KenMatch’s baseline tiering (as specified in the attachment) is:
 * **Weeks**: top **10** projects per category
 
 * **Days**: top **100** projects per category
-
-(Direct requirement from kenmatch.md L5–L11; reiterated with operational framing in kenmatch.md L37–L47.)
 
 This tiering is not merely cosmetic. Modern accelerator systems are power-dense (e.g., DGX-class systems are in the tens of kilowatts), and at national and global scale data center electricity demand is now a material planning variable. Long-horizon allocations must therefore be explicit about duration, checkpointing, and rollback, as well as about evaluation and stopping conditions. ([6](https://www.energy.gov/articles/doe-releases-new-report-evaluating-increase-electricity-demand-data-centers))([7](https://www.iea.org/reports/energy-and-ai/energy-demand-from-ai))([10](https://www.nvidia.com/en-us/data-center/dgx-b200/))
 
