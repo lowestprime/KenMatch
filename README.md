@@ -1,6 +1,6 @@
 # **KenMatch: Democratizing Frontier Agentic Compute**
 
-KenMatch democratizes access to continuous frontier AI by crowdsourcing which long-horizon tasks deserve sustained enterprise-grade compute—allocating days, weeks, and months of agentic runtime based on transparent, verifiable community value rather than personal wealth. [1](https://deepmind.google/models/model-cards/gemini-3-1-pro/))([2](https://developers.openai.com/api/docs/models/gpt-5.4))([12](https://openai.com/index/introducing-gpt-5-4/))([5](https://platform.claude.com/docs/en/about-claude/models/overview))([3](https://www.anthropic.com/news/claude-opus-4-6))([4](https://x.ai/api)
+KenMatch democratizes access to continuous frontier AI by crowdsourcing which long-horizon tasks deserve sustained enterprise-grade compute—allocating days, weeks, and months of agentic runtime based on transparent, verifiable community value rather than personal wealth. ([1](https://deepmind.google/models/model-cards/gemini-3-1-pro/))([2](https://developers.openai.com/api/docs/models/gpt-5.4))([12](https://openai.com/index/introducing-gpt-5-4/))([5](https://platform.claude.com/docs/en/about-claude/models/overview))([3](https://www.anthropic.com/news/claude-opus-4-6))([4](https://x.ai/api))
 
 ## **Details**
 
