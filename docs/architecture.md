@@ -3,50 +3,51 @@
 ## Stack
 
 - Next.js 16 App Router for the full-stack web surface.
-- React 19.2 hooks and server actions for the interactive voting and proposal flows.
-- Tailwind CSS v4 with CSS-first theme variables for styling.
-- Node.js built-in SQLite for a zero-config local merit ledger and task store. This is excellent for a self-contained prototype, but the API is still flagged experimental in Node 22 and should be swapped for Postgres/LibSQL or another stable production database before a public deployment.
+- React 19.2 with server actions and modern client hooks for curation, discussion, and auth flows.
+- Tailwind CSS v4 with CSS-first theme variables and custom utility classes for the visual system.
+- [libSQL TypeScript](https://docs.turso.tech/sdk/ts/quickstart) for a stable SQLite-compatible local database and an easy remote upgrade path for public deployment.
+- `zod` for environment parsing and form validation.
 
 ## Why this stack
 
-- The repository started as a blank slate with only product docs, so the implementation had to cover routing, server-side data access, forms, and a bold front-end in one coherent system.
-- Next.js App Router keeps the read-heavy governance views server-rendered while still allowing modern server actions for write flows.
-- React 19.2 features like `useActionState`, `useDeferredValue`, and `useEffectEvent` fit the proposal intake and voting interactions cleanly.
-- Tailwind v4's CSS-first configuration makes it easy to define a strong visual system without introducing extra build complexity.
-- Local SQLite keeps the repo self-contained while still giving the project a real persistence layer instead of a static JSON mock.
+- The conception document demanded a real product, not a brochure. Next.js App Router covers read-heavy pages, authenticated write flows, and deployment routing in one system.
+- React server actions keep proposal, vote, pulse, comment, and auth mutations close to the pages that use them.
+- Tailwind v4 plus custom CSS variables let the app carry a distinct light/dark visual language without introducing another styling runtime.
+- libSQL keeps local development zero-config while supporting a remote production database via the same client API.
 
 ## Main modules
 
-- [src/lib/allocation.ts](/C:/Users/Cooper/Desktop/kenmatch/src/lib/allocation.ts)
-  - Quadratic cost math, allocation eligibility, and tier assignment.
 - [src/lib/db.ts](/C:/Users/Cooper/Desktop/kenmatch/src/lib/db.ts)
-  - Database initialization, seeding, hydration, proposal creation, and vote persistence.
-- [src/lib/seed.ts](/C:/Users/Cooper/Desktop/kenmatch/src/lib/seed.ts)
-  - Seeded demo proposals, votes, runs, checkpoints, and governance events.
+  - Schema initialization, seed loading, snapshot hydration, account/session persistence, proposal creation, voting, pulse, comments, economics, and health checks.
+- [src/lib/session.ts](/C:/Users/Cooper/Desktop/kenmatch/src/lib/session.ts)
+  - Cookie-backed session lookup and mutation helpers.
 - [src/app/actions.ts](/C:/Users/Cooper/Desktop/kenmatch/src/app/actions.ts)
-  - Server actions for proposal submission, profile switching, and vote updates.
+  - Server actions for auth, proposal submission, quadratic voting, pulse voting, comment creation, and comment voting.
 - [src/components](/C:/Users/Cooper/Desktop/kenmatch/src/components)
-  - Presentation and interaction components for the shell, board filters, task cards, voting, and proposal forms.
+  - Shell, theme toggle, auth panels, proposal form, vote panel, pulse panel, discussion thread, and marketplace cards.
 
 ## Routes
 
 - [src/app/page.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/app/page.tsx)
-  - Overview, featured allocations, metrics, categories, and recent governance decisions.
+  - Overview, protocol framing, featured tasks, governance highlights, and economic flywheel summary.
 - [src/app/tasks/page.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/app/tasks/page.tsx)
   - Searchable and filterable proposal board.
 - [src/app/tasks/[slug]/page.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/app/tasks/[slug]/page.tsx)
-  - Full proposal detail, run metadata, checkpoints, vote ledger, and governance log.
+  - Full proposal detail, finance metadata, pulse, quadratic voice, checkpoints, governance events, and discussion.
 - [src/app/submit/page.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/app/submit/page.tsx)
-  - Structured proposal intake.
+  - Structured proposal intake with quality-bond-aware auth gating.
 - [src/app/governance/page.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/app/governance/page.tsx)
-  - Policy boundaries, recent decisions, and blocked-task transparency.
+  - Policy boundaries, attestation states, recent decisions, and blocked-task transparency.
+- [src/app/economics/page.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/app/economics/page.tsx)
+  - Revenue streams, treasury ledger, and funded-task packaging logic.
+- [src/app/auth/page.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/app/auth/page.tsx)
+  - Contributor sign-in and sign-up.
+- [src/app/api/health/route.ts](/C:/Users/Cooper/Desktop/kenmatch/src/app/api/health/route.ts)
+  - Deployment health probe.
 
-## Data model summary
+## Deployment model
 
-- Profiles: earned voice credits, specialty, and credibility.
-- Categories: the public domains that organize the tier ladders.
-- Tasks: the proposal core, including problem framing, deliverables, evaluation, evidence, and requested tier.
-- Votes: profile-bound quadratic allocations.
-- Runs: active execution lanes with runtime, backend, and rollback metadata.
-- Checkpoints: the audit trail for long-running work.
-- Governance events: safety-council and allocation-chamber decisions.
+- Local development uses `KENMATCH_DB_FILE` and a file-backed libSQL database.
+- Production deployment should point `DATABASE_URL` and `DATABASE_AUTH_TOKEN` at a managed remote libSQL database.
+- Security headers are configured in [next.config.ts](/C:/Users/Cooper/Desktop/kenmatch/next.config.ts).
+- Environment expectations are documented in [.env.example](/C:/Users/Cooper/Desktop/kenmatch/.env.example).

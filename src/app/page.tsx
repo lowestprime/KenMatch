@@ -2,191 +2,134 @@ import Link from "next/link";
 
 import { TaskCard } from "@/components/task-card";
 import { getHomeData } from "@/lib/db";
-import { getSessionProfileId } from "@/lib/session";
-import { compactWords, formatNumber } from "@/lib/utils";
+import { getViewerProfileId } from "@/lib/session";
+import { formatCurrency, formatNumber } from "@/lib/utils";
 
 export default async function HomePage() {
-  const activeProfileId = await getSessionProfileId();
-  const { metrics, categories, featuredTasks, contributors, governance, activeProfile } = getHomeData(activeProfileId);
+  const viewerProfileId = await getViewerProfileId();
+  const { metrics, categories, featuredTasks, contributors, governance, economics, revenueStreams, viewer } = await getHomeData(viewerProfileId);
 
   return (
     <div className="space-y-12">
       <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="panel hero-mesh relative overflow-hidden">
-          <div className="relative space-y-6">
-            <div className="eyebrow">Democratizing sustained frontier compute</div>
-            <h1 className="max-w-4xl font-display text-4xl font-semibold leading-tight text-ink sm:text-5xl lg:text-6xl">
-              Route month-scale agentic work by earned public value, not by who can privately buy the biggest cluster.
-            </h1>
-            <p className="max-w-3xl text-lg leading-8 text-ink/72">
-              KenMatch turns the conception docs into a working product surface: proposals, quadratic voice, safety review,
-              transparent tiering, and checkpointed execution across APIs, leased GPU fleets, and open-weight stacks.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <Link href="/tasks" className="rounded-full bg-ink px-5 py-3 text-sm font-semibold text-paper transition hover:bg-teal">
-                Browse ranked proposals
-              </Link>
-              <Link href="/submit" className="rounded-full border border-ink/12 bg-white/80 px-5 py-3 text-sm font-semibold text-ink transition hover:border-teal hover:text-teal">
-                Submit a task
-              </Link>
-            </div>
-            <div className="rounded-[1.5rem] border border-ink/10 bg-white/78 p-5 text-sm leading-7 text-ink/70">
-              <div className="font-display text-lg font-semibold text-ink">Active perspective</div>
-              <p className="mt-2">
-                You are browsing as <span className="font-semibold text-ink">{activeProfile.name}</span>, with
-                <span className="font-semibold text-ink"> {activeProfile.availableCredits}</span> free voice credits.
-                Every vote spends earned, non-purchasable influence.
+        <div className="panel hero-panel fade-up">
+          <div className="eyebrow">Democratizing sustained frontier AI</div>
+          <h1 className="max-w-4xl font-display text-4xl font-semibold leading-tight text-foreground sm:text-5xl lg:text-6xl">
+            Route months of agentic work by public value, earned voice, and explicit checkpoints instead of pure capital access.
+          </h1>
+          <p className="max-w-3xl text-lg leading-8 text-muted">
+            KenMatch combines public curation, Stack Exchange-style debate, proposal quality bonds, checkpoint-gated execution, and a separate commercial flywheel that funds the compute treasury without selling governance.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <Link href="/tasks" className="cta-primary">Browse ranked proposals</Link>
+            <Link href="/submit" className="cta-secondary">Submit a task</Link>
+            <Link href="/economics" className="cta-secondary">Inspect treasury logic</Link>
+          </div>
+          <div className="rounded-[1.5rem] border border-border bg-background/55 p-5 text-sm leading-7 text-muted">
+            {viewer ? (
+              <p>
+                Signed in as <span className="font-semibold text-foreground">{viewer.name}</span> with <span className="font-semibold text-foreground">{viewer.availableCredits}</span> free voice credits and <span className="font-semibold text-foreground">{viewer.attestationLevel}</span> attestation.
               </p>
-            </div>
+            ) : (
+              <p>Browsing anonymously. The board stays public; participation requires a contributor account so voice and comments remain attributable.</p>
+            )}
           </div>
         </div>
-        <div className="space-y-4">
-          <div className="panel">
+        <div className="space-y-4 fade-up stagger-1">
+          <div className="panel space-y-4">
             <div className="eyebrow">Allocation protocol</div>
-            <div className="mt-4 grid gap-3">
-              {[
-                ["Months", "Top 3 per category", "Reserved for profound, checkpoint-heavy work."],
-                ["Weeks", "Next 10 per category", "Complex delivery lanes with active evaluation."],
-                ["Days", "Next 100 per category", "Focused sprints for narrow but valuable outputs."],
-              ].map(([label, value, copy]) => (
-                <div key={label} className="rounded-[1.2rem] border border-ink/8 bg-white/70 p-4">
-                  <div className="font-display text-xl font-semibold text-ink">{label}</div>
-                  <div className="mt-1 text-sm font-medium text-teal">{value}</div>
-                  <p className="mt-2 text-sm leading-6 text-ink/68">{copy}</p>
-                </div>
-              ))}
-            </div>
+            {[["Months", "Top 3 per category", "Deep, checkpoint-heavy work with multi-week monitoring."],["Weeks", "Next 10 per category", "Complex bounded work that still needs sustained continuity."],["Days", "Next 100 per category", "Focused sprints for narrow but high-value outputs."]].map(([label, value, copy]) => (
+              <div key={label} className="rounded-[1.25rem] border border-border bg-background/50 p-4">
+                <div className="font-display text-xl font-semibold text-foreground">{label}</div>
+                <div className="mt-1 text-sm font-medium text-teal">{value}</div>
+                <p className="mt-2 text-sm leading-6 text-muted">{copy}</p>
+              </div>
+            ))}
           </div>
           <div className="metric-grid">
-            {[
-              ["Proposals", formatNumber(metrics.proposals)],
-              ["Eligible", formatNumber(metrics.eligible)],
-              ["Active runs", formatNumber(metrics.activeRuns)],
-              ["Voice spent", formatNumber(metrics.voiceSpent)],
-            ].map(([label, value]) => (
-              <div key={label} className="metric-card">
-                <div className="text-xs uppercase tracking-[0.22em] text-ink/45">{label}</div>
-                <div className="mt-2 font-display text-3xl font-semibold text-ink">{value}</div>
-              </div>
+            {[["Proposals", formatNumber(metrics.proposals)],["Active runs", formatNumber(metrics.activeRuns)],["Bonded voice", formatNumber(metrics.bondedVoice)],["Treasury / month", formatCurrency(metrics.treasuryMonthlyUsd)]].map(([label, value]) => (
+              <div key={label} className="metric-card"><div className="eyebrow">{label}</div><div className="metric-value">{value}</div></div>
             ))}
           </div>
         </div>
       </section>
 
       <section className="space-y-5">
-        <div className="flex items-end justify-between gap-4">
+        <div className="section-heading">
           <div>
-            <div className="eyebrow">Current front-runners</div>
-            <h2 className="mt-2 font-display text-3xl font-semibold text-ink">What the board would fund today</h2>
+            <div className="eyebrow">Front-runners</div>
+            <h2 className="font-display text-3xl font-semibold text-foreground">What the board would fund right now</h2>
           </div>
-          <Link href="/tasks" className="text-sm font-semibold text-teal transition hover:text-ink">
-            Open full marketplace
-          </Link>
+          <Link href="/tasks" className="text-sm font-semibold text-teal">Open full marketplace</Link>
         </div>
         <div className="section-grid" data-columns="3">
-          {featuredTasks.map((task) => (
-            <TaskCard key={task.id} task={task} />
-          ))}
+          {featuredTasks.map((task) => <TaskCard key={task.id} task={task} />)}
         </div>
       </section>
 
       <section className="section-grid" data-columns="2">
         <div className="panel space-y-5">
-          <div>
-            <div className="eyebrow">Governance by design</div>
-            <h2 className="mt-2 font-display text-3xl font-semibold text-ink">Two houses, one public ledger</h2>
-          </div>
-          <div className="grid gap-4">
-            <div className="rounded-[1.35rem] border border-ink/8 bg-white/70 p-5">
-              <div className="font-display text-xl font-semibold text-ink">House A: Safety council</div>
-              <p className="mt-2 text-sm leading-7 text-ink/68">
-                Screens for prohibited dual-use work, sets monitoring conditions, and records every block in a public log.
-              </p>
-            </div>
-            <div className="rounded-[1.35rem] border border-ink/8 bg-white/70 p-5">
-              <div className="font-display text-xl font-semibold text-ink">House B: Allocation chamber</div>
-              <p className="mt-2 text-sm leading-7 text-ink/68">
-                Uses broad, quadratic voice to rank proposals by demonstrated community value instead of financial weight.
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="panel space-y-5">
-          <div>
-            <div className="eyebrow">Recent decisions</div>
-            <h2 className="mt-2 font-display text-3xl font-semibold text-ink">Transparent governance trail</h2>
-          </div>
-          <div className="space-y-4">
-            {governance.map((event) => (
-              <div key={event.id} className="rounded-[1.35rem] border border-ink/8 bg-white/72 p-5">
-                <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-[0.22em] text-ink/45">
-                  <span>{event.house.replace("-", " ")}</span>
-                  <span>{new Date(event.createdAt).toLocaleDateString("en-US")}</span>
-                </div>
-                <div className="mt-3 font-display text-xl font-semibold text-ink">{event.title}</div>
-                <p className="mt-2 text-sm leading-7 text-ink/68">{compactWords(event.decision, 160)}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="section-grid" data-columns="2">
-        <div className="panel space-y-5">
-          <div>
-            <div className="eyebrow">Category health</div>
-            <h2 className="mt-2 font-display text-3xl font-semibold text-ink">Where proposals are accumulating</h2>
-          </div>
+          <div className="eyebrow">Broader public-interest frontier work</div>
           <div className="grid gap-4">
             {categories.map((category) => (
-              <div key={category.id} className="rounded-[1.35rem] border border-ink/8 bg-white/70 p-5">
+              <div key={category.id} className="rounded-[1.3rem] border border-border bg-background/55 p-5">
                 <div className="flex items-center justify-between gap-3">
-                  <div className="font-display text-xl font-semibold text-ink">{category.name}</div>
-                  <span className="rounded-full border border-ink/10 px-3 py-1 text-xs uppercase tracking-[0.22em] text-ink/55">
-                    {category.proposalCount} proposals
-                  </span>
+                  <div className="font-display text-xl font-semibold text-foreground">{category.name}</div>
+                  <span className="tag">{category.proposalCount} proposals</span>
                 </div>
-                <p className="mt-2 text-sm leading-7 text-ink/68">{category.thesis}</p>
-                <div className="mt-4 grid gap-3 sm:grid-cols-3 text-sm text-ink/62">
-                  <div>
-                    <div className="text-xs uppercase tracking-[0.2em] text-ink/45">Eligible</div>
-                    <div className="mt-1 font-display text-2xl font-semibold text-ink">{category.eligibleCount}</div>
-                  </div>
-                  <div>
-                    <div className="text-xs uppercase tracking-[0.2em] text-ink/45">Running</div>
-                    <div className="mt-1 font-display text-2xl font-semibold text-ink">{category.runningCount}</div>
-                  </div>
-                  <div>
-                    <div className="text-xs uppercase tracking-[0.2em] text-ink/45">Shipped</div>
-                    <div className="mt-1 font-display text-2xl font-semibold text-ink">{category.shippedCount}</div>
-                  </div>
-                </div>
+                <p className="mt-2 text-sm leading-7 text-muted">{category.thesis}</p>
               </div>
             ))}
           </div>
         </div>
         <div className="panel space-y-5">
-          <div>
-            <div className="eyebrow">Merit ledger</div>
-            <h2 className="mt-2 font-display text-3xl font-semibold text-ink">Who currently has the strongest voice</h2>
-          </div>
-          <div className="space-y-4">
-            {contributors.map((profile) => (
-              <div key={profile.id} className="rounded-[1.35rem] border border-ink/8 bg-white/72 p-5">
+          <div className="eyebrow">Revenue engine split</div>
+          <h2 className="font-display text-3xl font-semibold text-foreground">Public curation and commercial packaging are intentionally separate</h2>
+          <p className="text-sm leading-7 text-muted">
+            Governance voice cannot be purchased. Revenue comes from enterprise packaging, data licensing, compute arbitrage, and sponsorship routing into the treasury.
+          </p>
+          <div className="grid gap-4">
+            {revenueStreams.map((stream) => (
+              <div key={stream.id} className="rounded-[1.3rem] border border-border bg-background/55 p-4 text-sm text-muted">
                 <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <div className="font-display text-xl font-semibold text-ink">{profile.name}</div>
-                    <div className="text-sm text-ink/62">{profile.role} · {profile.specialty}</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-display text-2xl font-semibold text-ink">{profile.credibility.toFixed(2)}</div>
-                    <div className="text-xs uppercase tracking-[0.22em] text-ink/45">credibility</div>
-                  </div>
+                  <div className="font-semibold text-foreground">{stream.name}</div>
+                  <span className="tag">{formatCurrency(stream.treasuryMonthlyUsd)}</span>
                 </div>
-                <p className="mt-3 text-sm leading-7 text-ink/68">{profile.bio}</p>
+                <p className="mt-2">{stream.description}</p>
               </div>
             ))}
+            <div className="rounded-[1.3rem] border border-border bg-background/55 p-4 text-sm text-muted">
+              <div className="font-semibold text-foreground">Current treasury balance</div>
+              <div className="mt-2 font-display text-3xl font-semibold text-foreground">{formatCurrency(economics.treasuryBalanceUsd)}</div>
+            </div>
           </div>
+        </div>
+      </section>
+
+      <section className="section-grid" data-columns="2">
+        <div className="panel space-y-4">
+          <div className="eyebrow">Recent governance</div>
+          {governance.map((event) => (
+            <div key={event.id} className="rounded-[1.3rem] border border-border bg-background/55 p-4">
+              <div className="text-xs uppercase tracking-[0.22em] text-muted">{event.house.replace("-", " ")}</div>
+              <div className="mt-2 font-display text-xl font-semibold text-foreground">{event.title}</div>
+              <p className="mt-2 text-sm leading-7 text-muted">{event.decision}</p>
+            </div>
+          ))}
+        </div>
+        <div className="panel space-y-4">
+          <div className="eyebrow">Contributors with standing voice</div>
+          {contributors.map((profile) => (
+            <div key={profile.id} className="rounded-[1.3rem] border border-border bg-background/55 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="font-display text-xl font-semibold text-foreground">{profile.name}</div>
+                  <div className="text-sm text-muted">{profile.role} · {profile.specialty}</div>
+                </div>
+                <div className="text-right"><div className="font-display text-2xl font-semibold text-foreground">{profile.credibility.toFixed(2)}</div><div className="text-xs uppercase tracking-[0.22em] text-muted">credibility</div></div>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
     </div>

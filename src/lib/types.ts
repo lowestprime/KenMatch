@@ -16,6 +16,27 @@ export type CheckpointStatus = (typeof checkpointStatuses)[number];
 export const governanceHouses = ["safety-council", "allocation-chamber"] as const;
 export type GovernanceHouse = (typeof governanceHouses)[number];
 
+export const releaseStatuses = ["approved", "pending", "held"] as const;
+export type ReleaseStatus = (typeof releaseStatuses)[number];
+
+export const pulseDirections = [-1, 1] as const;
+export type PulseDirection = (typeof pulseDirections)[number];
+
+export const revenueEngines = ["enterprise", "data-licensing", "compute-arbitrage", "sponsorship"] as const;
+export type RevenueEngine = (typeof revenueEngines)[number];
+
+export const revenueStatuses = ["live", "pilot", "planned"] as const;
+export type RevenueStatus = (typeof revenueStatuses)[number];
+
+export const treasuryDirections = ["inflow", "outflow"] as const;
+export type TreasuryDirection = (typeof treasuryDirections)[number];
+
+export const moderationStatuses = ["active", "restricted", "suspended"] as const;
+export type ModerationStatus = (typeof moderationStatuses)[number];
+
+export const attestationLevels = ["provisional", "verified", "expert"] as const;
+export type AttestationLevel = (typeof attestationLevels)[number];
+
 export interface CategoryRecord {
   id: string;
   slug: string;
@@ -31,9 +52,29 @@ export interface ProfileRecord {
   bio: string;
   specialty: string;
   attestation: string;
+  attestationLevel?: AttestationLevel;
+  moderationStatus?: ModerationStatus;
   voiceCredits: number;
   credibility: number;
   avatarHue: number;
+  createdAt?: string;
+}
+
+export interface AccountRecord {
+  id: string;
+  profileId: string;
+  email: string;
+  passwordHash: string;
+  passwordSalt: string;
+  createdAt: string;
+}
+
+export interface SessionRecord {
+  id: string;
+  accountId: string;
+  tokenHash: string;
+  expiresAt: string;
+  createdAt: string;
 }
 
 export interface TaskRecord {
@@ -59,12 +100,47 @@ export interface TaskRecord {
   createdAt: string;
 }
 
+export interface TaskFinanceRecord {
+  taskId: string;
+  qualityBondCredits: number;
+  sponsorPoolUsd: number;
+  checkpointApprovalTarget: number;
+  enterprisePackaging: string;
+  dataValueNote: string;
+}
+
 export interface VoteRecord {
   id: string;
   taskId: string;
   profileId: string;
   voteCount: number;
   rationale: string;
+  updatedAt: string;
+}
+
+export interface TaskPulseVoteRecord {
+  id: string;
+  taskId: string;
+  profileId: string;
+  value: PulseDirection;
+  updatedAt: string;
+}
+
+export interface CommentRecord {
+  id: string;
+  taskId: string;
+  profileId: string;
+  parentId: string | null;
+  body: string;
+  stakeCredits: number;
+  createdAt: string;
+}
+
+export interface CommentVoteRecord {
+  id: string;
+  commentId: string;
+  profileId: string;
+  value: PulseDirection;
   updatedAt: string;
 }
 
@@ -89,6 +165,13 @@ export interface CheckpointRecord {
   dueAt: string;
 }
 
+export interface CheckpointGateRecord {
+  checkpointId: string;
+  approvalScore: number;
+  requiredApprovals: number;
+  releaseStatus: ReleaseStatus;
+}
+
 export interface GovernanceEventRecord {
   id: string;
   taskId: string | null;
@@ -99,12 +182,47 @@ export interface GovernanceEventRecord {
   createdAt: string;
 }
 
+export interface RevenueStreamRecord {
+  id: string;
+  slug: string;
+  name: string;
+  engine: RevenueEngine;
+  description: string;
+  pricingModel: string;
+  status: RevenueStatus;
+  monthlyRevenueUsd: number;
+  grossMargin: number;
+  treasurySharePercent: number;
+  founderSharePercent: number;
+}
+
+export interface TreasuryEntryRecord {
+  id: string;
+  streamId: string | null;
+  title: string;
+  description: string;
+  bucket: string;
+  direction: TreasuryDirection;
+  amountUsd: number;
+  createdAt: string;
+}
+
 export interface ProfileSummary extends ProfileRecord {
+  attestationLevel: AttestationLevel;
+  moderationStatus: ModerationStatus;
+  createdAt: string;
+  voteCreditsSpent: number;
+  bondedCredits: number;
   spentCredits: number;
   availableCredits: number;
 }
 
-export interface TaskSummary extends TaskRecord {
+export interface ViewerSession {
+  account: Pick<AccountRecord, "id" | "email" | "createdAt">;
+  profile: ProfileSummary;
+}
+
+export interface TaskSummary extends TaskRecord, TaskFinanceRecord {
   categoryName: string;
   categorySlug: string;
   proposerName: string;
@@ -114,13 +232,33 @@ export interface TaskSummary extends TaskRecord {
   allocatedTier: AllocationTier;
   userVotes: number;
   userCost: number;
+  taskPulseScore: number;
+  taskPulseVotes: number;
+  positivePulseCount: number;
+  negativePulseCount: number;
+  userTaskPulse: number;
+  discussionCount: number;
+  bondStatus: "secure" | "watch";
+}
+
+export interface CheckpointDetail extends CheckpointRecord, CheckpointGateRecord {}
+
+export interface DiscussionComment extends CommentRecord {
+  profileName: string;
+  profileRole: string;
+  score: number;
+  upvotes: number;
+  downvotes: number;
+  userVote: number;
+  replies: DiscussionComment[];
 }
 
 export interface TaskDetail extends TaskSummary {
   votes: Array<VoteRecord & { profileName: string }>;
   run: ComputeRunRecord | null;
-  checkpoints: CheckpointRecord[];
+  checkpoints: CheckpointDetail[];
   governanceEvents: GovernanceEventRecord[];
+  comments: DiscussionComment[];
 }
 
 export interface CategorySummary extends CategoryRecord {
@@ -137,6 +275,22 @@ export interface HomepageMetrics {
   shipped: number;
   voiceIssued: number;
   voiceSpent: number;
+  bondedVoice: number;
+  publicSignal: number;
+  treasuryMonthlyUsd: number;
+}
+
+export interface RevenueStreamSummary extends RevenueStreamRecord {
+  treasuryMonthlyUsd: number;
+  founderMonthlyUsd: number;
+}
+
+export interface EconomicsSummary {
+  monthlyRevenueUsd: number;
+  treasuryMonthlyUsd: number;
+  founderMonthlyUsd: number;
+  treasuryBalanceUsd: number;
+  monthlyPublicBurnUsd: number;
 }
 
 export interface MarketplaceFilters {

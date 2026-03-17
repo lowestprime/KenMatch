@@ -1,28 +1,34 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 
 import { SiteShell } from "@/components/site-shell";
-import { getDefaultProfileId, listProfiles } from "@/lib/db";
-import { getSessionProfileId } from "@/lib/session";
+import { listProfiles } from "@/lib/db";
+import { getViewerSession } from "@/lib/session";
 
 import "@/app/globals.css";
 
 export const metadata: Metadata = {
   title: "KenMatch",
-  description: "Crowdsourced allocation of sustained frontier compute through earned voice, transparent ranking, and safety review.",
+  description: "Public allocation infrastructure for long-horizon frontier AI work, with earned voice, public curation, checkpoint-gated execution, and transparent economics.",
 };
 
+const themeBootScript = `
+  try {
+    var stored = window.localStorage.getItem("kenmatch-theme");
+    var theme = stored === "dark" ? "dark" : "light";
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.style.colorScheme = theme;
+  } catch (error) {}
+`;
+
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const profiles = listProfiles();
-  const activeProfileId = await getSessionProfileId();
-  const activeProfile =
-    profiles.find((profile) => profile.id === activeProfileId) ??
-    profiles.find((profile) => profile.id === getDefaultProfileId()) ??
-    profiles[0];
+  const [profiles, viewer] = await Promise.all([listProfiles(), getViewerSession()]);
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className="font-body antialiased">
-        <SiteShell profiles={profiles} activeProfile={activeProfile}>
+        <Script id="theme-boot" strategy="beforeInteractive">{themeBootScript}</Script>
+        <SiteShell featuredProfiles={profiles} viewer={viewer}>
           {children}
         </SiteShell>
       </body>

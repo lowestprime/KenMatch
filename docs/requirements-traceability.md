@@ -1,33 +1,38 @@
 # KenMatch Requirements Traceability
 
-This file maps the stable, implementation-relevant requirements from [KenMatch_Conception.md](/C:/Users/Cooper/Desktop/kenmatch/KenMatch_Conception.md) and the repository's initial README brief, which has now been superseded by the implementation-focused project README.
+This file maps the stable, implementation-relevant requirements in [KenMatch_Conception.md](/C:/Users/Cooper/Desktop/kenmatch/KenMatch_Conception.md) to the current codebase.
 
-## Stable requirements extracted from the source docs
+## Stable requirements extracted from the conception document
 
-1. Democratize access to sustained frontier compute rather than short-lived chat access.
-2. Use earned, non-purchasable allocation power instead of pay-to-win spending.
-3. Structure the allocation ladder as months / weeks / days with per-category ranking.
-4. Treat safety review, auditability, and rollback as first-class product requirements.
-5. Keep execution-layer neutrality across APIs, leased clusters, and decentralized supply.
-6. Make contribution legible through proposals, curation, checkpoints, and governance logs.
+1. Democratize access to sustained frontier compute rather than short-lived chat turns.
+2. Keep governance voice earned and non-purchasable.
+3. Preserve the months / weeks / days allocation protocol by category.
+4. Add Reddit / Stack Exchange / group-buy style public curation and discussion.
+5. Keep blocked work visible and attach public rationale to safety decisions.
+6. Gate long-running execution behind checkpoints, release conditions, and rollback plans.
+7. Separate the public curation engine from the commercial revenue engine.
+8. Make contribution, identity, and legitimacy more attributable than anonymous crowd spam.
 
-## How the implementation satisfies those requirements
+## Where those requirements are implemented
 
-- Sustained compute as the core resource
-  - Implemented as visible run records, checkpoint cadence, runtime hours, and budget lanes in [src/lib/seed.ts](/C:/Users/Cooper/Desktop/kenmatch/src/lib/seed.ts) and surfaced on [src/app/tasks/[slug]/page.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/app/tasks/[slug]/page.tsx).
+- Sustained compute as the scarce resource
+  - Run metadata, runtime hours, budgets, and checkpoint cadence live in [src/lib/db.ts](/C:/Users/Cooper/Desktop/kenmatch/src/lib/db.ts) and render on [src/app/tasks/[slug]/page.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/app/tasks/[slug]/page.tsx).
 - Earned, non-purchasable voice
-  - Implemented as profile-bound voice credits and quadratic vote spend in [src/lib/allocation.ts](/C:/Users/Cooper/Desktop/kenmatch/src/lib/allocation.ts), [src/lib/db.ts](/C:/Users/Cooper/Desktop/kenmatch/src/lib/db.ts), and [src/components/vote-panel.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/components/vote-panel.tsx).
-- Months / weeks / days tiering
-  - Implemented directly in [src/lib/allocation.ts](/C:/Users/Cooper/Desktop/kenmatch/src/lib/allocation.ts) and displayed across [src/app/page.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/app/page.tsx), [src/app/tasks/page.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/app/tasks/page.tsx), and task detail views.
-- Safety and legitimacy
-  - Implemented via blocked proposals, monitor status, governance logs, and proposal intake review in [src/lib/db.ts](/C:/Users/Cooper/Desktop/kenmatch/src/lib/db.ts), [src/app/governance/page.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/app/governance/page.tsx), and [src/app/submit/page.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/app/submit/page.tsx).
-- Execution-layer neutrality
-  - Reflected in backend metadata for API meshes, leased GPU fleets, self-hosted inference, and marketplace capacity in [src/lib/seed.ts](/C:/Users/Cooper/Desktop/kenmatch/src/lib/seed.ts).
-- Proposal structure over vague prompts
-  - Enforced in the submission form and schema validation in [src/components/proposal-form.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/components/proposal-form.tsx) and [src/app/actions.ts](/C:/Users/Cooper/Desktop/kenmatch/src/app/actions.ts).
+  - Quadratic voice, profile-bound credits, and proposal bonds are enforced in [src/lib/allocation.ts](/C:/Users/Cooper/Desktop/kenmatch/src/lib/allocation.ts), [src/lib/db.ts](/C:/Users/Cooper/Desktop/kenmatch/src/lib/db.ts), and [src/components/vote-panel.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/components/vote-panel.tsx).
+- Months / weeks / days allocation
+  - Ranking and tier assignment remain explicit in [src/lib/allocation.ts](/C:/Users/Cooper/Desktop/kenmatch/src/lib/allocation.ts) and are surfaced across [src/app/page.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/app/page.tsx), [src/app/tasks/page.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/app/tasks/page.tsx), and [src/app/tasks/[slug]/page.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/app/tasks/[slug]/page.tsx).
+- Public curation beyond quadratic voting
+  - Task pulse voting, comment voting, replies, and comment staking live in [src/lib/db.ts](/C:/Users/Cooper/Desktop/kenmatch/src/lib/db.ts), [src/app/actions.ts](/C:/Users/Cooper/Desktop/kenmatch/src/app/actions.ts), [src/components/task-pulse-panel.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/components/task-pulse-panel.tsx), and [src/components/discussion-thread.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/components/discussion-thread.tsx).
+- Visible safety boundaries
+  - Governance logs and blocked proposals are exposed on [src/app/governance/page.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/app/governance/page.tsx) and [src/app/tasks/[slug]/page.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/app/tasks/[slug]/page.tsx).
+- Checkpoint-gated execution
+  - Release gates and checkpoint approval thresholds are modeled in [src/lib/db.ts](/C:/Users/Cooper/Desktop/kenmatch/src/lib/db.ts) and rendered in [src/app/tasks/[slug]/page.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/app/tasks/[slug]/page.tsx).
+- Public curation engine vs revenue engine
+  - Revenue streams, treasury entries, sponsor pools, packaging notes, and data-value notes live in [src/lib/db.ts](/C:/Users/Cooper/Desktop/kenmatch/src/lib/db.ts) and [src/app/economics/page.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/app/economics/page.tsx).
+- Attributable identity and session-based legitimacy
+  - Real accounts and sessions now replace the old profile switcher in [src/lib/db.ts](/C:/Users/Cooper/Desktop/kenmatch/src/lib/db.ts), [src/lib/session.ts](/C:/Users/Cooper/Desktop/kenmatch/src/lib/session.ts), and [src/app/auth/page.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/app/auth/page.tsx).
 
-## Deliberate implementation choices made from ambiguous or unstable source material
+## Still interpretive rather than fully resolved in code
 
-- The conception document includes speculative sections about legal form, monetization, and specific vendor/model names. The app preserves the stable product thesis but does not hard-code those speculative claims as product truth.
-- The prototype keeps identity simple by using switchable demo profiles instead of production auth. That preserves the governance logic while keeping the repo runnable locally.
-- The public prototype follows the raw per-category tier protocol exactly, but also records in the governance log that a production rollout would likely add minimum-vote thresholds before granting month-scale lanes.
+- External attestation providers and anti-sybil infrastructure are modeled as contributor states and metadata, but not yet integrated with third-party identity systems.
+- Legal incorporation, off-platform enterprise packaging, and real treasury operations are represented in the product model and docs, not wired to actual legal or payment infrastructure.
