@@ -57,7 +57,7 @@ export function TaskBoardFilters({
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="Search by title, category, or problem"
-          className="w-full rounded-[1.2rem] border border-ink/10 bg-white px-4 py-3 text-sm normal-case tracking-normal text-ink outline-none transition focus:border-teal"
+          className="w-full rounded-[1.2rem] border border-line bg-page/74 px-4 py-3 text-sm normal-case tracking-normal text-ink outline-none transition focus:border-accent"
         />
       </label>
       <label className="space-y-2 text-xs uppercase tracking-[0.22em] text-ink/55">
@@ -71,7 +71,7 @@ export function TaskBoardFilters({
               router.replace(buildTarget(pathname, deferredQuery.trim(), next, tier, stage));
             });
           }}
-          className="min-w-[12rem] rounded-[1.2rem] border border-ink/10 bg-white px-4 py-3 text-sm normal-case tracking-normal text-ink outline-none transition focus:border-teal"
+          className="min-w-[12rem] rounded-[1.2rem] border border-line bg-page/74 px-4 py-3 text-sm normal-case tracking-normal text-ink outline-none transition focus:border-accent"
         >
           <option value="all">All categories</option>
           {categories.map((categoryOption) => (
@@ -92,7 +92,7 @@ export function TaskBoardFilters({
               router.replace(buildTarget(pathname, deferredQuery.trim(), category, next, stage));
             });
           }}
-          className="min-w-[10rem] rounded-[1.2rem] border border-ink/10 bg-white px-4 py-3 text-sm normal-case tracking-normal text-ink outline-none transition focus:border-teal"
+          className="min-w-[10rem] rounded-[1.2rem] border border-line bg-page/74 px-4 py-3 text-sm normal-case tracking-normal text-ink outline-none transition focus:border-accent"
         >
           <option value="all">All tiers</option>
           <option value="months">Months</option>
@@ -113,7 +113,7 @@ export function TaskBoardFilters({
               router.replace(buildTarget(pathname, deferredQuery.trim(), category, tier, next));
             });
           }}
-          className="min-w-[10rem] rounded-[1.2rem] border border-ink/10 bg-white px-4 py-3 text-sm normal-case tracking-normal text-ink outline-none transition focus:border-teal"
+          className="min-w-[10rem] rounded-[1.2rem] border border-line bg-page/74 px-4 py-3 text-sm normal-case tracking-normal text-ink outline-none transition focus:border-accent"
         >
           <option value="all">All stages</option>
           <option value="review">Review</option>

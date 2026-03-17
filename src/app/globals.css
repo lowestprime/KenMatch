@@ -5,17 +5,38 @@
   --font-body: var(--font-body);
   --font-mono: var(--font-mono);
 
-  --color-paper: #f8f4ec;
-  --color-ink: #0f2530;
-  --color-teal: #0aa59d;
-  --color-ember: #da5736;
-  --color-gold: #d7aa4a;
+  --color-page: var(--page);
+  --color-panel: var(--panel);
+  --color-ink: var(--ink);
+  --color-accent: var(--accent);
+  --color-ember: var(--ember);
+  --color-gold: var(--gold);
+  --color-line: var(--line);
 
-  --shadow-soft: 0 22px 60px rgba(15, 37, 48, 0.1);
+  --shadow-soft: 0 24px 60px rgba(9, 28, 44, 0.12);
+  --shadow-glow: 0 32px 90px rgba(58, 153, 255, 0.18);
 }
 
 :root {
+  --page: #f3efe7;
+  --panel: rgba(255, 255, 255, 0.74);
+  --ink: #102334;
+  --accent: #139f85;
+  --ember: #ea633b;
+  --gold: #d9ab54;
+  --line: rgba(16, 35, 52, 0.11);
   color-scheme: light;
+}
+
+html[data-theme="dark"] {
+  --page: #07111b;
+  --panel: rgba(10, 19, 30, 0.76);
+  --ink: #ebf4ff;
+  --accent: #3ab1a1;
+  --ember: #ff8c69;
+  --gold: #f0c76a;
+  --line: rgba(235, 244, 255, 0.13);
+  color-scheme: dark;
 }
 
 * {
@@ -28,12 +49,12 @@ html {
 
 body {
   min-height: 100vh;
-  background: var(--color-paper);
-  color: var(--color-ink);
+  background: var(--page);
+  color: var(--ink);
 }
 
 ::selection {
-  background: rgba(10, 165, 157, 0.22);
+  background: rgba(19, 159, 133, 0.24);
 }
 
 .font-display {
@@ -48,13 +69,22 @@ body {
   font-family: var(--font-mono), monospace;
 }
 
+.app-backdrop {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--page) 95%, transparent), color-mix(in srgb, var(--page) 100%, black 0%)),
+    radial-gradient(circle at 15% 20%, rgba(58, 153, 255, 0.1), transparent 28%),
+    radial-gradient(circle at 80% 12%, rgba(19, 159, 133, 0.08), transparent 32%),
+    radial-gradient(circle at 50% 100%, rgba(234, 99, 59, 0.08), transparent 24%);
+}
+
 .panel {
-  border: 1px solid rgba(15, 37, 48, 0.08);
-  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid var(--line);
+  background: var(--panel);
   box-shadow: var(--shadow-soft);
   backdrop-filter: blur(18px);
   border-radius: 1.75rem;
   padding: 1.5rem;
+  animation: fade-up 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .eyebrow {
@@ -62,30 +92,34 @@ body {
   font-size: 0.72rem;
   letter-spacing: 0.24em;
   text-transform: uppercase;
-  color: rgba(15, 37, 48, 0.55);
+  color: color-mix(in srgb, var(--ink) 60%, transparent);
 }
 
-.hero-mesh {
+.card-sheen {
   position: relative;
   overflow: hidden;
 }
 
-.hero-mesh::before {
+.card-sheen::before {
   content: "";
   position: absolute;
-  inset: auto -12% -30% 35%;
-  height: 18rem;
+  inset: -40% auto auto 60%;
+  width: 14rem;
+  height: 14rem;
   border-radius: 999px;
-  background: radial-gradient(circle, rgba(218, 87, 54, 0.2), transparent 68%);
+  background: radial-gradient(circle, rgba(58, 153, 255, 0.12), transparent 68%);
+  pointer-events: none;
 }
 
-.hero-mesh::after {
+.card-sheen::after {
   content: "";
   position: absolute;
-  inset: 10% 45% auto -15%;
-  height: 20rem;
+  inset: auto 50% -50% -10%;
+  width: 16rem;
+  height: 16rem;
   border-radius: 999px;
-  background: radial-gradient(circle, rgba(10, 165, 157, 0.18), transparent 70%);
+  background: radial-gradient(circle, rgba(19, 159, 133, 0.1), transparent 65%);
+  pointer-events: none;
 }
 
 .metric-grid {
@@ -95,15 +129,49 @@ body {
 }
 
 .metric-card {
-  border-radius: 1.35rem;
-  border: 1px solid rgba(15, 37, 48, 0.08);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.68));
+  border-radius: 1.45rem;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel) 92%, transparent);
   padding: 1rem 1.1rem;
+  backdrop-filter: blur(16px);
 }
 
 .section-grid {
   display: grid;
   gap: 1.5rem;
+}
+
+.signal-bar {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+}
+
+.flow-card {
+  border-radius: 1.45rem;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel) 86%, transparent);
+  padding: 1.15rem;
+}
+
+.timeline-dot {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 0 0 6px rgba(19, 159, 133, 0.12);
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (min-width: 900px) {
@@ -113,5 +181,9 @@ body {
 
   .section-grid[data-columns="3"] {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .section-grid[data-columns="4"] {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }

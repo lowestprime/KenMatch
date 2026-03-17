@@ -20,7 +20,7 @@ export function ProfileSwitcher({ profiles, activeProfileId }: ProfileSwitcherPr
       Active voter
       <select
         defaultValue={activeProfileId}
-        className="rounded-full border border-ink/10 bg-white/70 px-4 py-3 text-sm font-medium normal-case tracking-normal text-ink outline-none transition focus:border-teal"
+        className="rounded-full border border-line bg-page/74 px-4 py-3 text-sm font-medium normal-case tracking-normal text-ink outline-none transition focus:border-accent"
         disabled={isPending}
         onChange={(event) => {
           const nextId = event.target.value;
