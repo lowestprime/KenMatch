@@ -37,7 +37,6 @@ export function TaskBoardFilters({ initialQuery, initialCategory, initialTier, i
     <section className="panel flex flex-col gap-4 lg:flex-row lg:items-end">
       <label className="flex-1 space-y-2 text-xs uppercase tracking-[0.22em] text-muted">
         Search proposals
-<<<<<<< HEAD
         <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by title, category, problem, or packaging path" className="field" />
       </label>
       <FilterSelect label="Category" value={category} onChange={(next) => { setCategory(next); startTransition(() => router.replace(buildTarget(pathname, deferredQuery.trim(), next, tier, stage))); }}>
@@ -76,80 +75,3 @@ function FilterSelect({ label, value, onChange, children }: { label: string; val
     </label>
   );
 }
-=======
-        <input
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Search by title, category, or problem"
-          className="w-full rounded-[1.2rem] border border-line bg-page/74 px-4 py-3 text-sm normal-case tracking-normal text-ink outline-none transition focus:border-accent"
-        />
-      </label>
-      <label className="space-y-2 text-xs uppercase tracking-[0.22em] text-ink/55">
-        Category
-        <select
-          value={category}
-          onChange={(event) => {
-            const next = event.target.value;
-            setCategory(next);
-            startTransition(() => {
-              router.replace(buildTarget(pathname, deferredQuery.trim(), next, tier, stage));
-            });
-          }}
-          className="min-w-[12rem] rounded-[1.2rem] border border-line bg-page/74 px-4 py-3 text-sm normal-case tracking-normal text-ink outline-none transition focus:border-accent"
-        >
-          <option value="all">All categories</option>
-          {categories.map((categoryOption) => (
-            <option key={categoryOption.slug} value={categoryOption.slug}>
-              {categoryOption.name}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className="space-y-2 text-xs uppercase tracking-[0.22em] text-ink/55">
-        Tier
-        <select
-          value={tier}
-          onChange={(event) => {
-            const next = event.target.value;
-            setTier(next);
-            startTransition(() => {
-              router.replace(buildTarget(pathname, deferredQuery.trim(), category, next, stage));
-            });
-          }}
-          className="min-w-[10rem] rounded-[1.2rem] border border-line bg-page/74 px-4 py-3 text-sm normal-case tracking-normal text-ink outline-none transition focus:border-accent"
-        >
-          <option value="all">All tiers</option>
-          <option value="months">Months</option>
-          <option value="weeks">Weeks</option>
-          <option value="days">Days</option>
-          <option value="queued">Queued</option>
-          <option value="blocked">Blocked</option>
-        </select>
-      </label>
-      <label className="space-y-2 text-xs uppercase tracking-[0.22em] text-ink/55">
-        Stage
-        <select
-          value={stage}
-          onChange={(event) => {
-            const next = event.target.value;
-            setStage(next);
-            startTransition(() => {
-              router.replace(buildTarget(pathname, deferredQuery.trim(), category, tier, next));
-            });
-          }}
-          className="min-w-[10rem] rounded-[1.2rem] border border-line bg-page/74 px-4 py-3 text-sm normal-case tracking-normal text-ink outline-none transition focus:border-accent"
-        >
-          <option value="all">All stages</option>
-          <option value="review">Review</option>
-          <option value="voting">Voting</option>
-          <option value="scheduled">Scheduled</option>
-          <option value="running">Running</option>
-          <option value="shipped">Shipped</option>
-          <option value="blocked">Blocked</option>
-        </select>
-      </label>
-      <div className="pb-2 text-xs uppercase tracking-[0.22em] text-ink/45">{isPending ? "Refreshing board" : "Board live"}</div>
-    </section>
-  );
-}
->>>>>>> origin/main
