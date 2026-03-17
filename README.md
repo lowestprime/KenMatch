@@ -31,7 +31,7 @@ Then open `http://localhost:3000`.
 
 ### Environment
 
-Copy [.env.example](/C:/Users/Cooper/Desktop/kenmatch/.env.example) and set values as needed.
+Copy [.env.example](./.env.example) and set values as needed.
 
 - `DATABASE_URL`: leave empty for the local file database, or point it at a remote libSQL database for deployment.
 - `DATABASE_AUTH_TOKEN`: auth token for remote libSQL deployments.
@@ -56,16 +56,18 @@ npm run build
 - For local development, KenMatch uses a file-backed SQLite-compatible database via libSQL.
 - For public deployment, set `DATABASE_URL` and `DATABASE_AUTH_TOKEN` to a managed remote libSQL database.
 - A simple health endpoint is available at `/api/health`.
-- Security headers are configured in [next.config.ts](/C:/Users/Cooper/Desktop/kenmatch/next.config.ts).
+- Security headers are configured in [next.config.ts](./next.config.ts).
+- A Synology NAS deployment runbook is available in [docs/synology-nas-deploy.md](./docs/synology-nas-deploy.md).
 
 ## Project map
 
-- [src/app](/C:/Users/Cooper/Desktop/kenmatch/src/app) contains routes, server actions, and the health endpoint.
-- [src/components](/C:/Users/Cooper/Desktop/kenmatch/src/components) contains the shell, auth, curation, discussion, and proposal UI.
-- [src/lib/db.ts](/C:/Users/Cooper/Desktop/kenmatch/src/lib/db.ts) contains schema initialization, seeding, hydration, auth persistence, and write flows.
-- [docs/requirements-traceability.md](/C:/Users/Cooper/Desktop/kenmatch/docs/requirements-traceability.md) maps conception requirements to implementation.
-- [docs/architecture.md](/C:/Users/Cooper/Desktop/kenmatch/docs/architecture.md) explains the current stack and deploy model.
+- [src/app](./src/app) contains routes, server actions, and the health endpoint.
+- [src/components](./src/components) contains the shell, auth, curation, discussion, and proposal UI.
+- [src/lib/db.ts](./src/lib/db.ts) contains schema initialization, seeding, hydration, auth persistence, and write flows.
+- [docs/requirements-traceability.md](./docs/requirements-traceability.md) maps conception requirements to implementation.
+- [docs/architecture.md](./docs/architecture.md) explains the current stack and deploy model.
+- [docs/synology-nas-deploy.md](./docs/synology-nas-deploy.md) provides DSM 7.2 + DS923+ self-host instructions.
 
 ## Source material
 
-- [KenMatch_Conception.md](/C:/Users/Cooper/Desktop/kenmatch/KenMatch_Conception.md)
+- [KenMatch_Conception.md](./KenMatch_Conception.md)
