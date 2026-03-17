@@ -2,6 +2,50 @@
 
 ## Stack
 
+<<<<<<< HEAD
+- Next.js 16 App Router for the full-stack web surface.
+- React 19.2 with server actions and modern client hooks for curation, discussion, and auth flows.
+- Tailwind CSS v4 with CSS-first theme variables and custom utility classes for the visual system.
+- [libSQL TypeScript](https://docs.turso.tech/sdk/ts/quickstart) for a stable SQLite-compatible local database and an easy remote upgrade path for public deployment.
+- `zod` for environment parsing and form validation.
+
+## Why this stack
+
+- The conception document demanded a real product, not a brochure. Next.js App Router covers read-heavy pages, authenticated write flows, and deployment routing in one system.
+- React server actions keep proposal, vote, pulse, comment, and auth mutations close to the pages that use them.
+- Tailwind v4 plus custom CSS variables let the app carry a distinct light/dark visual language without introducing another styling runtime.
+- libSQL keeps local development zero-config while supporting a remote production database via the same client API.
+
+## Main modules
+
+- [src/lib/db.ts](../src/lib/db.ts)
+  - Schema initialization, seed loading, snapshot hydration, account/session persistence, proposal creation, voting, pulse, comments, economics, and health checks.
+- [src/lib/session.ts](../src/lib/session.ts)
+  - Cookie-backed session lookup and mutation helpers.
+- [src/app/actions.ts](../src/app/actions.ts)
+  - Server actions for auth, proposal submission, quadratic voting, pulse voting, comment creation, and comment voting.
+- [src/components](../src/components)
+  - Shell, theme toggle, auth panels, proposal form, vote panel, pulse panel, discussion thread, and marketplace cards.
+
+## Routes
+
+- [src/app/page.tsx](../src/app/page.tsx)
+  - Overview, protocol framing, featured tasks, governance highlights, and economic flywheel summary.
+- [src/app/tasks/page.tsx](../src/app/tasks/page.tsx)
+  - Searchable and filterable proposal board.
+- [src/app/tasks/[slug]/page.tsx](../src/app/tasks/[slug]/page.tsx)
+  - Full proposal detail, finance metadata, pulse, quadratic voice, checkpoints, governance events, and discussion.
+- [src/app/submit/page.tsx](../src/app/submit/page.tsx)
+  - Structured proposal intake with quality-bond-aware auth gating.
+- [src/app/governance/page.tsx](../src/app/governance/page.tsx)
+  - Policy boundaries, attestation states, recent decisions, and blocked-task transparency.
+- [src/app/economics/page.tsx](../src/app/economics/page.tsx)
+  - Revenue streams, treasury ledger, and funded-task packaging logic.
+- [src/app/auth/page.tsx](../src/app/auth/page.tsx)
+  - Contributor sign-in and sign-up.
+- [src/app/api/health/route.ts](../src/app/api/health/route.ts)
+  - Deployment health probe.
+=======
 - Next.js 16 App Router for the full-stack product surface.
 - React 19.2 server actions and client hooks for proposal intake, allocation voting, public pulse voting, comments, and theming.
 - Tailwind CSS v4 with CSS-first theme variables for the visual system and light/dark mode.
@@ -44,9 +88,16 @@
   - Policy boundaries, category status, denial transparency, and governance rationale.
 - [src/app/economics/page.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/app/economics/page.tsx)
   - Revenue streams, treasury ledger, sponsor-ready lanes, and the public/commercial flywheel.
+>>>>>>> origin/main
 
-## Data model summary
+## Deployment model
 
+<<<<<<< HEAD
+- Local development uses `KENMATCH_DB_FILE` and a file-backed libSQL database.
+- Production deployment should point `DATABASE_URL` and `DATABASE_AUTH_TOKEN` at a managed remote libSQL database.
+- Security headers are configured in [next.config.ts](../next.config.ts).
+- Environment expectations are documented in [.env.example](../.env.example).
+=======
 - Profiles: earned voice credits, specialty, credibility, and bonded-credit accounting.
 - Categories: the public domains that organize the tier ladders.
 - Tasks: the proposal core, including problem framing, deliverables, evaluation, evidence, and requested tier.
@@ -58,3 +109,4 @@
 - Checkpoints and checkpoint gates: the audit trail and release controls for long-running work.
 - Governance events: safety-council and allocation-chamber decisions.
 - Revenue streams and treasury entries: the commercial engine that refills public compute capacity.
+>>>>>>> origin/main

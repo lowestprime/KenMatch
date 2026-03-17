@@ -3,38 +3,51 @@ import test from "node:test";
 
 import { summarizeEconomics, summarizeRevenueStream } from "../src/lib/economics.ts";
 
-test("summarizeRevenueStream applies treasury and founder splits", () => {
-  const stream = summarizeRevenueStream({
+test("summarizeRevenueStream applies treasury and founder shares", () => {
+  const summary = summarizeRevenueStream({
     id: "stream-1",
     slug: "enterprise",
-    name: "Enterprise",
+    name: "Enterprise packaging",
     engine: "enterprise",
-    description: "Managed packaging",
+    description: "Managed product layer",
     pricingModel: "Subscription",
     status: "live",
-    monthlyRevenueUsd: 62000,
-    grossMargin: 0.81,
+    monthlyRevenueUsd: 100_000,
+    grossMargin: 0.8,
     treasurySharePercent: 80,
     founderSharePercent: 20,
   });
 
-  assert.equal(stream.treasuryMonthlyUsd, 49600);
-  assert.equal(stream.founderMonthlyUsd, 12400);
+  assert.equal(summary.treasuryMonthlyUsd, 80_000);
+  assert.equal(summary.founderMonthlyUsd, 20_000);
 });
 
-test("summarizeEconomics computes the compute treasury balance from treasury entries only", () => {
+test("summarizeEconomics totals revenue and computes treasury balance from inflows and outflows", () => {
   const summary = summarizeEconomics(
     [
       {
         id: "stream-1",
         slug: "enterprise",
-        name: "Enterprise",
+        name: "Enterprise packaging",
         engine: "enterprise",
-        description: "Managed packaging",
+        description: "Managed product layer",
         pricingModel: "Subscription",
         status: "live",
-        monthlyRevenueUsd: 50000,
+        monthlyRevenueUsd: 100_000,
         grossMargin: 0.8,
+        treasurySharePercent: 80,
+        founderSharePercent: 20,
+      },
+      {
+        id: "stream-2",
+        slug: "licensing",
+        name: "Preference licensing",
+        engine: "data-licensing",
+        description: "Anonymized trajectory licensing",
+        pricingModel: "License",
+        status: "pilot",
+        monthlyRevenueUsd: 25_000,
+        grossMargin: 0.7,
         treasurySharePercent: 80,
         founderSharePercent: 20,
       },
@@ -43,40 +56,40 @@ test("summarizeEconomics computes the compute treasury balance from treasury ent
       {
         id: "entry-1",
         streamId: "stream-1",
-        title: "Treasury inflow",
-        description: "Revenue routed to compute treasury",
+        title: "Treasury routing",
+        description: "Enterprise inflow",
         bucket: "compute-treasury",
         direction: "inflow",
-        amountUsd: 40000,
+        amountUsd: 80_000,
         createdAt: "2026-03-01T00:00:00.000Z",
       },
       {
         id: "entry-2",
         streamId: null,
-        title: "Compute spend",
-        description: "Month-tier run",
+        title: "Compute burn",
+        description: "Month-tier outflow",
         bucket: "compute-treasury",
         direction: "outflow",
-        amountUsd: 14000,
+        amountUsd: 45_000,
         createdAt: "2026-03-02T00:00:00.000Z",
       },
       {
         id: "entry-3",
         streamId: null,
-        title: "Founder ops",
-        description: "Separate founder distribution",
+        title: "Founder transfer",
+        description: "Ignored for treasury balance",
         bucket: "founder-ops",
         direction: "inflow",
-        amountUsd: 10000,
+        amountUsd: 20_000,
         createdAt: "2026-03-03T00:00:00.000Z",
       },
     ],
-    18000,
+    45_000,
   );
 
-  assert.equal(summary.monthlyRevenueUsd, 50000);
-  assert.equal(summary.treasuryMonthlyUsd, 40000);
-  assert.equal(summary.founderMonthlyUsd, 10000);
-  assert.equal(summary.treasuryBalanceUsd, 26000);
-  assert.equal(summary.monthlyPublicBurnUsd, 18000);
+  assert.equal(summary.monthlyRevenueUsd, 125_000);
+  assert.equal(summary.treasuryMonthlyUsd, 100_000);
+  assert.equal(summary.founderMonthlyUsd, 25_000);
+  assert.equal(summary.treasuryBalanceUsd, 35_000);
+  assert.equal(summary.monthlyPublicBurnUsd, 45_000);
 });

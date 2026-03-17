@@ -3,14 +3,6 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useDeferredValue, useEffect, useRef, useState, useTransition } from "react";
 
-interface TaskBoardFiltersProps {
-  initialQuery: string;
-  initialCategory: string;
-  initialTier: string;
-  initialStage: string;
-  categories: Array<{ slug: string; name: string }>;
-}
-
 function buildTarget(pathname: string, query: string, category: string, tier: string, stage: string) {
   const params = new URLSearchParams();
   if (query) params.set("q", query);
@@ -20,13 +12,7 @@ function buildTarget(pathname: string, query: string, category: string, tier: st
   return params.size > 0 ? `${pathname}?${params.toString()}` : pathname;
 }
 
-export function TaskBoardFilters({
-  initialQuery,
-  initialCategory,
-  initialTier,
-  initialStage,
-  categories,
-}: TaskBoardFiltersProps) {
+export function TaskBoardFilters({ initialQuery, initialCategory, initialTier, initialStage, categories }: { initialQuery: string; initialCategory: string; initialTier: string; initialStage: string; categories: Array<{ slug: string; name: string }> }) {
   const router = useRouter();
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
@@ -44,15 +30,53 @@ export function TaskBoardFilters({
     }
 
     const target = buildTarget(pathname, deferredQuery.trim(), category, tier, stage);
-    startTransition(() => {
-      router.replace(target);
-    });
-  }, [deferredQuery, category, tier, stage, pathname, router, startTransition]);
+    startTransition(() => router.replace(target));
+  }, [category, deferredQuery, pathname, router, stage, tier]);
 
   return (
     <section className="panel flex flex-col gap-4 lg:flex-row lg:items-end">
-      <label className="flex-1 space-y-2 text-xs uppercase tracking-[0.22em] text-ink/55">
+      <label className="flex-1 space-y-2 text-xs uppercase tracking-[0.22em] text-muted">
         Search proposals
+<<<<<<< HEAD
+        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by title, category, problem, or packaging path" className="field" />
+      </label>
+      <FilterSelect label="Category" value={category} onChange={(next) => { setCategory(next); startTransition(() => router.replace(buildTarget(pathname, deferredQuery.trim(), next, tier, stage))); }}>
+        <option value="all">All categories</option>
+        {categories.map((categoryOption) => <option key={categoryOption.slug} value={categoryOption.slug}>{categoryOption.name}</option>)}
+      </FilterSelect>
+      <FilterSelect label="Tier" value={tier} onChange={(next) => { setTier(next); startTransition(() => router.replace(buildTarget(pathname, deferredQuery.trim(), category, next, stage))); }}>
+        <option value="all">All tiers</option>
+        <option value="months">Months</option>
+        <option value="weeks">Weeks</option>
+        <option value="days">Days</option>
+        <option value="queued">Queued</option>
+        <option value="blocked">Blocked</option>
+      </FilterSelect>
+      <FilterSelect label="Stage" value={stage} onChange={(next) => { setStage(next); startTransition(() => router.replace(buildTarget(pathname, deferredQuery.trim(), category, tier, next))); }}>
+        <option value="all">All stages</option>
+        <option value="review">Review</option>
+        <option value="voting">Voting</option>
+        <option value="scheduled">Scheduled</option>
+        <option value="running">Running</option>
+        <option value="shipped">Shipped</option>
+        <option value="blocked">Blocked</option>
+      </FilterSelect>
+      <div className="pb-2 text-xs uppercase tracking-[0.22em] text-muted">{isPending ? "Refreshing board" : "Board live"}</div>
+    </section>
+  );
+}
+
+function FilterSelect({ label, value, onChange, children }: { label: string; value: string; onChange: (value: string) => void; children: React.ReactNode }) {
+  return (
+    <label className="space-y-2 text-xs uppercase tracking-[0.22em] text-muted">
+      {label}
+      <select value={value} onChange={(event) => onChange(event.target.value)} className="field min-w-[11rem]">
+        {children}
+      </select>
+    </label>
+  );
+}
+=======
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
@@ -128,3 +152,4 @@ export function TaskBoardFilters({
     </section>
   );
 }
+>>>>>>> origin/main

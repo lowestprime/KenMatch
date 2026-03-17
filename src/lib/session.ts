@@ -1,17 +1,42 @@
 import { cookies } from "next/headers";
 
-import { getDefaultProfileId, listProfiles } from "@/lib/db";
+import { getViewerSessionByToken } from "@/lib/db";
+import { env } from "@/lib/env";
 
-export const ACTIVE_PROFILE_COOKIE = "kenmatch-profile";
+export const ACTIVE_SESSION_COOKIE = env.KENMATCH_SESSION_COOKIE;
 
-export async function getSessionProfileId() {
+function cookieOptions(maxAge?: number) {
+  return {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    secure: env.NODE_ENV === "production",
+    path: "/",
+    maxAge,
+  };
+}
+
+export async function getViewerSession() {
   const store = await cookies();
-  const requested = store.get(ACTIVE_PROFILE_COOKIE)?.value;
-  const profiles = listProfiles();
+  const token = store.get(ACTIVE_SESSION_COOKIE)?.value;
+  return token ? getViewerSessionByToken(token) : null;
+}
 
-  if (requested && profiles.some((profile) => profile.id === requested)) {
-    return requested;
-  }
+export async function getViewerProfileId() {
+  const session = await getViewerSession();
+  return session?.profile.id ?? null;
+}
 
-  return getDefaultProfileId();
+export async function setViewerSessionCookie(token: string) {
+  const store = await cookies();
+  store.set(ACTIVE_SESSION_COOKIE, token, cookieOptions(env.KENMATCH_SESSION_DAYS * 24 * 60 * 60));
+}
+
+export async function clearViewerSessionCookie() {
+  const store = await cookies();
+  store.set(ACTIVE_SESSION_COOKIE, "", cookieOptions(0));
+}
+
+export async function getViewerToken() {
+  const store = await cookies();
+  return store.get(ACTIVE_SESSION_COOKIE)?.value ?? null;
 }

@@ -1,79 +1,64 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useEffectEvent } from "react";
+import { useActionState } from "react";
 
-import { initialActionState, saveTaskPulseVoteAction } from "@/app/actions";
+import { initialActionState } from "@/app/action-state";
+import { saveTaskPulseAction } from "@/app/actions";
 
-interface TaskPulsePanelProps {
+export function TaskPulsePanel({
+  taskId,
+  slug,
+  userPulse,
+  positivePulseCount,
+  negativePulseCount,
+  disabled,
+}: {
   taskId: string;
   slug: string;
-  initialValue: number;
-  score: number;
-  upvotes: number;
-  downvotes: number;
-  compact?: boolean;
-}
-
-export function TaskPulsePanel({ taskId, slug, initialValue, score, upvotes, downvotes, compact = false }: TaskPulsePanelProps) {
-  const router = useRouter();
-  const [state, formAction, isPending] = useActionState(saveTaskPulseVoteAction, initialActionState);
-  const syncRefresh = useEffectEvent(() => {
-    if (state.status === "success") {
-      router.refresh();
-    }
-  });
-
-  useEffect(() => {
-    syncRefresh();
-  }, [state.status]);
-
-  const shellClass = compact ? "rounded-[1.2rem] border border-line bg-panel/82 p-3" : "rounded-[1.4rem] border border-line bg-panel/88 p-4";
-  const valueLabel = score > 0 ? `+${score}` : String(score);
+  userPulse: number;
+  positivePulseCount: number;
+  negativePulseCount: number;
+  disabled?: boolean;
+}) {
+  const [state, formAction, isPending] = useActionState(saveTaskPulseAction, initialActionState);
 
   return (
-    <form action={formAction} className={`${shellClass} space-y-3`}>
-      <input type="hidden" name="taskId" value={taskId} />
-      <input type="hidden" name="slug" value={slug} />
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <div className="text-[0.68rem] uppercase tracking-[0.22em] text-ink/50">Public signal</div>
-          <div className="mt-1 font-display text-2xl font-semibold text-ink">{valueLabel}</div>
-        </div>
-        <div className="text-right text-xs uppercase tracking-[0.18em] text-ink/45">
-          <div>{upvotes} up</div>
-          <div>{downvotes} down</div>
-        </div>
+    <div className="panel space-y-4">
+      <div>
+        <div className="eyebrow">Public curation</div>
+        <h2 className="mt-2 font-display text-2xl font-semibold text-foreground">Reddit-style signal, separate from voice allocation</h2>
+        <p className="mt-2 text-sm leading-7 text-muted">
+          Pulse is the broad public signal. Quadratic voice remains the scarce merit ledger. The conception brief calls for both.
+        </p>
       </div>
-      <div className="flex gap-2">
-        <button
-          type="submit"
-          name="value"
-          value={initialValue === 1 ? 0 : 1}
-          disabled={isPending}
-          className={`flex-1 rounded-full border px-4 py-2 text-sm font-semibold transition ${
-            initialValue === 1
-              ? "border-accent bg-accent text-white"
-              : "border-line bg-transparent text-ink hover:border-accent hover:text-accent"
-          }`}
-        >
-          ▲ Upvote
-        </button>
-        <button
-          type="submit"
-          name="value"
-          value={initialValue === -1 ? 0 : -1}
-          disabled={isPending}
-          className={`flex-1 rounded-full border px-4 py-2 text-sm font-semibold transition ${
-            initialValue === -1
-              ? "border-ember bg-ember text-white"
-              : "border-line bg-transparent text-ink hover:border-ember hover:text-ember"
-          }`}
-        >
-          ▼ Downvote
-        </button>
-      </div>
-      {state.message ? <p className={`text-xs ${state.status === "error" ? "text-red-700" : "text-accent"}`}>{state.message}</p> : null}
-    </form>
+      <form action={formAction} className="grid gap-3">
+        <input type="hidden" name="taskId" value={taskId} />
+        <input type="hidden" name="slug" value={slug} />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <PulseButton label="Upvote" current={userPulse === 1} value={userPulse === 1 ? 0 : 1} disabled={disabled || isPending} />
+          <PulseButton label="Downvote" current={userPulse === -1} value={userPulse === -1 ? 0 : -1} disabled={disabled || isPending} />
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 text-sm text-muted">
+          <div className="stat-card">
+            <span>Supportive pulse</span>
+            <strong>{positivePulseCount}</strong>
+          </div>
+          <div className="stat-card">
+            <span>Critical pulse</span>
+            <strong>{negativePulseCount}</strong>
+          </div>
+        </div>
+        {state.message ? <p className={`text-sm ${state.status === "error" ? "text-red-500" : "text-teal"}`}>{state.message}</p> : null}
+      </form>
+    </div>
   );
 }
+
+function PulseButton({ label, value, current, disabled }: { label: string; value: number; current: boolean; disabled?: boolean }) {
+  return (
+    <button className={`pulse-button ${current ? "is-active" : ""}`} type="submit" name="value" value={String(value)} disabled={disabled}>
+      {label}
+    </button>
+  );
+}
+

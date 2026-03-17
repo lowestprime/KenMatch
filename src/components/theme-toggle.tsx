@@ -2,45 +2,43 @@
 
 import { useEffect, useState } from "react";
 
-type Theme = "light" | "dark";
+const themes = [
+  { value: "light", label: "Light" },
+  { value: "dark", label: "Dark" },
+] as const;
 
-const STORAGE_KEY = "kenmatch-theme";
+type ThemeValue = (typeof themes)[number]["value"];
 
-function detectTheme(): Theme {
-  if (typeof window === "undefined") {
-    return "light";
+function getInitialTheme(): ThemeValue {
+  if (typeof document !== "undefined" && document.documentElement.dataset.theme === "dark") {
+    return "dark";
   }
-
-  const stored = window.localStorage.getItem(STORAGE_KEY);
-  if (stored === "dark" || stored === "light") {
-    return stored;
+  if (typeof window !== "undefined" && window.localStorage.getItem("kenmatch-theme") === "dark") {
+    return "dark";
   }
-
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return "light";
 }
 
-function applyTheme(nextTheme: Theme) {
-  document.documentElement.dataset.theme = nextTheme;
-  document.documentElement.style.colorScheme = nextTheme;
-  window.localStorage.setItem(STORAGE_KEY, nextTheme);
+function applyTheme(theme: ThemeValue) {
+  document.documentElement.dataset.theme = theme;
+  document.documentElement.style.colorScheme = theme;
+  window.localStorage.setItem("kenmatch-theme", theme);
 }
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>(detectTheme);
+  const [theme, setTheme] = useState<ThemeValue>(getInitialTheme);
 
   useEffect(() => {
     applyTheme(theme);
   }, [theme]);
 
   return (
-    <button
-      type="button"
-      onClick={() => setTheme((current) => (current === "light" ? "dark" : "light"))}
-      className="inline-flex items-center gap-2 rounded-full border border-line bg-panel/90 px-4 py-2 text-sm font-semibold text-ink transition hover:border-accent hover:text-accent"
-      aria-label="Toggle light and dark mode"
-    >
-      <span className="text-base">{theme === "light" ? "◐" : "◑"}</span>
-      <span>{theme === "light" ? "Dark mode" : "Light mode"}</span>
-    </button>
+    <div className="theme-toggle" role="group" aria-label="Theme toggle">
+      {themes.map((option) => (
+        <button key={option.value} type="button" className={theme === option.value ? "is-active" : ""} onClick={() => setTheme(option.value)}>
+          {option.label}
+        </button>
+      ))}
+    </div>
   );
 }
