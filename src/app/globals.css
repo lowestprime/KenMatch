@@ -1,0 +1,117 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
+
+  --color-paper: #f8f4ec;
+  --color-ink: #0f2530;
+  --color-teal: #0aa59d;
+  --color-ember: #da5736;
+  --color-gold: #d7aa4a;
+
+  --shadow-soft: 0 22px 60px rgba(15, 37, 48, 0.1);
+}
+
+:root {
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+::selection {
+  background: rgba(10, 165, 157, 0.22);
+}
+
+.font-display {
+  font-family: var(--font-display), sans-serif;
+}
+
+.font-body {
+  font-family: var(--font-body), sans-serif;
+}
+
+.font-mono {
+  font-family: var(--font-mono), monospace;
+}
+
+.panel {
+  border: 1px solid rgba(15, 37, 48, 0.08);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: var(--shadow-soft);
+  backdrop-filter: blur(18px);
+  border-radius: 1.75rem;
+  padding: 1.5rem;
+}
+
+.eyebrow {
+  font-family: var(--font-mono), monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(15, 37, 48, 0.55);
+}
+
+.hero-mesh {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-mesh::before {
+  content: "";
+  position: absolute;
+  inset: auto -12% -30% 35%;
+  height: 18rem;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(218, 87, 54, 0.2), transparent 68%);
+}
+
+.hero-mesh::after {
+  content: "";
+  position: absolute;
+  inset: 10% 45% auto -15%;
+  height: 20rem;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(10, 165, 157, 0.18), transparent 70%);
+}
+
+.metric-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+}
+
+.metric-card {
+  border-radius: 1.35rem;
+  border: 1px solid rgba(15, 37, 48, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.68));
+  padding: 1rem 1.1rem;
+}
+
+.section-grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (min-width: 900px) {
+  .section-grid[data-columns="2"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .section-grid[data-columns="3"] {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
