@@ -908,7 +908,7 @@ function buildDiscussionTree(
       ...comment,
       profileName: profile?.name ?? "Unknown contributor",
       profileRole: profile?.role ?? "Unverified contributor",
-      score: upvotes - downvotes + comment.stakeCredits,
+      score: upvotes - downvotes,
       upvotes,
       downvotes,
       userVote: votes.find((vote) => vote.profileId === viewerProfileId)?.value ?? 0,
@@ -1127,7 +1127,7 @@ async function hydrate(viewerProfileId?: string | null) {
   const monthlyPublicBurnUsd = treasuryEntries
     .filter((entry) => entry.bucket === "compute-treasury" && entry.direction === "outflow")
     .reduce((total, entry) => total + entry.amountUsd, 0);
-  const economics = summarizeEconomics(revenueSummaries, treasuryEntries, monthlyPublicBurnUsd);
+  const economics = summarizeEconomics(revenueStreams, treasuryEntries, monthlyPublicBurnUsd);
 
   return {
     profiles: profileSummaries,
@@ -1396,12 +1396,13 @@ export async function createProposal(input: CreateProposalInput, proposerId: str
   }
 
   const snapshot = await hydrate(proposerId);
-  if (!snapshot.viewer) {
-    throw new Error("You need an authenticated contributor session.");
+  const proposerSummary = snapshot.viewer ?? snapshot.profiles.find((profileEntry) => profileEntry.id === proposerId) ?? null;
+  if (!proposerSummary) {
+    throw new Error("Contributor profile not found.");
   }
 
   const defaults = tierDefaults[input.requestedTier];
-  if (snapshot.viewer.availableCredits < defaults.bond) {
+  if (proposerSummary.availableCredits < defaults.bond) {
     throw new Error(`Submitting a ${input.requestedTier} proposal requires ${defaults.bond} free voice credits for the quality bond.`);
   }
 

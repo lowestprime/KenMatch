@@ -1,6 +1,6 @@
 # KenMatch Requirements Traceability
 
-This file maps the stable, implementation-relevant requirements in [KenMatch_Conception.md](/C:/Users/Cooper/Desktop/kenmatch/KenMatch_Conception.md) to the current codebase.
+This file maps the stable, implementation-relevant requirements in [KenMatch_Conception.md](../KenMatch_Conception.md) to the current codebase.
 
 ## Stable requirements extracted from the conception document
 
@@ -16,21 +16,21 @@ This file maps the stable, implementation-relevant requirements in [KenMatch_Con
 ## Where those requirements are implemented
 
 - Sustained compute as the scarce resource
-  - Run metadata, runtime hours, budgets, and checkpoint cadence live in [src/lib/db.ts](/C:/Users/Cooper/Desktop/kenmatch/src/lib/db.ts) and render on [src/app/tasks/[slug]/page.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/app/tasks/[slug]/page.tsx).
+  - Run metadata, runtime hours, budgets, and checkpoint cadence live in [src/lib/db.ts](../src/lib/db.ts) and render on [src/app/tasks/[slug]/page.tsx](../src/app/tasks/[slug]/page.tsx).
 - Earned, non-purchasable voice
-  - Quadratic voice, profile-bound credits, and proposal bonds are enforced in [src/lib/allocation.ts](/C:/Users/Cooper/Desktop/kenmatch/src/lib/allocation.ts), [src/lib/db.ts](/C:/Users/Cooper/Desktop/kenmatch/src/lib/db.ts), and [src/components/vote-panel.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/components/vote-panel.tsx).
+  - Quadratic voice, profile-bound credits, and proposal bonds are enforced in [src/lib/allocation.ts](../src/lib/allocation.ts), [src/lib/db.ts](../src/lib/db.ts), and [src/components/vote-panel.tsx](../src/components/vote-panel.tsx).
 - Months / weeks / days allocation
-  - Ranking and tier assignment remain explicit in [src/lib/allocation.ts](/C:/Users/Cooper/Desktop/kenmatch/src/lib/allocation.ts) and are surfaced across [src/app/page.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/app/page.tsx), [src/app/tasks/page.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/app/tasks/page.tsx), and [src/app/tasks/[slug]/page.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/app/tasks/[slug]/page.tsx).
+  - Ranking and tier assignment remain explicit in [src/lib/allocation.ts](../src/lib/allocation.ts) and are surfaced across [src/app/page.tsx](../src/app/page.tsx), [src/app/tasks/page.tsx](../src/app/tasks/page.tsx), and [src/app/tasks/[slug]/page.tsx](../src/app/tasks/[slug]/page.tsx).
 - Public curation beyond quadratic voting
-  - Task pulse voting, comment voting, replies, and comment staking live in [src/lib/db.ts](/C:/Users/Cooper/Desktop/kenmatch/src/lib/db.ts), [src/app/actions.ts](/C:/Users/Cooper/Desktop/kenmatch/src/app/actions.ts), [src/components/task-pulse-panel.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/components/task-pulse-panel.tsx), and [src/components/discussion-thread.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/components/discussion-thread.tsx).
+  - Task pulse voting, comment voting, replies, and comment staking live in [src/lib/db.ts](../src/lib/db.ts), [src/app/actions.ts](../src/app/actions.ts), [src/components/task-pulse-panel.tsx](../src/components/task-pulse-panel.tsx), and [src/components/discussion-thread.tsx](../src/components/discussion-thread.tsx).
 - Visible safety boundaries
-  - Governance logs and blocked proposals are exposed on [src/app/governance/page.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/app/governance/page.tsx) and [src/app/tasks/[slug]/page.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/app/tasks/[slug]/page.tsx).
+  - Governance logs and blocked proposals are exposed on [src/app/governance/page.tsx](../src/app/governance/page.tsx) and [src/app/tasks/[slug]/page.tsx](../src/app/tasks/[slug]/page.tsx).
 - Checkpoint-gated execution
-  - Release gates and checkpoint approval thresholds are modeled in [src/lib/db.ts](/C:/Users/Cooper/Desktop/kenmatch/src/lib/db.ts) and rendered in [src/app/tasks/[slug]/page.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/app/tasks/[slug]/page.tsx).
+  - Release gates and checkpoint approval thresholds are modeled in [src/lib/db.ts](../src/lib/db.ts) and rendered in [src/app/tasks/[slug]/page.tsx](../src/app/tasks/[slug]/page.tsx).
 - Public curation engine vs revenue engine
-  - Revenue streams, treasury entries, sponsor pools, packaging notes, and data-value notes live in [src/lib/db.ts](/C:/Users/Cooper/Desktop/kenmatch/src/lib/db.ts) and [src/app/economics/page.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/app/economics/page.tsx).
+  - Revenue streams, treasury entries, sponsor pools, packaging notes, and data-value notes live in [src/lib/db.ts](../src/lib/db.ts) and [src/app/economics/page.tsx](../src/app/economics/page.tsx).
 - Attributable identity and session-based legitimacy
-  - Real accounts and sessions now replace the old profile switcher in [src/lib/db.ts](/C:/Users/Cooper/Desktop/kenmatch/src/lib/db.ts), [src/lib/session.ts](/C:/Users/Cooper/Desktop/kenmatch/src/lib/session.ts), and [src/app/auth/page.tsx](/C:/Users/Cooper/Desktop/kenmatch/src/app/auth/page.tsx).
+  - Real accounts and sessions now replace the old profile switcher in [src/lib/db.ts](../src/lib/db.ts), [src/lib/session.ts](../src/lib/session.ts), and [src/app/auth/page.tsx](../src/app/auth/page.tsx).
 
 ## Still interpretive rather than fully resolved in code
 
