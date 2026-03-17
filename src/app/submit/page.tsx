@@ -12,9 +12,15 @@ export default async function SubmitPage() {
     <div className="space-y-8">
       <section className="panel space-y-4">
         <div className="eyebrow">Proposal intake</div>
+<<<<<<< HEAD
         <h1 className="font-display text-4xl font-semibold text-foreground">Submit a task for public ranking, safety review, and checkpointed execution</h1>
         <p className="max-w-4xl text-lg leading-8 text-muted">
           The conception brief is explicit: structure matters. Proposals should make public benefit, deliverables, evaluation criteria, risks, packaging path, and data value legible before they ask for scarce compute.
+=======
+        <h1 className="font-display text-4xl font-semibold text-ink">Submit a task for safety review, public curation, and treasury-backed ranking</h1>
+        <p className="max-w-4xl text-lg leading-8 text-ink/72">
+          The upgraded intake flow now captures the missing conception primitives directly: explicit problem framing, evaluation criteria, a visible proposal bond, and room for later commercial packaging without compromising the public allocation layer.
+>>>>>>> origin/main
         </p>
       </section>
       {viewer ? (

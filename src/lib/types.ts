@@ -31,12 +31,15 @@ export type RevenueStatus = (typeof revenueStatuses)[number];
 export const treasuryDirections = ["inflow", "outflow"] as const;
 export type TreasuryDirection = (typeof treasuryDirections)[number];
 
+<<<<<<< HEAD
 export const moderationStatuses = ["active", "restricted", "suspended"] as const;
 export type ModerationStatus = (typeof moderationStatuses)[number];
 
 export const attestationLevels = ["provisional", "verified", "expert"] as const;
 export type AttestationLevel = (typeof attestationLevels)[number];
 
+=======
+>>>>>>> origin/main
 export interface CategoryRecord {
   id: string;
   slug: string;
@@ -208,20 +211,26 @@ export interface TreasuryEntryRecord {
 }
 
 export interface ProfileSummary extends ProfileRecord {
+<<<<<<< HEAD
   attestationLevel: AttestationLevel;
   moderationStatus: ModerationStatus;
   createdAt: string;
+=======
+>>>>>>> origin/main
   voteCreditsSpent: number;
   bondedCredits: number;
   spentCredits: number;
   availableCredits: number;
 }
 
+<<<<<<< HEAD
 export interface ViewerSession {
   account: Pick<AccountRecord, "id" | "email" | "createdAt">;
   profile: ProfileSummary;
 }
 
+=======
+>>>>>>> origin/main
 export interface TaskSummary extends TaskRecord, TaskFinanceRecord {
   categoryName: string;
   categorySlug: string;
