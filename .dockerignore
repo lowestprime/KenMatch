@@ -1,7 +1,10 @@
 .git
-.github
-.next
+.gitignore
+.env
+.deployed-commit
 node_modules
-npm-debug.log
-coverage
-*.log
+.next
+data
+#recycle
+@eaDir
+**/@eaDir

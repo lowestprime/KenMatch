@@ -7,14 +7,9 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+    env_file:
+      - .env
     environment:
       NODE_ENV: production
-      DATABASE_URL: ""
-      DATABASE_AUTH_TOKEN: ""
-      KENMATCH_DB_FILE: /app/data/kenmatch.sqlite
-      KENMATCH_SESSION_COOKIE: kenmatch-session
-      KENMATCH_SESSION_DAYS: "14"
-      KENMATCH_ALLOW_SIGNUPS: "true"
-      KENMATCH_ENABLE_DEMO_PROFILE_SWITCHER: "false"
     volumes:
       - ./data:/app/data
