@@ -386,7 +386,11 @@ async function initializeDatabase() {
     "write",
   );
 
-  const profileCount = getCount(await loadRows("SELECT COUNT(*) AS count FROM profiles"));
+  const profileCountResult = await client.execute({
+    sql: "SELECT COUNT(*) AS count FROM profiles",
+    args: [],
+  });
+  const profileCount = getCount(profileCountResult.rows as DbRow[]);
   if (profileCount > 0) {
     return;
   }
@@ -561,7 +565,8 @@ async function seedDatabase() {
     args: [entry.id, entry.streamId, entry.title, entry.description, entry.bucket, entry.direction, entry.amountUsd, entry.createdAt],
   } satisfies InStatement));
 
-  await batch(
+  const client = getClient();
+  await client.batch(
     [
       ...profileStatements,
       ...categoryStatements,
