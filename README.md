@@ -1,12 +1,12 @@
 # **KenMatch: Democratized Alignment of Frontier Long-Horizon Computation**
 
-KenMatch democratizes access to continuous frontier AI by crowdsourcing *which* long-horizon tasks deserve sustained enterprise-grade computation, effectively allocating days, weeks, and months of agentic runtime in accordance with the transparently-resolved quantification of tasks' collective value, independent of personal wealth. ([1](https://deepmind.google/models/model-cards/gemini-3-1-pro/))([2](https://developers.openai.com/api/docs/models/gpt-5.4))([12](https://openai.com/index/introducing-gpt-5-4/))([5](https://platform.claude.com/docs/en/about-claude/models/overview))([3](https://www.anthropic.com/news/claude-opus-4-6))([4](https://x.ai/api))
+KenMatch democratizes access to continuous frontier AI by crowdsourcing *which* long-horizon tasks deserve sustained enterprise-grade computation, effectively allocating days, weeks, and months of agentic runtime in accordance with the transparently-resolved quantification of tasks&rsquo; collective value, independent of personal wealth. ([1](https://deepmind.google/models/model-cards/gemini-3-1-pro/))([2](https://developers.openai.com/api/docs/models/gpt-5.4))([12](https://openai.com/index/introducing-gpt-5-4/))([5](https://platform.claude.com/docs/en/about-claude/models/overview))([3](https://www.anthropic.com/news/claude-opus-4-6))([4](https://x.ai/api))
 
 ## **Overview**
 
 KenMatch is a public coordination layer for one of the defining scarcities of the AI era: **long-horizon frontier-grade computation**.
 
-As frontier models evolve from short, single-turn assistants into long-context, tool-using agents&mdash;systems explicitly designed to plan, operate software, and execute multi-step workflows&mdash;access to "a few queries" is no longer the dividing line. The dividing line becomes one's **access and representation to direct sustained agentic effort**: over hours, days, weeks, and toward the most complex applications, months. Major frontier providers now document million-token-class contexts and agentic computer-use capabilities as first-class features, underscoring a trajectory seeking to broaden the adoption and application of long-horizon computation across economic sectors. ([1](https://deepmind.google/models/model-cards/gemini-3-1-pro/))([2](https://developers.openai.com/api/docs/models/gpt-5.4))([3](https://www.anthropic.com/news/claude-opus-4-6))([4](https://x.ai/api))
+As frontier models evolve from short, single-turn assistants into long-context, tool-using agents&mdash;systems explicitly designed to plan, operate software, and execute multi-step workflows&mdash;access to &ldquo;a few queries&rdquo; is no longer the dividing line. The dividing line becomes one&rsquo;s **access and representation to direct sustained agentic effort**: over hours, days, weeks, and toward the most complex applications, months. Major frontier providers now document million-token-class contexts and agentic computer-use capabilities as first-class features, underscoring a trajectory seeking to broaden the adoption and application of long-horizon computation across economic sectors. ([1](https://deepmind.google/models/model-cards/gemini-3-1-pro/))([2](https://developers.openai.com/api/docs/models/gpt-5.4))([3](https://www.anthropic.com/news/claude-opus-4-6))([4](https://x.ai/api))
 
 Currently, continuous computation is constrained by physics and infrastructure. Data centers already represent a material share of electricity demand and are projected to grow sharply in the coming years; global data center electricity consumption is estimated in the hundreds of terawatt-hours today, and is projected to roughly double by 2030 under mainstream scenarios. These constraints do not affect everyone equally: institutions with capital and privileged procurement can reserve capacity; individuals and small teams generally cannot. ([6](https://www.energy.gov/articles/doe-releases-new-report-evaluating-increase-electricity-demand-data-centers))([7](https://www.iea.org/reports/energy-and-ai/energy-demand-from-ai))([8](https://www.iea.org/reports/energy-and-ai/executive-summary%C2%A0))
 
@@ -28,7 +28,7 @@ effectively integrating these intuitions into a concrete **allocation protocol o
 
 ## **Coordination**
 
-KenMatch centralizes the proposal, refinement, and prioritization of "long-horizon tasks," including, but not limited to:
+KenMatch centralizes the proposal, refinement, and prioritization of &ldquo;long-horizon tasks,&rdquo; including, but not limited to:
 
 1. deep scientific and technical research that benefits from iterative investigation and synthesis,
 
@@ -42,9 +42,9 @@ The platform is designed for tasks that are naturally multi-stage: they require 
 
 ## **Proof-of-value Allocation Credits**
 
-KenMatch's allocation credits are not a pay-to-win instrument. In KenMatch's intended design, **allocation rights are earned** through contribution and curation, not purchased.
+KenMatch&rsquo;s allocation credits are not a pay-to-win instrument. In KenMatch&rsquo;s intended design, **allocation rights are earned** through contribution and curation, not purchased.
 
-Users earn "proof-of-value" credits by doing work the community can audit and validate, such as:
+Users earn &ldquo;proof-of-value&rdquo; credits by doing work the community can audit and validate, such as:
 
 1. proposing tasks that generate high-quality, verifiable outputs,
 
@@ -58,7 +58,7 @@ The governance literature on token platforms emphasizes that token issuance can 
 
 ## **Democratic Ranking with Safeguards**
 
-KenMatch's "value" cannot be a single number. It must be the result of a process that is:
+KenMatch&rsquo;s &ldquo;value&rdquo; cannot be a single number. It must be the result of a process that is:
 
 1. **inclusive** (broad participation),
 
@@ -70,13 +70,13 @@ KenMatch's "value" cannot be a single number. It must be the result of a process
 
 A defensible default for expressing intensity of preference is quadratic voting, where the cost of concentrating votes rises quadratically. This voting rule is motivated in the mechanism design literature and is widely discussed as a way to incorporate preference intensity rather than only headcount, while still requiring serious attention to secure implementation and fraud resistance. ([15](https://vote.caltech.edu/working-papers/128))([16](https://www.microsoft.com/en-us/research/publication/quadratic-voting-how-mechanism-design-can-radicalize-democracy/))
 
-KenMatch pairs broad voting with a constrained "safety and validity" layer that can block tasks that plausibly create severe harm or cannot be evaluated responsibly. This is aligned with mainstream AI risk management guidance (governance, measurement, monitoring, and mitigation), instead of a blind trust approach. ([24](https://deepmind.google/discover/blog/introducing-the-frontier-safety-framework/))([25](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-ai-rmf-10))([26](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence))([27](https://www.oecd.org/en/topics/ai-principles.html))
+KenMatch pairs broad voting with a constrained &ldquo;safety and validity&rdquo; layer that can block tasks that plausibly create severe harm or cannot be evaluated responsibly. This is aligned with mainstream AI risk management guidance (governance, measurement, monitoring, and mitigation), instead of a blind trust approach. ([24](https://deepmind.google/discover/blog/introducing-the-frontier-safety-framework/))([25](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-ai-rmf-10))([26](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence))([27](https://www.oecd.org/en/topics/ai-principles.html))
 
 ## **Allocation Protocol**
 
-KenMatch organizes long-horizon computational tasks into explicit duration tiers, because the duration of frontier LLM's sustained computational effort is a finite resource, while the management of energy use and facilities pose additional constraints.
+KenMatch organizes long-horizon computational tasks into explicit duration tiers, because the duration of frontier LLM&rsquo;s sustained computational effort is a finite resource, while the management of energy use and facilities pose additional constraints.
 
-KenMatch's baseline tiering is:
+KenMatch&rsquo;s baseline tiering is:
 
 1. **Months**: top **3** projects per category
 
@@ -96,7 +96,7 @@ Decentralized computation is an active design space with concrete architectures:
 
 2. protocols for running ML computation across heterogeneous devices with trustless verification, ([22](https://docs.gensyn.ai/home/the-gensyn-protocol))
 
-3. and peer-to-peer "intelligence markets" that reward contributors based on ledgered value signals. ([23](https://bittensor.com/whitepaper))
+3. and peer-to-peer &ldquo;intelligence markets&rdquo; that reward contributors based on ledgered value signals. ([23](https://bittensor.com/whitepaper))
 
 KenMatch contends that **the collective deserves a legitimate mechanism to determine which ideas and problems will benefit from the long-horizon effort of elite LLMs**, without defaulting to wealth as the allocator.
 
@@ -118,9 +118,9 @@ This stance reflects widely adopted principles for AI alignment, including risk 
 
 ## **Vision**
 
-KenMatch seeks to equalize the **long-horizon deployment of frontier AI toward the realization of collective value.** This necessitates broad participation to identify the most brilliant and innovative ideas across humanity's collective creativity, taste, and imagination. As equal stakeholders in a society increasingly permeated by unprecedented computational intelligence, we have a right to curate the most promising ideas of collective value for frontier autonomous AI deployment. **Capital constraints should never computationally constrain our best ideas.**
+KenMatch seeks to equalize the **long-horizon deployment of frontier AI toward the realization of collective value.** This necessitates broad participation to identify the most brilliant and innovative ideas across humanity&rsquo;s collective creativity, taste, and imagination. As equal stakeholders in a society increasingly permeated by unprecedented computational intelligence, we have a right to curate the most promising ideas of collective value for frontier autonomous AI deployment. **Capital constraints should never computationally constrain our best ideas.**
 
-**Our creativity, taste and imagination trained frontier LLMs' capability as knowledge creation and complex development engines; it is our right to govern their alignment in service of our flourishing.** KenMatch enables democratic, transparent, and merit-sensitive joint operation of long-horizon frontier computation, allocating access proportional to demonstrated contribution and value rather than capital.
+**Our creativity, taste and imagination trained frontier LLMs&rsquo; capability as knowledge creation and complex development engines; it is our right to govern their alignment in service of our flourishing.** KenMatch enables democratic, transparent, and merit-sensitive joint operation of long-horizon frontier computation, allocating access proportional to demonstrated contribution and value rather than capital.
 
 ## Features
 
@@ -177,7 +177,7 @@ npm run build
 - For public deployment, `DATABASE_URL` and `DATABASE_AUTH_TOKEN` can be specified for managed remote libSQL database integration.
 - A health endpoint is available at [`/api/health`](./src/app/api/health).
 - Security headers are configured in [next.config.ts](./next.config.ts).
-- A self-hosted demonstration of KenMatch can be deployed from a user's NAS per the [docs/synology-nas-deploy.md](./docs/synology-nas-deploy.md) runbook instructions.
+- A self-hosted demonstration of KenMatch can be deployed from a user&rsquo;s NAS per the [docs/synology-nas-deploy.md](./docs/synology-nas-deploy.md) runbook instructions.
 
 ## Project map
 
