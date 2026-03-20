@@ -2,52 +2,116 @@
 
 ## Stack
 
-- Next.js 16 App Router for the full-stack web surface.
-- React 19.2 with server actions and modern client hooks for curation, discussion, and auth flows.
-- Tailwind CSS v4 with CSS-first theme variables and custom utility classes for the visual system.
-- [libSQL TypeScript](https://docs.turso.tech/sdk/ts/quickstart) for a stable SQLite-compatible local database and an easy remote upgrade path for public deployment.
-- `zod` for environment parsing and form validation.
+- Next.js 16 App Router
+- React 19
+- Tailwind CSS v4 plus custom CSS variables and theme classes
+- libSQL TypeScript client for local-file or remote persistence
+- Account-backed signed-in cookies
+- Server Actions for sign-in, sign-up, voting, comments, and Ken submission
 
-## Why this stack
+## Route structure
 
-- The conception document demanded a real product, not a brochure. Next.js App Router covers read-heavy pages, authenticated write flows, and deployment routing in one system.
-- React server actions keep proposal, vote, pulse, comment, and auth mutations close to the pages that use them.
-- Tailwind v4 plus custom CSS variables let the app carry a distinct light/dark visual language without introducing another styling runtime.
-- libSQL keeps local development zero-config while supporting a remote production database via the same client API.
+- `src/app/page.tsx`
+  - Overview page with featured Kens, funding snapshot, governance preview, and contributor sample.
+- `src/app/kens/page.tsx`
+  - Public board with search, category, lane, and status filters.
+- `src/app/kens/[slug]/page.tsx`
+  - Ken detail view with timing metadata, launch window, compute progression, audit timeline, comments, governance log, and funding context.
+- `src/app/submit/page.tsx`
+  - Ken intake form with tier-aware guidance.
+- `src/app/governance/page.tsx`
+  - Attestation ladder, blocked Kens, governance log, and category health.
+- `src/app/economics/page.tsx`
+  - Treasury summary, revenue streams, sponsor pools, and ledger entries.
+- `src/app/auth/page.tsx`
+  - Account creation and sign-in.
+- `src/app/tasks/*`
+  - Redirect layer for legacy URLs.
+- `src/app/api/health/route.ts`
+  - Health probe for deployment and monitoring.
 
-## Main modules
+## Data model
 
-- [src/lib/db.ts](../src/lib/db.ts)
-  - Schema initialization, seed loading, snapshot hydration, account/session persistence, proposal creation, voting, pulse, comments, economics, and health checks.
-- [src/lib/session.ts](../src/lib/session.ts)
-  - Cookie-backed session lookup and mutation helpers.
-- [src/app/actions.ts](../src/app/actions.ts)
-  - Server actions for auth, proposal submission, quadratic voting, pulse voting, comment creation, and comment voting.
-- [src/components](../src/components)
-  - Shell, theme toggle, auth panels, proposal form, vote panel, pulse panel, discussion thread, and marketplace cards.
+The main data logic lives in `src/lib/db.ts`.
 
-## Routes
+### Core records
 
-- [src/app/page.tsx](../src/app/page.tsx)
-  - Overview, protocol framing, featured tasks, governance highlights, and economic flywheel summary.
-- [src/app/tasks/page.tsx](../src/app/tasks/page.tsx)
-  - Searchable and filterable proposal board.
-- [src/app/tasks/[slug]/page.tsx](../src/app/tasks/[slug]/page.tsx)
-  - Full proposal detail, finance metadata, pulse, quadratic voice, checkpoints, governance events, and discussion.
-- [src/app/submit/page.tsx](../src/app/submit/page.tsx)
-  - Structured proposal intake with quality-bond-aware auth gating.
-- [src/app/governance/page.tsx](../src/app/governance/page.tsx)
-  - Policy boundaries, attestation states, recent decisions, and blocked-task transparency.
-- [src/app/economics/page.tsx](../src/app/economics/page.tsx)
-  - Revenue streams, treasury ledger, and funded-task packaging logic.
-- [src/app/auth/page.tsx](../src/app/auth/page.tsx)
-  - Contributor sign-in and sign-up.
-- [src/app/api/health/route.ts](../src/app/api/health/route.ts)
-  - Deployment health probe.
+- profiles
+- accounts
+- sessions
+- categories
+- tasks (internal compatibility name for Kens)
+- task_finance
+- votes
+- task_pulse_votes
+- comments
+- comment_votes
+- runs
+- task_timings
+- run_updates
+- checkpoints
+- checkpoint_gates
+- governance_events
+- revenue_streams
+- treasury_entries
+- profile_attestations
+
+### Why the model is split this way
+
+- `votes` and `task_pulse_votes` are separate so public signal does not collapse into scarce allocation voice.
+- `task_timings` and `run_updates` make launch timing, partial delivery, early completion, and long-run auditing explicit.
+- `task_finance`, `revenue_streams`, and `treasury_entries` keep funding logic visible without turning governance into a pricing layer, and economics summaries separate committed support from projected support.
+- `profile_attestations` separates standing, review status, and sybil-risk signals from profile copy, while `src/lib/attestation.ts` converts that state into participation limits and voice caps.
+
+## UI system
+
+The visual system is centered in `src/app/globals.css`.
+
+### Themes
+
+- `light`
+- `dark`
+- `oled`
+
+The theme toggle writes to `localStorage`, and the layout boot script applies the stored theme before hydration.
+
+### Core UI pieces
+
+- `src/components/site-shell.tsx`
+  - Compact sticky header, brand, navigation, participation state display, and footer.
+- `src/components/kenmatch-mark.tsx`
+  - Product mark used in the header.
+- `src/components/ken-timing-strip.tsx`
+  - Countdown, submission age, compute usage, and progression display.
+- `src/components/task-card.tsx`
+  - Ken cards for the board and overview page.
+- `src/components/task-pulse-panel.tsx`
+  - Public upvote/downvote signal panel.
+- `src/components/vote-panel.tsx`
+  - Quadratic voice allocation panel with visible voice cap.
+- `src/components/discussion-thread.tsx`
+  - Threaded comments and comment voting.
+- `src/components/proposal-form.tsx`
+  - Ken intake form.
+- `src/components/auth-panels.tsx`
+  - Sign-in and sign-up UI.
+
+## Accounts and sign-in
+
+- `src/lib/session.ts` reads and writes the signed-in account cookie.
+- `src/app/actions.ts` creates accounts, opens sign-ins, and clears sign-ins.
+- `src/lib/db.ts` stores accounts and hashed sign-in tokens.
 
 ## Deployment model
 
-- Local development uses `KENMATCH_DB_FILE` and a file-backed libSQL database.
-- Production deployment should point `DATABASE_URL` and `DATABASE_AUTH_TOKEN` at a managed remote libSQL database.
-- Security headers are configured in [next.config.ts](../next.config.ts).
-- Environment expectations are documented in [.env.example](../.env.example).
+- `next.config.ts` enables standalone output and response security headers.
+- `Dockerfile` runs the standalone server generated by `next build`.
+- `docker-compose.synology.yml` mounts persistent app data and defines a health check.
+- `public/.gitkeep` keeps the `public` directory present so the standalone Docker copy step is valid even when assets are generated via App Router metadata files.
+
+## Seed data
+
+- `src/lib/seed.ts` holds realistic demo Kens and categories.
+- `src/lib/seed-plus.ts` adds attestation state, timing, audit updates, treasury entries, and sponsor pools.
+
+The current demo intentionally includes both desirable Kens and a blocked offensive example so the visible governance boundary can be inspected in the public UI.

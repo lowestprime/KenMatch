@@ -22,7 +22,7 @@ test("summarizeRevenueStream applies treasury and founder shares", () => {
   assert.equal(summary.founderMonthlyUsd, 20_000);
 });
 
-test("summarizeEconomics totals revenue and computes treasury balance from inflows and outflows", () => {
+test("summarizeEconomics derives coverage, restricted funds, and verified streams", () => {
   const summary = summarizeEconomics(
     [
       {
@@ -51,6 +51,19 @@ test("summarizeEconomics totals revenue and computes treasury balance from inflo
         treasurySharePercent: 80,
         founderSharePercent: 20,
       },
+      {
+        id: "stream-3",
+        slug: "sponsorship",
+        name: "Civic sponsorships",
+        engine: "sponsorship",
+        description: "Restricted pools",
+        pricingModel: "Sponsorship",
+        status: "planned",
+        monthlyRevenueUsd: 10_000,
+        grossMargin: 0.6,
+        treasurySharePercent: 90,
+        founderSharePercent: 10,
+      },
     ],
     [
       {
@@ -66,30 +79,47 @@ test("summarizeEconomics totals revenue and computes treasury balance from inflo
       {
         id: "entry-2",
         streamId: null,
-        title: "Compute burn",
-        description: "Month-tier outflow",
+        title: "Restricted civic sponsorship pool",
+        description: "Restricted inflow for public health Kens",
         bucket: "compute-treasury",
-        direction: "outflow",
-        amountUsd: 45_000,
+        direction: "inflow",
+        amountUsd: 12_000,
         createdAt: "2026-03-02T00:00:00.000Z",
       },
       {
         id: "entry-3",
+        streamId: null,
+        title: "Compute burn",
+        description: "Month-tier outflow",
+        bucket: "compute-treasury",
+        direction: "outflow",
+        amountUsd: 46_000,
+        createdAt: "2026-03-03T00:00:00.000Z",
+      },
+      {
+        id: "entry-4",
         streamId: null,
         title: "Founder transfer",
         description: "Ignored for treasury balance",
         bucket: "founder-ops",
         direction: "inflow",
         amountUsd: 20_000,
-        createdAt: "2026-03-03T00:00:00.000Z",
+        createdAt: "2026-03-04T00:00:00.000Z",
       },
     ],
-    45_000,
+    46_000,
+    18_000,
   );
 
-  assert.equal(summary.monthlyRevenueUsd, 125_000);
-  assert.equal(summary.treasuryMonthlyUsd, 100_000);
-  assert.equal(summary.founderMonthlyUsd, 25_000);
-  assert.equal(summary.treasuryBalanceUsd, 35_000);
-  assert.equal(summary.monthlyPublicBurnUsd, 45_000);
+  assert.equal(summary.monthlyRevenueUsd, 135_000);
+  assert.equal(summary.treasuryMonthlyUsd, 109_000);
+  assert.equal(summary.founderMonthlyUsd, 26_000);
+  assert.equal(summary.treasuryBalanceUsd, 46_000);
+  assert.equal(summary.monthlyPublicBurnUsd, 46_000);
+  assert.equal(summary.coverageMonths, 1);
+  assert.equal(summary.restrictedFundingUsd, 12_000);
+  assert.equal(summary.sponsorPoolsUsd, 18_000);
+  assert.equal(summary.verifiedFundingStreams, 2);
 });
+
+

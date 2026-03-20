@@ -37,6 +37,21 @@ export type ModerationStatus = (typeof moderationStatuses)[number];
 export const attestationLevels = ["provisional", "verified", "expert"] as const;
 export type AttestationLevel = (typeof attestationLevels)[number];
 
+export const attestationStatuses = ["verified", "review", "limited"] as const;
+export type AttestationStatus = (typeof attestationStatuses)[number];
+
+export const sybilRiskBands = ["low", "medium", "high"] as const;
+export type SybilRiskBand = (typeof sybilRiskBands)[number];
+
+export const participationStates = ["full", "review-limited", "read-only"] as const;
+export type ParticipationState = (typeof participationStates)[number];
+
+export const completionModes = ["planned", "running", "partial-delivery", "completed-early", "completed-at-limit", "blocked"] as const;
+export type CompletionMode = (typeof completionModes)[number];
+
+export const updateStatuses = ["planned", "on-track", "at-risk", "partial", "shipped"] as const;
+export type UpdateStatus = (typeof updateStatuses)[number];
+
 export interface CategoryRecord {
   id: string;
   slug: string;
@@ -58,6 +73,16 @@ export interface ProfileRecord {
   credibility: number;
   avatarHue: number;
   createdAt?: string;
+}
+
+export interface ProfileAttestationRecord {
+  profileId: string;
+  provider: string;
+  status: AttestationStatus;
+  sybilRisk: SybilRiskBand;
+  reviewedAt: string;
+  signals: string[];
+  note: string;
 }
 
 export interface AccountRecord {
@@ -156,6 +181,28 @@ export interface ComputeRunRecord {
   rollbackPlan: string;
 }
 
+export interface TaskTimingRecord {
+  taskId: string;
+  launchAt: string | null;
+  startedAt: string | null;
+  expectedMaxEndAt: string | null;
+  computeHoursUsed: number;
+  completionMode: CompletionMode;
+  completionSummary: string;
+  updatedAt: string;
+}
+
+export interface RunUpdateRecord {
+  id: string;
+  taskId: string;
+  label: string;
+  status: UpdateStatus;
+  summary: string;
+  artifact: string;
+  evidenceNote: string;
+  createdAt: string;
+}
+
 export interface CheckpointRecord {
   id: string;
   taskId: string;
@@ -211,6 +258,20 @@ export interface ProfileSummary extends ProfileRecord {
   attestationLevel: AttestationLevel;
   moderationStatus: ModerationStatus;
   createdAt: string;
+  attestationProvider: string;
+  attestationStatus: AttestationStatus;
+  sybilRisk: SybilRiskBand;
+  attestationSignals: string[];
+  attestationReviewedAt: string;
+  attestationNote: string;
+  participationState: ParticipationState;
+  participationNote: string;
+  voiceMultiplier: number;
+  effectiveVoiceCredits: number;
+  canSubmit: boolean;
+  canComment: boolean;
+  canPulse: boolean;
+  canAllocateVoice: boolean;
   voteCreditsSpent: number;
   bondedCredits: number;
   spentCredits: number;
@@ -239,6 +300,15 @@ export interface TaskSummary extends TaskRecord, TaskFinanceRecord {
   userTaskPulse: number;
   discussionCount: number;
   bondStatus: "secure" | "watch";
+  launchAt: string | null;
+  startedAt: string | null;
+  expectedMaxEndAt: string | null;
+  computeHoursUsed: number;
+  completionMode: CompletionMode;
+  completionSummary: string;
+  lastActivityAt: string;
+  updateCount: number;
+  latestUpdateLabel: string | null;
 }
 
 export interface CheckpointDetail extends CheckpointRecord, CheckpointGateRecord {}
@@ -259,6 +329,7 @@ export interface TaskDetail extends TaskSummary {
   checkpoints: CheckpointDetail[];
   governanceEvents: GovernanceEventRecord[];
   comments: DiscussionComment[];
+  runUpdates: RunUpdateRecord[];
 }
 
 export interface CategorySummary extends CategoryRecord {
@@ -287,10 +358,16 @@ export interface RevenueStreamSummary extends RevenueStreamRecord {
 
 export interface EconomicsSummary {
   monthlyRevenueUsd: number;
+  committedRevenueUsd: number;
   treasuryMonthlyUsd: number;
+  committedTreasuryMonthlyUsd: number;
   founderMonthlyUsd: number;
   treasuryBalanceUsd: number;
   monthlyPublicBurnUsd: number;
+  coverageMonths: number;
+  restrictedFundingUsd: number;
+  sponsorPoolsUsd: number;
+  verifiedFundingStreams: number;
 }
 
 export interface MarketplaceFilters {

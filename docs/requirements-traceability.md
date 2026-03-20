@@ -1,38 +1,77 @@
 # KenMatch Requirements Traceability
 
-This file maps the stable, implementation-relevant requirements in [KenMatch_Conception.md](../KenMatch_Conception.md) to the current codebase.
+This file maps the stable product requirements from `KenMatch_Conception.md` to the current repository state.
 
-## Stable requirements extracted from the conception document
+## Core alignment
 
-1. Democratize access to sustained frontier compute rather than short-lived chat turns.
-2. Keep governance voice earned and non-purchasable.
-3. Preserve the months / weeks / days allocation protocol by category.
-4. Add Reddit / Stack Exchange / group-buy style public curation and discussion.
-5. Keep blocked work visible and attach public rationale to safety decisions.
-6. Gate long-running execution behind checkpoints, release conditions, and rollback plans.
-7. Separate the public curation engine from the commercial revenue engine.
-8. Make contribution, identity, and legitimacy more attributable than anonymous crowd spam.
+### Public board for long-running AI work
+- Implemented on `src/app/kens/page.tsx` and `src/app/kens/[slug]/page.tsx`.
+- The board exposes open reading, structured Ken detail, visible timing, and run state.
 
-## Where those requirements are implemented
+### Separate public curation from scarce allocation voice
+- Public up/down voting is implemented in `src/components/task-pulse-panel.tsx` and persisted through `task_pulse_votes` in `src/lib/db.ts`.
+- Quadratic voice allocation is implemented in `src/components/vote-panel.tsx`, `src/lib/allocation.ts`, and `votes` in `src/lib/db.ts`.
 
-- Sustained compute as the scarce resource
-  - Run metadata, runtime hours, budgets, and checkpoint cadence live in [src/lib/db.ts](../src/lib/db.ts) and render on [src/app/tasks/[slug]/page.tsx](../src/app/tasks/[slug]/page.tsx).
-- Earned, non-purchasable voice
-  - Quadratic voice, profile-bound credits, and proposal bonds are enforced in [src/lib/allocation.ts](../src/lib/allocation.ts), [src/lib/db.ts](../src/lib/db.ts), and [src/components/vote-panel.tsx](../src/components/vote-panel.tsx).
-- Months / weeks / days allocation
-  - Ranking and tier assignment remain explicit in [src/lib/allocation.ts](../src/lib/allocation.ts) and are surfaced across [src/app/page.tsx](../src/app/page.tsx), [src/app/tasks/page.tsx](../src/app/tasks/page.tsx), and [src/app/tasks/[slug]/page.tsx](../src/app/tasks/[slug]/page.tsx).
-- Public curation beyond quadratic voting
-  - Task pulse voting, comment voting, replies, and comment staking live in [src/lib/db.ts](../src/lib/db.ts), [src/app/actions.ts](../src/app/actions.ts), [src/components/task-pulse-panel.tsx](../src/components/task-pulse-panel.tsx), and [src/components/discussion-thread.tsx](../src/components/discussion-thread.tsx).
-- Visible safety boundaries
-  - Governance logs and blocked proposals are exposed on [src/app/governance/page.tsx](../src/app/governance/page.tsx) and [src/app/tasks/[slug]/page.tsx](../src/app/tasks/[slug]/page.tsx).
-- Checkpoint-gated execution
-  - Release gates and checkpoint approval thresholds are modeled in [src/lib/db.ts](../src/lib/db.ts) and rendered in [src/app/tasks/[slug]/page.tsx](../src/app/tasks/[slug]/page.tsx).
-- Public curation engine vs revenue engine
-  - Revenue streams, treasury entries, sponsor pools, packaging notes, and data-value notes live in [src/lib/db.ts](../src/lib/db.ts) and [src/app/economics/page.tsx](../src/app/economics/page.tsx).
-- Attributable identity and session-based legitimacy
-  - Real accounts and sessions now replace the old profile switcher in [src/lib/db.ts](../src/lib/db.ts), [src/lib/session.ts](../src/lib/session.ts), and [src/app/auth/page.tsx](../src/app/auth/page.tsx).
+### Attributable identity and account-backed participation
+- Real accounts and signed-in account cookies are implemented in `src/lib/db.ts`, `src/lib/session.ts`, and `src/app/actions.ts`.
+- The public shell and auth pages surface contributor access on `src/components/site-shell.tsx` and `src/app/auth/page.tsx`.
 
-## Still interpretive rather than fully resolved in code
+### Sybil resistance and standing
+- `profile_attestations` in `src/lib/db.ts` stores provider, status, review time, and sybil-risk signals.
+- `src/lib/attestation.ts` converts that state into enforceable participation policy and voice caps.
+- The governance page renders these signals in `src/app/governance/page.tsx`.
 
-- External attestation providers and anti-sybil infrastructure are modeled as contributor states and metadata, but not yet integrated with third-party identity systems.
-- Legal incorporation, off-platform enterprise packaging, and real treasury operations are represented in the product model and docs, not wired to actual legal or payment infrastructure.
+### Duration tiers and explicit allocation lanes
+- Tiering logic remains in `src/lib/allocation.ts`.
+- Public lane presentation is shown across `src/app/page.tsx`, `src/app/kens/page.tsx`, `src/components/task-card.tsx`, and `src/app/kens/[slug]/page.tsx`.
+
+### Long-run execution with checkpoints, rollback, and visible stopping conditions
+- Run configuration, checkpoints, and rollback notes live in `runs`, `checkpoints`, and `checkpoint_gates` in `src/lib/db.ts`.
+- UI rendering appears in `src/app/kens/[slug]/page.tsx`.
+
+### Partial achievement, early completion, and incremental audit trail
+- `task_timings` and `run_updates` in `src/lib/db.ts` model launch windows, compute used, completion mode, and incremental evidence.
+- `src/components/ken-timing-strip.tsx` and `src/app/kens/[slug]/page.tsx` render the countdown, elapsed time, progress, and run audit updates.
+
+### Visible blocked work and transparent governance
+- Blocked Kens are preserved in the seeded data and shown on `src/app/governance/page.tsx`.
+- Ken-level governance logs are rendered once, without duplication, on `src/app/kens/[slug]/page.tsx`.
+
+### Public discussion with ranking and replies
+- Threaded comments with voting are implemented in `src/components/discussion-thread.tsx` and persisted in `comments` and `comment_votes` in `src/lib/db.ts`.
+- Created timestamps are displayed directly in the public thread UI.
+
+### Funding, treasury, and commercialization split
+- Ken finance metadata is stored in `task_finance`.
+- Revenue streams and treasury ledger data live in `revenue_streams` and `treasury_entries`.
+- Supporting summary logic in `src/lib/economics.ts` distinguishes committed support from projected support so planned sponsorship does not masquerade as already-available recurring treasury income.
+- Public rendering is implemented on `src/app/economics/page.tsx`.
+
+### Creative and cultural work alongside practical/public-interest work
+- The `creative-works` category is present in `src/lib/seed.ts`.
+- Creative examples are rendered directly on the board and overview pages.
+
+### Modern public-facing interface and theming
+- Responsive shell, compact sticky header, and visual system live in `src/components/site-shell.tsx` and `src/app/globals.css`.
+- Light, dark, and OLED themes are implemented in `src/components/theme-toggle.tsx` and `src/app/layout.tsx`.
+- Product icon and favicon support are implemented through `src/components/kenmatch-mark.tsx` and `src/app/icon.svg`.
+
+### Public deployment and self-hosting readiness
+- Standalone Next.js output is configured in `next.config.ts`.
+- Docker deployment lives in `Dockerfile` and `docker-compose.synology.yml`.
+- Health checks are exposed through `src/app/api/health/route.ts`.
+- Synology NAS deployment instructions live in `docs/synology-nas-deploy.md`.
+
+## Honest boundaries
+
+### Internal naming
+- The public product language is now `Ken` / `Kens`.
+- Some internal code and database identifiers still use `task` for compatibility and to avoid high-risk schema churn.
+
+### Anti-sybil integrations
+- The current build models attestation state, provider metadata, review timestamps, sybil-risk bands, and enforceable participation policy in-app.
+- External identity providers and stronger attestations can still be layered on top of the current schema.
+
+### Treasury integrations
+- The economics layer is production-shaped but demo-backed.
+- Live payment rails, accounting systems, or external billing providers are not wired in this repository.

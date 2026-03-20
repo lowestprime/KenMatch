@@ -34,25 +34,25 @@ export function TaskBoardFilters({ initialQuery, initialCategory, initialTier, i
   }, [category, deferredQuery, pathname, router, stage, tier]);
 
   return (
-    <section className="panel flex flex-col gap-4 lg:flex-row lg:items-end">
+    <section className="panel filters-panel">
       <label className="flex-1 space-y-2 text-xs uppercase tracking-[0.22em] text-muted">
-        Search proposals
-        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by title, category, problem, or packaging path" className="field" />
+        Search Kens
+        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by title, category, problem, or service path" className="field" />
       </label>
       <FilterSelect label="Category" value={category} onChange={(next) => { setCategory(next); startTransition(() => router.replace(buildTarget(pathname, deferredQuery.trim(), next, tier, stage))); }}>
         <option value="all">All categories</option>
         {categories.map((categoryOption) => <option key={categoryOption.slug} value={categoryOption.slug}>{categoryOption.name}</option>)}
       </FilterSelect>
-      <FilterSelect label="Tier" value={tier} onChange={(next) => { setTier(next); startTransition(() => router.replace(buildTarget(pathname, deferredQuery.trim(), category, next, stage))); }}>
-        <option value="all">All tiers</option>
+      <FilterSelect label="Lane" value={tier} onChange={(next) => { setTier(next); startTransition(() => router.replace(buildTarget(pathname, deferredQuery.trim(), category, next, stage))); }}>
+        <option value="all">All lanes</option>
         <option value="months">Months</option>
         <option value="weeks">Weeks</option>
         <option value="days">Days</option>
         <option value="queued">Queued</option>
         <option value="blocked">Blocked</option>
       </FilterSelect>
-      <FilterSelect label="Stage" value={stage} onChange={(next) => { setStage(next); startTransition(() => router.replace(buildTarget(pathname, deferredQuery.trim(), category, tier, next))); }}>
-        <option value="all">All stages</option>
+      <FilterSelect label="Status" value={stage} onChange={(next) => { setStage(next); startTransition(() => router.replace(buildTarget(pathname, deferredQuery.trim(), category, tier, next))); }}>
+        <option value="all">All statuses</option>
         <option value="review">Review</option>
         <option value="voting">Voting</option>
         <option value="scheduled">Scheduled</option>
@@ -60,7 +60,7 @@ export function TaskBoardFilters({ initialQuery, initialCategory, initialTier, i
         <option value="shipped">Shipped</option>
         <option value="blocked">Blocked</option>
       </FilterSelect>
-      <div className="pb-2 text-xs uppercase tracking-[0.22em] text-muted">{isPending ? "Refreshing board" : "Board live"}</div>
+      <div className="pb-2 text-xs uppercase tracking-[0.22em] text-muted">{isPending ? "Refreshing" : "Live"}</div>
     </section>
   );
 }

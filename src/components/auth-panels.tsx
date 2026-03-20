@@ -13,13 +13,17 @@ export function AuthPanels() {
 
   return (
     <div className="panel space-y-6">
-      <div className="inline-flex rounded-full border border-border bg-panel/70 p-1 text-sm">
-        <button type="button" className={`rounded-full px-4 py-2 ${mode === "signin" ? "bg-foreground text-background" : "text-muted"}`} onClick={() => setMode("signin")}>
+      <div className="auth-switcher">
+        <button type="button" className={mode === "signin" ? "is-active" : ""} onClick={() => setMode("signin")}>
           Sign in
         </button>
-        <button type="button" className={`rounded-full px-4 py-2 ${mode === "signup" ? "bg-foreground text-background" : "text-muted"}`} onClick={() => setMode("signup")}>
+        <button type="button" className={mode === "signup" ? "is-active" : ""} onClick={() => setMode("signup")}>
           Create account
         </button>
+      </div>
+
+      <div className="rounded-[1.3rem] border border-border bg-background/55 p-4 text-sm leading-7 text-muted">
+        Accounts make public participation attributable. Reading stays open, while comments, votes, and submissions are tied to a visible identity, attestation review, and an account-backed sign-in state.
       </div>
 
       {mode === "signin" ? (

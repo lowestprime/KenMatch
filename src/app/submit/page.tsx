@@ -9,12 +9,12 @@ export default async function SubmitPage() {
   const { categories } = await getHomeData(viewer?.profile.id);
 
   return (
-    <div className="space-y-8">
+    <div className="page-stack">
       <section className="panel space-y-4">
-        <div className="eyebrow">Proposal intake</div>
-        <h1 className="font-display text-4xl font-semibold text-foreground">Submit a task for public ranking, safety review, and checkpointed execution</h1>
+        <div className="eyebrow">Ken intake</div>
+        <h1 className="font-display text-4xl font-semibold text-foreground">Submit a Ken for review, public ranking, and checkpointed launch</h1>
         <p className="max-w-4xl text-lg leading-8 text-muted">
-          The conception brief is explicit: structure matters. Proposals should make public benefit, deliverables, evaluation criteria, risks, packaging path, and data value legible before they ask for scarce compute.
+          Strong Kens make the public benefit, the evidence base, the risks, the delivery path, and the audit trail clear before they ask for scarce compute.
         </p>
       </section>
       {viewer ? (
@@ -22,7 +22,7 @@ export default async function SubmitPage() {
       ) : (
         <div className="panel space-y-4">
           <div className="font-display text-2xl font-semibold text-foreground">Sign in required</div>
-          <p className="text-sm leading-7 text-muted">Submission carries a quality bond and attributable governance trail, so anonymous proposal posting is intentionally disabled.</p>
+          <p className="text-sm leading-7 text-muted">Submitting a Ken creates a public review record and a bond-backed accountability trail, so anonymous intake is intentionally disabled.</p>
           <Link href="/auth" className="cta-primary inline-flex">Sign in or create account</Link>
         </div>
       )}

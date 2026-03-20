@@ -1,29 +1,29 @@
 import { getGovernanceData } from "@/lib/db";
 import { getViewerProfileId } from "@/lib/session";
-import { formatDate, labelForTier } from "@/lib/utils";
+import { formatDateTime, labelForTier } from "@/lib/utils";
 
 export default async function GovernancePage() {
   const viewerProfileId = await getViewerProfileId();
   const { governance, blockedTasks, categories, profiles } = await getGovernanceData(viewerProfileId);
 
   return (
-    <div className="space-y-8">
+    <div className="page-stack">
       <section className="panel space-y-4">
-        <div className="eyebrow">Governance</div>
-        <h1 className="font-display text-4xl font-semibold text-foreground">Safety boundaries, checkpoint gates, and attributable identity</h1>
+        <div className="eyebrow">Governance and safety</div>
+        <h1 className="font-display text-4xl font-semibold text-foreground">Visible review states, checkpoint gates, and accountable participation</h1>
         <p className="max-w-4xl text-lg leading-8 text-muted">
-          KenMatch keeps harmful work visible but blocked, makes release gates explicit, and ties meaningful participation to attributable contributor accounts rather than anonymous disposable power.
+          KenMatch keeps launch decisions, blocked work, and contributor standing visible. The goal is a legible public process for deciding what should, and should not, receive sustained compute.
         </p>
       </section>
 
       <section className="section-grid" data-columns="2">
         <div className="panel space-y-4">
-          <div className="eyebrow">Policy boundaries</div>
+          <div className="eyebrow">Ground rules</div>
           <ul className="space-y-3 text-sm leading-7 text-muted">
-            <li>Quadratic voice is earned and account-bound. Revenue funds compute but does not buy governance.</li>
-            <li>Proposals can go public immediately, but execution remains gated behind safety review and checkpoint release conditions.</li>
-            <li>Blocked work remains visible so the legitimacy boundary is inspectable rather than hidden.</li>
-            <li>Checkpoint approvals create an explicit human-in-the-loop kill switch for long-running agentic work.</li>
+            <li>Voice is account-bound and attestation-aware. Money can support compute, but it cannot buy rank.</li>
+            <li>Kens can appear publicly during review, but launch requires explicit release conditions.</li>
+            <li>Blocked Kens stay visible so people can inspect where the boundary is drawn.</li>
+            <li>Checkpoint approvals give people a real stop, pause, and rollback mechanism during long runs.</li>
           </ul>
         </div>
         <div className="panel space-y-4">
@@ -38,18 +38,28 @@ export default async function GovernancePage() {
                   </div>
                   <span className="tag">{profile.attestationLevel}</span>
                 </div>
-                <p className="mt-2 text-sm leading-7 text-muted">{profile.attestation}</p>
+                <p className="mt-2 text-sm leading-7 text-muted">{profile.attestationNote}</p>
+                <p className="mt-2 text-sm leading-7 text-muted">{profile.participationNote}</p>
+                <div className="mt-3 flex flex-wrap gap-2 text-xs uppercase tracking-[0.22em] text-muted">
+                  <span className="tag">{profile.attestationStatus}</span>
+                  <span className="tag">Sybil risk {profile.sybilRisk}</span>
+                  <span className="tag">Voice cap {profile.effectiveVoiceCredits}</span>
+                  <span className="tag">Reviewed {formatDateTime(profile.attestationReviewedAt)}</span>
+                </div>
               </div>
             ))}
           </div>
         </div>
+      </section>
+
+      <section className="section-grid" data-columns="2">
         <div className="panel space-y-4">
           <div className="eyebrow">Recent governance log</div>
           {governance.map((event) => (
             <div key={event.id} className="rounded-[1.3rem] border border-border bg-background/55 p-5">
               <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-[0.22em] text-muted">
                 <span>{event.house.replace("-", " ")}</span>
-                <span>{formatDate(event.createdAt)}</span>
+                <span>{formatDateTime(event.createdAt)}</span>
               </div>
               <div className="mt-3 font-display text-xl font-semibold text-foreground">{event.title}</div>
               <p className="mt-2 text-sm leading-7 text-muted">{event.decision}</p>
@@ -57,11 +67,8 @@ export default async function GovernancePage() {
             </div>
           ))}
         </div>
-      </section>
-
-      <section className="section-grid" data-columns="2">
         <div className="panel space-y-4">
-          <div className="eyebrow">Visible blocked work</div>
+          <div className="eyebrow">Visible blocked Kens</div>
           {blockedTasks.map((task) => (
             <div key={task.id} className="rounded-[1.3rem] border border-red-500/30 bg-red-500/10 p-5">
               <div className="flex items-center justify-between gap-3">
@@ -75,7 +82,7 @@ export default async function GovernancePage() {
       </section>
 
       <section className="panel space-y-4">
-        <div className="eyebrow">Category governance health</div>
+        <div className="eyebrow">Category health</div>
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {categories.map((category) => (
             <div key={category.id} className="rounded-[1.3rem] border border-border bg-background/55 p-4 text-sm text-muted">

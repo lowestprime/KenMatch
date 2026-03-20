@@ -16,6 +16,7 @@ import { createClient,
   type InStatement,
   type Value } from "@libsql/client";
 
+import { resolveParticipationPolicy } from "@/lib/attestation";
 import {
   buildCategoryRankings,
   isEligibleForAllocation,
@@ -40,9 +41,12 @@ import {
   seedCheckpointGates,
   seedComments,
   seedCommentVotes,
+  seedProfileAttestations,
   seedRevenueStreams,
+  seedRunUpdates,
   seedTaskFinance,
   seedTaskPulseVotes,
+  seedTaskTimings,
   seedTreasuryEntries,
 } from "@/lib/seed-plus";
 import type {
@@ -57,16 +61,19 @@ import type {
   GovernanceEventRecord,
   HomepageMetrics,
   MarketplaceFilters,
+  ProfileAttestationRecord,
   ProfileRecord,
   ProfileSummary,
   RevenueStreamRecord,
   RevenueStreamSummary,
+  RunUpdateRecord,
   SessionRecord,
   TaskDetail,
   TaskFinanceRecord,
   TaskPulseVoteRecord,
   TaskRecord,
   TaskSummary,
+  TaskTimingRecord,
   TreasuryEntryRecord,
   ViewerSession,
   VoteRecord,
@@ -222,6 +229,16 @@ async function initializeDatabase() {
         createdAt TEXT NOT NULL,
         FOREIGN KEY (profileId) REFERENCES profiles(id)
       )`,
+      `CREATE TABLE IF NOT EXISTS profile_attestations (
+        profileId TEXT PRIMARY KEY,
+        provider TEXT NOT NULL,
+        status TEXT NOT NULL,
+        sybilRisk TEXT NOT NULL,
+        reviewedAt TEXT NOT NULL,
+        signals TEXT NOT NULL,
+        note TEXT NOT NULL,
+        FOREIGN KEY (profileId) REFERENCES profiles(id)
+      )`,
       `CREATE TABLE IF NOT EXISTS sessions (
         id TEXT PRIMARY KEY,
         accountId TEXT NOT NULL,
@@ -325,6 +342,28 @@ async function initializeDatabase() {
         rollbackPlan TEXT NOT NULL,
         FOREIGN KEY (taskId) REFERENCES tasks(id)
       )`,
+      `CREATE TABLE IF NOT EXISTS task_timings (
+        taskId TEXT PRIMARY KEY,
+        launchAt TEXT,
+        startedAt TEXT,
+        expectedMaxEndAt TEXT,
+        computeHoursUsed INTEGER NOT NULL,
+        completionMode TEXT NOT NULL,
+        completionSummary TEXT NOT NULL,
+        updatedAt TEXT NOT NULL,
+        FOREIGN KEY (taskId) REFERENCES tasks(id)
+      )`,
+      `CREATE TABLE IF NOT EXISTS run_updates (
+        id TEXT PRIMARY KEY,
+        taskId TEXT NOT NULL,
+        label TEXT NOT NULL,
+        status TEXT NOT NULL,
+        summary TEXT NOT NULL,
+        artifact TEXT NOT NULL,
+        evidenceNote TEXT NOT NULL,
+        createdAt TEXT NOT NULL,
+        FOREIGN KEY (taskId) REFERENCES tasks(id)
+      )`,
       `CREATE TABLE IF NOT EXISTS checkpoints (
         id TEXT PRIMARY KEY,
         taskId TEXT NOT NULL,
@@ -380,20 +419,12 @@ async function initializeDatabase() {
       "CREATE INDEX IF NOT EXISTS idx_tasks_categoryId ON tasks(categoryId)",
       "CREATE INDEX IF NOT EXISTS idx_comments_taskId ON comments(taskId)",
       "CREATE INDEX IF NOT EXISTS idx_comment_votes_commentId ON comment_votes(commentId)",
+      "CREATE INDEX IF NOT EXISTS idx_run_updates_taskId ON run_updates(taskId)",
       "CREATE INDEX IF NOT EXISTS idx_sessions_tokenHash ON sessions(tokenHash)",
       "CREATE INDEX IF NOT EXISTS idx_task_pulse_votes_taskId ON task_pulse_votes(taskId)",
     ],
     "write",
   );
-
-  const profileCountResult = await client.execute({
-    sql: "SELECT COUNT(*) AS count FROM profiles",
-    args: [],
-  });
-  const profileCount = getCount(profileCountResult.rows as DbRow[]);
-  if (profileCount > 0) {
-    return;
-  }
 
   await seedDatabase();
 }
@@ -438,6 +469,11 @@ async function seedDatabase() {
       ],
     } satisfies InStatement;
   });
+
+  const attestationStatements = seedProfileAttestations.map((entry) => ({
+    sql: "INSERT OR IGNORE INTO profile_attestations (profileId, provider, status, sybilRisk, reviewedAt, signals, note) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    args: [entry.profileId, entry.provider, entry.status, entry.sybilRisk, entry.reviewedAt, serializeList(entry.signals), entry.note],
+  } satisfies InStatement));
 
   const categoryStatements = seedCategories.map((category) => ({
     sql: "INSERT OR IGNORE INTO categories (id, slug, name, description, thesis) VALUES (?, ?, ?, ?, ?)",
@@ -525,6 +561,16 @@ async function seedDatabase() {
     ],
   } satisfies InStatement));
 
+  const timingStatements = seedTaskTimings.map((timing) => ({
+    sql: "INSERT OR IGNORE INTO task_timings (taskId, launchAt, startedAt, expectedMaxEndAt, computeHoursUsed, completionMode, completionSummary, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    args: [timing.taskId, timing.launchAt, timing.startedAt, timing.expectedMaxEndAt, timing.computeHoursUsed, timing.completionMode, timing.completionSummary, timing.updatedAt],
+  } satisfies InStatement));
+
+  const runUpdateStatements = seedRunUpdates.map((update) => ({
+    sql: "INSERT OR IGNORE INTO run_updates (id, taskId, label, status, summary, artifact, evidenceNote, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    args: [update.id, update.taskId, update.label, update.status, update.summary, update.artifact, update.evidenceNote, update.createdAt],
+  } satisfies InStatement));
+
   const checkpointStatements = seedCheckpoints.map((checkpoint) => ({
     sql: "INSERT OR IGNORE INTO checkpoints (id, taskId, label, status, detail, dueAt) VALUES (?, ?, ?, ?, ?, ?)",
     args: [checkpoint.id, checkpoint.taskId, checkpoint.label, checkpoint.status, checkpoint.detail, checkpoint.dueAt],
@@ -569,6 +615,7 @@ async function seedDatabase() {
   await client.batch(
     [
       ...profileStatements,
+      ...attestationStatements,
       ...categoryStatements,
       ...taskStatements,
       ...voteStatements,
@@ -576,6 +623,8 @@ async function seedDatabase() {
       ...commentStatements,
       ...commentVoteStatements,
       ...runStatements,
+      ...timingStatements,
+      ...runUpdateStatements,
       ...checkpointStatements,
       ...checkpointGateStatements,
       ...governanceStatements,
@@ -713,6 +762,18 @@ function mapTaskPulseVote(row: DbRow): TaskPulseVoteRecord {
   };
 }
 
+function mapProfileAttestation(row: DbRow): ProfileAttestationRecord {
+  return {
+    profileId: getString(row, "profileId"),
+    provider: getString(row, "provider"),
+    status: getString(row, "status") as ProfileAttestationRecord["status"],
+    sybilRisk: getString(row, "sybilRisk") as ProfileAttestationRecord["sybilRisk"],
+    reviewedAt: getString(row, "reviewedAt"),
+    signals: parseList(row.signals),
+    note: getString(row, "note"),
+  };
+}
+
 function mapComment(row: DbRow): CommentRecord {
   return {
     id: getString(row, "id"),
@@ -746,6 +807,32 @@ function mapRun(row: DbRow): ComputeRunRecord {
     checkpointCadenceHours: getNumber(row, "checkpointCadenceHours"),
     reproducibilityNotes: getString(row, "reproducibilityNotes"),
     rollbackPlan: getString(row, "rollbackPlan"),
+  };
+}
+
+function mapTaskTiming(row: DbRow): TaskTimingRecord {
+  return {
+    taskId: getString(row, "taskId"),
+    launchAt: getNullableString(row, "launchAt"),
+    startedAt: getNullableString(row, "startedAt"),
+    expectedMaxEndAt: getNullableString(row, "expectedMaxEndAt"),
+    computeHoursUsed: getNumber(row, "computeHoursUsed"),
+    completionMode: getString(row, "completionMode") as TaskTimingRecord["completionMode"],
+    completionSummary: getString(row, "completionSummary"),
+    updatedAt: getString(row, "updatedAt"),
+  };
+}
+
+function mapRunUpdate(row: DbRow): RunUpdateRecord {
+  return {
+    id: getString(row, "id"),
+    taskId: getString(row, "taskId"),
+    label: getString(row, "label"),
+    status: getString(row, "status") as RunUpdateRecord["status"],
+    summary: getString(row, "summary"),
+    artifact: getString(row, "artifact"),
+    evidenceNote: getString(row, "evidenceNote"),
+    createdAt: getString(row, "createdAt"),
   };
 }
 
@@ -832,6 +919,7 @@ function mapSession(row: DbRow): SessionRecord {
 }
 
 const loadProfiles = () => loadRows("SELECT * FROM profiles ORDER BY credibility DESC, name ASC").then((rows) => rows.map(mapProfile));
+const loadProfileAttestations = () => loadRows("SELECT * FROM profile_attestations ORDER BY reviewedAt DESC").then((rows) => rows.map(mapProfileAttestation));
 const loadCategories = () =>
   loadRows("SELECT * FROM categories ORDER BY name ASC").then((rows) =>
     rows.map((row) => ({
@@ -849,6 +937,8 @@ const loadTaskPulseVotes = () => loadRows("SELECT * FROM task_pulse_votes ORDER 
 const loadComments = () => loadRows("SELECT * FROM comments ORDER BY createdAt ASC").then((rows) => rows.map(mapComment));
 const loadCommentVotes = () => loadRows("SELECT * FROM comment_votes ORDER BY updatedAt DESC").then((rows) => rows.map(mapCommentVote));
 const loadRuns = () => loadRows("SELECT * FROM runs").then((rows) => rows.map(mapRun));
+const loadTaskTimings = () => loadRows("SELECT * FROM task_timings").then((rows) => rows.map(mapTaskTiming));
+const loadRunUpdates = () => loadRows("SELECT * FROM run_updates ORDER BY createdAt DESC").then((rows) => rows.map(mapRunUpdate));
 const loadCheckpoints = () => loadRows("SELECT * FROM checkpoints ORDER BY dueAt ASC").then((rows) => rows.map(mapCheckpoint));
 const loadCheckpointGates = () => loadRows("SELECT * FROM checkpoint_gates").then((rows) => rows.map(mapCheckpointGate));
 const loadGovernanceEvents = () => loadRows("SELECT * FROM governance_events ORDER BY createdAt DESC").then((rows) => rows.map(mapGovernance));
@@ -979,14 +1069,15 @@ function sortTasks(tasks: TaskSummary[]) {
       return right.taskPulseScore - left.taskPulseScore;
     }
 
-    return left.createdAt.localeCompare(right.createdAt);
+    return right.lastActivityAt.localeCompare(left.lastActivityAt);
   });
 }
 
 async function hydrate(viewerProfileId?: string | null) {
-  const [profiles, categories, tasks, finances, votes, pulseVotes, comments, commentVotes, runs, checkpoints, checkpointGates, governance, revenueStreams, treasuryEntries] =
+  const [profiles, profileAttestations, categories, tasks, finances, votes, pulseVotes, comments, commentVotes, runs, taskTimings, runUpdates, checkpoints, checkpointGates, governance, revenueStreams, treasuryEntries] =
     await Promise.all([
       loadProfiles(),
+      loadProfileAttestations(),
       loadCategories(),
       loadTasks(),
       loadTaskFinance(),
@@ -995,6 +1086,8 @@ async function hydrate(viewerProfileId?: string | null) {
       loadComments(),
       loadCommentVotes(),
       loadRuns(),
+      loadTaskTimings(),
+      loadRunUpdates(),
       loadCheckpoints(),
       loadCheckpointGates(),
       loadGovernanceEvents(),
@@ -1015,26 +1108,47 @@ async function hydrate(viewerProfileId?: string | null) {
   }
 
   const financeMap = new Map(finances.map((finance) => [finance.taskId, finance]));
+  const attestationMap = new Map(profileAttestations.map((entry) => [entry.profileId, entry]));
   const profileSummaries: ProfileSummary[] = profiles.map((profile) => {
     const castVotes = voteByProfile.get(profile.id) ?? [];
     const voteCreditsSpent = spentCredits(castVotes);
     const bondedCredits = activeBondedCredits(profile.id, tasks, finances);
     const spent = voteCreditsSpent + bondedCredits;
+    const attestation = attestationMap.get(profile.id);
+    const createdAt = profile.createdAt ?? new Date().toISOString();
+    const attestationStatus = attestation?.status ?? "review";
+    const sybilRisk = attestation?.sybilRisk ?? "medium";
+    const policy = resolveParticipationPolicy(attestationStatus, sybilRisk, profile.voiceCredits);
     return {
       ...profile,
       attestationLevel: profile.attestationLevel ?? "provisional",
       moderationStatus: profile.moderationStatus ?? "active",
-      createdAt: profile.createdAt ?? new Date().toISOString(),
+      createdAt,
+      attestationProvider: attestation?.provider ?? "Email + profile review",
+      attestationStatus,
+      sybilRisk,
+      attestationSignals: attestation?.signals ?? ["Verified email", "Rate limits"],
+      attestationReviewedAt: attestation?.reviewedAt ?? createdAt,
+      attestationNote: attestation?.note ?? profile.attestation,
+      participationState: policy.state,
+      participationNote: policy.note,
+      voiceMultiplier: policy.voiceMultiplier,
+      effectiveVoiceCredits: policy.effectiveVoiceCredits,
+      canSubmit: policy.canSubmit,
+      canComment: policy.canComment,
+      canPulse: policy.canPulse,
+      canAllocateVoice: policy.canAllocateVoice,
       voteCreditsSpent,
       bondedCredits,
       spentCredits: spent,
-      availableCredits: Math.max(profile.voiceCredits - spent, 0),
+      availableCredits: Math.max(policy.effectiveVoiceCredits - spent, 0),
     };
   });
 
   const profileMap = new Map(profileSummaries.map((profile) => [profile.id, profile]));
   const categoryMap = new Map(categories.map((category) => [category.id, category]));
   const runMap = new Map(runs.map((run) => [run.taskId, run]));
+  const timingMap = new Map(taskTimings.map((timing) => [timing.taskId, timing]));
 
   const pulseByTask = new Map<string, TaskPulseVoteRecord[]>();
   for (const vote of pulseVotes) {
@@ -1048,6 +1162,13 @@ async function hydrate(viewerProfileId?: string | null) {
     const bucket = commentByTask.get(comment.taskId) ?? [];
     bucket.push(comment);
     commentByTask.set(comment.taskId, bucket);
+  }
+
+  const runUpdatesByTask = new Map<string, RunUpdateRecord[]>();
+  for (const update of runUpdates) {
+    const bucket = runUpdatesByTask.get(update.taskId) ?? [];
+    bucket.push(update);
+    runUpdatesByTask.set(update.taskId, bucket);
   }
 
   const checkpointMap = new Map<string, CheckpointDetail[]>();
@@ -1097,15 +1218,37 @@ async function hydrate(viewerProfileId?: string | null) {
       enterprisePackaging: "Open output first, commercial packaging optional.",
       dataValueNote: "Preference and correction traces remain auditable public-good inputs.",
     };
+    const timing = timingMap.get(task.id) ?? {
+      taskId: task.id,
+      launchAt: null,
+      startedAt: null,
+      expectedMaxEndAt: null,
+      computeHoursUsed: 0,
+      completionMode: task.stage === "blocked" ? "blocked" : "planned",
+      completionSummary: task.stage === "blocked" ? "Blocked before launch." : "Waiting for review and allocation.",
+      updatedAt: task.createdAt,
+    } satisfies TaskTimingRecord;
     const category = categoryMap.get(task.categoryId);
     const proposer = profileMap.get(task.proposerId);
     const taskVotes = voteByTask.get(task.id) ?? [];
     const pulse = pulseByTask.get(task.id) ?? [];
+    const updates = runUpdatesByTask.get(task.id) ?? [];
+    const governanceEvents = governanceByTask.get(task.id) ?? [];
+    const taskComments = commentByTask.get(task.id) ?? [];
     const positivePulseCount = pulse.filter((vote) => vote.value > 0).length;
     const negativePulseCount = pulse.filter((vote) => vote.value < 0).length;
     const ranking = rankings.get(task.id);
     const userVote = taskVotes.find((vote) => vote.profileId === viewerProfileId);
     const userTaskPulse = pulse.find((vote) => vote.profileId === viewerProfileId)?.value ?? 0;
+    const lastActivityAt = [
+      task.createdAt,
+      timing.updatedAt,
+      ...taskVotes.map((vote) => vote.updatedAt),
+      ...pulse.map((vote) => vote.updatedAt),
+      ...taskComments.map((comment) => comment.createdAt),
+      ...updates.map((update) => update.createdAt),
+      ...governanceEvents.map((event) => event.createdAt),
+    ].sort().at(-1) ?? task.createdAt;
     return {
       ...task,
       ...finance,
@@ -1123,8 +1266,17 @@ async function hydrate(viewerProfileId?: string | null) {
       positivePulseCount,
       negativePulseCount,
       userTaskPulse,
-      discussionCount: (commentByTask.get(task.id) ?? []).length,
+      discussionCount: taskComments.length,
       bondStatus: task.stage === "review" || task.stage === "blocked" ? "watch" : "secure",
+      launchAt: timing.launchAt,
+      startedAt: timing.startedAt,
+      expectedMaxEndAt: timing.expectedMaxEndAt,
+      computeHoursUsed: timing.computeHoursUsed,
+      completionMode: timing.completionMode,
+      completionSummary: timing.completionSummary,
+      lastActivityAt,
+      updateCount: updates.length,
+      latestUpdateLabel: updates[0]?.label ?? null,
     };
   });
 
@@ -1143,7 +1295,8 @@ async function hydrate(viewerProfileId?: string | null) {
   const monthlyPublicBurnUsd = treasuryEntries
     .filter((entry) => entry.bucket === "compute-treasury" && entry.direction === "outflow")
     .reduce((total, entry) => total + entry.amountUsd, 0);
-  const economics = summarizeEconomics(revenueStreams, treasuryEntries, monthlyPublicBurnUsd);
+  const sponsorPoolsUsd = taskSummaries.reduce((total, task) => total + task.sponsorPoolUsd, 0);
+  const economics = summarizeEconomics(revenueStreams, treasuryEntries, monthlyPublicBurnUsd, sponsorPoolsUsd);
 
   return {
     profiles: profileSummaries,
@@ -1159,6 +1312,7 @@ async function hydrate(viewerProfileId?: string | null) {
     revenueSummaries,
     treasuryEntries,
     economics,
+    runUpdatesByTask,
     viewer: viewerProfileId ? profileMap.get(viewerProfileId) ?? null : null,
     discussionFor(taskId: string) {
       return buildDiscussionTree(commentByTask.get(taskId) ?? [], commentVotes, profileMap, viewerProfileId);
@@ -1208,11 +1362,11 @@ export async function getHomeData(viewerProfileId?: string | null) {
     eligible: snapshot.tasks.filter((task) => isEligibleForAllocation(task.totalVotes, task.stage, task.safetyStatus)).length,
     activeRuns: snapshot.tasks.filter((task) => task.stage === "running").length,
     shipped: snapshot.tasks.filter((task) => task.stage === "shipped").length,
-    voiceIssued: snapshot.profiles.reduce((total, profile) => total + profile.voiceCredits, 0),
+    voiceIssued: snapshot.profiles.reduce((total, profile) => total + profile.effectiveVoiceCredits, 0),
     voiceSpent: snapshot.profiles.reduce((total, profile) => total + profile.voteCreditsSpent, 0),
     bondedVoice: snapshot.profiles.reduce((total, profile) => total + profile.bondedCredits, 0),
     publicSignal: snapshot.tasks.reduce((total, task) => total + Math.max(task.taskPulseScore, 0), 0),
-    treasuryMonthlyUsd: snapshot.economics.treasuryMonthlyUsd,
+    treasuryMonthlyUsd: snapshot.economics.committedTreasuryMonthlyUsd,
   };
 
   return {
@@ -1271,6 +1425,7 @@ export async function getTaskDetail(slug: string, viewerProfileId?: string | nul
     checkpoints: (snapshot.checkpointMap.get(task.id) ?? []).sort((left, right) => left.dueAt.localeCompare(right.dueAt)),
     governanceEvents: snapshot.governanceByTask.get(task.id) ?? [],
     comments: snapshot.discussionFor(task.id),
+    runUpdates: snapshot.runUpdatesByTask.get(task.id) ?? [],
   };
 }
 
@@ -1345,6 +1500,10 @@ export async function createAccount(input: {
         ],
       },
       {
+        sql: "INSERT INTO profile_attestations (profileId, provider, status, sybilRisk, reviewedAt, signals, note) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        args: [profileId, "Email + profile review", "review", "medium", now, serializeList(["Verified email", "Fresh profile", "Rate limits"]), "New accounts can read immediately and participate with provisional standing while review is pending."],
+      },
+      {
         sql: "INSERT INTO accounts (id, profileId, email, passwordHash, passwordSalt, createdAt) VALUES (?, ?, ?, ?, ?, ?)",
         args: [accountId, profileId, input.email.toLowerCase(), passwordHash, passwordSalt, now],
       },
@@ -1416,10 +1575,13 @@ export async function createProposal(input: CreateProposalInput, proposerId: str
   if (!proposerSummary) {
     throw new Error("Contributor profile not found.");
   }
+  if (!proposerSummary.canSubmit) {
+    throw new Error(proposerSummary.participationNote);
+  }
 
   const defaults = tierDefaults[input.requestedTier];
   if (proposerSummary.availableCredits < defaults.bond) {
-    throw new Error(`Submitting a ${input.requestedTier} proposal requires ${defaults.bond} free voice credits for the quality bond.`);
+    throw new Error(`Submitting a ${input.requestedTier} Ken requires ${defaults.bond} free voice credits for the quality bond.`);
   }
 
   const slug = await uniqueSlug("tasks", input.title);
@@ -1461,13 +1623,17 @@ export async function createProposal(input: CreateProposalInput, proposerId: str
         args: [slug, defaults.bond, 0, defaults.checkpointTarget, input.enterprisePackaging, input.dataValueNote],
       },
       {
+        sql: "INSERT INTO task_timings (taskId, launchAt, startedAt, expectedMaxEndAt, computeHoursUsed, completionMode, completionSummary, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        args: [slug, null, null, null, 0, "planned", "Waiting for review, public signal, and allocation.", now],
+      },
+      {
         sql: "INSERT INTO governance_events (id, taskId, house, title, decision, outcome, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)",
         args: [
           randomUUID(),
           slug,
           "safety-council",
           "Queued for safety review",
-          "New proposal entered the public intake queue. It can collect pulse, comments, and quadratic support immediately, but execution remains gated until safety review and checkpoint policy are set.",
+          "New Ken entered the public intake queue. It can collect signal, comments, and quadratic support immediately, but execution remains gated until safety review and checkpoint policy are set.",
           "Visible on the public board with its quality bond locked until the review state changes.",
           now,
         ],
@@ -1486,22 +1652,25 @@ export async function saveVote(taskId: string, profileId: string, voteCount: num
 
   const task = await findTaskById(taskId);
   if (!task) {
-    throw new Error("Task not found.");
+    throw new Error("Ken not found.");
   }
   if (task.stage === "blocked" || task.safetyStatus === "blocked") {
-    throw new Error("Blocked tasks cannot receive quadratic support.");
+    throw new Error("Blocked Kens cannot receive quadratic support.");
   }
 
   const snapshot = await hydrate(profileId);
   if (!snapshot.viewer) {
     throw new Error("Authenticated contributor session required.");
   }
+  if (!snapshot.viewer.canAllocateVoice) {
+    throw new Error(snapshot.viewer.participationNote);
+  }
 
   const existingVotes = snapshot.votes.filter((vote) => vote.profileId === profileId);
   const existingVote = existingVotes.find((vote) => vote.taskId === taskId);
   const otherVotes = existingVotes.filter((vote) => vote.taskId !== taskId);
   const nextSpent = spentCredits(otherVotes) + quadraticCost(voteCount) + snapshot.viewer.bondedCredits;
-  if (nextSpent > snapshot.viewer.voiceCredits) {
+  if (nextSpent > snapshot.viewer.effectiveVoiceCredits) {
     throw new Error("Not enough free voice credits for that allocation.");
   }
 
@@ -1522,10 +1691,18 @@ export async function saveVote(taskId: string, profileId: string, voteCount: num
 export async function saveTaskPulse(taskId: string, profileId: string, value: -1 | 0 | 1) {
   const task = await findTaskById(taskId);
   if (!task) {
-    throw new Error("Task not found.");
+    throw new Error("Ken not found.");
   }
   if (task.stage === "blocked" || task.safetyStatus === "blocked") {
-    throw new Error("Blocked tasks stay visible, but public curation is frozen.");
+    throw new Error("Blocked Kens stay visible, but public voting is frozen.");
+  }
+
+  const snapshot = await hydrate(profileId);
+  if (!snapshot.viewer) {
+    throw new Error("Authenticated contributor session required.");
+  }
+  if (!snapshot.viewer.canPulse) {
+    throw new Error(snapshot.viewer.participationNote);
   }
 
   const existing = await loadOne("SELECT * FROM task_pulse_votes WHERE taskId = ? AND profileId = ? LIMIT 1", [taskId, profileId]);
@@ -1553,13 +1730,21 @@ export async function createComment(input: {
   stakeCredits: number;
 }) {
   if (!(await findTaskById(input.taskId))) {
-    throw new Error("Task not found.");
+    throw new Error("Ken not found.");
+  }
+
+  const snapshot = await hydrate(input.profileId);
+  if (!snapshot.viewer) {
+    throw new Error("Authenticated contributor session required.");
+  }
+  if (!snapshot.viewer.canComment) {
+    throw new Error(snapshot.viewer.participationNote);
   }
 
   if (input.parentId) {
     const parent = await loadOne("SELECT taskId FROM comments WHERE id = ? LIMIT 1", [input.parentId]);
     if (!parent || getString(parent, "taskId") !== input.taskId) {
-      throw new Error("Reply target not found on this task.");
+      throw new Error("Reply target not found on this Ken.");
     }
   }
 
@@ -1578,6 +1763,14 @@ export async function saveCommentVote(commentId: string, profileId: string, valu
   const comment = await loadOne("SELECT id FROM comments WHERE id = ? LIMIT 1", [commentId]);
   if (!comment) {
     throw new Error("Comment not found.");
+  }
+
+  const snapshot = await hydrate(profileId);
+  if (!snapshot.viewer) {
+    throw new Error("Authenticated contributor session required.");
+  }
+  if (!snapshot.viewer.canComment) {
+    throw new Error(snapshot.viewer.participationNote);
   }
 
   const existing = await loadOne("SELECT * FROM comment_votes WHERE commentId = ? AND profileId = ? LIMIT 1", [commentId, profileId]);
@@ -1616,3 +1809,7 @@ export async function getHealthSummary() {
     checkedAt: new Date().toISOString(),
   };
 }
+
+
+
+

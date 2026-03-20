@@ -19,12 +19,16 @@ const securityHeaders = [
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
+      "object-src 'none'",
+      "upgrade-insecure-requests",
     ].join("; "),
   },
 ];
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  output: "standalone",
+  deploymentId: process.env.DEPLOYMENT_VERSION,
   experimental: {
     serverActions: {
       bodySizeLimit: "2mb",

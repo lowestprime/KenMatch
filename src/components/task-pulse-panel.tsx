@@ -12,6 +12,7 @@ export function TaskPulsePanel({
   positivePulseCount,
   negativePulseCount,
   disabled,
+  disabledMessage,
 }: {
   taskId: string;
   slug: string;
@@ -19,16 +20,17 @@ export function TaskPulsePanel({
   positivePulseCount: number;
   negativePulseCount: number;
   disabled?: boolean;
+  disabledMessage?: string;
 }) {
   const [state, formAction, isPending] = useActionState(saveTaskPulseAction, initialActionState);
 
   return (
     <div className="panel space-y-4">
       <div>
-        <div className="eyebrow">Public curation</div>
-        <h2 className="mt-2 font-display text-2xl font-semibold text-foreground">Reddit-style signal, separate from voice allocation</h2>
+        <div className="eyebrow">Public vote</div>
+        <h2 className="mt-2 font-display text-2xl font-semibold text-foreground">Quick support and concern, separate from scarce voice</h2>
         <p className="mt-2 text-sm leading-7 text-muted">
-          Pulse is the broad public signal. Quadratic voice remains the scarce merit ledger. The conception brief calls for both.
+          Anyone with an approved participation state can leave an upvote or downvote. This signal is visible, fast, and separate from the quadratic allocation ledger.
         </p>
       </div>
       <form action={formAction} className="grid gap-3">
@@ -40,14 +42,15 @@ export function TaskPulsePanel({
         </div>
         <div className="grid gap-3 sm:grid-cols-2 text-sm text-muted">
           <div className="stat-card">
-            <span>Supportive pulse</span>
+            <span>Support</span>
             <strong>{positivePulseCount}</strong>
           </div>
           <div className="stat-card">
-            <span>Critical pulse</span>
+            <span>Concern</span>
             <strong>{negativePulseCount}</strong>
           </div>
         </div>
+        {disabled ? <p className="text-sm text-muted">{disabledMessage ?? "Sign in to vote publicly on this Ken."}</p> : null}
         {state.message ? <p className={`text-sm ${state.status === "error" ? "text-red-500" : "text-teal"}`}>{state.message}</p> : null}
       </form>
     </div>
@@ -61,4 +64,3 @@ function PulseButton({ label, value, current, disabled }: { label: string; value
     </button>
   );
 }
-

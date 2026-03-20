@@ -1,30 +1,40 @@
-# **KenMatch: Democratized Alignment of Frontier Long-Horizon Computation**
+# KenMatch
+KenMatch is a public board for proposing, ranking, funding, launching, and auditing long-running AI work. Each unit of work is called a **Ken**. A Ken can be an open tool, a civic workflow, a scientific evidence map, a repair assistant, or a creative service that benefits from sustained compute, checkpoints, public feedback, and visible funding.
 
+## Mission & Background
 KenMatch democratizes access to continuous frontier AI by crowdsourcing *which* long-horizon tasks deserve sustained enterprise-grade computation, effectively allocating days, weeks, and months of agentic runtime in accordance with the transparently-resolved quantification of tasks&rsquo; collective value, independent of personal wealth. ([1](https://deepmind.google/models/model-cards/gemini-3-1-pro/))([2](https://developers.openai.com/api/docs/models/gpt-5.4))([12](https://openai.com/index/introducing-gpt-5-4/))([5](https://platform.claude.com/docs/en/about-claude/models/overview))([3](https://www.anthropic.com/news/claude-opus-4-6))([4](https://x.ai/api))
-
-## **Overview**
-
-KenMatch is a public coordination layer for one of the defining scarcities of the AI era: **long-horizon frontier-grade computation**.
 
 As frontier models evolve from short, single-turn assistants into long-context, tool-using agents&mdash;systems explicitly designed to plan, operate software, and execute multi-step workflows&mdash;access to &ldquo;a few queries&rdquo; is no longer the dividing line. The dividing line becomes one&rsquo;s **access and representation to direct sustained agentic effort**: over hours, days, weeks, and toward the most complex applications, months. Major frontier providers now document million-token-class contexts and agentic computer-use capabilities as first-class features, underscoring a trajectory seeking to broaden the adoption and application of long-horizon computation across economic sectors. ([1](https://deepmind.google/models/model-cards/gemini-3-1-pro/))([2](https://developers.openai.com/api/docs/models/gpt-5.4))([3](https://www.anthropic.com/news/claude-opus-4-6))([4](https://x.ai/api))
 
-Currently, continuous computation is constrained by physics and infrastructure. Data centers already represent a material share of electricity demand and are projected to grow sharply in the coming years; global data center electricity consumption is estimated in the hundreds of terawatt-hours today, and is projected to roughly double by 2030 under mainstream scenarios. These constraints do not affect everyone equally: institutions with capital and privileged procurement can reserve capacity; individuals and small teams generally cannot. ([6](https://www.energy.gov/articles/doe-releases-new-report-evaluating-increase-electricity-demand-data-centers))([7](https://www.iea.org/reports/energy-and-ai/energy-demand-from-ai))([8](https://www.iea.org/reports/energy-and-ai/executive-summary%C2%A0))
+## Product shape
 
-KenMatch closes this gap by allocating long-horizon computation through the **transparent, democratic, and merit-sensitive appraisal of collective value**.
+### Kens
+A Ken is a proposed unit of long-running AI work. The public board shows its goal, evidence, risks, requested lane, funding path, current review state, launch timing, and audit trail.
 
-## **Premise**
+### Public participation
+KenMatch separates fast public signal from scarce allocation voice:
 
-KenMatch recognizes sustained frontier computation as a resource that should be directed by **collective judgment of value**, rather than the market power of the wealthiest actor.
+- Public vote: simple upvote or downvote support.
+- Voice allocation: quadratic credits assigned by signed-in contributors.
+- Comments: threaded, voted, timestamped discussion with visible stake.
+- Attestation policy: new or partially reviewed accounts can participate with review-aware limits until stronger verification lands.
 
-It is philosophically akin to:
+### Launch and review
+Kens can stay public before launch. Launch requires visible release conditions:
 
-1. Group-purchasing (pooling scarce purchasing power),
+- safety status
+- checkpoint gates
+- reproducibility notes
+- rollback plan
+- run updates and evidence logs
 
-2. Crowdsourcing forums (surfacing problems and solutions),
+### Funding
+KenMatch keeps funding legible without turning rank into a purchasable advantage:
 
-3. and curation engines (ranking what deserves attention),
-
-effectively integrating these intuitions into a concrete **allocation protocol optimized for high-cost, long-horizon computation.**
+- sponsor pools tied to specific Kens
+- reusable service revenue routed into the treasury
+- committed and projected support shown separately
+- founder and operations split reported separately from public compute support
 
 ## **Coordination**
 
@@ -130,7 +140,17 @@ KenMatch seeks to equalize the **long-horizon deployment of frontier AI toward t
 - Threaded comments with replies, voting, and small stakes for discussion quality.
 - Proposal quality bonds, checkpoint approval gates, run metadata, rollback plans, and visible blocked work.
 - Economics surface for enterprise packaging, data licensing, compute arbitrage, sponsorship routing, treasury entries, and the 80/20 public reporting split.
-- Light/dark mode, rich motion, strong visual hierarchy, security headers, and health endpoint support.
+- Three theme modes (`Light`, `Dark`, and `OLED`), rich motion, strong visual hierarchy, security headers, and health endpoint support.
+- Public board at `/kens` with search, category, lane, and status filters.
+- Real account creation and persistent signed-in accounts.
+- libSQL-backed persistence with local-file or remote libSQL support.
+- Public upvote/downvote signal, separate quadratic voice allocation, and threaded comments with voting.
+- Ken timing metadata: created and updated timestamps, launch countdown, submission age, compute usage, remaining runtime window, and completion state.
+- Incremental run audit history for partial delivery, early completion, and checkpoint-by-checkpoint evidence notes.
+- Economics and treasury views with committed versus projected support, sponsor pools, restricted funding, and treasury coverage.
+- Governance view with blocked Kens, attestation state, enforceable participation limits, review timing, and visible decision logs.
+- Security headers in `next.config.ts` and health checks at `/api/health`.
+- Standalone Next.js Docker build and Synology NAS deployment support.
 
 ## Stack
 
@@ -140,56 +160,79 @@ KenMatch seeks to equalize the **long-horizon deployment of frontier AI toward t
 - [libSQL TypeScript client](https://docs.turso.tech/sdk/ts/quickstart) for local-file or remote libSQL persistence
 - [`zod`](https://zod.dev) for form and environment validation
 
-## Local development
+## Running locally
 
 ```bash
 npm install
 npm run dev
 ```
 
-Then open `http://localhost:3000`.
+Open [http://localhost:3000](http://localhost:3000).
 
 ## Environment
 
-Copy [.env.example](./.env.example) and set values as needed.
+Copy `.env.example` and set values as needed.
 
-- `DATABASE_URL`: leave empty for the local file database, or point it at a remote libSQL database for deployment.
-- `DATABASE_AUTH_TOKEN`: auth token for remote libSQL deployments.
+- `DATABASE_URL`: leave empty for the local file database, or point it at remote libSQL.
+- `DATABASE_AUTH_TOKEN`: auth token for remote libSQL.
 - `KENMATCH_DB_FILE`: local fallback database path.
-- `KENMATCH_SESSION_COOKIE`: session cookie name.
-- `KENMATCH_SESSION_DAYS`: session lifetime.
-- `KENMATCH_ALLOW_SIGNUPS`: set to `false` if accounts should be provisioned externally.
+- `KENMATCH_SESSION_COOKIE`: cookie name for the signed-in account cookie.
+- `KENMATCH_SESSION_DAYS`: sign-in lifetime in days.
+- `KENMATCH_ALLOW_SIGNUPS`: set to `false` to disable public account creation.
+- `DEPLOYMENT_VERSION`: optional deployment identifier passed into Next.js.
 
 ## Scripts
 
 ```bash
 npm run dev
-npm run lint
 npm run typecheck
+npm run lint
 npm run test
 npm run build
 ```
 
-## Deployment notes
+## Deployment
 
-- KenMatch currently leverages the libSQL client, and previously implemented the experimental `node:sqlite` API.
+KenMatch ships with a standalone Next.js build configuration and a Docker image intended for self-hosting.
+
+- `next.config.ts` sets `output: "standalone"`.
+- `Dockerfile` runs the generated standalone server.
+- `docker-compose.synology.yml` mounts persistent local data and includes a health check.
+- The [`/api/health`](./src/app/api/health) health endpoint returns a JSON readiness summary for the app and database.
 - For local development, KenMatch constructs a file-backed SQLite-compatible database via libSQL.
 - For public deployment, `DATABASE_URL` and `DATABASE_AUTH_TOKEN` can be specified for managed remote libSQL database integration.
-- A health endpoint is available at [`/api/health`](./src/app/api/health).
 - Security headers are configured in [next.config.ts](./next.config.ts).
-- A self-hosted demonstration of KenMatch can be deployed from a user&rsquo;s NAS per the [docs/synology-nas-deploy.md](./docs/synology-nas-deploy.md) runbook instructions.
+- For Synology NAS deployment, use [docs/synology-nas-deploy.md](./docs/synology-nas-deploy.md).
 
-## Project map
+## Main routes
 
-- [src/app](./src/app) contains routes, server actions, and the health endpoint.
-- [src/components](./src/components) contains the shell, auth, curation, discussion, and proposal UI.
-- [src/lib/db.ts](./src/lib/db.ts) contains schema initialization, seeding, hydration, auth persistence, and write flows.
-- [docs/requirements-traceability.md](./docs/requirements-traceability.md) maps conception requirements to implementation.
-- [docs/architecture.md](./docs/architecture.md) explains the current stack and deploy model.
-- [docs/synology-nas-deploy.md](./docs/synology-nas-deploy.md) provides DSM 7.2 + DS923+ self-host instructions.
+- `/` overview and featured Kens
+- `/kens` public Ken board
+- `/kens/[slug]` Ken detail, timing, voting, audit, and comments
+- `/submit` Ken submission
+- `/governance` governance, attestation, and blocked Kens
+- `/economics` treasury and revenue logic
+- `/auth` sign-in and account creation
+
+Legacy `/tasks` routes now redirect to `/kens` routes.
+
+## Repo map
+
+- `src/app` routes, layout, health endpoint, and server actions
+- `src/components` public UI, timing display, voting, comments, auth, and shell
+- `src/lib/attestation.ts` participation policy derived from attestation state
+- `src/lib/db.ts` database schema, seeding, hydration, account persistence, and write flows
+- `src/lib/seed.ts` and `src/lib/seed-plus.ts` realistic demo data
+- `docs/architecture.md` implementation structure
+- `docs/requirements-traceability.md` conception-to-code mapping
+- `docs/synology-nas-deploy.md` Synology NAS deployment guide
+
+## Notes
+
+- The default local deployment uses a file-backed libSQL database. For public internet deployment, use a managed remote libSQL instance when possible.
+- Synology NAS hosting can run entirely self-contained with the included compose file and a mounted local data directory.
 
 ## References
-
 1. [KenMatch\_Conception.md](./KenMatch_Conception.md)  
 2. Data center energy demand and projections: U.S. Department of Energy summary of LBNL report (U.S. share, 176 TWh, 2028 projections). ([6](https://www.energy.gov/articles/doe-releases-new-report-evaluating-increase-electricity-demand-data-centers))([7](https://www.iea.org/reports/energy-and-ai/energy-demand-from-ai))([8](https://www.iea.org/reports/energy-and-ai/executive-summary%C2%A0))  
 3. Global data center electricity demand: International Energy Agency Energy and AI report pages (415 TWh in 2024; 945 TWh by 2030; sensitivity cases). ([7](https://www.iea.org/reports/energy-and-ai/energy-demand-from-ai))([8](https://www.iea.org/reports/energy-and-ai/executive-summary%C2%A0))  

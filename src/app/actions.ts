@@ -27,20 +27,19 @@ import {
 } from "@/lib/session";
 
 const proposalSchema = z.object({
-  title: z.string().min(8, "Give the proposal a specific title."),
+  title: z.string().min(8, "Give the Ken a specific title."),
   categorySlug: z.string().min(1, "Choose a category."),
-  summary: z.string().min(30, "Summaries should explain the work in one or two clear sentences."),
+  summary: z.string().min(30, "Summarize what the Ken will produce in one or two clear sentences."),
   problem: z.string().min(40, "Describe the bottleneck or unmet need."),
-  whyNow: z.string().min(30, "Explain why this work matters now."),
-  publicBenefit: z.string().min(30, "Describe the public or ecosystem upside."),
+  whyNow: z.string().min(30, "Explain why this Ken matters now."),
+  publicBenefit: z.string().min(30, "Describe the public, community, or ecosystem upside."),
   requestedTier: z.enum(["days", "weeks", "months"]),
-  qualityBondCredits: z.coerce.number().int().min(1).max(6),
   deliverables: z.string().min(10, "List at least one deliverable."),
-  evaluationCriteria: z.string().min(10, "List at least one evaluation criterion."),
-  riskFlags: z.string().min(10, "List at least one risk or constraint."),
+  evaluationCriteria: z.string().min(10, "List at least one evaluation check."),
+  riskFlags: z.string().min(10, "List at least one risk or operating constraint."),
   evidence: z.string().min(10, "List at least one evidence source or anchor."),
-  enterprisePackaging: z.string().min(20, "Describe how this could be packaged for institutions without compromising the public-good output."),
-  dataValueNote: z.string().min(20, "Describe what preference, correction, or provenance data this task might generate."),
+  enterprisePackaging: z.string().min(20, "Explain the optional service or institutional packaging path."),
+  dataValueNote: z.string().min(20, "Explain what corrections, provenance, or evaluation data this Ken could generate."),
 });
 
 const voteSchema = z.object({
@@ -53,14 +52,14 @@ const voteSchema = z.object({
 const pulseSchema = z.object({
   taskId: z.string().min(1),
   slug: z.string().min(1),
-  value: z.coerce.number().int().refine((value) => [-1, 0, 1].includes(value), "Invalid pulse value."),
+  value: z.coerce.number().int().refine((value) => [-1, 0, 1].includes(value), "Invalid vote value."),
 });
 
 const commentSchema = z.object({
   taskId: z.string().min(1),
   slug: z.string().min(1),
   parentId: z.string().optional(),
-  body: z.string().min(20, "Comments should be substantive and specific."),
+  body: z.string().min(20, "Comments should be specific and useful."),
   stakeCredits: z.coerce.number().int().min(1).max(3),
 });
 
@@ -76,9 +75,9 @@ const signInSchema = z.object({
 });
 
 const signUpSchema = signInSchema.extend({
-  name: z.string().min(2, "Enter the name you want other contributors to see."),
+  name: z.string().min(2, "Enter the name other contributors should see."),
   role: z.string().min(2, "Describe your current role."),
-  specialty: z.string().min(2, "Describe your strongest area of expertise."),
+  specialty: z.string().min(2, "Describe your strongest area of practice."),
   bio: z.string().min(24, "Write a short but useful contributor bio."),
 });
 
@@ -96,18 +95,20 @@ function flattenFieldErrors(error: z.ZodError) {
 async function requireViewerProfileId() {
   const profileId = await getViewerProfileId();
   if (!profileId) {
-    throw new Error("Sign in to participate in public curation.");
+    throw new Error("Sign in to vote, comment, or submit a Ken.");
   }
   return profileId;
 }
 
 function revalidateCorePaths(slug?: string) {
   revalidatePath("/");
+  revalidatePath("/kens");
   revalidatePath("/tasks");
   revalidatePath("/governance");
   revalidatePath("/economics");
   revalidatePath("/submit");
   if (slug) {
+    revalidatePath(`/kens/${slug}`);
     revalidatePath(`/tasks/${slug}`);
   }
 }
@@ -148,7 +149,7 @@ export async function signUpAction(_: ActionState, formData: FormData): Promise<
   if (!parsed.success) {
     return {
       status: "error",
-      message: "The contributor profile needs a few fixes.",
+      message: "Your contributor profile needs a few fixes.",
       fieldErrors: flattenFieldErrors(parsed.error),
     };
   }
@@ -183,7 +184,7 @@ export async function createProposalAction(_: ActionState, formData: FormData): 
   if (!parsed.success) {
     return {
       status: "error",
-      message: "The proposal needs a few fixes before it can enter review.",
+      message: "This Ken needs a few fixes before it can enter review.",
       fieldErrors: flattenFieldErrors(parsed.error),
     };
   }
@@ -201,11 +202,11 @@ export async function createProposalAction(_: ActionState, formData: FormData): 
     );
 
     revalidateCorePaths(slug);
-    redirect(`/tasks/${slug}`);
+    redirect(`/kens/${slug}`);
   } catch (error) {
     return {
       status: "error",
-      message: error instanceof Error ? error.message : "Unable to submit proposal.",
+      message: error instanceof Error ? error.message : "Unable to submit the Ken.",
     };
   }
 }
@@ -213,32 +214,32 @@ export async function createProposalAction(_: ActionState, formData: FormData): 
 export async function saveVoteAction(_: ActionState, formData: FormData): Promise<ActionState> {
   const parsed = voteSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) {
-    return { status: "error", message: "The vote input was invalid." };
+    return { status: "error", message: "The voice allocation was invalid." };
   }
 
   try {
     await saveVote(parsed.data.taskId, await requireViewerProfileId(), parsed.data.voteCount, parsed.data.rationale?.trim() ?? "");
   } catch (error) {
-    return { status: "error", message: error instanceof Error ? error.message : "Unable to save vote." };
+    return { status: "error", message: error instanceof Error ? error.message : "Unable to save your voice allocation." };
   }
 
   revalidateCorePaths(parsed.data.slug);
   return {
     status: "success",
-    message: parsed.data.voteCount === 0 ? "Quadratic allocation cleared." : "Quadratic allocation updated.",
+    message: parsed.data.voteCount === 0 ? "Voice allocation cleared." : "Voice allocation updated.",
   };
 }
 
 export async function saveTaskPulseAction(_: ActionState, formData: FormData): Promise<ActionState> {
   const parsed = pulseSchema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) {
-    return { status: "error", message: "The pulse vote was invalid." };
+    return { status: "error", message: "The public vote was invalid." };
   }
 
   try {
     await saveTaskPulse(parsed.data.taskId, await requireViewerProfileId(), parsed.data.value as -1 | 0 | 1);
   } catch (error) {
-    return { status: "error", message: error instanceof Error ? error.message : "Unable to save pulse vote." };
+    return { status: "error", message: error instanceof Error ? error.message : "Unable to save the public vote." };
   }
 
   revalidateCorePaths(parsed.data.slug);
@@ -246,10 +247,10 @@ export async function saveTaskPulseAction(_: ActionState, formData: FormData): P
     status: "success",
     message:
       parsed.data.value === 1
-        ? "Public curation signal recorded as supportive."
+        ? "Support recorded."
         : parsed.data.value === -1
-          ? "Public curation signal recorded as critical."
-          : "Public curation signal cleared.",
+          ? "Concern recorded."
+          : "Public vote cleared.",
   };
 }
 
@@ -258,7 +259,7 @@ export async function createCommentAction(_: ActionState, formData: FormData): P
   if (!parsed.success) {
     return {
       status: "error",
-      message: "Comments should be specific and substantial.",
+      message: "Comments should be specific and useful.",
       fieldErrors: flattenFieldErrors(parsed.error),
     };
   }
@@ -272,11 +273,11 @@ export async function createCommentAction(_: ActionState, formData: FormData): P
       stakeCredits: parsed.data.stakeCredits,
     });
   } catch (error) {
-    return { status: "error", message: error instanceof Error ? error.message : "Unable to post comment." };
+    return { status: "error", message: error instanceof Error ? error.message : "Unable to post the comment." };
   }
 
   revalidateCorePaths(parsed.data.slug);
-  return { status: "success", message: "Comment posted to the public thread." };
+  return { status: "success", message: "Comment posted." };
 }
 
 export async function saveCommentVoteAction(_: ActionState, formData: FormData): Promise<ActionState> {
@@ -288,7 +289,7 @@ export async function saveCommentVoteAction(_: ActionState, formData: FormData):
   try {
     await saveCommentVote(parsed.data.commentId, await requireViewerProfileId(), parsed.data.value as -1 | 0 | 1);
   } catch (error) {
-    return { status: "error", message: error instanceof Error ? error.message : "Unable to save comment vote." };
+    return { status: "error", message: error instanceof Error ? error.message : "Unable to save the comment vote." };
   }
 
   revalidateCorePaths(parsed.data.slug);
