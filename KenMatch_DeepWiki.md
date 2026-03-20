@@ -1,5 +1,3 @@
-# KenMatch-Overview
-
 # KenMatch Overview
 Relevant source files
 
@@ -7,353 +5,337 @@ Relevant source files
 - [README.md](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md)
 - [docs/architecture.md](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md)
 
-KenMatch is a public coordination platform for proposing, ranking, and auditing long-running AI work. It democratizes access to "long-horizon" frontier AI compute—tasks requiring days, weeks, or months of agentic runtime—by allocating these scarce resources based on transparently resolved collective value rather than personal wealth [README.md#1-5](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L1-L5)
+KenMatch is a public coordination platform designed to democratize access to long-horizon, frontier-grade AI computation [README.md#2-5](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L2-L5) It provides a structured framework for proposing, ranking, funding, and auditing AI "Kens"—units of work that require sustained agentic effort over days, weeks, or months [README.md#11-12](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L11-L12)
 
-## The Problem: Compute Scarcity and Horizon
+The system moves beyond simple query-based interactions, treating continuous computation as a finite resource to be allocated through collective judgment rather than market power [KenMatch_Conception.md#41-44](https://github.com/lowestprime/KenMatch/blob/8218181e/KenMatch_Conception.md#L41-L44)
 
-As frontier AI models evolve from single-turn assistants into long-context, tool-using agents, the primary bottleneck shifts from "queries per minute" to "sustained agentic effort" [README.md#7-8](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L7-L8) Access to this continuous computation is currently constrained by infrastructure costs and energy demands, often favoring large corporations or governments [KenMatch_Conception.md#33-37](https://github.com/lowestprime/KenMatch/blob/8218181e/KenMatch_Conception.md#L33-L37)
+## Mission and Purpose
 
-KenMatch solves this by providing a framework for:
+The mission of KenMatch is to ensure that the most complex and high-value AI tasks—such as deep scientific research, software maintenance, and public-interest analysis—receive the necessary "agentic runtime" based on transparently resolved social value [README.md#5-7](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L5-L7)[README.md#41-49](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L41-L49)
 
-- Democratized Allocation: Crowdsourcing which tasks deserve enterprise-grade compute [README.md#5](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L5-L5)
-- Proof-of-Value: Awarding allocation rights based on audited contributions and curation rather than financial power [README.md#53-57](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L53-L57)
-- Visible Governance: Ensuring long-running tasks are safe, auditable, and subject to public feedback [README.md#22-30](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L22-L30)
+Key objectives include:
 
-## Core Domain Entities
+- Democratic Ranking: Using Quadratic Voting to allow users to express preference intensity while preventing "pay-to-win" dynamics [README.md#69-82](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L69-L82)
+- Legible Funding: Tracking treasury flows, sponsor pools, and revenue without allowing financial contribution to directly purchase rank [README.md#31-38](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L31-L38)
+- Operational Transparency: Providing audit trails, checkpoint gates, and safety status for all active runs [README.md#22-30](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L22-L30)
 
-The system centers on the Ken (internally referred to as a `task`), which represents a unit of long-horizon work [docs/architecture.md#43](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L43-L43)
+## Key Concepts
 
-### Natural Language to Code Entity Mapping (Domain)
+KenMatch introduces several domain-specific concepts to manage the lifecycle of long-running AI tasks:
 
-The following diagram maps high-level KenMatch concepts to their corresponding implementation identifiers in the codebase.
+- Kens (Tasks): The primary unit of work. Internally referred to as `tasks` in the schema [docs/architecture.md#43](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L43-L43) a Ken defines a goal, requested duration (lane), and deliverables [README.md#11-12](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L11-L12)
+- Lanes: Duration-based tiers for computation: Months (Top 3), Weeks (Top 10), and Days (Top 100) per category [README.md#89-96](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L89-L96)
+- Voice Credits: Scarce allocation rights earned through contribution, used for quadratic voting on Kens [README.md#53-67](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L53-L67)
+- Pulse: Fast, public signal (upvotes/downvotes) separate from the scarce allocation voice [README.md#14-17](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L14-L17)
+- Attestation: A sybil-resistance layer that determines a profile's participation limits and voice multipliers [docs/architecture.md#64](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L64-L64)
 
-Sources: [docs/architecture.md#37-58](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L37-L58)[src/lib/db.ts#1-100](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L1-L100)
+For a full breakdown of these terms and their implementation, see [Core Concepts and Terminology](#1.1).
 
-## System Subsystems
+## System Architecture
 
-KenMatch is structured into several major technical layers that handle persistence, business logic, and user interaction.
+KenMatch is built as a modern Next.js 16 App Router application [docs/architecture.md#5](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L5-L5) It uses libSQL for persistence, supporting both local file-based SQLite and remote instances [docs/architecture.md#8](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L8-L8)
 
-### 1. Data and Persistence
+### Subsystem Interaction
 
-Uses libSQL (SQLite) for storing everything from user profiles and sessions to complex ledger entries and governance logs [docs/architecture.md#8-10](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L8-L10)
+The system is divided into functional modules that bridge the gap between user intent (Natural Language Space) and system state (Code Entity Space).
 
-- For details, see [Core Concepts and Domain Model](#1.1).
+Diagram 1: Request Flow and Data Persistence
+This diagram shows how a user's interaction with a Ken (Task) flows through the Next.js routing layer into the persistence engine.
 
-### 2. Allocation and Economics Logic
+Sources:[docs/architecture.md#12-35](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L12-L35)[docs/architecture.md#89-92](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L89-L92)[docs/architecture.md#43-45](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L43-L45)
 
-Pure-function libraries in `src/lib/` implement the core "rules of the game":
+Diagram 2: Governance and Economics Relationship
+This diagram illustrates how the system balances financial inputs with governance outputs.
 
-- Quadratic Voting: `src/lib/allocation.ts` calculates the cost of votes ($cost = votes^2$) to prevent capture by a few intense preferences [README.md#81-83](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L81-L83)
-- Attestation: `src/lib/attestation.ts` manages participation limits based on account maturity and sybil-risk [docs/architecture.md#64](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L64-L64)
-- Treasury: `src/lib/economics.ts` tracks revenue streams and compute-treasury splits [docs/architecture.md#63](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L63-L63)
+Sources:[docs/architecture.md#22-25](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L22-L25)[docs/architecture.md#54-57](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L54-L57)[docs/architecture.md#61-64](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L61-L64)
 
-### 3. Application and UI
+For details on the technical stack and module relationships, see [System Architecture Overview](#1.2).
 
-Built with Next.js 16 App Router and React 19[docs/architecture.md#5-6](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L5-L6)
+## Documentation Map
 
-- Server Actions: `src/app/actions.ts` handles all mutations (voting, submitting Kens, commenting) [docs/architecture.md#10](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L10-L10)
-- Components: Interactive elements like `VotePanel` and `TaskPulsePanel` provide the interface for quadratic allocation and public signaling [docs/architecture.md#88-91](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L88-L91)
-- For details, see [System Architecture Overview](#1.2).
-
-### System Architecture Bridge
-
-This diagram illustrates how user actions flow through the system components to the database.
-
-Sources: [docs/architecture.md#12-32](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L12-L32)[src/app/actions.ts#1-50](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L1-L50)[src/lib/allocation.ts#1-30](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L1-L30)
-
-## Key Features
-
-FeatureDescriptionCode PointerQuadratic VotingPrevents "pay-to-win" by increasing vote costs quadratically.`src/lib/allocation.ts`Duration TiersGroups Kens into Months (top 3), Weeks (top 10), and Days (top 100).`KenMatch_Conception.md:11-23`Attestation LadderScales user capabilities based on verification and contribution.`src/lib/attestation.ts`Public PulseFast upvote/downvote signals separate from scarce Voice credits.`src/components/task-pulse-panel.tsx`Audit TrailTransparent logs of run updates, checkpoints, and safety gates.`src/app/kens/[slug]/page.tsx`
-
-## Child Sections
-
-For deeper technical dives into specific areas of the KenMatch codebase, refer to the following pages:
-
-- [Core Concepts and Domain Model](#1.1): Detailed definitions of Kens, Voice Credits, Pulse, and the Proof-of-Value system.
-- [System Architecture Overview](#1.2): A technical breakdown of the Next.js stack, libSQL integration, and the Server Actions mutation layer.
-
-Sources: [README.md#1-100](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L1-L100)[docs/architecture.md#1-118](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L1-L118)[KenMatch_Conception.md#1-97](https://github.com/lowestprime/KenMatch/blob/8218181e/KenMatch_Conception.md#L1-L97)
+- [Core Concepts and Terminology](#1.1): Deep dive into Kens, Lanes, Pulse, and Attestation.
+- [System Architecture Overview](#1.2): Detailed look at the Next.js structure, libSQL strategy, and module boundaries.
+- [Data Layer and Persistence](#2): Schema definitions, hydration pipelines, and seeding.
+- [Business Logic Libraries](#3): Quadratic voting engines, attestation policies, and economic summaries.
+- [Application Routes and Server Actions](#4): Page-by-page breakdown and mutation logic.
+- [UI Components](#5): The React component library and theming system.
+- [Testing](#6): Test suites for allocation, attestation, and economics.
+- [Deployment and Infrastructure](#7): Docker, Synology NAS setup, and security headers.
+- [Glossary](#8): Quick reference for all domain terms.
 
 ---
 
-# Core-Concepts-and-Domain-Model
-
-# Core Concepts and Domain Model
+# Core Concepts and Terminology
 Relevant source files
 
 - [README.md](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md)
 - [docs/requirements-traceability.md](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/requirements-traceability.md)
 - [src/lib/types.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts)
 
-This page defines the fundamental domain vocabulary and the underlying mental model of KenMatch. It explains how tasks, voting mechanisms, and identity attestations interact to create a democratic system for allocating long-horizon AI compute.
+This page defines the foundational domain vocabulary and technical concepts of the KenMatch platform. It maps high-level product language to specific implementation details, data structures, and logic within the codebase.
 
-## Domain Vocabulary
+## Kens and Tasks
 
-KenMatch operates on a specific set of entities designed to separate "fast signal" (public sentiment) from "scarce allocation" (governance power).
+A Ken is the primary unit of work in KenMatch. It represents a proposed long-horizon AI task requiring sustained computation [README.md#2-5](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L2-L5) In the codebase, Kens are primarily represented by the `TaskRecord` interface and the `tasks` table [src/lib/types.ts#105-126](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L105-L126)
 
-ConceptCode EntityDescriptionKen`TaskRecord`A unit of long-running AI work (e.g., scientific research, software maintenance) [README.md#11-12](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L11-L12)Lane / Tier`AllocationTier`The duration bucket assigned to a Ken based on its rank (Months, Weeks, Days) [src/lib/types.ts#4-5](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L4-L5)Voice Credits`voiceCredits`A finite resource used by contributors to influence Ken ranking via Quadratic Voting [README.md#18-19](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L18-L19)Pulse`TaskPulseVoteRecord`A binary up/down signal representing general public interest, separate from allocation [src/lib/types.ts#146-152](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L146-L152)Attestation`ProfileAttestationRecord`Metadata regarding a user's identity and Sybil-risk, determining their participation rights [src/lib/types.ts#78-86](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L78-L86)Proof-of-Value`availableCredits`A credit system where rights are earned through contribution and curation rather than purchase [README.md#53-57](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L53-L57)
+TermCode EntityDescriptionKen`TaskRecord`The public-facing name for a project proposal.Task`tasks` (DB Table)The internal database identifier for a Ken [docs/requirements-traceability.md#68-70](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/requirements-traceability.md#L68-L70)Stage`TaskStage`The lifecycle state: `review`, `voting`, `scheduled`, `running`, `shipped`, or `blocked`[src/lib/types.ts#7-8](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L7-L8)Category`CategoryRecord`The thematic grouping (e.g., "creative-works", "scientific-research") [src/lib/types.ts#55-61](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L55-L61)
 
----
+Sources:[README.md#11-12](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L11-L12)[src/lib/types.ts#7-126](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L7-L126)[docs/requirements-traceability.md#68-70](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/requirements-traceability.md#L68-L70)
 
-## Kens and Allocation Tiers
+## Allocation and Duration Tiers
 
-A Ken (internally referred to as a `task` in the schema [docs/requirements-traceability.md#68-69](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/requirements-traceability.md#L68-L69)) represents a proposal for sustained agentic effort. Unlike standard LLM queries, Kens are categorized by the duration of compute they require.
+KenMatch organizes work into explicit Duration Tiers (Lanes). Because frontier model compute is a finite resource, Kens compete for specific time-bound allocations [README.md#87-89](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L87-L89)
 
-### Allocation Lanes
+### Tier Logic
 
-The system organizes work into explicit duration tiers to manage finite accelerator resources [README.md#85-87](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L85-L87) The ranking logic in `src/lib/allocation.ts` assigns these tiers based on a Ken's competitive rank within its category:
+The system uses a tiered ranking system defined in `src/lib/allocation.ts`. Projects are ranked by their quadratic vote totals within their category.
 
-- Months: The top 3 projects per category [README.md#91](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L91-L91)
-- Weeks: Projects ranked 4 through 10 [README.md#93](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L93-L93)
-- Days: Projects ranked 11 through 100 [README.md#95](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L95-L95)
-- Queued: Projects eligible but outside the top 100.
-- Blocked: Projects halted by the `safety-council` or `allocation-chamber`[src/lib/types.ts#16-17](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L16-L17)
+- Months: Top 3 projects per category [README.md#91](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L91-L91)
+- Weeks: Top 10 projects per category [README.md#93](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L93-L93)
+- Days: Top 100 projects per category [README.md#95](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L95-L95)
 
-### Ken Life Cycle
+### Code Mapping: Tiers
 
-Kens transition through several stages defined in the `TaskStage` type [src/lib/types.ts#7-8](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L7-L8):
+The `AllocationTier` type includes `months`, `weeks`, `days`, `queued`, and `blocked`[src/lib/types.ts#4-5](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L4-L5) The function `tierForRank()` in `src/lib/allocation.ts` maps a numerical rank to these tiers based on the constants `MAX_MONTHS_RANK` and `MAX_WEEKS_RANK`.
 
-1. Review: Initial submission and safety screening.
-2. Voting: Open for voice credit allocation.
-3. Scheduled: Ranked high enough for a compute window.
-4. Running: Active execution with visible `run_updates`[src/lib/types.ts#195-204](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L195-L204)
-5. Shipped: Work completed and artifacts delivered.
+Sources:[README.md#87-96](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L87-L96)[src/lib/types.ts#1-5](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L1-L5)[src/lib/allocation.ts#101-110](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L101-L110)
 
-Sources:[README.md#11-12](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L11-L12)[README.md#85-97](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L85-L97)[src/lib/types.ts#1-8](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L1-L8)[docs/requirements-traceability.md#68-69](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/requirements-traceability.md#L68-L69)
+## Voice Credits and Quadratic Voting
 
----
+KenMatch distinguishes between "Public Signal" (Pulse) and "Scarce Allocation Voice" (Quadratic Voting) [README.md#15-18](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L15-L18)
 
-## Quadratic Voting and Voice Credits
+### Quadratic Voting (QV)
 
-KenMatch utilizes Quadratic Voting (QV) to allow contributors to express the *intensity* of their preference while preventing a single wealthy or highly-active user from dominating the rankings [README.md#81-82](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L81-L82)
+The cost to influence a Ken's rank grows quadratically relative to the number of votes cast by a single profile.
 
-### The Cost of Influence
+- Formula: $\text{Cost} = \text{Votes}^2$ [README.md#81-82](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L81-L82)
+- Implementation: `quadraticCost(votes: number)` calculates the total credits required for a specific vote count [src/lib/allocation.ts#12-14](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L12-L14)
+- Incremental Cost: `incrementalQuadraticCost(currentVotes: number, additional: number)` calculates the cost to add more votes to an existing position [src/lib/allocation.ts#16-19](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L16-L19)
 
-The cost to assign votes to a Ken increases quadratically relative to the number of votes. This is implemented in the `allocation.ts` library:
+### Pulse
 
-- Formula: `cost = votes²`
-- Incremental Cost: To increase a vote from $n$ to $n+1$, the user must spend $(n+1)^2 - n^2$ credits.
-- Limit: The system enforces a `MAX_VOTES_PER_TASK` (typically 6) to further bound individual influence [src/lib/allocation.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts)
+Pulse represents simple upvote/downvote support without credit expenditure [README.md#17](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L17-L17) It is tracked via the `task_pulse_votes` table and the `PulseDirection` type (-1 or 1) [src/lib/types.ts#22-152](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L22-L152)
 
-### Pulse vs. Voice
-
-The system distinguishes between public sentiment and governance:
-
-- Pulse (`task_pulse_votes`): Fast, non-scarce binary signal (+1/-1). Used for "trending" views.
-- Voice (`votes`): Scarce, quadratic allocation. Used for actual tier placement.
-
-### Data Flow: From Vote to Tier
-
-The following diagram illustrates how user votes are transformed into system-wide allocations.
-
-Diagram: Voting and Ranking Data Flow
-
-Sources:[README.md#15-19](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L15-L19)[README.md#81-82](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L81-L82)[src/lib/types.ts#137-152](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L137-L152)[docs/requirements-traceability.md#11-14](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/requirements-traceability.md#L11-L14)
-
----
+Sources:[README.md#15-82](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L15-L82)[src/lib/allocation.ts#12-19](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L12-L19)[src/lib/types.ts#22-152](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L22-L152)
 
 ## Attestation and Participation Policy
 
-To maintain Sybil-resistance without requiring invasive KYC, KenMatch uses an attestation ladder [README.md#69-76](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L69-L76)
+To ensure sybil resistance and platform integrity, KenMatch uses Attestations to gate user capabilities [README.md#69-75](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L69-L75)
 
-### Participation States
+### Sybil Risk and Participation
 
-A user's `ParticipationState` is resolved by `src/lib/attestation.ts` based on their `AttestationStatus` and `SybilRiskBand`[src/lib/types.ts#40-47](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L40-L47):
+Profiles are assigned a `SybilRiskBand` (`low`, `medium`, `high`) and an `AttestationStatus` (`verified`, `review`, `limited`) [src/lib/types.ts#40-44](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L40-L44) The function `resolveParticipationPolicy()` in `src/lib/attestation.ts` maps these signals to a `ParticipationState`:
 
-1. Full: Can submit Kens, comment, and allocate voice credits.
-2. Review-Limited: Can comment and pulse, but voice allocation is capped or restricted.
-3. Read-Only: New or high-risk accounts.
+1. Full: Unrestricted voting and commenting.
+2. Review-Limited: Participation allowed but subject to moderation queues or caps.
+3. Read-Only: Profile cannot cast votes or post comments.
 
-### The Attestation Ladder
+### Voice Multiplier
 
-Users move from `provisional` to `verified` or `expert` levels [src/lib/types.ts#37-38](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L37-L38) This status affects the `voiceMultiplier`, which can scale the effective weight of a user's credits based on their proven "Proof-of-Value" history [README.md#53-57](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L53-L57)
+Verified profiles may receive a `voiceMultiplier` (e.g., 1.5x) that increases the impact of their credits without increasing the cost [src/lib/attestation.ts#40-60](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L40-L60)
 
-Diagram: Identity to Capability Mapping
+Sources:[src/lib/types.ts#40-86](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L40-L86)[src/lib/attestation.ts#25-60](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L25-L60)[docs/requirements-traceability.md#19-22](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/requirements-traceability.md#L19-L22)
 
-Sources:[README.md#53-57](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L53-L57)[README.md#69-76](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L69-L76)[src/lib/types.ts#37-47](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L37-L47)[docs/requirements-traceability.md#19-22](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/requirements-traceability.md#L19-L22)
+## Execution: Pulse, Checkpoints, and Gates
+
+Once a Ken moves into the `running` stage, it is managed via `ComputeRunRecord`[src/lib/types.ts#172-182](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L172-L182)
+
+- Pulse: The real-time activity and sentiment surrounding a Ken, visualized in `TaskPulsePanel`[src/components/task-pulse-panel.tsx](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-pulse-panel.tsx)
+- Checkpoint: A scheduled milestone in a Ken's execution [src/lib/types.ts#206-213](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L206-L213)
+- Checkpoint Gate: A governance mechanism that requires an `approvalScore` to exceed a `requiredApprovals` threshold before the run can proceed to the next phase [src/lib/types.ts#215-220](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L215-L220)
+
+Sources:[src/lib/types.ts#172-220](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L172-L220)[docs/requirements-traceability.md#28-35](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/requirements-traceability.md#L28-L35)
+
+## Entity Mapping: Product to Code
+
+The following diagrams illustrate how product concepts map to specific code entities and database structures.
+
+### Diagram: Voting and Allocation Flow
+
+This diagram shows how a user's "Voice" is converted into a "Tier" through the allocation engine.
+
+Sources:[src/lib/types.ts#63-144](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L63-L144)[src/lib/allocation.ts#12-110](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L12-L110)
+
+### Diagram: Execution and Governance
+
+This diagram shows the relationship between a running Ken and its safety/oversight mechanisms.
+
+Sources:[src/lib/types.ts#105-230](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L105-L230)[src/components/ken-timing-strip.tsx](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/ken-timing-strip.tsx)
+
+## Economics and Treasury
+
+KenMatch maintains financial transparency through the `Economics` module.
+
+- Revenue Stream: A recurring source of funds (e.g., "enterprise", "sponsorship") [src/lib/types.ts#232-244](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L232-L244)
+- Treasury Entry: An individual ledger item representing an `inflow` or `outflow`[src/lib/types.ts#246-255](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L246-L255)
+- Coverage Months: A calculated metric in `summarizeEconomics()` that determines how long the current treasury can sustain the burn rate [src/lib/economics.ts#80-100](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L80-L100)
+
+Sources:[src/lib/types.ts#25-255](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L25-L255)[src/lib/economics.ts#80-115](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L80-L115)
 
 ---
-
-## Economics and Proof-of-Value
-
-KenMatch maintains a legible treasury to ensure that funding is transparent and does not directly translate into ranking power [README.md#31-32](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L31-L32)
-
-### Revenue and Splits
-
-Revenue is tracked via `RevenueStreamRecord` and split between:
-
-- Treasury Share: Reinvested into public compute.
-- Founder Share: Operations and development [src/lib/types.ts#242-243](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L242-L243)
-
-### Proof-of-Value (PoV)
-
-The PoV system ensures that "allocation rights are earned" [README.md#55](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L55-L55) Users earn credits by:
-
-1. Proposing high-quality tasks.
-2. Improving existing tasks via comments and refinement.
-3. Curation: Supporting Kens that successfully deliver value.
-
-This creates a circular economy where successful contribution to the "Ken board" increases a contributor's future influence over the compute treasury.
-
-Sources:[README.md#31-38](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L31-L38)[README.md#53-67](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L53-L67)[src/lib/types.ts#232-244](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L232-L244)[docs/requirements-traceability.md#44-48](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/requirements-traceability.md#L44-L48)
-
----
-
-# System-Architecture-Overview
 
 # System Architecture Overview
 Relevant source files
 
 - [docs/architecture.md](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md)
 - [docs/requirements-traceability.md](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/requirements-traceability.md)
-- [next.config.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts)
-- [src/lib/env.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/env.ts)
+- [src/lib/db.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts)
 
-The KenMatch system is a modern web application designed for long-horizon AI compute allocation. It leverages a unified TypeScript stack to manage complex domain logic—such as quadratic voting and duration-based tiering—while maintaining a lightweight, self-hostable deployment footprint.
+This page describes the technical architecture of KenMatch, a platform for allocating resources to long-running AI work ("Kens"). The system is built on Next.js 16 using the App Router, leveraging a libSQL (SQLite-compatible) persistence layer and a modular library structure for core business logic.
 
-## High-Level Technical Stack
+## High-Level Component Interaction
 
-KenMatch is built on a "Full-Stack TypeScript" philosophy, utilizing the Next.js App Router for both UI orchestration and server-side logic.
+KenMatch is designed as a monolithic Next.js application where the boundary between public signal (Pulse) and scarce allocation (Voice) is enforced at the logic layer. The architecture follows a "Server-First" approach, utilizing Server Components for data fetching and Server Actions for mutations.
 
-ComponentTechnologyRoleFrameworkNext.js 16 (App Router)Handles routing, SSR, and Server Actions [docs/architecture.md#5](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L5-L5)FrontendReact 19 + Tailwind CSS v4Component-based UI with utility-first styling [docs/architecture.md#6-7](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L6-L7)PersistencelibSQL (SQLite)Local-file or remote database persistence [docs/architecture.md#8](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L8-L8)AuthCustom Session CookiesAccount-backed signed-in state via secure cookies [docs/architecture.md#9](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L9-L9)DeploymentDocker (Standalone)Multi-stage build for containerized environments [docs/architecture.md#107-108](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L107-L108)
+### Component-to-Code Mapping
 
-## System Components and Data Flow
+The following diagram maps high-level system concepts to their specific implementations in the codebase.
 
-The architecture is divided into four primary layers: the UI Layer (React Components), the Action Layer (Next.js Server Actions), the Logic Layer (Pure Business Functions), and the Data Layer (libSQL).
+KenMatch System Map
 
-### Request and Mutation Flow
-
-The following diagram illustrates how a user interaction (like voting) moves through the system.
-
-System Interaction Flow: User Voting
-
-Sources: [docs/architecture.md#10](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L10-L10)[docs/architecture.md#90-91](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L90-L91)[docs/requirements-traceability.md#12-13](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/requirements-traceability.md#L12-L13)[src/lib/env.ts#25-34](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/env.ts#L25-L34)
-
-## Layer Descriptions
-
-### 1. UI Layer (Next.js App Router)
-
-The UI is organized into functional routes that correspond to the core domain pillars:
-
-- Kens Board (`/kens`): The primary interface for searching and filtering tasks [docs/architecture.md#16-17](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L16-L17)
-- Governance (`/governance`): Displays the attestation ladder and blocked work [docs/architecture.md#22-23](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L22-L23)
-- Economics (`/economics`): Visualizes treasury health and revenue streams [docs/architecture.md#24-25](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L24-L25)
-
-### 2. Mutation Layer (Server Actions)
-
-Instead of a traditional REST/GraphQL API, KenMatch uses Next.js Server Actions located in `src/app/actions.ts`. This layer handles:
-
-- Authentication: `signInAction`, `signUpAction`, and `signOutAction`[docs/architecture.md#101-103](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L101-L103)
-- Domain Mutations: `createProposalAction` (Kens), `saveVoteAction` (Quadratic Voice), and `createCommentAction`[docs/architecture.md#10](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L10-L10)
-- Validation: All inputs are strictly typed using Zod schemas [src/lib/env.ts#1-36](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/env.ts#L1-L36)
-
-### 3. Logic Layer (Business Rules)
-
-Pure TypeScript libraries in `src/lib/` encapsulate the complex rules of the system, ensuring they can be tested independently of the UI or database:
-
-- `allocation.ts`: Implements the quadratic cost formulas and tier assignment logic [docs/requirements-traceability.md#25-26](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/requirements-traceability.md#L25-L26)
-- `attestation.ts`: Converts raw profile data into participation policies (e.g., `read-only` vs `full`) [docs/requirements-traceability.md#20-22](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/requirements-traceability.md#L20-L22)
-- `economics.ts`: Handles treasury reconciliation and runway calculations [docs/requirements-traceability.md#47-48](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/requirements-traceability.md#L47-L48)
-
-### 4. Data Layer (libSQL Persistence)
-
-The system uses libSQL for high-performance SQLite-compatible persistence. It supports two modes:
-
-1. Local Mode: Stores data in a local file (default: `data/kenmatch.sqlite`) [src/lib/env.ts#29](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/env.ts#L29-L29)
-2. Remote Mode: Connects to a Turso/libSQL server via `DATABASE_URL`[src/lib/env.ts#27-28](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/env.ts#L27-L28)
-
-Entity Relationship Mapping
-
-Sources: [docs/architecture.md#35-58](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L35-L58)[docs/requirements-traceability.md#29-30](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/requirements-traceability.md#L29-L30)
-
-## Deployment Model
-
-KenMatch is designed for Standalone Docker Deployment. The build process generates a minimal Node.js server that includes only the necessary files for production, significantly reducing image size.
-
-- Output Mode: `standalone` configured in `next.config.ts`[next.config.ts#30](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L30-L30)
-- Security: Implements strict Content-Security-Policy (CSP) and security headers (HSTS, X-Frame-Options) [next.config.ts#5-26](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L5-L26)
-- Persistence: For containerized environments (like Synology NAS), the database file is stored in a persistent volume mount at `/app/data`[docs/architecture.md#109](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L109-L109)
-
-### Environment Configuration
-
-Key system behaviors are toggled via environment variables:
-
-- `KENMATCH_ALLOW_SIGNUPS`: Controls public registration [src/lib/env.ts#32](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/env.ts#L32-L32)
-- `KENMATCH_ENABLE_DEMO_PROFILE_SWITCHER`: Enables a UI helper for switching between seed profiles during testing [src/lib/env.ts#33](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/env.ts#L33-L33)
-
-Sources: [next.config.ts#1-50](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L1-L50)[src/lib/env.ts#1-36](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/env.ts#L1-L36)[docs/architecture.md#105-111](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L105-L111)
+Sources:[docs/architecture.md#1-32](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L1-L32)[docs/requirements-traceability.md#5-50](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/requirements-traceability.md#L5-L50)[src/lib/db.ts#205-350](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L205-L350)
 
 ---
 
-# Data-Layer
+## Next.js App Router Structure
 
-# Data Layer
+The application uses the Next.js App Router to handle routing, layouts, and data fetching. It follows a pattern where `db.ts` acts as the central data access layer for all Server Components.
+
+RoutePurposeKey File`/`Homepage metrics and featured Kens`src/app/page.tsx``/kens`Public board with filters`src/app/kens/page.tsx``/kens/[slug]`Deep-dive Ken detail and voting`src/app/kens/[slug]/page.tsx``/governance`Attestation ladder and blocked Kens`src/app/governance/page.tsx``/economics`Treasury and revenue stream tracking`src/app/economics/page.tsx``/submit`Ken intake with tier-aware guidance`src/app/submit/page.tsx``/api/health`Deployment health probe`src/app/api/health/route.ts`
+
+Sources:[docs/architecture.md#12-31](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L12-L31)[docs/requirements-traceability.md#7-9](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/requirements-traceability.md#L7-L9)
+
+---
+
+## Data Flow: Public Signal vs. Scarce Allocation
+
+A core architectural requirement is the separation of "Pulse" (public sentiment) from "Voice" (resource allocation). This prevents public popularity from automatically triggering resource expenditure.
+
+Signal vs. Allocation Flow
+
+- Pulse: Non-scarce upvotes/downvotes stored in `task_pulse_votes`[src/lib/db.ts#289-301](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L289-L301)
+- Voice: Quadratic voting using scarce `voiceCredits`. Logic is defined in `src/lib/allocation.ts`[src/lib/allocation.ts#43-52](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L43-L52) and enforced during the database update [src/lib/db.ts#1140-1170](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L1140-L1170)
+
+Sources:[docs/architecture.md#59-65](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L59-L65)[docs/requirements-traceability.md#11-14](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/requirements-traceability.md#L11-L14)[src/lib/db.ts#1140-1200](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L1140-L1200)
+
+---
+
+## Persistence Strategy: libSQL and SQLite
+
+KenMatch uses `libSQL` for persistence, supporting both local file-based SQLite (for development/self-hosting) and remote Turso instances.
+
+### Database Initialization and Hydration
+
+The system uses a lazy-initialization pattern. The `ensureDatabase()` function [src/lib/db.ts#121-127](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L121-L127) is called before any operation, ensuring tables exist and are seeded if necessary.
+
+1. Schema Creation:`initializeDatabase()`[src/lib/db.ts#204-350](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L204-L350) runs a batch of `CREATE TABLE IF NOT EXISTS` statements.
+2. Seeding: If the `profiles` table is empty, the system runs `seedDatabase()`[src/lib/db.ts#352-378](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L352-L378) which populates the DB with data from `seed.ts` and `seed-plus.ts`.
+3. Connection Management: A global client `__kenmatchDbClient` is maintained to prevent connection exhaustion in serverless environments [src/lib/db.ts#109-119](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L109-L119)
+
+Sources:[src/lib/db.ts#84-127](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L84-L127)[src/lib/db.ts#204-378](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L204-L378)[docs/architecture.md#112-118](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L112-L118)
+
+---
+
+## Major Module Relationships
+
+The `src/lib/` directory contains the core domain logic, decoupled from the UI components.
+
+### 1. Allocation (`allocation.ts`)
+
+Calculates quadratic costs and determines task ranking within specific lanes (Days, Weeks, Months).
+
+- Key Functions:`quadraticCost()`[src/lib/allocation.ts#43-45](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L43-L45)`buildCategoryRankings()`[src/lib/allocation.ts#115-165](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L115-L165)
+
+### 2. Attestation (`attestation.ts`)
+
+Converts raw profile data and sybil signals into a `ParticipationPolicy`.
+
+- Key Function:`resolveParticipationPolicy()`[src/lib/attestation.ts#42-88](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L42-L88) determines if a user has `full`, `review-limited`, or `read-only` access.
+
+### 3. Economics (`economics.ts`)
+
+Handles treasury accounting and revenue stream projections.
+
+- Key Function:`summarizeEconomics()`[src/lib/economics.ts#112-160](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L112-L160) calculates burn rates and treasury coverage months.
+
+### 4. DB Layer (`db.ts`)
+
+The "God Object" that bridges the business logic and the persistence layer. It imports the logic from the modules above to return "Hydrated" records (e.g., a `TaskDetail` that includes its allocation rank and funding status).
+
+Internal Module Dependency Graph
+
+Sources:[src/lib/db.ts#19-30](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L19-L30)[docs/architecture.md#33-58](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L33-L58)[docs/requirements-traceability.md#19-24](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/requirements-traceability.md#L19-L24)
+
+---
+
+# Data Layer and Persistence
 Relevant source files
 
 - [src/lib/db.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts)
 - [src/lib/types.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts)
 
-The KenMatch Data Layer manages the persistence, retrieval, and transformation of the system's state. It is built on libSQL (a SQLite fork) and utilizes a hydration pipeline to convert flat database rows into rich, typed domain objects used by the UI and business logic layers.
+KenMatch utilizes a lightweight yet robust persistence layer built on libSQL (a contribution-friendly fork of SQLite). The data architecture is designed for high-speed local development and efficient production hosting, using a single-file database approach that simplifies deployment while providing full relational capabilities.
 
-## Persistence Architecture
+## Persistence Strategy
 
-KenMatch uses a local or remote libSQL database defined by environment variables [src/lib/db.ts#84-85](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L84-L85) The system ensures the database directory exists locally if using a file-based URL [src/lib/db.ts#98-107](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L98-L107)
+The application interacts with the database through the `libSQL` client, supporting both local file-based storage and remote connections via `DATABASE_URL`[src/lib/db.ts#84-85](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L84-L85)
 
-### Connection Management
+### Client Initialization
 
-The database client is managed as a global singleton to prevent socket exhaustion during Next.js hot reloads [src/lib/db.ts#93-96](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L93-L96) The `ensureDatabase` function guarantees that the schema is initialized and the connection is ready before any query execution [src/lib/db.ts#121-127](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L121-L127)
+The database client is managed as a global singleton to prevent connection exhaustion during Next.js hot reloads [src/lib/db.ts#93-119](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L93-L119) It employs a "lazy-init" pattern where the schema is verified and the connection is established only upon the first request via `ensureDatabase()`[src/lib/db.ts#121-127](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L121-L127)
 
-### Data Access Flow
+### Data Flow Overview
 
-The following diagram illustrates how raw data moves from the libSQL `Client` into the application's "Code Entity Space" via the `hydrate` pipeline.
+The following diagram illustrates the relationship between the persistence layer and the application's runtime entities.
 
-Data Hydration Pipeline
+Persistence to Code Entity Mapping
 
-Sources: [src/lib/db.ts#109-119](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L109-L119)[src/lib/db.ts#468-472](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L468-L472)[src/lib/types.ts#105-126](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L105-L126)
-
-## Database Schema
-
-The schema consists of over 20 tables that track everything from user identities to the granular financial state of AI tasks. Key table groups include:
-
-- Identity & Auth: `profiles`, `accounts`, `sessions`, and `profile_attestations`[src/lib/db.ts#209-249](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L209-L249)
-- Core Tasks (Kens): `tasks`, `categories`, `votes`, and `task_pulse_votes`[src/lib/db.ts#250-316](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L250-L316)
-- Execution & Governance: `runs`, `run_updates`, `checkpoints`, and `governance_events`[src/lib/db.ts#317-380](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L317-L380)
-- Economics: `revenue_streams`, `treasury_entries`, and `task_finance`[src/lib/db.ts#381-424](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L381-L424)
-
-For a comprehensive breakdown of every table and its columns, see [Database Schema and Hydration](#2.1).
-
-## The Hydration Pipeline
-
-Because SQLite lacks native array types, KenMatch uses a serialization strategy for lists (e.g., `deliverables`, `riskFlags`).
-
-StepFunctionDescriptionStorage`serializeList`Converts `string[]` to JSON strings for storage [src/lib/db.ts#129-131](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L129-L131)Retrieval`parseList`Reconstitutes JSON strings back into `string[]`[src/lib/db.ts#133-139](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L133-L139)Hydration`hydrate`A bulk-load orchestrator that fetches related records (like votes or timing) and computes derived state [src/lib/db.ts#468-510](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L468-L510)
-
-### Derived State Calculation
-
-The data layer does not just return rows; it computes critical business metrics on-the-fly:
-
-- `availableCredits`: Calculated by subtracting `spentCredits` (quadratic cost) from a profile's base `voiceCredits`[src/lib/db.ts#482-485](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L482-L485)
-- `allocatedTier`: Determined by the task's rank within its category based on total votes [src/lib/db.ts#544-548](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L544-L548)
-- `taskPulseScore`: The net sum of up/down signals [src/lib/db.ts#549](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L549-L549)
-
-Sources: [src/lib/db.ts#129-139](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L129-L139)[src/lib/db.ts#468-510](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L468-L510)[src/lib/allocation.ts#24-25](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L24-L25)
-
-## Seed Data and Fixtures
-
-To facilitate development and demonstrations, KenMatch includes a robust seeding system. It populates the database with realistic AI task scenarios, spanning various stages of the lifecycle (from "voting" to "shipped").
-
-Seeding Relationship Diagram
-
-- `seed.ts`: Focuses on core entities: profiles, categories, and primary tasks like the "Home Energy Upgrade Companion" [src/lib/seed.ts#32-37](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed.ts#L32-L37)
-- `seed-plus.ts`: Adds complexity: treasury entries, comment threads, and the "Autonomous Phishing Lure Optimizer" (an example of a blocked/unsafe task) [src/lib/seed-plus.ts#40-51](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed-plus.ts#L40-L51)
-
-For details on running these scripts and the scenarios they create, see [Seed Data and Demo Fixtures](#2.2).
-
-Sources: [src/lib/db.ts#31-51](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L31-L51)[src/lib/seed.ts#1-40](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed.ts#L1-L40)[src/lib/seed-plus.ts#1-55](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed-plus.ts#L1-L55)
+Sources:[src/lib/db.ts#121-127](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L121-L127)[src/lib/types.ts#63-255](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L63-L255)
 
 ---
 
-# Database-Schema-and-Hydration
+## Database Schema and Hydration
+
+The system manages approximately 17 tables that track the entire lifecycle of a "Ken" (Task), from proposal and voting to compute execution and treasury settlement.
+
+- Relational Integrity: The schema uses strict foreign key constraints (e.g., `tasks` link to `categories` and `profiles`) [src/lib/db.ts#208-257](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L208-L257)
+- The Hydration Pipeline: Because KenMatch performs complex calculations (like Quadratic Voting rankings and Treasury burn rates), it uses a `hydrate()` function. This pipeline fetches raw rows and transforms them into rich, computed objects like `EconomicsSummary` or `TaskDetail`[src/lib/db.ts#804-830](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L804-L830)
+
+For a deep dive into the table structures and the transformation logic, see [Database Schema and Hydration](#2.1).
+
+Sources:[src/lib/db.ts#204-450](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L204-L450)[src/lib/db.ts#804-830](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L804-L830)
+
+---
+
+## Seeding and Development Environment
+
+KenMatch includes a sophisticated two-tier seeding strategy to ensure developers and stakeholders can interact with a "warm" system that reflects real-world state.
+
+TierFilePurposeBase Seed`seed.ts`Populates core structural data: Categories, Profiles, and basic Tasks [src/lib/seed.ts#1-39](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed.ts#L1-L39)Plus Seed`seed-plus.ts`Simulates activity: Votes, Attestations, Treasury entries, and Checkpoint gates [src/lib/seed-plus.ts#1-51](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed-plus.ts#L1-L51)
+
+This strategy allows the application to demonstrate complex states, such as tasks being "blocked" by governance or treasury funds being "restricted" to specific categories.
+
+For details on how to trigger seeding and the specific scenarios modeled, see [Seed Data and Demo Environment](#2.2).
+
+Sources:[src/lib/db.ts#31-51](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L31-L51)[src/lib/db.ts#452-540](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L452-L540)
+
+---
+
+## Data Access Patterns
+
+The codebase avoids complex ORMs in favor of typed SQL execution. This ensures maximum transparency and performance for the technical audience.
+
+Database Interaction Flow
+
+### Key Utility Functions
+
+- `execute(sql, args)`: The primary wrapper for running queries [src/lib/db.ts#184-187](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L184-L187)
+- `batch(statements)`: Used for atomic transactions, especially during initialization and seeding [src/lib/db.ts#189-192](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L189-L192)
+- `loadRows(sql, args)`: Helper to return typed result sets [src/lib/db.ts#194-197](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L194-L197)
+
+Sources:[src/lib/db.ts#184-202](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L184-L202)[src/lib/db.ts#634-650](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L634-L650)
+
+---
 
 # Database Schema and Hydration
 Relevant source files
@@ -361,200 +343,177 @@ Relevant source files
 - [src/lib/db.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts)
 - [src/lib/types.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts)
 
-KenMatch utilizes a libSQL (SQLite-compatible) database to manage a complex domain model involving quadratic voting, task allocation, and governance. The data layer is designed for high performance with a unique hydration pipeline that computes derived states—such as available credits and task rankings—on every significant load to ensure business logic consistency.
+This page provides a technical deep dive into the KenMatch persistence layer, implemented using libSQL (SQLite). It covers the 17-table relational schema, the lazy-initialization pattern for database connectivity, and the hydration pipeline that transforms raw database rows into rich, in-memory application snapshots.
 
-## 1. Database Schema Overview
+## Persistence Architecture
 
-The schema is defined in `src/lib/db.ts` and consists of over 20 tables. It enforces referential integrity through standard SQL foreign keys and stores complex lists as serialized JSON strings.
+KenMatch uses a libSQL client to manage a local SQLite database file or a remote Turso instance. The system follows a "lazy-init" pattern where the database connection and schema are only established upon the first query execution.
 
-### 1.1 Core Entity Tables
+### Lazy Initialization Pattern
 
-The following tables form the backbone of the identity and task management systems:
+The `ensureDatabase()` function serves as the gatekeeper for all database interactions. It ensures that the directory exists, the client is configured, and the schema is applied before any operation proceeds.
 
-TablePurposeKey Fields`profiles`User identity and credit balance.`voiceCredits`, `credibility`, `attestationLevel``accounts`Authentication credentials.`email`, `passwordHash`, `passwordSalt``sessions`Active user sessions.`tokenHash`, `expiresAt``tasks`The "Kens" or proposals.`slug`, `categoryId`, `stage`, `safetyStatus``categories`Thematic groupings for tasks.`slug`, `thesis`
+FunctionRoleSource`getClient()`Singleton provider for the libSQL `Client`. Configures URL and Auth Token.[src/lib/db.ts#109-119](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L109-L119)`ensureDatabase()`Idempotent wrapper that triggers `initializeDatabase()` once per process.[src/lib/db.ts#121-127](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L121-L127)`initializeDatabase()`Executes `CREATE TABLE IF NOT EXISTS` statements and triggers seeding.[src/lib/db.ts#204-436](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L204-L436)
 
-### 1.2 Governance and Voting Tables
+Sources:[src/lib/db.ts#109-127](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L109-L127)[src/lib/db.ts#204-436](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L204-L436)
 
-These tables track the collective decision-making process:
+## Database Schema
 
-- `votes`: Stores quadratic votes cast by profiles for specific tasks. [src/lib/db.ts#283-290](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L283-L290)
-- `task_pulse_votes`: Simple up/down signaling (Pulse) separate from voice credit allocation. [src/lib/db.ts#291-297](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L291-L297)
-- `governance_events`: Audit log of decisions made by the Safety Council or Allocation Chamber. [src/lib/db.ts#348-356](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L348-L356)
-- `comments` & `comment_votes`: Discussion system where comments can have "staked" credits. [src/lib/db.ts#298-314](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L298-L314)
+The schema consists of approximately 17 tables categorized into core entities (Profiles/Tasks), governance/voting mechanics, and economic tracking.
 
-### 1.3 Execution and Finance Tables
+### Core Entity Relationship Diagram
 
-These tables manage the lifecycle of a task once it moves toward the "Running" stage:
+This diagram maps the primary data structures defined in `src/lib/types.ts` to their database representations in `src/lib/db.ts`.
 
-- `runs` & `run_updates`: Track compute execution parameters and periodic status artifacts. [src/lib/db.ts#315-331](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L315-L331)
-- `checkpoints` & `checkpoint_gates`: Define milestones and the approval scores required to release the next phase of funding/compute. [src/lib/db.ts#332-347](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L332-L347)
-- `task_finance`: Stores quality bonds, sponsor pools, and enterprise packaging details. [src/lib/db.ts#273-281](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L273-L281)
-- `task_timings`: High-resolution tracking of launch times and compute hours used. [src/lib/db.ts#262-272](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L262-L272)
+Sources:[src/lib/types.ts#55-126](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L55-L126)[src/lib/db.ts#209-278](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L209-L278)
 
-### 1.4 Treasury and Economics
+### Table Definitions
 
-- `revenue_streams`: Models different income engines (e.g., Enterprise, Data Licensing). [src/lib/db.ts#357-369](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L357-L369)
-- `treasury_entries`: A ledger of inflows and outflows (e.g., "Compute-Treasury" bucket). [src/lib/db.ts#370-379](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L370-L379)
+TableDescriptionKey Fields`profiles`User identity and social capital.`voiceCredits`, `credibility`, `attestationLevel``accounts`Auth credentials and email mapping.`passwordHash`, `passwordSalt``tasks`The central "Ken" proposal.`requestedTier`, `stage`, `safetyStatus``votes`Quadratic voting allocations.`voteCount`, `rationale``task_pulse_votes`Binary sentiment (-1/1) signals.`value``checkpoints`Milestone tracking for running tasks.`status`, `dueAt``checkpoint_gates`Governance requirements for funding release.`approvalScore`, `requiredApprovals``revenue_streams`Sources of treasury inflow.`monthlyRevenueUsd`, `treasurySharePercent``treasury_entries`Ledger of all inflows and outflows.`amountUsd`, `bucket`, `direction`
 
-Sources:[src/lib/db.ts#204-381](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L204-L381)[src/lib/types.ts#55-256](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L55-L256)
+Sources:[src/lib/db.ts#209-420](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L209-L420)[src/lib/types.ts#55-255](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L55-L255)
 
----
+## The Hydration Pipeline
 
-## 2. The Hydration Pipeline
+Hydration in KenMatch is the process of fetching raw relational data and applying business logic (such as Quadratic Voting calculations and Attestation policies) to produce a "Summary" or "Detail" object used by the UI.
 
-KenMatch does not store all state in the database. Instead, it uses a Hydration Pipeline to transform raw `DbRow` objects into rich TypeScript interfaces. This process merges static database data with dynamic business logic results.
+### Logic Flow: Data to Snapshot
 
-### 2.1 Data Flow: From SQL to UI
+The following diagram illustrates how the `hydrate()` function in `src/lib/db.ts` transforms database rows into the application state.
 
-The following diagram illustrates how raw database records are transformed into the `TaskSummary` and `ProfileSummary` types used by the UI.
+Sources:[src/lib/db.ts#466-608](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L466-L608)[src/lib/allocation.ts#101-140](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L101-L140)[src/lib/attestation.ts#27-52](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L27-L52)
 
-System Entity Mapping: SQL to Domain Objects
+### Key Hydration Functions
 
-Sources:[src/lib/db.ts#536-620](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L536-L620)[src/lib/allocation.ts#29-31](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L29-L31)[src/lib/allocation.ts#46-105](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L46-L105)
+#### 1. `hydrate()`
 
-### 2.2 Key Hydration Functions
+The primary engine for building the in-memory state. It performs the following:
 
-The `hydrate()` function is the central entry point for data retrieval. It performs the following steps:
+1. Joins: Aggregates tasks with their proposer profiles and categories [src/lib/db.ts#474-500](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L474-L500)
+2. Vote Aggregation: Sums `voteCount` per task to determine allocation eligibility [src/lib/db.ts#511-525](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L511-L525)
+3. Ranking: Calls `buildCategoryRankings()` to sort tasks into "months", "weeks", "days", or "queued" tiers based on relative vote weight [src/lib/db.ts#560-580](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L560-L580)
 
-1. Bulk Load: Fetches all tasks, votes, and profiles in a single pass (or cached set). [src/lib/db.ts#536-545](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L536-L545)
-2. Credit Calculation: Iterates through all votes for a profile and uses `quadraticCost(voteCount)` to subtract from the base `voiceCredits`. [src/lib/db.ts#558-568](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L558-L568)
-3. Tier Assignment: Passes the list of tasks to `buildCategoryRankings()`, which determines if a task is in the "Months", "Weeks", or "Days" lane based on its vote count relative to others. [src/lib/db.ts#577-580](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L577-L580)
-4. Pulse Scoring: Aggregates `task_pulse_votes` to compute a `taskPulseScore`. [src/lib/db.ts#572-575](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L572-L575)
+#### 2. `getTaskDetail(slug, viewerProfileId)`
 
-### 2.3 List Serialization and Mappers
+Builds a comprehensive view of a single task, including:
 
-Because SQLite lacks a native Array type, KenMatch uses `serializeList` and `parseList` to handle string arrays (like `deliverables` or `riskFlags`). [src/lib/db.ts#129-139](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L129-L139)
+- Finance: Joins `task_finance` for bond and budget data [src/lib/db.ts#684-690](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L684-L690)
+- Timing: Fetches `task_timings` for compute usage and end dates [src/lib/db.ts#691-695](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L691-L695)
+- Governance: Attaches `governance_events` related to the task [src/lib/db.ts#718-725](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L718-L725)
 
-Mappers like `mapTask` and `mapProfile` ensure type safety when converting `DbRow` (where all values might be strings or numbers) into the strict types defined in `src/lib/types.ts`.
+#### 3. `getViewerSession(token)`
 
-- `mapTask`: Handles JSON parsing for list fields and converts strings to enums (e.g., `TaskStage`). [src/lib/db.ts#413-441](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L413-L441)
-- `mapProfile`: Maps raw fields and computes `avatarHue`. [src/lib/db.ts#389-404](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L389-L404)
+Maps a session token to a `ProfileSummary`, which includes the `ParticipationState` (full, review-limited, or read-only) resolved via `resolveParticipationPolicy()`[src/lib/db.ts#1145-1170](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L1145-L1170)
 
-Sources:[src/lib/db.ts#129-139](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L129-L139)[src/lib/db.ts#389-441](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L389-L441)[src/lib/db.ts#536-620](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L536-L620)
+Sources:[src/lib/db.ts#466-608](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L466-L608)[src/lib/db.ts#663-750](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L663-L750)[src/lib/db.ts#1145-1170](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L1145-L1170)
 
----
+## Data Transformation Helpers
 
-## 3. Computing Derived State
+Since libSQL/SQLite has limited data types, `src/lib/db.ts` includes several utilities to handle serialization:
 
-The system calculates three critical pieces of derived state during hydration that are never persisted directly:
+- List Serialization: `serializeList()` and `parseList()` convert TypeScript string arrays to JSON strings for storage in `TEXT` columns (used for `deliverables`, `riskFlags`, etc.) [src/lib/db.ts#129-139](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L129-L139)
+- Type Casting: `getNumber()` and `getString()` provide safe extraction from `DbRow` objects, handling the conversion from libSQL `Value` types (which may be `bigint` or `number`) to standard TypeScript types [src/lib/db.ts#141-178](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L141-L178)
 
-### 3.1 `availableCredits`
-
-Calculated for each profile by summing the quadratic cost of all their active votes and subtracting it from their `voiceCredits` (base balance).
-
-- Formula: `availableCredits = voiceCredits - Σ(voteCount²)`
-- Implementation: [src/lib/db.ts#558-568](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L558-L568) using `quadraticCost` from `src/lib/allocation.ts`.
-
-### 3.2 `allocatedTier`
-
-A task's tier (e.g., "Weeks") is dynamic. If a new task receives more votes, it might push an existing task from "Weeks" into the "Days" lane or "Queued" status.
-
-- Logic: Handled by `buildCategoryRankings`, which sorts tasks by `voteCount`, then `createdAt`, then `title`. [src/lib/allocation.ts#46-105](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L46-L105)
-- Integration: [src/lib/db.ts#577-580](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L577-L580)
-
-### 3.3 `taskPulseScore`
-
-The net value of all up-votes (+1) and down-votes (-1) for a task.
-
-- Implementation: [src/lib/db.ts#572-575](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L572-L575)
+Sources:[src/lib/db.ts#129-178](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L129-L178)
 
 ---
 
-## 4. Initialization and Seeding
-
-When the application starts, `ensureDatabase()` checks if the database exists. If not, it triggers `initializeDatabase()` to create the tables and then runs the hydration/seed scripts.
-
-Database Startup Sequence
-
-Sources:[src/lib/db.ts#121-127](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L121-L127)[src/lib/db.ts#204-381](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L204-L381)[src/lib/db.ts#634-645](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L634-L645)
-
----
-
-# Seed-Data-and-Demo-Fixtures
-
-# Seed Data and Demo Fixtures
+# Seed Data and Demo Environment
 Relevant source files
 
 - [src/lib/seed-plus.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed-plus.ts)
 - [src/lib/seed.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed.ts)
 
-The KenMatch platform utilizes a robust seeding system to populate demo environments with realistic, high-fidelity data. This data serves two primary purposes: providing a "batteries-included" experience for local development and demonstrating the platform's core mechanics—such as Quadratic Voting, Attestation tiers, and long-horizon task allocation—through concrete scenarios.
+This page describes the two-tier seeding system used in KenMatch to create a rich, interactive development and testing environment. The system models the complete lifecycle of a Ken (Task), including proposal stages, quadratic voting allocation, treasury flows, and governance gates.
 
-The seeding logic is split across two primary files: `src/lib/seed.ts` (core entities) and `src/lib/seed-plus.ts` (extended activity and metrics).
+## Overview of the Two-Tier Seeding System
 
-### Seed Architecture and Data Flow
+KenMatch uses two distinct seeding files to populate the database. This separation allows for a clean distinction between core structural data and the complex relational "pulse" data required to simulate a living ecosystem.
 
-The seeding process follows a linear dependency graph to ensure referential integrity within the libSQL database. The `hydrate()` function in the database layer is responsible for executing these scripts and mapping the TypeScript objects into the SQLite schema.
+1. `seed.ts`: Populates foundational entities: Profiles, Categories, Tasks, and historical Governance Events.
+2. `seed-plus.ts`: Populates high-fidelity simulation data: Attestations, Task Finances, Pulse Votes, Revenue Streams, and Checkpoint Gates.
 
-#### Entity Relationship Mapping
+### Data Flow and Initialization
 
-The following diagram illustrates how the seed data objects map to the system's internal code entities and database tables.
+The seeding process is typically triggered during database initialization. The `ensureDatabase()` function in `src/lib/db.ts` checks for an empty database and applies the schema followed by these seed sets.
 
-Diagram: Seed Data to Code Entity Mapping
+Natural Language to Code Entity Mapping: Seeding Architecture
 
-Sources:[src/lib/seed.ts#1-21](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed.ts#L1-L21)[src/lib/seed-plus.ts#1-11](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed-plus.ts#L1-L11)[src/lib/db.ts#1-50](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L1-L50)
+ConceptCode Entity / FileRoleIdentity & Access`seedProfiles`[src/lib/seed.ts#3-11](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed.ts#L3-L11)Defines users with roles, specialties, and voice credits.Taxonomy`seedCategories`[src/lib/seed.ts#13-19](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed.ts#L13-L19)Defines the five core investment lanes (e.g., "Open Tools").Core Work`seedTasks`[src/lib/seed.ts#21-25](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed.ts#L21-L25)Defines Kens with summaries, budget, and safety status.Trust Layer`seedProfileAttestations`[src/lib/seed-plus.ts#3-11](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed-plus.ts#L3-L11)Links profiles to verification signals (ORCID, GitHub).Fiscal Health`seedTaskFinance`[src/lib/seed-plus.ts#13-25](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed-plus.ts#L13-L25)Sets sponsor pools and enterprise packaging notes.
 
----
-
-### Core Seed Entities (seed.ts)
-
-The primary seed file defines the foundational actors and tasks that inhabit the KenMatch ecosystem.
-
-#### Profiles and Attestation
-
-Profiles in the seed data represent diverse personas, from open-source maintainers to policy analysts. Each profile is assigned a `voiceCredits` balance and a `credibility` score, which are used to demonstrate the [3.2. Attestation and Participation Policy](https://github.com/lowestprime/KenMatch/blob/8218181e/3.2. Attestation and Participation Policy) logic.
-
-- Maya Chen (`maya-chen`): Open-source maintainer with high credibility (0.95) and 64 voice credits [src/lib/seed.ts#4](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed.ts#L4-L4)
-- Noor Haddad (`noor-haddad`): Biomedical researcher with 82 voice credits [src/lib/seed.ts#5](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed.ts#L5-L5)
-
-#### Task Scenarios (Kens)
-
-The seed data includes several "Kens" (tasks) that demonstrate different stages of the lifecycle (e.g., `running`, `shipped`, `scheduled`, `blocked`).
-
-Task IDCategoryTierStatusPurpose`home-energy-upgrade-companion`Everyday ServicesWeeksRunningUtility bill and rebate parsing [src/lib/seed.ts#22](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed.ts#L22-L22)`repair-manual-finder`Everyday ServicesDaysShippedArchival appliance repair data [src/lib/seed.ts#23](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed.ts#L23-L23)`rare-disease-evidence-atlas`Science & HealthMonthsRunningEvidence synthesis for small labs [src/lib/seed.ts#28](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed.ts#L28-L28)`autonomous-phishing-lure-optimizer`SecurityBlockedBlockedDemonstration of safety/governance rejection [src/lib/seed.ts#31](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed.ts#L31-L31)
-
-Sources:[src/lib/seed.ts#3-35](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed.ts#L3-L35)
+Sources: [src/lib/seed.ts#1-25](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed.ts#L1-L25)[src/lib/seed-plus.ts#1-25](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed-plus.ts#L1-L25)
 
 ---
 
-### Extended Fixtures and Activity (seed-plus.ts)
+## Modeling the Ken Lifecycle
 
-The `seed-plus.ts` file provides the "pulse" of the application, simulating user interaction, financial backing, and governance events.
+The seed data is designed to showcase Kens at every stage of the pipeline, from "queued" to "shipped," including those blocked by governance.
 
-#### Task Finance and Enterprise Packaging
+### 1. Task States and Safety Gating
 
-Each task is associated with a `TaskFinanceRecord` which defines its economic viability. This includes the `sponsorPoolUsd` and `enterprisePackaging` descriptions, which explain how the task's output might be commercialized or sustained.
+The `seedTasks` array includes examples of:
 
-- Example: The `rare-disease-evidence-atlas` has a $16,000 sponsor pool and is packaged as a "Living evidence atlas for foundations" [src/lib/seed-plus.ts#20](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed-plus.ts#L20-L20)
+- Approved & Running: `home-energy-upgrade-companion`[src/lib/seed.ts#22](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed.ts#L22-L22)
+- Shipped: `repair-manual-finder`[src/lib/seed.ts#23](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed.ts#L23-L23)
+- Blocked/Prohibited: `autonomous-phishing-lure-optimizer`[src/lib/seed.ts#25](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed.ts#L25-L25) This task demonstrates the `safetyStatus: "blocked"` state, which prevents it from receiving funding or appearing in standard lists.
 
-#### The Blocked Task Example
+### 2. Allocation and Voting
 
-A critical component of the seed data is the `autonomous-phishing-lure-optimizer`. This task is explicitly flagged as `safetyStatus: "blocked"`[src/lib/seed.ts#31](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed.ts#L31-L31) Its finance record specifies `sponsorPoolUsd: 0` and notes that no commercial path exists because it is "prohibited offensive work" [src/lib/seed-plus.ts#24](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed-plus.ts#L24-L24)
+To test the Quadratic Voting (QV) engine, `seedVotes` provides a distribution of voice credits across tasks.
 
-#### Interaction Data Flow
+- Voice Credits: Profiles like `maya-chen` start with specific `voiceCredits` (e.g., 64) [src/lib/seed.ts#4](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed.ts#L4-L4)
+- Vote Distribution: Votes are cast with varying `value` amounts to test the `quadraticCost` calculation in `src/lib/allocation.ts`.
 
-The seed data simulates a living community through `TaskPulseVoteRecord` and `CommentRecord` entries.
+### 3. Checkpoint Gates and Governance
 
-Diagram: Interaction and Governance Data Flow
+The `seedCheckpointGates` in `seed-plus.ts` model the "Review-Triggered" gates required for a Ken to progress.
 
-Sources:[src/lib/seed-plus.ts#3-11](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed-plus.ts#L3-L11)[src/lib/seed-plus.ts#27-40](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed-plus.ts#L27-L40)[src/lib/seed-plus.ts#44-60](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed-plus.ts#L44-L60)
+- Gate Types: Includes `technical-review`, `safety-audit`, and `public-demo`[src/lib/seed-plus.ts#121-135](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed-plus.ts#L121-L135)
+- Status: Gates are marked as `pending`, `approved`, or `blocked`, allowing the UI to render the governance "ladder."
 
----
+Code Entity Interaction: Governance and Finance
 
-### Running the Seed Scripts
-
-The seeding process is typically triggered during database initialization or via a manual reset. In the KenMatch environment, this is handled by the `hydrate()` function.
-
-1. Database Reset: The system clears existing tables (profiles, tasks, votes, etc.).
-2. Core Hydration: `seedProfiles`, `seedCategories`, and `seedTasks` from `src/lib/seed.ts` are inserted first to establish foreign key targets.
-3. Extended Hydration: `seed-plus.ts` data is then inserted, linking comments to profiles and finance records to tasks.
-4. Vote Aggregation: The `seedVotes` are processed through the `quadraticCost` formula in `src/lib/allocation.ts` to determine the initial lane assignments (Days/Weeks/Months) for the demo board.
-
-Sources:[src/lib/db.ts#1-10](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L1-L10)[src/lib/seed.ts#1-5](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed.ts#L1-L5)[src/lib/seed-plus.ts#1-5](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed-plus.ts#L1-L5)
+Sources: [src/lib/seed.ts#21-30](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed.ts#L21-L30)[src/lib/seed-plus.ts#3-25](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed-plus.ts#L3-L25)[src/lib/seed-plus.ts#121-135](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed-plus.ts#L121-L135)
 
 ---
 
-# Business-Logic-Libraries
+## Treasury and Economic Simulation
+
+The `seed-plus.ts` file contains the logic for the "Demo Environment" economics, simulating how the platform sustains itself.
+
+### Revenue Streams
+
+The `seedRevenueStreams` array models different types of incoming capital:
+
+- Sponsor Pools: Large-scale funding for specific categories.
+- Verified Streams: Recurring revenue from enterprise packaging (e.g., `museum-oral-history-indexer`[src/lib/seed-plus.ts#22](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed-plus.ts#L22-L22)).
+- Founder/Platform Split: Streams define `founderShare` and `treasuryShare` to test the logic in `src/lib/economics.ts`[src/lib/seed-plus.ts#101-110](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed-plus.ts#L101-L110)
+
+### Treasury Ledger
+
+The `seedTreasuryEntries` provide a historical ledger of "Inflow" vs "Outflow" (Burn). This allows the `summarizeEconomics()` function to calculate:
+
+- Current Balance: Sum of all entries.
+- Coverage Months: How long the treasury can sustain current Ken runtimes based on simulated burn [src/lib/seed-plus.ts#112-119](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed-plus.ts#L112-L119)
+
+EntityKey FieldsPurpose in Demo`TaskFinanceRecord``checkpointApprovalTarget`, `sponsorPoolUsd`Sets the bar for governance and funding depth.`RevenueStreamRecord``status`, `amountMonthly`, `treasuryShare`Simulates platform sustainability and burn rate.`ProfileAttestationRecord``sybilRisk`, `signals`Determines `voiceMultiplier` in `src/lib/attestation.ts`.
+
+Sources: [src/lib/seed-plus.ts#13-25](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed-plus.ts#L13-L25)[src/lib/seed-plus.ts#101-119](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed-plus.ts#L101-L119)
+
+---
+
+## Implementation Detail: Checkpoint Gates
+
+A critical part of the demo environment is the Checkpoint Gate system. This models the friction and rigor required for high-stakes Kens.
+
+- Gate Records: Each record in `seedCheckpointGates` links a `taskId` to a specific `gateType`[src/lib/seed-plus.ts#121-125](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed-plus.ts#L121-L125)
+- Blocking Logic: In the demo, `autonomous-phishing-lure-optimizer` has a `blocked` gate with a `failureReason` ("Prohibited offensive security work"), which serves as the primary example for the Governance decision log [src/lib/seed-plus.ts#131-135](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed-plus.ts#L131-L135)
+
+Sequence: Data Hydration to UI
+
+Sources: [src/lib/seed-plus.ts#121-135](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/seed-plus.ts#L121-L135)[src/lib/types.ts#1-20](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L1-L20) (for record types)
+
+---
 
 # Business Logic Libraries
 Relevant source files
@@ -562,320 +521,412 @@ Relevant source files
 - [src/lib/allocation.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts)
 - [src/lib/attestation.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts)
 - [src/lib/economics.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts)
+- [src/lib/env.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/env.ts)
+- [src/lib/session.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts)
 - [src/lib/utils.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/utils.ts)
 
-The `src/lib/` directory contains the core domain logic of KenMatch. These libraries are designed as pure-function utilities, making them highly testable and independent of the database or UI layers. They implement the fundamental rules of the system: how votes translate into resource allocation, how user identity affects participation permissions, and how treasury economics are calculated.
+The modules located in `src/lib/` constitute the core "engine" of KenMatch. These libraries are designed as pure-function utilities that implement the platform's rulesets—ranging from quadratic voting math and sybil resistance policies to treasury accounting and session lifecycle management. By isolating this logic from React components and database drivers, the system ensures that critical business rules are testable and consistent across the server-side and client-side (where applicable).
 
-### System Logic Flow
+### System Logic Mapping
 
-The following diagram illustrates how these libraries bridge the gap between raw data (Profiles, Tasks, Votes) and the high-level system states (Tiers, Participation Policies, Runway).
+The following diagram maps high-level platform concepts to the specific code entities that implement them.
 
-Logic Integration Map
+Logic to Entity Mapping
 
-Sources: [src/lib/allocation.ts#1-132](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L1-L132)[src/lib/attestation.ts#1-70](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L1-L70)[src/lib/economics.ts#1-49](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L1-L49)[src/lib/utils.ts#1-190](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/utils.ts#L1-L190)
-
----
-
-## 3.1 Allocation and Quadratic Voting
-
-The allocation engine manages how "Voice Credits" are converted into task rankings. It uses a quadratic cost model where the cost of votes increases exponentially (`cost = votes²`), ensuring that broad consensus is favored over narrow, intense preference.
-
-- Quadratic Cost: Handled by `quadraticCost(votes)`[src/lib/allocation.ts#5-11](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L5-L11) and `incrementalQuadraticCost`[src/lib/allocation.ts#13-15](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L13-L15)
-- Ranking Pipeline: The `buildCategoryRankings` function [src/lib/allocation.ts#72-113](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L72-L113) groups tasks by category and sorts them by `totalVotes`, `createdAt`, and `title` to determine their priority.
-- Tier Assignment: Tasks are assigned to an `AllocationTier` (Months, Weeks, Days, Queued, or Blocked) based on their rank [src/lib/allocation.ts#33-55](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L33-L55)
-
-For details on the ranking formulas and the allocation test suite, see [Allocation and Quadratic Voting](#3.1).
-
-Sources: [src/lib/allocation.ts#3-117](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L3-L117)
+Sources: [src/lib/allocation.ts#5-11](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L5-L11)[src/lib/attestation.ts#14-18](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L14-L18)[src/lib/economics.ts#14-19](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L14-L19)
 
 ---
 
-## 3.2 Attestation and Participation Policy
+### [Allocation and Quadratic Voting Engine](#3.1)
 
-The attestation system governs what actions a user can perform based on their identity verification status and Sybil risk profile. It transforms raw attestation data into a `ParticipationPolicy` object containing boolean capability flags.
+The allocation engine governs how "Voice Credits" are converted into "Votes" and how those votes determine task priority. It enforces the quadratic cost rule where the cost of votes scales by the square of the count [src/lib/allocation.ts#5-11](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L5-L11) It also manages the tiering system (`months`, `weeks`, `days`) that dictates resource allocation based on a task's rank within its category [src/lib/allocation.ts#33-55](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L33-L55)
 
-- Policy Resolution: `resolveParticipationPolicy`[src/lib/attestation.ts#14-70](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L14-L70) evaluates `AttestationStatus` and `SybilRiskBand`.
-- Participation States: Users fall into `read-only`, `review-limited`, or `full` states [src/lib/attestation.ts#21-61](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L21-L61)
-- Voice Multipliers: High-risk or unverified accounts have their `effectiveVoiceCredits` reduced by a multiplier (e.g., 0.6 or 0.8) [src/lib/attestation.ts#33-52](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L33-L52)
+Key Functions:
 
-For details on capability flags like `canSubmit` and `canAllocateVoice`, see [Attestation and Participation Policy](#3.2).
+- `quadraticCost(votes)`: Calculates $Cost = Votes^2$ [src/lib/allocation.ts#5-11](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L5-L11)
+- `buildCategoryRankings(tasks)`: Groups tasks by category and assigns ranks based on vote totals and creation dates [src/lib/allocation.ts#72-113](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L72-L113)
+- `isEligibleForAllocation(...)`: Determines if a task can move out of the queue based on its `TaskStage` and `SafetyStatus`[src/lib/allocation.ts#17-31](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L17-L31)
 
-Sources: [src/lib/attestation.ts#1-70](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L1-L70)
-
----
-
-## 3.3 Economics and Treasury
-
-The economics library calculates the financial health of the KenMatch ecosystem, managing revenue splits between the treasury and founders, and projecting compute runway.
-
-- Revenue Splitting: `summarizeRevenueStream`[src/lib/economics.ts#3-12](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L3-L12) calculates the USD split based on `treasurySharePercent` and `founderSharePercent`.
-- Treasury Aggregation: `summarizeEconomics`[src/lib/economics.ts#14-49](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L14-L49) reconciles inflows and outflows within the `compute-treasury` bucket [src/lib/economics.ts#27-29](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L27-L29)
-- Runway Calculation: The system computes `coverageMonths` by dividing the current `treasuryBalanceUsd` by the `monthlyPublicBurnUsd`[src/lib/economics.ts#30](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L30-L30)
-
-For details on restricted funding detection and verified stream counts, see [Economics and Treasury](#3.3).
-
-Sources: [src/lib/economics.ts#1-49](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L1-L49)
+For details, see [Allocation and Quadratic Voting Engine](#3.1).
 
 ---
 
-## 3.4 Shared Utilities
+### [Attestation and Participation Policy](#3.2)
 
-The `utils.ts` library provides standardized formatting for currency, dates, and durations across the application. It also contains label mappers that convert internal code enums into user-friendly strings.
+KenMatch uses an attestation-based system to mitigate Sybil attacks. The logic in `src/lib/attestation.ts` maps a user's `AttestationStatus` and `SybilRiskBand` to a `ParticipationPolicy`[src/lib/attestation.ts#14-18](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L14-L18) This policy defines whether a user can perform public actions like submitting Kens, commenting, or pulsing [src/lib/attestation.ts#3-12](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L3-L12)
 
-FunctionPurpose`formatCurrency`Formats numbers as USD [src/lib/utils.ts#3-9](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/utils.ts#L3-L9)`describeCountdown`Returns relative strings like "Launches in 2 weeks" [src/lib/utils.ts#88-97](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/utils.ts#L88-L97)`progressPercent`Calculates completion percentage between two dates [src/lib/utils.ts#109-123](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/utils.ts#L109-L123)`labelForTier`Maps `AllocationTier` to display strings ("Months", "Weeks", etc.) [src/lib/utils.ts#134-147](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/utils.ts#L134-L147)
+Participation States:
 
-Logic Dependency Graph
+- `full`: Unrestricted access [src/lib/attestation.ts#60-69](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L60-L69)
+- `review-limited`: Reduced `voiceMultiplier` (e.g., 0.6 to 0.8) while identity signals are pending [src/lib/attestation.ts#32-58](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L32-L58)
+- `read-only`: All public actions paused due to high risk or limited status [src/lib/attestation.ts#19-30](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L19-L30)
 
-Sources: [src/lib/utils.ts#1-181](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/utils.ts#L1-L181)
+For details, see [Attestation and Participation Policy](#3.2).
 
 ---
 
-# Allocation-and-Quadratic-Voting
+### [Economics and Treasury Logic](#3.3)
 
-# Allocation and Quadratic Voting
+The economics module processes revenue streams and treasury entries to provide a snapshot of the platform's financial health. It calculates "Coverage Months" (runway) by comparing the `treasuryBalanceUsd` against the `monthlyPublicBurnUsd`[src/lib/economics.ts#27-30](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L27-L30)
+
+Core Logic:
+
+- Revenue Splitting: Automatically calculates splits between the treasury and founders based on defined percentages [src/lib/economics.ts#3-12](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L3-L12)
+- Restricted Funding: Identifies and isolates funds marked as "restricted" within the treasury [src/lib/economics.ts#31-33](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L31-L33)
+- Summary Generation: Aggregates all streams into an `EconomicsSummary` object for the dashboard [src/lib/economics.ts#14-49](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L14-L49)
+
+For details, see [Economics and Treasury Logic](#3.3).
+
+---
+
+### [Session Management and Environment Configuration](#3.4)
+
+These libraries handle the "plumbing" of the application: environment validation and user sessions.
+
+- Environment (`env.ts`): Uses `zod` to validate all `process.env` variables, ensuring the app does not start with missing or malformed configuration [src/lib/env.ts#25-36](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/env.ts#L25-L36)
+- Sessions (`session.ts`): Manages the lifecycle of the `KENMATCH_SESSION_COOKIE`, providing utilities to get the current viewer's profile or clear the session on logout [src/lib/session.ts#18-42](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts#L18-L42)
+
+Session Interaction Flow
+
+Sources: [src/lib/session.ts#18-22](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts#L18-L22)[src/lib/session.ts#29-32](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts#L29-L32)
+
+For details, see [Session Management and Environment Configuration](#3.4).
+
+---
+
+# Allocation and Quadratic Voting Engine
 Relevant source files
 
-- [src/components/vote-panel.tsx](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/vote-panel.tsx)
 - [src/lib/allocation.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts)
 - [tests/allocation.test.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/allocation.test.ts)
 
-The allocation system in KenMatch governs how scarce AI compute resources are distributed across competing proposals (Kens). It utilizes Quadratic Voting (QV) to allow participants to express the intensity of their preferences while preventing any single high-capital entity from dominating the board. The system transforms raw vote counts into a ranked hierarchy of "Lanes" or "Tiers" that determine the duration and priority of task execution.
+The Allocation and Quadratic Voting Engine, implemented primarily in `src/lib/allocation.ts`, is the core mathematical and logical component that determines how scarce resources (attention and funding) are distributed across Kens (tasks). It translates user preferences—expressed through Voice Credits—into a prioritized hierarchy of execution tiers.
 
-## Quadratic Cost Model
+## Quadratic Voting Logic
 
-KenMatch uses a standard quadratic cost formula where the cost in voice credits is the square of the number of votes assigned to a single task. This mechanism ensures that the marginal cost of each additional vote increases linearly, making broad support across many tasks more "efficient" than deep support for a single task.
+KenMatch employs Quadratic Voting (QV) to allow users to express the intensity of their preferences rather than just a binary "yes/no."
 
-### Key Formulae
+### Cost Functions
 
-FunctionLogicPurpose`quadraticCost(votes)`$Cost = Votes^2$Calculates the total credit cost for a given vote count. [src/lib/allocation.ts#5-11](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L5-L11)`incrementalQuadraticCost(current, next)`$Cost_{next} - Cost_{current}$Determines the additional credits needed to upgrade a vote. [src/lib/allocation.ts#13-15](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L13-L15)`spentCredits(votes[])`$\sum (voteCount^2)$Aggregates total spent credits for a user profile across all tasks. [src/lib/allocation.ts#115-117](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L115-L117)
+The system uses a power-of-two cost model where the cost in Voice Credits is the square of the number of votes cast on a single task [src/lib/allocation.ts#5-11](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L5-L11)
+
+- `quadraticCost(votes: number)`: Calculates the total cost for a given number of votes. For example, 3 votes cost 9 credits, while 6 votes cost 36 credits [src/lib/allocation.ts#5-11](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L5-L11)
+- `incrementalQuadraticCost(currentVotes, nextVotes)`: Determines the additional credits required to increase a vote count from an existing level to a new level [src/lib/allocation.ts#13-15](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L13-L15)
+- `spentCredits(votes: Array<{ voteCount: number }>)`: Aggregates the total credit expenditure across multiple tasks for a specific user profile [src/lib/allocation.ts#115-117](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L115-L117)
 
 ### Constraints
 
-- MAX_VOTES_PER_TASK: Users are limited to a maximum of 6 votes (36 credits) per Ken to ensure diversity in allocation. [src/lib/allocation.ts#3](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L3-L3)
-- Integrity: Votes must be non-negative integers. [src/lib/allocation.ts#6-8](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L6-L8)
+To prevent extreme concentration of influence, the system enforces a hard cap on individual task voting:
 
-Sources:[src/lib/allocation.ts#1-17](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L1-L17)[src/components/vote-panel.tsx#31-32](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/vote-panel.tsx#L31-L32)
+- `MAX_VOTES_PER_TASK`: Set to `6`[src/lib/allocation.ts#3](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L3-L3) This means the maximum credits a user can spend on one task is 36.
 
-## Allocation Tiers and Ranking
+## Task Eligibility and Ranking
 
-The system maps a Ken's relative rank within its category to specific `AllocationTier` values. These tiers represent the "Lanes" of compute availability.
+Not all tasks are eligible to receive an allocation rank. The engine filters tasks based on their lifecycle stage and safety status before placing them on the "ladder."
 
-### Tier Thresholds
+### Eligibility Criteria
 
-The `tierForRank` function determines the lane based on the numerical rank:
+The function `isEligibleForAllocation()` determines if a task can enter the ranking process [src/lib/allocation.ts#17-31](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L17-L31)
 
-RankTierDescriptionWeight1 - 3`months`Long-horizon execution34 - 10`weeks`Medium-horizon execution211 - 100`days`Short-burst execution1> 100 / Unranked`queued`Waiting for capacity0N/A`blocked`Safety or policy violation-1
+ConditionEligibilityReason`stage` is "review" or "blocked"`false`Tasks in initial intake or explicitly halted cannot be ranked [src/lib/allocation.ts#22-24](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L22-L24)`safetyStatus` is "pending" or "blocked"`false`Safety/Policy checks must be "approved" for allocation [src/lib/allocation.ts#26-28](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L26-L28)`totalVotes` <= 0`false`Tasks with no community support remain queued [src/lib/allocation.ts#30](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L30-L30)
 
-Sources:[src/lib/allocation.ts#33-55](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L33-L55)[src/lib/allocation.ts#119-131](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L119-L131)
+### The Ranking Pipeline
 
-## The Ranking Pipeline
+The `buildCategoryRankings()` function processes a list of `RankingSeed` objects to generate a map of results [src/lib/allocation.ts#72-113](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L72-L113)
 
-The `buildCategoryRankings` function implements the core logic for organizing the board. It processes a list of `RankingSeed` objects through a grouping and sorting pipeline.
+1. Grouping: Tasks are grouped by their `categoryId`[src/lib/allocation.ts#76-80](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L76-L80)
+2. Sorting: Within each category, eligible tasks are sorted by:
 
-### Eligibility Predicate
+- `totalVotes` (Descending) [src/lib/allocation.ts#86-88](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L86-L88)
+- `createdAt` (Ascending/Oldest first) as a tie-breaker [src/lib/allocation.ts#90-92](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L90-L92)
+- `title` (Alphabetical) as a final tie-breaker [src/lib/allocation.ts#94](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L94-L94)
+3. Assignment: Ranks are assigned starting from 1 for the top-voted eligible task [src/lib/allocation.ts#97-100](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L97-L100)
 
-A Ken is only `isEligibleForAllocation` if it meets the following criteria:
+Sources:[src/lib/allocation.ts#17-113](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L17-L113)[tests/allocation.test.ts#24-38](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/allocation.test.ts#L24-L38)
 
-1. Stage: Must not be in `review` or `blocked` stage. [src/lib/allocation.ts#22-24](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L22-L24)
-2. Safety: `safetyStatus` must be `approved` (not `pending` or `blocked`). [src/lib/allocation.ts#26-28](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L26-L28)
-3. Support: Must have at least 1 vote. [src/lib/allocation.ts#30](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L30-L30)
+## Allocation Tiers
 
-### Ranking Logic Flow
+The system maps numerical ranks into human-readable "Tiers" that represent the velocity and resource commitment for a task.
 
-For each category, eligible Kens are sorted using a multi-pass priority:
+### Tier Definitions
 
-1. Total Votes: Highest `totalVotes` first. [src/lib/allocation.ts#86-88](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L86-L88)
-2. Recency: If votes are tied, the earlier `createdAt` timestamp wins. [src/lib/allocation.ts#90-92](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L90-L92)
-3. Lexicographical: If still tied, sort alphabetically by `title`. [src/lib/allocation.ts#94](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L94-L94)
+The `tierForRank()` function assigns a `AllocationTier` based on the task's position in its category [src/lib/allocation.ts#33-55](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L33-L55)
 
-### Data Flow: From Votes to Tiers
+RankTierWeightDescription1 - 3`months`3High priority; sustained long-term focus [src/lib/allocation.ts#42-44](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L42-L44)4 - 10`weeks`2Medium priority; active development [src/lib/allocation.ts#46-48](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L46-L48)11 - 100`days`1Low priority; intermittent progress [src/lib/allocation.ts#50-52](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L50-L52)> 100 or Ineligible`queued`0Backlog; waiting for votes or approval [src/lib/allocation.ts#54](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L54-L54)Blocked`blocked`-1Explicitly halted by governance [src/lib/allocation.ts#34-36](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L34-L36)
 
-This diagram illustrates how raw user input in the `VotePanel` flows through the allocation logic to produce a ranked board.
+Sources:[src/lib/allocation.ts#33-55](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L33-L55)[src/lib/allocation.ts#119-132](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L119-L132)[tests/allocation.test.ts#16-22](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/allocation.test.ts#L16-L22)
 
-Title: Allocation Logic Pipeline
+## System Flow Diagrams
 
-Sources:[src/lib/allocation.ts#72-113](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L72-L113)[src/components/vote-panel.tsx#28-32](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/vote-panel.tsx#L28-L32)
+### Data Transformation: From Votes to Tiers
 
-## Implementation in UI
+This diagram shows how the raw data entities (Votes and Tasks) are processed by the allocation functions to produce the final Ranking state.
 
-The `VotePanel` component provides the interface for interacting with the quadratic model. It uses a range slider constrained by `MAX_VOTES_PER_TASK`.
+Sources:[src/lib/allocation.ts#17-21](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L17-L21)[src/lib/allocation.ts#57-70](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L57-L70)[src/lib/allocation.ts#72-73](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L72-L73)
 
-### Interactive Feedback
+### Allocation Logic Flow
 
-The component calculates real-time metrics as the user adjusts the slider:
+This diagram illustrates the decision logic within the engine when evaluating a single task's position.
 
-- Voice here: The raw `voteCount`. [src/components/vote-panel.tsx#57](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/vote-panel.tsx#L57-L57)
-- Quadratic cost: Result of `quadraticCost(voteCount)`. [src/components/vote-panel.tsx#58](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/vote-panel.tsx#L58-L58)
-- Free after save: `availableCredits - (newCost - initialCost)`. [src/components/vote-panel.tsx#59](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/vote-panel.tsx#L59-L59)
-
-Title: Vote Interaction and State Management
-
-Sources:[src/components/vote-panel.tsx#52-93](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/vote-panel.tsx#L52-L93)[src/lib/allocation.ts#13-15](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L13-L15)
-
-## Testing Suite
-
-The allocation logic is verified in `tests/allocation.test.ts` using the Node.js test runner.
-
-### Test Coverage
-
-1. Non-linear Growth: Confirms `quadraticCost(3) === 9` and `quadraticCost(6) === 36`. [tests/allocation.test.ts#6-10](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/allocation.test.ts#L6-L10)
-2. Summation: Validates that `spentCredits` correctly reduces an array of votes. [tests/allocation.test.ts#12-14](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/allocation.test.ts#L12-L14)
-3. Protocol Adherence: Ensures `tierForRank` correctly assigns the "months", "weeks", and "days" lanes. [tests/allocation.test.ts#16-22](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/allocation.test.ts#L16-L22)
-4. Ranking Pipeline: A comprehensive test case involving:
-
-- Sorting by vote count. [tests/allocation.test.ts#26-28](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/allocation.test.ts#L26-L28)
-- Excluding `blocked` tasks from the ladder. [tests/allocation.test.ts#30-37](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/allocation.test.ts#L30-L37)
-- Handling `review` stage tasks as `queued`. [tests/allocation.test.ts#29-36](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/allocation.test.ts#L29-L36)
-
-Sources:[tests/allocation.test.ts#1-38](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/allocation.test.ts#L1-L38)
+Sources:[src/lib/allocation.ts#33-55](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L33-L55)[src/lib/allocation.ts#83-95](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L83-L95)[src/lib/allocation.ts#119-132](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L119-L132)
 
 ---
-
-# Attestation-and-Participation-Policy
 
 # Attestation and Participation Policy
 Relevant source files
 
 - [src/lib/attestation.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts)
-- [src/lib/types.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts)
 - [tests/attestation.test.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/attestation.test.ts)
 
-The Attestation and Participation Policy defines the rules for how user identity signals (attestations) translate into functional capabilities within the KenMatch system. It governs the transition from "Natural Language Space" (identity trust) to "Code Entity Space" (permission flags and voice credit multipliers). This logic is primarily encapsulated in the `resolveParticipationPolicy` function, which determines a user's `ParticipationState` and their `effectiveVoiceCredits`.
+The Attestation and Participation Policy in KenMatch governs how user identity signals and Sybil risk assessments translate into functional permissions and voting power. This logic is centralized in `src/lib/attestation.ts` and ensures that while the platform remains open for reading, scarce actions like Ken submission and Voice Credit allocation are protected by identity-based gating.
 
-## Participation States and Capability Flags
+## Core Logic and Policy Resolution
 
-The system categorizes users into three distinct participation states based on their `AttestationStatus` and `SybilRiskBand`. Each state provides a specific set of boolean capability flags that control UI visibility and server-side action permissions.
+The system uses the `resolveParticipationPolicy()` function to determine a user's capabilities based on their current `AttestationStatus` and `SybilRiskBand`.
 
-### Participation State Definitions
+### Data Flow: Identity to Participation
 
-StateDescriptionCapabilities`read-only`Access is restricted to viewing content. Public actions are paused.`canSubmit: false`, `canComment: false`, `canPulse: false`, `canAllocateVoice: false``review-limited`Public participation is allowed, but influence is throttled via a multiplier.`canSubmit: true`, `canComment: true`, `canPulse: true`, `canAllocateVoice: true``full`Complete access with 100% voice credit capacity.`canSubmit: true`, `canComment: true`, `canPulse: true`, `canAllocateVoice: true`
+The following diagram illustrates how raw identity signals (Status and Risk) are processed by the policy engine to produce a `ParticipationPolicy` object.
 
-Sources: `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L46-L47" min=46 max=47 file-path="src/lib/types.ts">Hii</FileRef>`, `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L3-L12" min=3 max=12 file-path="src/lib/attestation.ts">Hii</FileRef>`, `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L19-L70" min=19 max=70 file-path="src/lib/attestation.ts">Hii</FileRef>`
+Diagram: Policy Resolution Pipeline
 
-## Policy Resolution Logic
+Sources:`<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L14-L18" min=14 max=18 file-path="src/lib/attestation.ts">Hii</FileRef>`, `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L3-L12" min=3 max=12 file-path="src/lib/attestation.ts">Hii</FileRef>`
 
-The `resolveParticipationPolicy` function takes three inputs: `status` (`AttestationStatus`), `sybilRisk` (`SybilRiskBand`), and `voiceCredits` (raw balance). It returns a `ParticipationPolicy` object containing the calculated state and multipliers.
+## Participation States
 
-### Logic Flow and Multipliers
+KenMatch defines three distinct participation states that determine what a user can do within the application.
 
-The function applies a hierarchical set of checks to determine the policy:
+StateDescriptionPermissions`full`Strong identity signals confirmed.All actions enabled; 100% voice capacity.`review-limited`Identity is pending or carries medium risk.All actions enabled; Voice Credits are reduced by a multiplier.`read-only`High risk detected or account explicitly limited.Public actions (voting, commenting, submitting) are disabled.
 
-1. Hard Restriction: If `status === "limited"` or `sybilRisk === "high"`, the state is forced to `read-only` with a `voiceMultiplier` of `0``<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L19-L30" min=19 max=30 file-path="src/lib/attestation.ts">Hii</FileRef>`.
-2. Pending Review: If `status === "review"`, the state is `review-limited`. The `voiceMultiplier` is `0.7` for low sybil risk and `0.6` otherwise `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L32-L44" min=32 max=44 file-path="src/lib/attestation.ts">Hii</FileRef>`.
-3. Medium Risk Verified: If the status is verified but `sybilRisk === "medium"`, the state is `review-limited` with a `voiceMultiplier` of `0.8``<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L46-L58" min=46 max=58 file-path="src/lib/attestation.ts">Hii</FileRef>`.
-4. Full Access: Otherwise, the state is `full` with a `voiceMultiplier` of `1``<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L60-L69" min=60 max=69 file-path="src/lib/attestation.ts">Hii</FileRef>`.
+Sources:`<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L19-L69" min=19 max=69 file-path="src/lib/attestation.ts">Hii</FileRef>`
 
-### Effective Voice Credits Calculation
+## Sybil Resistance and Voice Multipliers
 
-The `effectiveVoiceCredits` are calculated by applying the `voiceMultiplier` to the raw `voiceCredits`. To ensure users in limited states can still participate meaningfully (if permitted), the logic applies a floor of `1` credit, unless the state is `read-only`.
+To mitigate the impact of potential Sybil attacks (where one person creates multiple accounts to influence voting), KenMatch applies a `voiceMultiplier` to a user's base Voice Credits. This multiplier is determined by the intersection of their attestation status and risk band.
 
-Formula:`Math.max(Math.floor(voiceCredits * voiceMultiplier), 1)`
+### Multiplier Matrix
 
-Sources: `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L38-L38" min=38  file-path="src/lib/attestation.ts">Hii</FileRef>`, `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L52-L52" min=52  file-path="src/lib/attestation.ts">Hii</FileRef>`, `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L64-L64" min=64  file-path="src/lib/attestation.ts">Hii</FileRef>`
+The `resolveParticipationPolicy` function implements the following logic:
 
-## System Mapping: Identity to Capabilities
+1. Read-Only Trigger: If `AttestationStatus` is `limited` OR `SybilRiskBand` is `high`, the multiplier is `0``<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L19-L30" min=19 max=30 file-path="src/lib/attestation.ts">Hii</FileRef>`.
+2. Review Logic: If status is `review`:
 
-The following diagram illustrates how identity attributes from the `ProfileAttestationRecord` are processed by the `resolveParticipationPolicy` function to produce the `ParticipationPolicy` used by the UI and Server Actions.
+- Low Risk: `0.7` multiplier `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L33-L33" min=33  file-path="src/lib/attestation.ts">Hii</FileRef>`.
+- Medium Risk: `0.6` multiplier `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L33-L33" min=33  file-path="src/lib/attestation.ts">Hii</FileRef>`.
+3. Medium Risk Verified: If status is `verified` but risk is `medium`, a `0.8` multiplier is applied `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L46-L58" min=46 max=58 file-path="src/lib/attestation.ts">Hii</FileRef>`.
+4. Full Access: Verified users with low risk receive a `1.0` multiplier `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L60-L69" min=60 max=69 file-path="src/lib/attestation.ts">Hii</FileRef>`.
 
-### Identity to Capability Mapping
+### Effective Voice Credit Calculation
 
-Sources: `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L3-L12" min=3 max=12 file-path="src/lib/attestation.ts">Hii</FileRef>`, `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L14-L18" min=14 max=18 file-path="src/lib/attestation.ts">Hii</FileRef>`, `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L40-L44" min=40 max=44 file-path="src/lib/types.ts">Hii</FileRef>`
+The final voting power is calculated using `Math.floor(voiceCredits * voiceMultiplier)`, with a floor of `1` for any account that is not in a `read-only` state `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L38-L38" min=38  file-path="src/lib/attestation.ts">Hii</FileRef>`, `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L52-L52" min=52  file-path="src/lib/attestation.ts">Hii</FileRef>`.
 
-## Attestation Logic Data Flow
+Sources:`<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L14-L70" min=14 max=70 file-path="src/lib/attestation.ts">Hii</FileRef>`
 
-This diagram shows how the `ParticipationPolicy` flows from the logic layer into the system's decision-making components.
+## Implementation Detail: ParticipationPolicy Interface
 
-### Participation Policy Data Flow
+The `ParticipationPolicy` interface is the standard contract used by the UI and Server Actions to enforce these rules.
 
-Sources: `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L14-L70" min=14 max=70 file-path="src/lib/attestation.ts">Hii</FileRef>`, `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L63-L76" min=63 max=76 file-path="src/lib/types.ts">Hii</FileRef>`, `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L78-L86" min=78 max=86 file-path="src/lib/types.ts">Hii</FileRef>`
+Diagram: Code Entity Mapping
 
-## Test Suite
+Sources:`<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L3-L12" min=3 max=12 file-path="src/lib/attestation.ts">Hii</FileRef>`, `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L14-L18" min=14 max=18 file-path="src/lib/attestation.ts">Hii</FileRef>`
 
-The attestation logic is validated in `tests/attestation.test.ts` using the Node.js built-in test runner. The suite covers the three primary scenarios:
+## Testing the Policy Engine
 
-1. Full Capacity: Verified low-risk accounts must maintain 100% of their credits `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/tests/attestation.test.ts#L6-L13" min=6 max=13 file-path="tests/attestation.test.ts">Hii</FileRef>`.
-2. Review Throttling: Accounts in review status must have reduced but non-zero `effectiveVoiceCredits` and maintain participation flags `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/tests/attestation.test.ts#L15-L22" min=15 max=22 file-path="tests/attestation.test.ts">Hii</FileRef>`.
-3. Read-Only Lockdown: Limited or high-risk accounts must have all capability flags set to `false` and `0` effective credits `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/tests/attestation.test.ts#L24-L32" min=24 max=32 file-path="tests/attestation.test.ts">Hii</FileRef>`.
+The policy resolution logic is strictly tested to ensure that multipliers and state transitions behave as expected.
 
-Sources: `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/tests/attestation.test.ts#L1-L33" min=1 max=33 file-path="tests/attestation.test.ts">Hii</FileRef>`
+- Full Capacity: Verified low-risk accounts must retain 100% of their credits `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/tests/attestation.test.ts#L6-L13" min=6 max=13 file-path="tests/attestation.test.ts">Hii</FileRef>`.
+- Voice Capping: Accounts under review must have their credits reduced (e.g., 20 credits at medium risk becomes 12) `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/tests/attestation.test.ts#L15-L22" min=15 max=22 file-path="tests/attestation.test.ts">Hii</FileRef>`.
+- Read-Only Enforcement: High-risk or limited accounts must have all `can...` flags set to `false` and `effectiveVoiceCredits` set to `0``<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/tests/attestation.test.ts#L24-L32" min=24 max=32 file-path="tests/attestation.test.ts">Hii</FileRef>`.
+
+Sources:`<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/tests/attestation.test.ts#L1-L33" min=1 max=33 file-path="tests/attestation.test.ts">Hii</FileRef>`
 
 ---
 
-# Economics-and-Treasury
-
-# Economics and Treasury
+# Economics and Treasury Logic
 Relevant source files
 
 - [src/lib/economics.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts)
-- [src/lib/types.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts)
 - [tests/economics.test.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts)
 
-The Economics and Treasury module provides the logic for managing KenMatch's financial sustainability and compute runway. It transforms raw revenue streams and ledger entries into high-level metrics such as monthly burn coverage, restricted funding detection, and treasury/founder share splits.
+The economics engine in KenMatch responsible for calculating the financial health of the ecosystem, including revenue distribution between the treasury and founders, burn rate analysis, and runway projections. It operates as a pure-function library that transforms raw database records into high-level economic summaries.
 
-## Core Logic and Data Flow
+## Revenue Stream Summarization
 
-The system processes two primary data inputs: `RevenueStreamRecord` (representing ongoing income engines) and `TreasuryEntryRecord` (representing discrete ledger events). The logic is implemented as pure functions in `src/lib/economics.ts`, ensuring that the financial state can be deterministically computed for any set of inputs.
+Revenue in KenMatch is modeled as streams with specific distribution rules. Each stream defines a percentage split between the `compute-treasury` (used to fund Kens) and `founder-ops`.
 
-### Revenue Splitting
+The function `summarizeRevenueStream` calculates the absolute USD values for these splits based on the `monthlyRevenueUsd` of a record.
 
-The `summarizeRevenueStream` function calculates the specific USD allocations for the treasury and the founders based on percentage shares defined in the stream record [src/lib/economics.ts#3-12](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L3-L12)
+### Revenue Calculation Logic
 
-FieldDescriptionCalculation`treasuryMonthlyUsd`Funds allocated to the compute treasury`(monthlyRevenueUsd * treasurySharePercent) / 100``founderMonthlyUsd`Funds allocated to operational/founder shares`(monthlyRevenueUsd * founderSharePercent) / 100`
+MetricCalculationTreasury Monthly USD`(monthlyRevenueUsd * treasurySharePercent) / 100`Founder Monthly USD`(monthlyRevenueUsd * founderSharePercent) / 100`
 
-### Economic Summarization
+Sources:
 
-The `summarizeEconomics` function aggregates all streams and ledger entries to produce a comprehensive `EconomicsSummary`[src/lib/economics.ts#14-49](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L14-L49)
+- `summarizeRevenueStream` definition: [src/lib/economics.ts#3-12](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L3-L12)
+- Logic implementation: [src/lib/economics.ts#4-5](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L4-L5)
 
-Data Transformation Process:
+## Treasury Bucket Accounting
 
-1. Filtering: It distinguishes between "committed" revenue (status `live` or `pilot`) and "planned" revenue [src/lib/economics.ts#21](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L21-L21)
-2. Reconciliation: It calculates the `treasuryBalanceUsd` by summing inflows and outflows specifically for the `compute-treasury` bucket [src/lib/economics.ts#27-29](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L27-L29)
-3. Runway Calculation: It computes `coverageMonths` by dividing the current treasury balance by the `monthlyPublicBurnUsd`[src/lib/economics.ts#30](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L30-L30)
-4. Restricted Funding: It identifies "restricted" funds by scanning entry titles and descriptions for the keyword "restricted" [src/lib/economics.ts#31-33](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L31-L33)
+The system tracks financial movements through `TreasuryEntryRecord` objects. These entries are categorized into buckets, with `compute-treasury` being the primary bucket for public infrastructure funding.
 
-### Economics Data Mapping
+### Balance and Restricted Funding
 
-The following diagram bridges the natural language concepts of treasury management to the specific TypeScript interfaces and functions.
+The `summarizeEconomics` function aggregates these entries to determine the current liquidity:
 
-Economics Entity Mapping
+1. Treasury Balance: Calculated by summing all `inflow` and subtracting all `outflow` entries specifically assigned to the `compute-treasury` bucket [src/lib/economics.ts#27-29](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L27-L29)
+2. Restricted Funding Detection: The system identifies "restricted" funds by scanning the `title` and `description` fields of treasury entries for the keyword "restricted" [src/lib/economics.ts#31-33](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L31-L33) This allows the system to track capital that is earmarked for specific Ken categories (e.g., civic health) rather than general compute.
 
-Sources: [src/lib/types.ts#232-255](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L232-L255)[src/lib/economics.ts#3-49](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L3-L49)
+Sources:
 
-## Implementation Details
+- `summarizeEconomics` definition: [src/lib/economics.ts#14-19](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L14-L19)
+- Balance logic: [src/lib/economics.ts#27-29](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L27-L29)
+- Restricted detection: [src/lib/economics.ts#31-33](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L31-L33)
 
-### Treasury Reconciliation Logic
+## Economic Summary Pipeline
 
-The treasury balance is not a single stored value but a derived sum of ledger entries. This ensures an audit trail for every dollar entering or leaving the compute pool.
+The `summarizeEconomics` function acts as the primary aggregator for the Economics Dashboard. It processes all revenue streams and treasury entries to produce an `EconomicsSummary`.
 
-Treasury Entry Processing
+### Data Flow: Raw Records to EconomicsSummary
 
-Sources: [src/lib/economics.ts#27-29](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L27-L29)[src/lib/types.ts#246-255](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L246-L255)
+The following diagram illustrates how raw database entities are transformed into the application's economic metrics.
 
-### Key Metrics Definitions
+Economic Summary Transformation
 
-MetricCode ReferenceDescriptionCommitted Revenue`committedRevenueUsd`Sum of revenue from `live` and `pilot` streams only [src/lib/economics.ts#23](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L23-L23)Verified Streams`verifiedFundingStreams`Count of non-planned revenue streams [src/lib/economics.ts#34](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L34-L34)Restricted Funding`restrictedFundingUsd`Total amount in treasury tagged with "restricted" in metadata [src/lib/economics.ts#31-33](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L31-L33)Coverage Months`coverageMonths`Months of compute burn supported by current balance, fixed to 1 decimal [src/lib/economics.ts#30](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L30-L30)
+Sources:
 
-Sources: [src/lib/economics.ts#14-49](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L14-L49)
+- Pipeline logic: [src/lib/economics.ts#14-49](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L14-L49)
+- Mapping function: [src/lib/economics.ts#20](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L20-L20)
 
-## Testing Suite
+## Burn Rate and Coverage Months
 
-The economics logic is verified in `tests/economics.test.ts` using the Node.js native test runner. The tests ensure that share splits and summary aggregations are mathematically accurate.
+KenMatch calculates its "Runway" or `coverageMonths` by comparing the current treasury balance against the `monthlyPublicBurnUsd`.
 
-### Test Coverage
+- Burn Rate: The total USD spent per month to sustain the "Month" and "Week" tier Kens.
+- Coverage Months: Calculated as `treasuryBalanceUsd / monthlyPublicBurnUsd`, rounded to one decimal place [src/lib/economics.ts#30](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L30-L30)
 
-- Revenue Splitting: Validates that `summarizeRevenueStream` correctly applies percentage-based splits (e.g., 80/20 split on $100k revenue results in $80k treasury and $20k founder shares) [tests/economics.test.ts#6-23](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L6-L23)
-- Summary Derivation: Validates the full `summarizeEconomics` pipeline, including:
+If the burn rate is zero, the coverage months default to `0` to avoid division by zero errors [src/lib/economics.ts#30](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L30-L30)
 
-- Filtering out "planned" streams from the verified count [tests/economics.test.ts#122](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L122-L122)
-- Correctly identifying restricted inflows based on string matching [tests/economics.test.ts#120](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L120-L120)
-- Calculating the treasury balance across multiple inflows and outflows [tests/economics.test.ts#117](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L117-L117)
-- Ensuring the `coverageMonths` calculation handles burn rates correctly [tests/economics.test.ts#119](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L119-L119)
+Sources:
 
-Sources: [tests/economics.test.ts#1-123](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L1-L123)
+- Coverage calculation: [src/lib/economics.ts#30](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L30-L30)
+- Unit test for coverage: [tests/economics.test.ts#118-119](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L118-L119)
+
+## Revenue Engines and Status
+
+The system distinguishes between "Committed" and "Planned" revenue to provide a realistic view of financial stability.
+
+- Committed Revenue: Any stream where the `status` is not `"planned"` (e.g., `"live"`, `"pilot"`) [src/lib/economics.ts#21](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L21-L21)
+- Verified Funding Streams: A count of all non-planned revenue streams [src/lib/economics.ts#34](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L34-L34)
+
+### Revenue Engine Types
+
+The codebase references several revenue engines used to categorize streams:
+
+- `enterprise`: Managed product layers [tests/economics.test.ts#11-12](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L11-L12)
+- `data-licensing`: Anonymized trajectory licensing [tests/economics.test.ts#45-46](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L45-L46)
+- `sponsorship`: Restricted pools for specific civic goals [tests/economics.test.ts#58-59](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L58-L59)
+
+Sources:
+
+- Status filtering: [src/lib/economics.ts#21-25](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L21-L25)
+- Verified stream count: [src/lib/economics.ts#34](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L34-L34)
+- Engine examples: [tests/economics.test.ts#6-67](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L6-L67)
+
+## Summary of Logic Entities
+
+The following diagram maps the natural language economic concepts to the specific TypeScript interfaces and functions defined in `src/lib/economics.ts`.
+
+Domain to Code Entity Mapping
+
+Sources:
+
+- Type imports: [src/lib/economics.ts#1](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L1-L1)
+- Summary interface usage: [src/lib/economics.ts#19](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L19-L19)
+- Record processing: [src/lib/economics.ts#20-34](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L20-L34)
 
 ---
 
-# Application-Routes-and-Server-Actions
+# Session Management and Environment Configuration
+Relevant source files
+
+- [src/lib/env.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/env.ts)
+- [src/lib/session.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts)
+
+This section details the mechanisms for managing user sessions and the robust environment configuration system used across the KenMatch platform. These systems ensure secure state management via cookies and type-safe access to application settings.
+
+## Environment Configuration
+
+KenMatch utilizes a centralized, Zod-validated environment configuration system defined in `src/lib/env.ts`. This ensures that the application fails fast during startup if required variables are missing or malformed.
+
+### Validation Schema
+
+The system uses a `booleanish` preprocessor to handle various ways environment variables might represent truthy/falsy values (e.g., "true", "1", "false", "0") [src/lib/env.ts#3-23](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/env.ts#L3-L23) The `envSchema` defines the expected structure and default values for the application [src/lib/env.ts#25-34](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/env.ts#L25-L34)
+
+### Configuration Variables
+
+VariableDescriptionDefault`NODE_ENV`Deployment environment (`development`, `test`, `production`)`development``DATABASE_URL`Connection string for remote libSQL/Turso databases`undefined``DATABASE_AUTH_TOKEN`Authentication token for remote database access`undefined``KENMATCH_DB_FILE`Local path for the SQLite database file`data/kenmatch.sqlite``KENMATCH_SESSION_COOKIE`Name of the HTTP-only session cookie`kenmatch-session``KENMATCH_SESSION_DAYS`Duration of session validity in days`14``KENMATCH_ALLOW_SIGNUPS`Toggle to enable or disable new user registrations`true``KENMATCH_ENABLE_DEMO_PROFILE_SWITCHER`Enables the UI for rapid profile switching in dev/demo`false`
+
+### Database Connectivity Modes
+
+The application determines its persistence strategy based on the presence of `DATABASE_URL`. If provided, it connects to a remote libSQL instance; otherwise, it defaults to a local file-based SQLite database specified by `KENMATCH_DB_FILE`[src/lib/env.ts#27-29](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/env.ts#L27-L29)
+
+Sources:
+
+- [src/lib/env.ts#3-36](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/env.ts#L3-L36)
+
+---
+
+## Session Management
+
+Session management is handled via secure, server-side cookies. The logic is encapsulated in `src/lib/session.ts`, which interacts with Next.js `headers` and the database layer to authenticate requests.
+
+### Cookie Lifecycle
+
+The `cookieOptions` function defines the security profile for the session cookie [src/lib/session.ts#8-16](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts#L8-L16)
+
+- httpOnly: Always `true` to prevent XSS-based token theft.
+- sameSite: Set to `lax` for CSRF protection while allowing top-level navigations.
+- secure: Set to `true` only when `NODE_ENV` is `production`.
+- maxAge: Calculated based on `KENMATCH_SESSION_DAYS`[src/lib/session.ts#31](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts#L31-L31)
+
+### Key Functions
+
+- `getViewerSession()`: Retrieves the current session by reading the cookie and looking up the corresponding token in the database via `getViewerSessionByToken`[src/lib/session.ts#18-22](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts#L18-L22)
+- `getViewerProfileId()`: A helper that extracts only the `profile.id` from the current session [src/lib/session.ts#24-27](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts#L24-L27)
+- `setViewerSessionCookie(token)`: Persists a session token to the browser with the configured expiration [src/lib/session.ts#29-32](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts#L29-L32)
+- `clearViewerSessionCookie()`: Effectively logs out the user by setting the cookie expiration to `0`[src/lib/session.ts#34-37](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts#L34-L37)
+
+### Session Data Flow
+
+The following diagram illustrates how a user request is authenticated against the database using the session utilities.
+
+Request Authentication Flow
+
+Sources:
+
+- [src/lib/session.ts#1-42](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts#L1-L42)
+- [src/lib/env.ts#30-31](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/env.ts#L30-L31)
+
+---
+
+## Integration: Environment to Session
+
+The session management logic is tightly coupled with the environment configuration to ensure consistency across different deployment stages.
+
+Environment and Session Association
+
+### Technical Implementation Details
+
+1. Cookie Name: The constant `ACTIVE_SESSION_COOKIE` is directly assigned from `env.KENMATCH_SESSION_COOKIE`[src/lib/session.ts#6](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts#L6-L6)
+2. Security: The `secure` flag in `cookieOptions` is dynamically set based on `env.NODE_ENV === "production"`[src/lib/session.ts#12](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts#L12-L12)
+3. Session Expiry: When `setViewerSessionCookie` is called, it converts `env.KENMATCH_SESSION_DAYS` into seconds for the `maxAge` attribute [src/lib/session.ts#31](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts#L31-L31)
+
+Sources:
+
+- [src/lib/session.ts#6-32](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts#L6-L32)
+- [src/lib/env.ts#25-34](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/env.ts#L25-L34)
+
+---
 
 # Application Routes and Server Actions
 Relevant source files
@@ -885,170 +936,83 @@ Relevant source files
 - [src/app/api/health/route.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/api/health/route.ts)
 - [src/app/layout.tsx](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/layout.tsx)
 
-This section provides a high-level overview of the KenMatch application structure, focusing on the Next.js App Router organization and the Server Actions mutation layer. KenMatch utilizes a unified architecture where routing, data fetching, and mutations are tightly integrated via React Server Components (RSC) and Server Actions.
+This section provides an overview of the KenMatch application structure, built on the Next.js App Router. It describes the relationship between the file-based routing system, the data fetching patterns from the persistence layer, and the server-side mutation logic that handles user interactions.
 
-## Routing Architecture
+## Page Structure and Data Flow
 
-KenMatch uses the Next.js App Router. The layout is managed by a root `SiteShell` component [src/app/layout.tsx#33-35](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/layout.tsx#L33-L35) which provides consistent navigation, branding, and viewer session context across all pages.
+KenMatch utilizes a hybrid rendering approach where pages are Server Components by default. These components fetch data directly from the `db.ts` module, which manages the libSQL connection and in-memory hydration.
 
-### Primary Route Groups
+The application is organized into several key route groups:
 
-The application is organized into several functional areas:
+- Discovery: The homepage and board views for browsing Kens.
+- Governance & Economics: Transparency dashboards for treasury management and system rules.
+- Contribution: Forms for submitting new Ken proposals and managing authentication.
 
-Route PathDescriptionKey Components / Logic`/`HomepageGlobal metrics and featured Kens.`/kens`Kens BoardMulti-parameter filtering and task discovery.`/kens/[slug]`Ken DetailDeep dive into a specific proposal, including audit trails and voting.`/submit`SubmissionTier-aware proposal form for new Kens.`/governance`GovernanceAttestation ladder and system-wide audit logs.`/economics`EconomicsTreasury ledger and revenue stream tracking.`/auth`AuthenticationSign-in and Sign-up panels.
+### Data Hydration Pattern
 
-For details on specific pages, see:
+When a request hits a route, the following flow occurs:
 
-- [Public Board and Ken Detail Pages](#4.2)
-- [Submission, Governance, and Economics Pages](#4.3)
-- [Authentication Pages and Session Management](#4.4)
+1. Layout Fetching: The `RootLayout` concurrently fetches the global profile list and the current viewer session [src/app/layout.tsx#27](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/layout.tsx#L27-L27)
+2. Page Fetching: Individual pages call specialized getters (e.g., `getHealthSummary()`) to retrieve specific slices of the system state [src/app/api/health/route.ts#6](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/api/health/route.ts#L6-L6)
+3. UI Projection: The fetched data is passed into Client Components for interactivity (like voting or filtering) while maintaining server-side rendering for SEO and initial load performance.
 
-Sources: [src/app/layout.tsx#4-39](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/layout.tsx#L4-L39)[src/app/actions.ts#103-114](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L103-L114)
+### System Routing Map
 
-## Mutation Layer (Server Actions)
+The following diagram illustrates the relationship between URL paths and their primary data sources.
 
-Mutations in KenMatch are handled exclusively through Next.js Server Actions defined in `src/app/actions.ts`. These functions are "use server" entry points that bridge the client-side UI (forms and buttons) to the backend database and session logic.
+KenMatch Route to Data Mapping
 
-### Action Flow and Validation
+Sources: [src/app/layout.tsx#27](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/layout.tsx#L27-L27)[src/app/api/health/route.ts#6](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/api/health/route.ts#L6-L6)[src/app/actions.ts#126](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L126-L126)
 
-Every mutation follows a standardized lifecycle:
+## Server Actions and Mutations
 
-1. Input Validation: Data is parsed using Zod schemas (e.g., `proposalSchema`, `voteSchema`) [src/app/actions.ts#29-82](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L29-L82)
-2. Authorization: Actions often call `requireViewerProfileId()` to ensure the user is authenticated before proceeding [src/app/actions.ts#95-101](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L95-L101)
-3. Data Transformation: Complex inputs (like multiline textareas) are processed via utilities like `splitLines`[src/app/actions.ts#84-86](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L84-L86)
-4. Persistence: The action calls a `lib/db.ts` function to update the libSQL database [src/app/actions.ts#193-202](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L193-L202)
-5. Cache Invalidation: The `revalidateCorePaths()` helper is called to purge the Next.js Data Cache for relevant routes [src/app/actions.ts#103-114](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L103-L114)
-6. State Return: The action returns an `ActionState` object containing the status, message, and any field-level errors [src/app/action-state.ts#1-5](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/action-state.ts#L1-L5)
+Mutations in KenMatch are handled via Next.js Server Actions defined in `src/app/actions.ts`. This layer bridges the frontend forms to the database while enforcing validation and session requirements.
 
-### Core Action Entities
+### Action State Pattern
 
-The following diagram illustrates how Server Actions connect UI interactions to the underlying domain logic and database.
+All actions follow a standardized `ActionState` interface to communicate results back to the UI:
 
-KenMatch Mutation Flow
+- Status: `idle`, `error`, or `success`[src/app/action-state.ts#2](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/action-state.ts#L2-L2)
+- Validation: Uses Zod schemas (e.g., `proposalSchema`, `voteSchema`) to validate `FormData` before hitting the database [src/app/actions.ts#29-82](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L29-L82)
+- Feedback: Returns `fieldErrors` for specific UI highlighting [src/app/action-state.ts#4](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/action-state.ts#L4-L4)
 
-Sources: [src/app/actions.ts#1-212](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L1-L212)[src/app/action-state.ts#1-11](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/action-state.ts#L1-L11)
+### Mutation Lifecycle
 
-## Cache Revalidation Strategy
+The diagram below shows how a user action (like submitting a Ken) moves through the system.
 
-KenMatch uses an aggressive revalidation strategy to ensure the public board and governance logs remain consistent after user actions. The `revalidateCorePaths` function [src/app/actions.ts#103-114](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L103-L114) is the central mechanism for this, clearing the cache for:
+Server Action Execution Flow
 
-- The homepage (`/`)
-- The main boards (`/kens`, `/tasks`)
-- Governance and Economics dashboards
-- The specific detail page for the affected Ken (`/kens/[slug]`)
+Sources: [src/app/actions.ts#95-101](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L95-L101)[src/app/actions.ts#103-114](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L103-L114)[src/app/actions.ts#182-212](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L182-L212)
 
-This ensures that when a user votes or submits a comment, the updated "Voice Credits" and "Pulse" scores are immediately reflected across the entire application upon the next navigation.
+## Sub-Topic Overviews
 
-For a deep dive into the implementation of these actions and schemas, see [Server Actions and Mutation Layer](#4.1).
+### [Home, Ken Board, and Ken Detail Pages](#4.1)
 
-## Health Monitoring
+Covers the primary discovery interfaces. The homepage provides high-level metrics via `getHealthSummary`, while the board routes (`/kens` and `/tasks`) provide filtered views of the Ken lifecycle. Detail pages (`/kens/[slug]`) aggregate timing strips, audit trails, and the `saveVoteAction` for quadratic allocation.
+*For details, see [Home, Ken Board, and Ken Detail Pages](#4.1).*
 
-The application exposes a standard health check endpoint at `/api/health`. This route queries the database via `getHealthSummary()` to verify connectivity and system status [src/app/api/health/route.ts#5-8](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/api/health/route.ts#L5-L8)
+### [Governance, Economics, and Submit Pages](#4.2)
 
-Sources: [src/app/api/health/route.ts#1-9](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/api/health/route.ts#L1-L9)
+Focuses on the operational transparency of the platform. This includes the attestation ladder for sybil resistance, the treasury dashboard for tracking revenue streams and burn rates, and the multi-step `createProposalAction` used in the submission intake form.
+*For details, see [Governance, Economics, and Submit Pages](#4.2).*
 
----
+### [Authentication Routes and Server Actions](#4.3)
 
-# Server-Actions-and-Mutation-Layer
-
-# Server Actions and Mutation Layer
-Relevant source files
-
-- [src/app/action-state.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/action-state.ts)
-- [src/app/actions.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts)
-- [src/app/api/health/route.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/api/health/route.ts)
-- [src/lib/session.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts)
-
-The Server Actions and Mutation Layer in KenMatch serves as the primary bridge between the client-side UI and the libSQL persistence layer. It implements a unified pattern for data mutations, validation, and cache invalidation using Next.js "use server" functions.
-
-## Overview of the Mutation Flow
-
-KenMatch utilizes a standardized mutation flow where React forms dispatch to Server Actions defined in `src/app/actions.ts`. These actions validate input using Zod schemas, enforce authorization via session guards, execute database operations, and finally trigger path-based revalidation to update the UI.
-
-### Data Transformation and Validation
-
-Before reaching the database, input data is transformed. A key utility is `splitLines`, which converts newline-separated strings from textareas into arrays of strings for fields like deliverables or risk flags [src/app/actions.ts#84-86](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L84-L86) Validation errors are caught by Zod and flattened into a `Record<string, string>` format via `flattenFieldErrors` to be easily consumed by UI components [src/app/actions.ts#88-93](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L88-L93)
-
-### Action State Management
-
-All mutation actions adhere to the `ActionState` interface, which tracks the status, a user-facing message, and optional field-level errors [src/app/action-state.ts#1-5](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/action-state.ts#L1-L5)
-
-Mutation Logic Flow:
-
-1. Form Submission: UI component calls a Server Action with `FormData`.
-2. Validation: Zod schema parses the data.
-3. Auth Guard:`requireViewerProfileId()` ensures the user is logged in [src/app/actions.ts#95-101](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L95-L101)
-4. DB Execution: Action calls a specific function in `src/lib/db.ts`.
-5. Revalidation:`revalidateCorePaths()` clears the Next.js Data Cache for relevant routes [src/app/actions.ts#103-114](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L103-L114)
-6. Redirection: User is navigated to the result page (e.g., the new Ken detail page).
-
-### Code Entity Mapping: Mutation Pipeline
-
-The following diagram maps the logical flow from the UI to the underlying database functions.
-
-Sources:[src/app/actions.ts#29-64](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L29-L64)[src/app/actions.ts#182-212](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L182-L212)[src/lib/session.ts#24-27](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts#L24-L27)[src/lib/db.ts#12-19](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L12-L19)
+Describes the session management flow. It covers the `signInAction` and `signUpAction`, the `KENMATCH_ALLOW_SIGNUPS` environment gate, and how the `SiteShell` utilizes `getViewerSession` to manage the global profile switcher.
+*For details, see [Authentication Routes and Server Actions](#4.3).*
 
 ---
 
-## Core Server Actions
+Sources:
 
-### Authentication Actions
-
-Authentication actions manage the user's session lifecycle by interacting with both the database and the browser's cookies.
-
-ActionPurposeKey DB Call`signInAction`Validates credentials and sets session cookie.`authenticateAccount`[src/app/actions.ts#126](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L126-L126)`signUpAction`Creates new profile/account if `KENMATCH_ALLOW_SIGNUPS` is true.`createAccount`[src/app/actions.ts#158](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L158-L158)`signOutAction`Deletes session from DB and clears cookie.`deleteSessionByToken`[src/app/actions.ts#175](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L175-L175)
-
-Sources:[src/app/actions.ts#116-180](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L116-L180)[src/lib/session.ts#29-37](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts#L29-L37)
-
-### Domain Mutation Actions
-
-These actions handle the core business logic of the KenMatch platform, such as proposing Kens, voting, and commenting.
-
-- `createProposalAction`: Processes the multi-field Ken submission. It uses `splitLines` to format the deliverables and risk flags before calling `createProposal`[src/app/actions.ts#182-212](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L182-L212)
-- `saveVoteAction`: Handles quadratic voice credit allocation. It enforces the `MAX_VOTES_PER_TASK` limit (6) via the `voteSchema`[src/app/actions.ts#48](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L48-L48)
-- `saveTaskPulseAction`: Records a simple "Pulse" (up/down/neutral) signaling for a Ken [src/app/actions.ts#52-56](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L52-L56)
-- `createCommentAction`: Allows users to post comments with a "Stake Credit" value (1-3) to signify the importance of the feedback [src/app/actions.ts#58-64](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L58-L64)
-
-Sources:[src/app/actions.ts#182-250](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L182-L250)[src/lib/allocation.ts#8](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L8-L8)
+- [src/app/actions.ts#1-212](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L1-L212)
+- [src/app/layout.tsx#1-39](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/layout.tsx#L1-L39)
+- [src/app/action-state.ts#1-11](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/action-state.ts#L1-L11)
+- [src/app/api/health/route.ts#1-9](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/api/health/route.ts#L1-L9)
 
 ---
 
-## Authorization and Cache Management
-
-### The `requireViewerProfileId` Guard
-
-This function is the primary gatekeeper for mutations. It retrieves the current session via `getViewerProfileId()`[src/lib/session.ts#24](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts#L24-L24) If no active session exists, it throws an error that is caught by the action's try/catch block, returning a user-friendly error message to the UI [src/app/actions.ts#95-101](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L95-L101)
-
-### Global Revalidation: `revalidateCorePaths`
-
-Because KenMatch relies heavily on derived state (e.g., total votes affecting ranking and tier assignment), most mutations require a broad cache invalidation. The `revalidateCorePaths(slug?: string)` function clears:
-
-- The homepage (`/`)
-- The board (`/kens`, `/tasks`)
-- Governance and Economics dashboards
-- Specific Ken detail pages if a slug is provided [src/app/actions.ts#103-114](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L103-L114)
-
-### Code Entity Mapping: Auth & Session Persistence
-
-This diagram illustrates how the server actions interact with session utilities and the cookie store.
-
-Sources:[src/app/actions.ts#116-138](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L116-L138)[src/lib/session.ts#29-32](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts#L29-L32)[src/lib/db.ts#10-14](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L10-L14)
-
----
-
-## Validation Schemas (Zod)
-
-The system uses Zod to enforce strict data types and business rules at the edge of the mutation layer.
-
-SchemaConstraint ExampleFile Reference`proposalSchema``summary` must be >= 30 chars; `requestedTier` must be days/weeks/months.[src/app/actions.ts#29-43](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L29-L43)`voteSchema``voteCount` must be between 0 and `MAX_VOTES_PER_TASK`.[src/app/actions.ts#45-50](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L45-L50)`pulseSchema``value` must be exactly -1, 0, or 1.[src/app/actions.ts#52-56](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L52-L56)`commentSchema``stakeCredits` must be between 1 and 3.[src/app/actions.ts#58-64](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L58-L64)`signUpSchema`Extends `signInSchema` with bio (min 24 chars) and specialty.[src/app/actions.ts#77-82](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L77-L82)
-
-Sources:[src/app/actions.ts#29-82](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L29-L82)
-
----
-
-# Public-Board-and-Ken-Detail-Pages
-
-# Public Board and Ken Detail Pages
+# Home, Ken Board, and Ken Detail Pages
 Relevant source files
 
 - [src/app/kens/[slug]/page.tsx](src/app/kens/%5Bslug%5D/page.tsx)
@@ -1057,293 +1021,279 @@ Relevant source files
 - [src/app/tasks/[slug]/page.tsx](src/app/tasks/%5Bslug%5D/page.tsx)
 - [src/app/tasks/page.tsx](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/tasks/page.tsx)
 
-This page covers the primary user-facing routes of the KenMatch application. It details the implementation of the high-level metrics on the home page, the multi-parameter filtering system on the Kens board, and the comprehensive detail view for individual Kens, including their audit trails and interactive voting panels.
+This page details the implementation of the primary user-facing routes in KenMatch. These routes handle the display of global metrics, the filtered exploration of Kens (tasks), and the deep-dive detail views that facilitate quadratic voting and audit trail inspection.
 
-## 1. Homepage and Metrics
+## 1. Homepage Metrics and Featured Content
 
-The home page (`src/app/page.tsx`) serves as the entry point for both guest and authenticated users. It provides a high-level overview of the system's health and leading Kens through the `getHomeData` function.
+The homepage `src/app/page.tsx` serves as the entry point, providing a high-level overview of the system's health, active allocation lanes, and featured Kens.
 
 ### Implementation and Data Flow
 
-The page is a React Server Component (RSC) that fetches a unified data object containing system-wide metrics, categories, featured tasks, and current viewer state [src/app/page.tsx#8-10](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/page.tsx#L8-L10)
+The page is a Server Component that retrieves a comprehensive data snapshot via `getHomeData(viewerProfileId)`[src/app/page.tsx#10](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/page.tsx#L10-L10) This function aggregates:
 
-- Hero Section: Displays the value proposition and primary CTAs (Browse, Submit, Funding) [src/app/page.tsx#14-27](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/page.tsx#L14-L27)
-- HomepageMetrics: Renders key system statistics including total Ken proposals, active runs, bonded voice credits, and monthly treasury commitments [src/app/page.tsx#49-53](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/page.tsx#L49-L53)
-- Leading Kens: Displays the top-ranked Kens currently eligible for launch using the `TaskCard` component [src/app/page.tsx#57-68](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/page.tsx#L57-L68)
-- Funding Snapshot: Visualizes the separation between public ranking and revenue, showing "Coverage Months" and "Sponsor Pools" [src/app/page.tsx#85-107](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/page.tsx#L85-L107)
+- Global Metrics: Counts for total proposals, active runs, bonded voice credits, and monthly treasury commitments [src/app/page.tsx#50-53](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/page.tsx#L50-L53)
+- Allocation Lanes: Static definitions for "Months", "Weeks", and "Days" tiers which describe the scope of Kens in each bucket [src/app/page.tsx#41-47](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/page.tsx#L41-L47)
+- Featured Kens: A subset of tasks currently leading the board [src/app/page.tsx#66](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/page.tsx#L66-L66)
+- Economic Snapshot: Real-time treasury coverage months, sponsor pool totals, and verified funding streams [src/app/page.tsx#91-95](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/page.tsx#L91-L95)
 
-### Code-to-System Mapping: Home Page
+### Visual Components
 
-The following diagram maps the visual sections of the home page to their corresponding data fetching and utility logic.
+- Hero Section: Displays the primary mission and call-to-action links (`/kens`, `/submit`, `/economics`) [src/app/page.tsx#14-27](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/page.tsx#L14-L27)
+- Category Grid: Lists available Ken categories and their respective proposal counts [src/app/page.tsx#74-82](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/page.tsx#L74-L82)
+- Governance & Contributors: Shows recent decision logs from various "Houses" and a sample of active community contributors [src/app/page.tsx#112-124](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/page.tsx#L112-L124)
 
-Home Page Data Association
-
-Sources: [src/app/page.tsx#8-10](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/page.tsx#L8-L10)[src/app/page.tsx#49-53](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/page.tsx#L49-L53)[src/lib/db.ts#1-10](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L1-L10) (implied by `getHomeData` import).
-
----
-
-## 2. The Kens Board (Marketplace)
-
-The Kens board (`src/app/kens/page.tsx`) provides a searchable, filterable interface for all Kens in the system. It handles four primary filter dimensions: search query, category, allocation lane (tier), and lifecycle stage.
-
-### Multi-Parameter Filtering
-
-The board utilizes `searchParams` to drive its state, allowing for deep-linking to specific filtered views.
-
-- Query (`q`): Full-text search across titles and summaries.
-- Category: Filters by specific domain (e.g., "Open Tools", "Science Support").
-- Tier: Filters by allocation lane (`months`, `weeks`, `days`, `queued`, `blocked`) [src/app/kens/page.tsx#20-21](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/kens/page.tsx#L20-L21)
-- Stage: Filters by lifecycle state (`proposing`, `running`, `shipped`) [src/app/kens/page.tsx#21](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/kens/page.tsx#L21-L21)
-
-The `getMarketplaceData` function in `src/lib/db.ts` processes these filters to return the subset of tasks and the relevant category metadata [src/app/kens/page.tsx#22](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/kens/page.tsx#L22-L22)
-
-### Legacy Route Aliases
-
-To maintain backward compatibility and handle legacy internal naming, the `/tasks` route is redirected to `/kens`.
-
-- `src/app/tasks/page.tsx` redirects to `/kens`[src/app/tasks/page.tsx#1-5](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/tasks/page.tsx#L1-L5)
-- `src/app/tasks/[slug]/page.tsx` redirects to `/kens/[slug]`[src/app/tasks/[slug]/page.tsx:1-6]().
-
-Sources: [src/app/kens/page.tsx#15-22](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/kens/page.tsx#L15-L22)[src/app/tasks/page.tsx#1-5](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/tasks/page.tsx#L1-L5)[src/app/tasks/[slug]/page.tsx:1-6]().
+Sources:[src/app/page.tsx#1-124](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/page.tsx#L1-L124)[src/lib/db.ts#4](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L4-L4)
 
 ---
 
-## 3. Ken Detail View
+## 2. Ken Board (Marketplace)
 
-The Ken detail page (`src/app/kens/[slug]/page.tsx`) is the most data-intensive view in the application. It aggregates the proposal details, run plans, audit logs, and interactive governance panels.
+The Ken Board (`src/app/kens/page.tsx`) provides a filtered interface for browsing the full library of tasks. It supports searching, category filtering, and status-based navigation.
 
-### Component Composition
+### Routing and Redirection
 
-The page is structured into several functional areas:
+To maintain URL consistency, the legacy `/tasks` route is redirected to `/kens`[src/app/tasks/page.tsx#4-5](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/tasks/page.tsx#L4-L5) Similarly, individual task slugs are redirected to the Ken detail path [src/app/tasks/[slug]/page.tsx:5]().
 
-1. Hero & Metrics: Displays the Ken's title, summary, current tier, and public pulse score [src/app/kens/[slug]/page.tsx:23-46]().
-2. Timing Strip: Uses `KenTimingStrip` to visualize the duration, elapsed time, and remaining window for active Kens [src/app/kens/[slug]/page.tsx:40]().
-3. Run Plan & Audit: Details the compute backend, checkpoint cadence, and a historical log of `runUpdates` (the audit trail) [src/app/kens/[slug]/page.tsx:77-120]().
-4. Interaction Sidebar: Contains the `VotePanel` for quadratic voting, `TaskPulsePanel` for public signaling, and `DiscussionThread` for community engagement [src/app/kens/[slug]/page.tsx:125-140]().
+### Filtering Logic
 
-### Data Interaction Flow
+The `KensPage` component parses `searchParams` to determine the current view state:
 
-The following diagram illustrates how the detail page interacts with server-side logic and the viewer's session.
+- Query (`q`): Text search against titles and summaries [src/app/kens/page.tsx#18](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/kens/page.tsx#L18-L18)
+- Category: Filters by specific domain (e.g., "AI Safety", "Public Tools") [src/app/kens/page.tsx#19](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/kens/page.tsx#L19-L19)
+- Tier: Filters by allocation lane (`months`, `weeks`, `days`) [src/app/kens/page.tsx#20](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/kens/page.tsx#L20-L20)
+- Stage: Filters by lifecycle state (`proposed`, `active`, `shipped`, `blocked`) [src/app/kens/page.tsx#21](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/kens/page.tsx#L21-L21)
 
-Ken Detail Page Logic Flow
+Data is fetched via `getMarketplaceData(viewerProfileId, filters)`[src/app/kens/page.tsx#22](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/kens/page.tsx#L22-L22)
 
-Sources: [src/app/kens/[slug]/page.tsx:11-19](), [src/app/kens/[slug]/page.tsx:125-140]().
+### Natural Language to Code Entity Map: Discovery
+
+The following diagram maps user-facing "Board" concepts to the underlying code entities.
+
+Diagram: Discovery Logic Mapping
+
+Sources:[src/app/kens/page.tsx#1-51](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/kens/page.tsx#L1-L51)[src/lib/types.ts#5-6](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L5-L6)
+
+---
+
+## 3. Ken Detail Page
+
+The detail page (`src/app/kens/[slug]/page.tsx`) is the most data-intensive route, combining descriptive content, economic data, run plans, and interactive voting panels.
+
+### Data Aggregation
+
+The page calls `getTaskDetail(slug, viewerProfileId)`[src/app/kens/[slug]/page.tsx:16](). If the slug does not exist, it triggers a `notFound()`[src/app/kens/[slug]/page.tsx:18]().
+
+### Key Sections
+
+SectionDescriptionCode ReferenceHero & MetaDisplays tier chip, stage, category, and public score.[src/app/kens/[slug]/page.tsx:23-39]()Timing StripVisualizes the Ken's lifecycle timeline.[src/app/kens/[slug]/page.tsx:40]()MetricsTotal voice credits, supporter count, and category rank.[src/app/kens/[slug]/page.tsx:41-45]()Content BlocksProblem statement, public benefit, and deliverables.[src/app/kens/[slug]/page.tsx:50-63]()Run PlanBackend details, runtime caps, and checkpoint gates.[src/app/kens/[slug]/page.tsx:77-102]()Audit TrailIncremental updates and historical activity logs.[src/app/kens/[slug]/page.tsx:113-120]()
 
 ### Interactive Panels
 
-- VotePanel: Allows users to allocate voice credits using the quadratic formula defined in `src/lib/allocation.ts`. It displays the current credits spent by the viewer on this specific Ken [src/app/kens/[slug]/page.tsx:130]().
-- TaskPulsePanel: A lower-friction signaling mechanism (up/down) that contributes to the `taskPulseScore`[src/app/kens/[slug]/page.tsx:129]().
-- DiscussionThread: Implements threaded comments where users can stake credits on their contributions to signal importance or quality [src/app/kens/[slug]/page.tsx:132]().
+- VotePanel: Handles Quadratic Voting (QV) for authenticated users. It displays the viewer's available voice credits and current allocation to the Ken [src/app/kens/[slug]/page.tsx:135]().
+- TaskPulsePanel: Displays the "Public Pulse" score, a separate signal from scarce voice credits [src/app/kens/[slug]/page.tsx:134]().
+- DiscussionThread: Provides a threaded comment interface for community review [src/app/kens/[slug]/page.tsx:136]().
 
-### Run and Audit Visualization
+### Natural Language to Code Entity Map: Ken Lifecycle
 
-If a Ken has an active "Run", the page renders:
+The following diagram bridges the conceptual "Ken Lifecycle" to the database entities and components that render them.
 
-- Backend Details: The compute environment (e.g., "Llama-3-70b-Instruct") [src/app/kens/[slug]/page.tsx:81]().
-- Checkpoints: Scheduled milestones with release gates (required vs. actual approvals) [src/app/kens/[slug]/page.tsx:92-100]().
-- Audit Trail: A reverse-chronological list of `runUpdates`, showing incremental deliverables and human-in-the-loop checkpoints [src/app/kens/[slug]/page.tsx:113-120]().
+Diagram: Ken Lifecycle Entity Map
 
-Sources: [src/app/kens/[slug]/page.tsx:77-120](), [src/app/kens/[slug]/page.tsx:125-140]().
+Sources:[src/app/kens/[slug]/page.tsx:1-140](), [src/lib/db.ts#7](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L7-L7)[src/components/vote-panel.tsx#6](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/vote-panel.tsx#L6-L6)
 
 ---
 
-# Submission,-Governance,-and-Economics-Pages
+## 4. Participation and Session Logic
 
-# Submission, Governance, and Economics Pages
+The behavior of these pages changes based on the `viewerProfile` status, which is retrieved via `getViewerSession()`[src/app/kens/[slug]/page.tsx:13]().
+
+- Anonymous Access: Users can read all Kens, view metrics, and browse the board. They are prompted with a `publicParticipationMessage` suggesting they sign in to vote or comment [src/app/kens/[slug]/page.tsx:15]().
+- Authenticated Access: Users see their specific `availableCredits`[src/app/page.tsx#31](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/page.tsx#L31-L31) and can interact with the `VotePanel` and `DiscussionThread`.
+- Policy Enforcement: The `participationNote` from the profile (resolved via attestation logic) informs the user of any restrictions (e.g., read-only mode due to high Sybil risk) [src/app/kens/[slug]/page.tsx:15]().
+
+Sources:[src/app/kens/[slug]/page.tsx:13-16](), [src/app/page.tsx#29-35](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/page.tsx#L29-L35)[src/lib/session.ts#8](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts#L8-L8)
+
+---
+
+# Governance, Economics, and Submit Pages
 Relevant source files
 
 - [src/app/economics/page.tsx](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/economics/page.tsx)
 - [src/app/governance/page.tsx](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/governance/page.tsx)
 - [src/app/submit/page.tsx](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/submit/page.tsx)
 
-This section covers the specialized management and intake routes of KenMatch. These pages provide the interface for proposing new work (Kens), monitoring the integrity of the system through governance logs and attestation ladders, and auditing the financial health of the compute treasury.
+This section covers the administrative and intake layers of KenMatch. These pages provide transparency into the decision-making process, the financial health of the treasury, and the mechanism for proposing new Kens.
 
-## 1. Ken Submission Portal
+## Governance Page
 
-The submission route `src/app/submit/page.tsx` serves as the entry point for new proposals. It enforces an authenticated session requirement to ensure an accountability trail for every submitted Ken.
-
-### Implementation and Data Flow
-
-The page fetches category metadata via `getHomeData` to populate the proposal form [src/app/submit/page.tsx#9](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/submit/page.tsx#L9-L9) If a user is not authenticated, it renders a sign-in prompt [src/app/submit/page.tsx#23-27](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/submit/page.tsx#L23-L27)
-
-Key Components:
-
-- `ProposalForm`: A complex client-side component (`src/components/proposal-form.tsx`) that handles the multi-field intake.
-- Tier-Aware Guidance: The form is designed to help users understand the requirements for different compute tiers (Days, Weeks, Months).
-
-### Submission Logic Diagram
-
-This diagram maps the natural language "Submit Proposal" flow to the specific code entities involved in the transaction.
-
-Title: Proposal Submission Flow
-
-Sources: [src/app/submit/page.tsx#7-31](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/submit/page.tsx#L7-L31)[src/app/actions.ts#74-138](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L74-L138)
-
----
-
-## 2. Governance Dashboard
-
-The governance route `src/app/governance/page.tsx` provides transparency into the system's decision-making processes. It aggregates data from the `governance_events` table and profile attestation states.
+The Governance page ([src/app/governance/page.tsx](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/governance/page.tsx)) serves as the transparency layer for the platform. It visualizes the "Attestation Ladder," the "Recent Governance Log," and "Blocked Kens." The primary goal is to maintain a legible public process for resource allocation and safety boundaries.
 
 ### Implementation Details
 
-The page utilizes `getGovernanceData` to retrieve a multi-faceted dataset [src/app/governance/page.tsx#7](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/governance/page.tsx#L7-L7):
+The page is a React Server Component that fetches data via `getGovernanceData`[src/app/governance/page.tsx#7](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/governance/page.tsx#L7-L7)
 
-1. Attestation Ladder: Displays the top profiles, their `attestationLevel`, `sybilRisk`, and `effectiveVoiceCredits`[src/app/governance/page.tsx#31-51](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/governance/page.tsx#L31-L51)
-2. Governance Log: A chronological list of decisions made by different "houses" (e.g., Safety House, Resource House) [src/app/governance/page.tsx#58-68](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/governance/page.tsx#L58-L68)
-3. Blocked Kens: Specifically highlights tasks that have been assigned the `blocked` tier, ensuring the "boundary" of acceptable work is visible to the public [src/app/governance/page.tsx#71-81](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/governance/page.tsx#L71-L81)
-4. Category Health: Aggregates counts of `eligible`, `running`, and `shipped` Kens per category [src/app/governance/page.tsx#87-94](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/governance/page.tsx#L87-L94)
+- Attestation Ladder: Displays the top profiles, showing their `attestationLevel`, `sybilRisk`, and `effectiveVoiceCredits`[src/app/governance/page.tsx#30-52](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/governance/page.tsx#L30-L52) This reflects how much "Voice" (voting power) an account holds based on its verified standing.
+- Governance Log: A chronological list of decisions made by different "Houses" (e.g., community, founders). It displays the `decision` and the `outcome`[src/app/governance/page.tsx#56-69](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/governance/page.tsx#L56-L69)
+- Blocked Kens: Specifically filters and displays tasks where the `allocatedTier` is set to a blocked state [src/app/governance/page.tsx#71-81](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/governance/page.tsx#L71-L81) These are rendered with a distinct red visual style to indicate they have been rejected or halted for safety/policy reasons.
+- Category Health: Summarizes the status of different categories, showing counts for `eligible`, `running`, and `shipped` Kens [src/app/governance/page.tsx#84-95](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/governance/page.tsx#L84-L95)
 
-### Governance Data Relationships
+### Data Flow: Governance
 
-Title: Governance Entity Mapping
+The following diagram maps the UI sections to the underlying data entities retrieved from the database.
 
-Sources: [src/app/governance/page.tsx#1-98](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/governance/page.tsx#L1-L98)[src/lib/db.ts#1-100](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L1-L100)
+"Governance UI to Data Mapping"
 
----
-
-## 3. Economics Dashboard
-
-The economics route `src/app/economics/page.tsx` tracks the financial sustainability of the platform. It separates "Revenue" (market activity) from "Treasury" (funds available for compute).
-
-### Core Economic Metrics
-
-The dashboard displays a `metric-grid` derived from the `summarizeEconomics` logic [src/app/economics/page.tsx#19-30](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/economics/page.tsx#L19-L30):
-
-- Revenue in Market: Total monthly revenue across all streams.
-- Committed Revenue: Revenue from streams marked as `committed`.
-- Coverage: The calculated runway in months (`summary.coverageMonths`) based on current treasury and burn rates.
-- Sponsor Pools: Funds specifically earmarked for individual Kens.
-
-### Data Structures
-
-The page renders three primary lists:
-
-- Revenue Streams: Individual business units or funding sources, showing the split between `treasuryMonthlyUsd` and `founderMonthlyUsd`[src/app/economics/page.tsx#35-48](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/economics/page.tsx#L35-L48)
-- Treasury Ledger: A granular log of inflows and outflows from the `treasury_entries` table [src/app/economics/page.tsx#52-64](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/economics/page.tsx#L52-L64)
-- Funded Kens: A list of tasks that have successfully attracted "Sponsor Pools" or "Enterprise Packaging" [src/app/economics/page.tsx#83-93](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/economics/page.tsx#L83-L93)
-
-### Economics Calculation Logic
-
-The summary data is processed via `summarizeEconomics` in the business logic layer.
-
-Title: Economics Data Aggregation
-
-Sources: [src/app/economics/page.tsx#5-98](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/economics/page.tsx#L5-L98)[src/lib/economics.ts#25-75](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L25-L75)
-
-### Summary Table: Key Page Functions
-
-RoutePrimary Data FunctionKey ComponentPurpose`/submit``getHomeData``ProposalForm`Intake of new Kens with accountability trails.`/governance``getGovernanceData`N/A (Server Components)Transparency of safety decisions and contributor status.`/economics``getEconomicsData`N/A (Server Components)Audit of compute treasury and revenue splits.
-
-Sources: [src/app/submit/page.tsx#9](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/submit/page.tsx#L9-L9)[src/app/governance/page.tsx#7](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/governance/page.tsx#L7-L7)[src/app/economics/page.tsx#7](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/economics/page.tsx#L7-L7)
+Sources: [src/app/governance/page.tsx#1-98](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/governance/page.tsx#L1-L98)[src/lib/db.ts#1](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L1-L1)
 
 ---
 
-# Authentication-Pages-and-Session-Management
+## Economics Page
 
-# Authentication Pages and Session Management
+The Economics page ([src/app/economics/page.tsx](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/economics/page.tsx)) provides a dashboard for the KenMatch treasury. It distinguishes between revenue that supports operations and revenue that is restricted to specific Kens (Sponsor Pools).
+
+### Key Metrics and Logic
+
+The page consumes data from `getEconomicsData`[src/app/economics/page.tsx#7](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/economics/page.tsx#L7-L7) which calculates:
+
+- Coverage Months: How long the current treasury can sustain the current burn rate [src/app/economics/page.tsx#25](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/economics/page.tsx#L25-L25)
+- Revenue Streams: Individual sources of income, split between `treasuryMonthlyUsd` (shared compute) and `founderMonthlyUsd` (operations) [src/app/economics/page.tsx#35-48](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/economics/page.tsx#L35-L48)
+- Treasury Ledger: A granular list of `treasury_entries` showing the `direction` (inflow/outflow) and `amountUsd`[src/app/economics/page.tsx#51-65](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/economics/page.tsx#L51-L65)
+- Funded Kens: Tasks that have successfully attracted a "Sponsor Pool," which is restricted funding for that specific deliverable [src/app/economics/page.tsx#81-94](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/economics/page.tsx#L81-L94)
+
+### Economics System Architecture
+
+This diagram illustrates how revenue flows through the system into different buckets.
+
+"Revenue and Treasury Flow"
+
+Sources: [src/app/economics/page.tsx#1-98](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/economics/page.tsx#L1-L98)[src/lib/economics.ts#1](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L1-L1)
+
+---
+
+## Submit Page
+
+The Submit page ([src/app/submit/page.tsx](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/submit/page.tsx)) is the entry point for new Ken proposals. It enforces an "accountable intake" policy where anonymous submissions are prohibited.
+
+### Intake Process
+
+1. Session Check: The page calls `getViewerSession()`[src/app/submit/page.tsx#8](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/submit/page.tsx#L8-L8)
+2. Auth Guard: If no viewer is present, it renders a "Sign in required" message [src/app/submit/page.tsx#23-27](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/submit/page.tsx#L23-L27)
+3. Proposal Form: If authenticated, it renders the `ProposalForm` component, passing the available `categories` for selection [src/app/submit/page.tsx#21](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/submit/page.tsx#L21-L21)
+
+### Proposal Form Components
+
+The `ProposalForm` (defined in `src/components/proposal-form.tsx`) handles the complex state of a Ken submission, including:
+
+- Deliverables and Risks: Clear definitions of what will be built and what could go wrong.
+- Enterprise Packaging: How the Ken can be supported by commercial entities.
+- Tier Selection: Initial request for ranking (e.g., Months, Weeks, Days).
+
+"Submit Flow and State"
+
+Sources: [src/app/submit/page.tsx#1-31](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/submit/page.tsx#L1-L31)[src/components/proposal-form.tsx#1](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L1-L1)
+
+## Summary of Key Entities
+
+PagePrimary Data FunctionKey UI ComponentCore LogicGovernance`getGovernanceData``Attestation Ladder`Filters for `blocked` status and `attestationLevel`.Economics`getEconomicsData``MetricGrid`Calculates `coverageMonths` and splits revenue streams.Submit`getHomeData``ProposalForm`Enforces `viewer` session for accountability.
+
+Sources: [src/app/governance/page.tsx#7](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/governance/page.tsx#L7-L7)[src/app/economics/page.tsx#7](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/economics/page.tsx#L7-L7)[src/app/submit/page.tsx#8-9](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/submit/page.tsx#L8-L9)
+
+---
+
+# Authentication Routes and Server Actions
 Relevant source files
 
 - [src/app/action-state.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/action-state.ts)
+- [src/app/actions.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts)
 - [src/app/api/health/route.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/api/health/route.ts)
 - [src/app/auth/page.tsx](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/auth/page.tsx)
-- [src/components/auth-panels.tsx](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/auth-panels.tsx)
-- [src/lib/session.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts)
 
-This section covers the implementation of user authentication, session persistence, and system health monitoring in KenMatch. The system uses a cookie-based session strategy to manage "Viewer" state, allowing the application to distinguish between public readers and accountable contributors.
+This page details the implementation of the authentication system in KenMatch, focusing on the sign-in/sign-up user interface, the server actions that manage session state, and the security gates enforced by environment configuration.
 
 ## Authentication Overview
 
-KenMatch implements a custom authentication flow using Next.js Server Actions and HTTP-only cookies. The primary goal is to ensure that actions such as voting, commenting, and submitting Kens are attributable to a verified profile.
+KenMatch uses a custom session-based authentication system backed by libSQL. It separates "open reading" from "accountable participation" (voting, commenting, and submission) by requiring a verified contributor profile for the latter [src/app/auth/page.tsx#17-19](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/auth/page.tsx#L17-L19)
 
-### Auth Route and Redirection
+### Authentication Flow
 
-The main entry point for authentication is `src/app/auth/page.tsx`. This page serves as a gateway:
+The following diagram illustrates the transition from the `AuthPage` UI through Server Actions to the persistence layer.
 
-- Session Check: It calls `getViewerSession()` to determine if a user is already logged in [src/app/auth/page.tsx#7](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/auth/page.tsx#L7-L7)
-- Auto-Redirect: If a valid session exists, the user is redirected to the homepage [src/app/auth/page.tsx#8-10](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/auth/page.tsx#L8-L10)
-- UI Rendering: If no session is found, it renders the `AuthPanels` component [src/app/auth/page.tsx#21](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/auth/page.tsx#L21-L21)
+Authentication Entity Mapping
 
-### AuthPanels Component
+Sources: [src/app/auth/page.tsx#3-21](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/auth/page.tsx#L3-L21)[src/app/actions.ts#116-170](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L116-L170)
 
-The `AuthPanels` component manages the client-side state for switching between "Sign In" and "Create Account" flows [src/components/auth-panels.tsx#9](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/auth-panels.tsx#L9-L9)
+## Authentication Route (`/auth`)
 
-- Mode Switching: Uses a local `mode` state to toggle between `signin` and `signup` forms [src/components/auth-panels.tsx#16-23](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/auth-panels.tsx#L16-L23)
-- Action Integration: It utilizes the `useActionState` hook to bind the `signInAction` and `signUpAction` server actions to their respective forms [src/components/auth-panels.tsx#10-11](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/auth-panels.tsx#L10-L11)
-- Feedback: Displays validation errors (via `state.fieldErrors`) and global status messages to the user [src/components/auth-panels.tsx#31-53](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/auth-panels.tsx#L31-L53)
+The authentication route is handled by `src/app/auth/page.tsx`. It serves as the entry point for users to join the "public ledger" [src/app/auth/page.tsx#16](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/auth/page.tsx#L16-L16)
 
-Sources:
+- Session Check: The page first calls `getViewerSession()`[src/app/auth/page.tsx#7](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/auth/page.tsx#L7-L7) If a session already exists, the user is redirected to the home page [src/app/auth/page.tsx#9](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/auth/page.tsx#L9-L9)
+- UI Rendering: It renders the `AuthPanels` component, which contains the actual forms for signing in and signing up [src/app/auth/page.tsx#21](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/auth/page.tsx#L21-L21)
 
-- [src/app/auth/page.tsx#1-24](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/auth/page.tsx#L1-L24)
-- [src/components/auth-panels.tsx#1-84](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/auth-panels.tsx#L1-L84)
-- [src/app/action-state.ts#1-11](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/action-state.ts#L1-L11)
+Sources: [src/app/auth/page.tsx#1-24](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/auth/page.tsx#L1-L24)
 
----
+## Server Actions and Mutation Logic
 
-## Session Management
+Authentication mutations are handled via Next.js Server Actions defined in `src/app/actions.ts`. These actions follow a standardized `ActionState` pattern for error reporting.
 
-Session management is handled in `src/lib/session.ts`. KenMatch uses a secure, server-side cookie to store a session token.
+### ActionState Pattern
 
-### Key Functions
+Every action returns an `ActionState` object [src/app/action-state.ts#1-5](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/action-state.ts#L1-L5) which allows the UI to display granular feedback:
 
-FunctionPurpose`getViewerSession`Retrieves the session token from cookies and fetches the associated profile from the database [src/lib/session.ts#18-22](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts#L18-L22)`getViewerProfileId`A helper to extract just the `profile.id` from the current session [src/lib/session.ts#24-27](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts#L24-L27)`setViewerSessionCookie`Sets the `KENMATCH_SESSION_COOKIE` with a calculated expiry based on `KENMATCH_SESSION_DAYS`[src/lib/session.ts#29-32](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts#L29-L32)`clearViewerSessionCookie`Effectively logs out the user by setting the cookie expiry to 0 [src/lib/session.ts#34-37](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts#L34-L37)
+PropertyTypeDescription`status``"idle" | "error" | "success"`The current state of the operation.`message``string`A human-readable summary of the result.`fieldErrors``Record<string, string>`Map of field names to specific Zod validation errors.
 
-### Cookie Configuration
+Sources: [src/app/action-state.ts#1-11](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/action-state.ts#L1-L11)[src/app/actions.ts#118-123](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L118-L123)
 
-The `cookieOptions` helper ensures security best practices [src/lib/session.ts#8-16](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts#L8-L16):
+### Key Server Actions
 
-- httpOnly: True (prevents XSS access to the token).
-- secure: True in production (requires HTTPS).
-- sameSite: "lax" (balances security and usability).
+#### `signInAction`
 
-### Data Flow: Authentication to Session
+Authenticates an existing user and establishes a session.
 
-The following diagram illustrates how the UI components interact with the session library and database to establish a user session.
+1. Validation: Uses `signInSchema` to validate email and password [src/app/actions.ts#117](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L117-L117)
+2. Authentication: Calls `authenticateAccount()` to verify credentials against the database [src/app/actions.ts#126](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L126-L126)
+3. Session Creation: If successful, calls `createSession()` and `setViewerSessionCookie()`[src/app/actions.ts#134-135](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L134-L135)
+4. Redirection: Triggers `revalidateCorePaths()` and redirects to `/`[src/app/actions.ts#136-137](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L136-L137)
 
-Title: Authentication Data Flow
+#### `signUpAction`
 
-Sources:
+Creates a new contributor profile and account.
 
-- [src/lib/session.ts#1-43](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts#L1-L43)
-- [src/components/auth-panels.tsx#30-51](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/auth-panels.tsx#L30-L51)
+1. Signup Gate: Checks `env.KENMATCH_ALLOW_SIGNUPS`. If `false`, it returns an error immediately [src/app/actions.ts#141-146](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L141-L146)
+2. Validation: Uses `signUpSchema` which extends the sign-in schema with profile fields like `name`, `role`, and `bio`[src/app/actions.ts#77-82](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L77-L82)
+3. Account Creation: Calls `createAccount()`[src/app/actions.ts#158](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L158-L158)
+4. Auto-Login: Immediately creates a session for the new account [src/app/actions.ts#159-160](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L159-L160)
 
----
+#### `signOutAction`
 
-## Feature Flags and Configuration
+Terminates the current session.
 
-The authentication behavior is influenced by environment variables defined in `src/lib/env.ts` (referenced in session logic):
+1. Token Retrieval: Gets the current token via `getViewerToken()`[src/app/actions.ts#173](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L173-L173)
+2. Revocation: Deletes the session from the database using `deleteSessionByToken()`[src/app/actions.ts#175](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L175-L175)
+3. Cookie Cleanup: Calls `clearViewerSessionCookie()`[src/app/actions.ts#177](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L177-L177)
 
-- KENMATCH_ALLOW_SIGNUPS: While not explicitly checked in the UI component provided, this flag typically controls the visibility or availability of the `signUpAction` in the broader application context.
-- KENMATCH_SESSION_COOKIE: Defines the name of the cookie key used for sessions [src/lib/session.ts#6](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts#L6-L6)
-- KENMATCH_SESSION_DAYS: Determines the duration for which a session remains valid [src/lib/session.ts#31](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts#L31-L31)
+Sources: [src/app/actions.ts#116-180](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L116-L180)
 
-Sources:
+## Implementation Details
 
-- [src/lib/session.ts#4-6](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts#L4-L6)
-- [src/lib/session.ts#31](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts#L31-L31)
+### Data Flow: Sign-In Process
 
----
+The following sequence diagram details the interaction between the client, server actions, and the database during a sign-in attempt.
 
-## System Health Monitoring
+Sign-In Sequence
 
-KenMatch provides a dedicated endpoint for infrastructure health checks, primarily used by container orchestrators (like Synology Container Manager) to verify system readiness.
+Sources: [src/app/actions.ts#116-138](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L116-L138)[src/lib/session.ts#26](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts#L26-L26)
 
-### /api/health Endpoint
+### Global Revalidation
 
-The route `src/app/api/health/route.ts` implements a simple GET handler:
+After any authentication state change (sign-in, sign-up, or sign-out), the system calls `revalidateCorePaths()`[src/app/actions.ts#136-178](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L136-L178) This helper ensures that cached pages reflecting user-specific data (like the "Submit" page or "Governance" dashboard) are updated immediately [src/app/actions.ts#103-114](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L103-L114)
 
-- Implementation: It calls `getHealthSummary()` from the database library [src/app/api/health/route.ts#6](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/api/health/route.ts#L6-L6)
-- Output: Returns a JSON summary of the system state with a `200 OK` status [src/app/api/health/route.ts#7](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/api/health/route.ts#L7-L7)
+### Security Gating
 
-Title: Health Check Mapping
+KenMatch uses the `requireViewerProfileId()` helper within other server actions (like `createProposalAction`) to enforce authentication [src/app/actions.ts#95-101](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L95-L101) If no session is found, it throws an error that is caught by the `ActionState` handler [src/app/actions.ts#201-211](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L201-L211)
 
-Sources:
-
-- [src/app/api/health/route.ts#1-9](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/api/health/route.ts#L1-L9)
+Sources: [src/app/actions.ts#95-114](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L95-L114)[src/app/actions.ts#182-212](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L182-L212)
 
 ---
-
-# UI-Components
 
 # UI Components
 Relevant source files
@@ -1352,180 +1302,154 @@ Relevant source files
 - [src/app/layout.tsx](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/layout.tsx)
 - [src/components/site-shell.tsx](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/site-shell.tsx)
 
-The KenMatch UI is built using React and Tailwind CSS, following a custom design system defined in `src/app/globals.css`. The component library is organized to support a high-density, information-rich "board" interface that balances technical transparency with interactive governance tools.
+The KenMatch UI is built using React and Tailwind CSS, following a "brutalist-elegant" aesthetic defined by high-contrast typography and ambient gradients. The component library in `src/components/` is designed to handle the complex data visualizations required for Quadratic Voting, treasury management, and multi-stage Ken lifecycles.
 
 ### Component Architecture Overview
 
-The UI is divided into three primary layers: the Global Shell (layout and navigation), Domain Components (task cards, voting panels, and timing strips), and Input Systems (proposal forms and authentication).
+The UI is structured into three primary layers: the Site Shell (providing the global frame and theme), Domain Components (specialized for Ken boards and voting), and Form/Auth Components (handling user input and session state).
 
-#### Component Relationship to Domain Entities
+The following diagram maps the high-level UI concepts to their implementing code entities:
 
-This diagram maps the React components to the underlying data entities and logic they represent.
+UI to Code Mapping
 
-"Component to Domain Entity Map"
-
-Sources: [src/components/site-shell.tsx#16-48](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/site-shell.tsx#L16-L48)[src/components/task-card.tsx#1-10](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-card.tsx#L1-L10)[src/lib/allocation.ts#1-20](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L1-L20)
+Sources: [src/components/site-shell.tsx#1-77](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/site-shell.tsx#L1-L77)[src/app/globals.css#1-100](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/globals.css#L1-L100)[src/app/layout.tsx#26-39](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/layout.tsx#L26-L39)
 
 ---
 
-### Layout Shell and Navigation
+### Layout and Navigation Components
 
-The application's frame is managed by the `SiteShell` component, which provides a persistent two-row header and a themed footer. It is responsible for displaying the user's current `ParticipationState` and available voice credits.
+The global application frame is managed by the `SiteShell` component, which wraps the entire application within `RootLayout`[src/app/layout.tsx#33-35](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/layout.tsx#L33-L35) It provides a sticky header [src/app/globals.css#103-110](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/globals.css#L103-L110) the primary navigation links (Overview, Kens, Submit, Governance, Funding) [src/components/site-shell.tsx#8-14](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/site-shell.tsx#L8-L14) and a profile strip displaying featured contributors [src/components/site-shell.tsx#58-64](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/site-shell.tsx#L58-L64)
 
-- Header Structure: Features a brand row with the `KenMatchMark` and a utility row containing the `ThemeToggle` and user profile summary [src/components/site-shell.tsx#21-49](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/site-shell.tsx#L21-L49)
-- Navigation: Provides access to the primary routes: Overview, Kens, Submit, Governance, and Funding [src/components/site-shell.tsx#8-14](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/site-shell.tsx#L8-L14)
-- Theming: Supports Light, Dark, and OLED modes via `globals.css` variables and a `themeBootScript` in the root layout [src/app/layout.tsx#16-24](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/layout.tsx#L16-L24)[src/app/globals.css#15-74](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/globals.css#L15-L74)
+Key features include:
 
-For details, see [Layout Shell and Navigation](#5.1).
+- Branding: The `KenMatchMark` component [src/components/kenmatch-mark.tsx](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/kenmatch-mark.tsx) provides the SVG identity.
+- Theme System: A robust CSS variable system in `globals.css` supports Light, Dark, and OLED modes [src/app/globals.css#15-74](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/globals.css#L15-L74) toggled via `ThemeToggle`[src/components/theme-toggle.tsx](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/theme-toggle.tsx)
+- Session State: The `viewer-inline-card` displays the current user's available Voice Credits and participation state [src/components/site-shell.tsx#34-44](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/site-shell.tsx#L34-L44)
 
-Sources: [src/components/site-shell.tsx#1-89](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/site-shell.tsx#L1-L89)[src/app/layout.tsx#26-39](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/layout.tsx#L26-L39)[src/app/globals.css#103-150](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/globals.css#L103-L150)
-
----
-
-### Task Display and Interaction
-
-These components form the core of the "Public Board" experience, enabling users to browse AI Kens (tasks) and participate in their prioritization.
-
-ComponentResponsibilityKey Logic Reference`TaskCard`Summary view of a Ken for board listings.`src/components/task-card.tsx``VotePanel`Interactive quadratic voting interface.`quadraticCost` in `src/lib/allocation.ts``KenTimingStrip`Visualizes countdowns and delivery progress.`src/components/ken-timing-strip.tsx``TaskPulsePanel`Quick public signaling (up/down).`src/components/task-pulse-panel.tsx``DiscussionThread`Stake-weighted commenting system.`src/components/discussion-thread.tsx`
-
-For details, see [Task Display and Interaction Components](#5.2).
-
-Sources: [src/components/task-card.tsx#1-20](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-card.tsx#L1-L20)[src/components/vote-panel.tsx#1-30](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/vote-panel.tsx#L1-L30)[src/lib/allocation.ts#32-45](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L32-L45)
+For details, see [Layout and Navigation Components](#5.1).
 
 ---
 
-### Proposal Form and Profile Switcher
+### Ken Board and Detail Components
 
-Input components handle the lifecycle of Ken creation and demo-mode environment management.
+These components represent the core of the KenMatch experience—visualizing the queue of AI work and its allocation status.
 
-- `ProposalForm`: A complex multi-step form that uses `ActionState` for client-side validation and server-side feedback. It captures technical deliverables, risk flags, and enterprise packaging details [src/components/proposal-form.tsx#1-50](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L1-L50)
-- `ProfileSwitcher`: A developer utility enabled by the `KENMATCH_ENABLE_DEMO_PROFILE_SWITCHER` environment variable, allowing rapid switching between seed profiles (e.g., "Founder", "Reviewer", "Sybil") to test different `ParticipationState` permissions [src/components/profile-switcher.tsx#1-25](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/profile-switcher.tsx#L1-L25)
+ComponentResponsibilityFile`TaskCard`High-level summary of a Ken (slug, rank, budget)`task-card.tsx``VotePanel`Interface for Quadratic Voting and credit management`vote-panel.tsx``KenTimingStrip`Visualizes the "Months/Weeks/Days" tiering logic`ken-timing-strip.tsx``DiscussionThread`Peer review and auditor commentary`discussion-thread.tsx`
 
-For details, see [Proposal Form and Profile Switcher](#5.3).
+The relationship between the task board and the voting mechanism is illustrated below:
 
-Sources: [src/components/proposal-form.tsx#1-100](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L1-L100)[src/components/profile-switcher.tsx#1-30](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/profile-switcher.tsx#L1-L30)
+Ken Interaction Flow
 
-### UI Interaction Flow
+Sources: [src/app/globals.css#206-233](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/globals.css#L206-L233)[src/components/site-shell.tsx#8-14](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/site-shell.tsx#L8-L14)
 
-This diagram illustrates how a user interaction in the UI triggers the mutation layer and updates the display.
-
-"UI Interaction to Server Action Flow"
-
-Sources: [src/app/actions.ts#130-160](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L130-L160)[src/components/vote-panel.tsx#40-60](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/vote-panel.tsx#L40-L60)[src/lib/db.ts#250-280](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L250-L280)
+For details, see [Ken Board and Detail Components](#5.2).
 
 ---
 
-# Layout-Shell-and-Navigation
+### Proposal Form and Auth Components
 
-# Layout Shell and Navigation
+The system uses a structured intake process to ensure Kens are properly scoped before entering the voting pool.
+
+- ProposalForm: A multi-field form located in `src/components/proposal-form.tsx` that captures deliverables, risk flags, and enterprise packaging. It maps directly to the `tasks` table schema.
+- AuthPanels: Located in `src/components/auth-panels.tsx`, these components manage the transition between `signInAction` and `signUpAction`[src/app/actions.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts) enforcing the `KENMATCH_ALLOW_SIGNUPS` policy.
+
+For details, see [Proposal Form and Auth Components](#5.3).
+
+---
+
+### Theming and Visual Language
+
+KenMatch uses a "glassmorphism" approach with `backdrop-filter: blur(18px)`[src/app/globals.css#210-211](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/globals.css#L210-L211) and ambient radial gradients [src/app/globals.css#80-91](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/globals.css#L80-L91) The visual language distinguishes between Public Signal (teal/strong accents) and Scarce Allocation (gold/ember accents).
+
+Color Variable Map
+
+VariableLight ValueDark ValuePurpose`--accent-strong``#0f766e``#63e0cf`Primary Actions / Teal`--accent-warm``#ea6a2d``#ff8a5b`Warning / Risk / Ember`--accent-gold``#d7a646``#f0c968`High Rank / Funding`--panel``rgba(255, 250, 243, 0.8)``rgba(17, 29, 38, 0.84)`Card Backgrounds
+
+Sources: [src/app/globals.css#15-51](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/globals.css#L15-L51)
+
+---
+
+# Layout and Navigation Components
 Relevant source files
 
 - [src/app/globals.css](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/globals.css)
-- [src/app/layout.tsx](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/layout.tsx)
 - [src/components/kenmatch-mark.tsx](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/kenmatch-mark.tsx)
+- [src/components/profile-switcher.tsx](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/profile-switcher.tsx)
 - [src/components/site-shell.tsx](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/site-shell.tsx)
 - [src/components/theme-toggle.tsx](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/theme-toggle.tsx)
 
-This section details the global layout architecture of KenMatch, specifically the `SiteShell` component, the navigation system, and the visual theming engine. The layout provides a persistent frame for the application, managing authentication state display, global navigation, and the ambient visual aesthetic.
+This section covers the structural and aesthetic foundations of the KenMatch interface. The layout is managed through a centralized shell that handles navigation, authentication state, and brand identity, while the theming system provides a highly customizable visual experience across light, dark, and OLED modes.
 
-## SiteShell Architecture
+## Site Shell and Global Layout
 
-The `SiteShell`[src/components/site-shell.tsx#16-77](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/site-shell.tsx#L16-L77) is the primary layout wrapper for the entire application. It is instantiated within the `RootLayout`[src/app/layout.tsx#33-35](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/layout.tsx#L33-L35) and receives the current `viewer` session and a list of `featuredProfiles` to populate the header.
+The `SiteShell` component serves as the primary layout wrapper for the entire application. It establishes the `site-frame`[src/app/globals.css#99](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/globals.css#L99-L99) which includes ambient background animations, a sticky header, and a persistent footer.
 
-### Header Structure
+### Implementation Details
 
-The header is organized into a two-row grid [src/app/globals.css#111-117](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/globals.css#L111-L117) designed for density and clarity:
+- Navigation Structure: The primary navigation is defined as a static array of links [src/components/site-shell.tsx#8-14](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/site-shell.tsx#L8-L14) pointing to core routes: Overview (`/`), Kens (`/kens`), Submit (`/submit`), Governance (`/governance`), and Funding (`/economics`).
+- Authentication State: The shell consumes a `viewer` object of type `ViewerSession`. If a session exists, it renders a `viewer-inline-card` showing the user's name, `participationState`, and `availableCredits`[src/components/site-shell.tsx#33-44](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/site-shell.tsx#L33-L44)
+- Featured Contributors: A "profile strip" displays a subset of `featuredProfiles`, showing their names and `attestationLevel`[src/components/site-shell.tsx#58-65](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/site-shell.tsx#L58-L65)
 
-1. Brand and Utility Row:
+### Component Data Flow
 
-- Brand: Contains the `KenMatchMark`[src/components/kenmatch-mark.tsx#1-19](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/kenmatch-mark.tsx#L1-L19) and the site title/tagline.
-- Utility: Houses the `ThemeToggle`[src/components/theme-toggle.tsx#44-66](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/theme-toggle.tsx#L44-L66) and the `viewer-inline-card`[src/components/site-shell.tsx#34-44](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/site-shell.tsx#L34-L44)
-2. Navigation and Profile Row:
+The following diagram illustrates how the `SiteShell` organizes the page hierarchy and handles user sessions.
 
-- Navigation: A horizontal list of links defined in the `nav` constant [src/components/site-shell.tsx#8-14](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/site-shell.tsx#L8-L14)
-- Profile Strip: Displays the first 5 featured profiles with their `attestationLevel`[src/components/site-shell.tsx#58-64](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/site-shell.tsx#L58-L64)
+SiteShell Component Architecture
 
-### Navigation Routes
+Sources: [src/components/site-shell.tsx#16-77](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/site-shell.tsx#L16-L77)[src/app/globals.css#103-117](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/globals.css#L103-L117)
 
-The application uses a flat navigation structure:
-
-- `/`: Overview and high-level metrics.
-- `/kens`: The primary board for filtering and viewing Kens.
-- `/submit`: The proposal intake portal.
-- `/governance`: Attestation ladder and system logs.
-- `/economics`: Funding, treasury, and revenue stream data.
-
-### Component Relationship Diagram
-
-Header and Navigation Data Flow
-
-Sources:[src/app/layout.tsx#26-39](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/layout.tsx#L26-L39)[src/components/site-shell.tsx#8-77](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/site-shell.tsx#L8-L77)[src/lib/session.ts#1-30](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/session.ts#L1-L30)
-
----
-
-## Viewer Identity and Credits
-
-The `viewer-inline-card`[src/components/site-shell.tsx#34-44](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/site-shell.tsx#L34-L44) provides immediate feedback on the user's participation status and resource availability.
-
-- Participation State: Displays a human-readable label via `labelForParticipationState`[src/components/site-shell.tsx#79-88](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/site-shell.tsx#L79-L88) indicating if the user is "Full participation", "Review-limited", or "Read-only".
-- Voice Credits: Shows `availableCredits` vs `effectiveVoiceCredits`[src/components/site-shell.tsx#38](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/site-shell.tsx#L38-L38) This represents the user's remaining voting power in the quadratic allocation system.
-- Authentication: If no viewer is present, a "Sign in" link to `/auth` is shown. If a viewer is present, a sign-out form triggers the `signOutAction`[src/app/actions.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts)
-
-Sources:[src/components/site-shell.tsx#33-47](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/site-shell.tsx#L33-L47)[src/app/actions.ts#1-20](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L1-L20)
-
----
-
-## Theming and Visual Identity
-
-KenMatch implements a multi-mode theme system (Light, Dark, and OLED) using CSS variables and a small blocking script to prevent Flash of Unstyled Content (FOUC).
-
-### Theme Implementation
-
-The `ThemeToggle`[src/components/theme-toggle.tsx#44-66](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/theme-toggle.tsx#L44-L66) is a client-side component that updates the `data-theme` attribute on the `html` element.
-
-- Storage: The selected theme is persisted in `localStorage` under the key `kenmatch-theme`[src/components/theme-toggle.tsx#41](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/theme-toggle.tsx#L41-L41)
-- Boot Script: A `themeBootScript`[src/app/layout.tsx#16-24](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/layout.tsx#L16-L24) is injected into the document head to apply the correct theme before the first paint.
-
-### CSS Variables and Modes
-
-Themes are defined in `globals.css` using the `@theme` block and specific attribute selectors:
-
-- Light (Default): Uses an ivory/cream background (`#f3efe7`) [src/app/globals.css#16](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/globals.css#L16-L16)
-- Dark: Uses a deep navy/slate palette (`#091118`) [src/app/globals.css#32](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/globals.css#L32-L32)
-- OLED: Uses pure black (`#000000`) for high-contrast displays [src/app/globals.css#55](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/globals.css#L55-L55)
-
-### Ambient Backgrounds
-
-The layout features "ambient" decorative elements:
-
-- Two `div` elements with classes `ambient-a` and `ambient-b`[src/components/site-shell.tsx#19-20](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/site-shell.tsx#L19-L20) provide soft radial gradients that follow the theme's accent colors [src/app/globals.css#80-91](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/globals.css#L80-L91)
-
-Code Entity to Theme Mapping
-
-Sources:[src/app/globals.css#1-91](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/globals.css#L1-L91)[src/components/theme-toggle.tsx#1-66](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/theme-toggle.tsx#L1-L66)[src/app/layout.tsx#16-24](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/layout.tsx#L16-L24)
-
----
-
-## Global Components
+## Branding and Visual Identity
 
 ### KenMatchMark
 
-The `KenMatchMark`[src/components/kenmatch-mark.tsx#1-19](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/kenmatch-mark.tsx#L1-L19) is the SVG brand asset. It uses a linear gradient defined by CSS variables (`--accent-strong`, `--accent-glow`, `--accent-warm`) to ensure the logo remains visually consistent across different themes [src/components/kenmatch-mark.tsx#5-9](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/kenmatch-mark.tsx#L5-L9)
+The `KenMatchMark` component provides the SVG-based visual identity for the platform. It utilizes a complex linear gradient (`#kenmatch-mark-gradient`) that maps to CSS variables: `--accent-strong`, `--accent-glow`, and `--accent-warm`[src/components/kenmatch-mark.tsx#5-9](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/kenmatch-mark.tsx#L5-L9) This ensures the logo's colors shift dynamically with the active theme.
 
-### Footer
+### ProfileSwitcher
 
-The `site-footer`[src/components/site-footer.tsx#69-75](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/site-footer.tsx#L69-L75) provides a summary of the KenMatch philosophy:
+The `ProfileSwitcher` is a placeholder component intended for future multi-profile management [src/components/profile-switcher.tsx#1-4](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/profile-switcher.tsx#L1-L4) Currently, profile switching is handled via the `viewer-inline-card` in the `SiteShell`[src/components/site-shell.tsx#34-44](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/site-shell.tsx#L34-L44)
 
-- Publicity: Emphasizes that Kens remain public through their entire lifecycle.
-- Separation of Concerns: Explicitly states that "Voice stays separate from money," reinforcing the quadratic voting vs. funding model [src/components/site-shell.tsx#72](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/site-shell.tsx#L72-L72)
+Sources: [src/components/kenmatch-mark.tsx#1-19](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/kenmatch-mark.tsx#L1-L19)[src/components/profile-switcher.tsx#1-4](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/profile-switcher.tsx#L1-L4)
 
-Sources:[src/components/kenmatch-mark.tsx#1-19](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/kenmatch-mark.tsx#L1-L19)[src/components/site-shell.tsx#69-75](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/site-shell.tsx#L69-L75)
+## Theming and Design System
+
+KenMatch uses a CSS variable-driven theming system defined in `globals.css`. It supports three distinct modes: Light, Dark, and OLED (True Black).
+
+### Theme Configuration
+
+The system is built on Tailwind CSS `@theme` variables and standard CSS custom properties.
+
+VariableLight (Default)DarkOLED`--page``#f3efe7``#091118``#000000``--panel``rgba(255, 250, 243, 0.8)``rgba(17, 29, 38, 0.84)``rgba(7, 9, 13, 0.96)``--ink``#112131``#edf4f6``#f7fbff``--accent-strong``#0f766e` (Teal)`#63e0cf``#62ffe4`
+
+### Ambient Animations and Glassmorphism
+
+The interface utilizes "ambient" background elements (`.ambient-a`, `.ambient-b`) defined in the `SiteShell`[src/components/site-shell.tsx#19-20](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/site-shell.tsx#L19-L20) These interact with `backdrop-filter: blur()` applied to headers and panels to create a layered, depth-heavy UI [src/app/globals.css#109-110](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/globals.css#L109-L110)
+
+### Theme Switching Logic
+
+The `ThemeToggle` component manages theme persistence using `localStorage` and `data-theme` attributes on the `html` element.
+
+Theme Resolution Pipeline
+
+Sources: [src/app/globals.css#15-74](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/globals.css#L15-L74)[src/components/theme-toggle.tsx#17-42](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/theme-toggle.tsx#L17-L42)
+
+## CSS Architecture and Layout Classes
+
+The codebase uses a "Stack and Grid" philosophy for layouts, minimizing custom margins in favor of standardized gap utilities.
+
+- `.site-main`: Central container with a `max-width` of `76rem` and auto-margins [src/app/globals.css#100](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/globals.css#L100-L100)
+- `.page-stack`: A CSS Grid utility with a `1.5rem` gap for vertical spacing between major sections [src/app/globals.css#101](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/globals.css#L101-L101)
+- `.panel` & `.task-card`: Shared visual styles including `border: 1px solid var(--line)`, `backdrop-filter: blur(18px)`, and `box-shadow: var(--shadow-soft)`[src/app/globals.css#206-211](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/globals.css#L206-L211)
+- Typography: The system defines three font stacks:
+
+- `.font-display`: Serif stack (Iowan Old Style, Georgia) [src/app/globals.css#95](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/globals.css#L95-L95)
+- `.font-body`: Sans-serif stack (Aptos, system-ui) [src/app/globals.css#96](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/globals.css#L96-L96)
+- `.font-mono`: Monospace stack (Cascadia Code, JetBrains Mono) [src/app/globals.css#97](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/globals.css#L97-L97)
+
+Sources: [src/app/globals.css#76-251](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/globals.css#L76-L251)
 
 ---
 
-# Task-Display-and-Interaction-Components
-
-# Task Display and Interaction Components
+# Ken Board and Detail Components
 Relevant source files
 
 - [src/components/discussion-thread.tsx](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/discussion-thread.tsx)
@@ -1535,680 +1459,711 @@ Relevant source files
 - [src/components/task-pulse-panel.tsx](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-pulse-panel.tsx)
 - [src/components/vote-panel.tsx](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/vote-panel.tsx)
 
-This section covers the React components responsible for rendering Kens (tasks) and facilitating user engagement through filtering, quadratic voting, public signaling, and threaded discussions. These components bridge the gap between the server-side data model and the interactive user interface.
+This page covers the UI components responsible for displaying, filtering, and interacting with Kens (tasks). These components manage the transition from high-level board overviews to granular detail views, including the mechanisms for quadratic voting, public pulse signaling, and discussion threads.
 
-## Component Overview and Data Flow
+## Overview of Board and Detail UI
 
-The following diagram illustrates how the core interaction components map to the system's data entities and server actions.
+The KenMatch UI is divided into two primary contexts: the Ken Board (discovery and filtering) and the Ken Detail (interaction and audit).
 
-### Interaction Mapping: UI to Logic
+### Component Mapping: Natural Language to Code Entities
 
-Sources: [src/components/task-card.tsx#15-49](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-card.tsx#L15-L49)[src/components/task-board-filters.tsx#15-66](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-board-filters.tsx#L15-L66)[src/components/vote-panel.tsx#7-30](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/vote-panel.tsx#L7-L30)[src/components/task-pulse-panel.tsx#6-25](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-pulse-panel.tsx#L6-L25)[src/components/discussion-thread.tsx#6-138](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/discussion-thread.tsx#L6-L138)
+The following diagram maps the conceptual "Ken" entities to their specific React component implementations.
+
+Ken UI Entity Mapping
+
+Sources:`<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-board-filters.tsx#L15-L15" min=15  file-path="src/components/task-board-filters.tsx">Hii</FileRef>`, `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-card.tsx#L15-L15" min=15  file-path="src/components/task-card.tsx">Hii</FileRef>`, `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/ken-timing-strip.tsx#L4-L4" min=4  file-path="src/components/ken-timing-strip.tsx">Hii</FileRef>`, `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/vote-panel.tsx#L10-L10" min=10  file-path="src/components/vote-panel.tsx">Hii</FileRef>`, `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-pulse-panel.tsx#L8-L8" min=8  file-path="src/components/task-pulse-panel.tsx">Hii</FileRef>`, `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/discussion-thread.tsx#L10-L10" min=10  file-path="src/components/discussion-thread.tsx">Hii</FileRef>`
 
 ---
 
-## Task Listing and Filtering
+## Task Board and Filtering
 
-### TaskCard
-
-`TaskCard` is the primary unit of the Ken board. it consumes a `TaskSummary` object to display metadata including the allocated tier (lane), current stage, and high-level metrics [src/components/task-card.tsx#15-17](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-card.tsx#L15-L17)
-
-- Tier Styling: Uses a `tierStyles` record to apply specific CSS classes (e.g., `is-months`, `is-weeks`) based on the task's `allocatedTier`[src/components/task-card.tsx#7-13](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-card.tsx#L7-L13)
-- Metrics: Displays `totalVotes`, `taskPulseScore`, `discussionCount`, and `sponsorPoolUsd`[src/components/task-card.tsx#31-36](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-card.tsx#L31-L36)
-- Visuals: Integrates the `KenTimingStrip` in a `compact` mode [src/components/task-card.tsx#30](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-card.tsx#L30-L30)
+The board utilizes `TaskBoardFilters` to manage state via URL parameters, ensuring that the view remains shareable and survives refreshes.
 
 ### TaskBoardFilters
 
-`TaskBoardFilters` provides a client-side interface for searching and filtering the Ken board. It utilizes `useTransition` and `useDeferredValue` to ensure smooth UI updates while manipulating URL parameters [src/components/task-board-filters.tsx#15-23](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-board-filters.tsx#L15-L23)
+This component uses `useTransition` and `useDeferredValue` to provide a responsive search experience without blocking the UI thread during heavy re-renders.
 
-- State Management: Tracks `query`, `category`, `tier`, and `stage` locally [src/components/task-board-filters.tsx#19-22](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-board-filters.tsx#L19-L22)
-- URL Synchronization: The `buildTarget` helper function constructs a new URL with search parameters, which is then pushed via `router.replace` inside a transition [src/components/task-board-filters.tsx#6-13](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-board-filters.tsx#L6-L13)[src/components/task-board-filters.tsx#32-34](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-board-filters.tsx#L32-L34)
-- Debouncing: `useDeferredValue` is applied to the search query to prevent excessive URL updates during rapid typing [src/components/task-board-filters.tsx#23](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-board-filters.tsx#L23-L23)
+- Implementation: It tracks four primary states: `query`, `category`, `tier`, and `stage`[src/components/task-board-filters.tsx#19-22](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-board-filters.tsx#L19-L22)
+- Data Flow: When a filter changes, `buildTarget` constructs a new URL [src/components/task-board-filters.tsx#6-13](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-board-filters.tsx#L6-L13) The component then calls `router.replace` within a transition [src/components/task-board-filters.tsx#33](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-board-filters.tsx#L33-L33)
+- Search Logic: Uses `useDeferredValue` on the search query to prevent excessive routing updates while the user is typing [src/components/task-board-filters.tsx#23](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-board-filters.tsx#L23-L23)
 
-Sources: [src/components/task-card.tsx#1-50](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-card.tsx#L1-L50)[src/components/task-board-filters.tsx#1-78](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-board-filters.tsx#L1-L78)
+### TaskCard
+
+The `TaskCard` is the primary entry point for a Ken on the board.
+
+- Visual Indicators: Displays the `allocatedTier` (Months, Weeks, Days, etc.) using `tierStyles`[src/components/task-card.tsx#7-13](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-card.tsx#L7-L13) and the current `stage`[src/components/task-card.tsx#21](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-card.tsx#L21-L21)
+- Metrics: Aggregates high-level data including `totalVotes`, `taskPulseScore`, and `sponsorPoolUsd`[src/components/task-card.tsx#32-35](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-card.tsx#L32-L35)
+
+Sources:`<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-board-filters.tsx#L1-L77" min=1 max=77 file-path="src/components/task-board-filters.tsx">Hii</FileRef>`, `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-card.tsx#L1-L49" min=1 max=49 file-path="src/components/task-card.tsx">Hii</FileRef>`
 
 ---
 
-## Engagement Panels
+## Interaction Panels
 
-### VotePanel (Quadratic Allocation)
+Ken detail pages allow users to contribute "Voice" (scarce allocation) or "Pulse" (public signal).
 
-`VotePanel` implements the quadratic voting interface. It allows users to allocate "Voice Credits" to a specific Ken [src/components/vote-panel.tsx#10-26](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/vote-panel.tsx#L10-L26)
+### VotePanel (Quadratic Voting)
 
-- Quadratic Calculation: It imports `quadraticCost` from `@/lib/allocation` to calculate the credit cost of the selected `voteCount`[src/components/vote-panel.tsx#8](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/vote-panel.tsx#L8-L8)[src/components/vote-panel.tsx#31](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/vote-panel.tsx#L31-L31)
-- Real-time Feedback: Calculates the `delta` (difference between current and previous allocation) to show the user how many credits will be "Free after save" [src/components/vote-panel.tsx#32](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/vote-panel.tsx#L32-L32)[src/components/vote-panel.tsx#59](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/vote-panel.tsx#L59-L59)
-- Form Submission: Uses `useActionState` with `saveVoteAction` to handle the mutation and `router.refresh()` to update the page upon success [src/components/vote-panel.tsx#30-36](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/vote-panel.tsx#L30-L36)
+The `VotePanel` facilitates the allocation of scarce voice credits.
+
+- Quadratic Calculation: It imports `quadraticCost` from `@/lib/allocation` to calculate the cost of the current selection [src/components/vote-panel.tsx#31](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/vote-panel.tsx#L31-L31)
+- State Management: Uses `useActionState` to trigger `saveVoteAction`[src/components/vote-panel.tsx#30](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/vote-panel.tsx#L30-L30)
+- Real-time Feedback: Displays the "Free after save" metric by calculating the `delta` between the new cost and the `initialVotes` cost [src/components/vote-panel.tsx#32-59](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/vote-panel.tsx#L32-L59)
 
 ### TaskPulsePanel (Public Signaling)
 
-`TaskPulsePanel` provides a lightweight upvote/downvote mechanism ("Pulse") that is distinct from the scarce quadratic voice credits [src/components/task-pulse-panel.tsx#8-24](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-pulse-panel.tsx#L8-L24)
+Unlike the `VotePanel`, the `TaskPulsePanel` represents non-scarce public sentiment.
 
-- Binary Signaling: Users can toggle between an upvote (1), downvote (-1), or neutral (0) state [src/components/task-pulse-panel.tsx#40-41](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-pulse-panel.tsx#L40-L41)
-- Action: Dispatches `saveTaskPulseAction`[src/components/task-pulse-panel.tsx#25](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-pulse-panel.tsx#L25-L25)
+- Functionality: Users can "Upvote" or "Downvote" to signal support or concern [src/components/task-pulse-panel.tsx#40-41](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-pulse-panel.tsx#L40-L41)
+- Action: Triggers `saveTaskPulseAction` to persist the signal [src/components/task-pulse-panel.tsx#6-25](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-pulse-panel.tsx#L6-L25)
 
-Sources: [src/components/vote-panel.tsx#1-98](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/vote-panel.tsx#L1-L98)[src/components/task-pulse-panel.tsx#1-67](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-pulse-panel.tsx#L1-L67)
+Interaction Flow
 
----
-
-## Discussion and Timing
-
-### DiscussionThread
-
-`DiscussionThread` manages threaded comments. It supports "Stake Credits," where commenters can attach a small amount of credits to their post to signal importance or commitment [src/components/discussion-thread.tsx#10-22](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/discussion-thread.tsx#L10-L22)
-
-- Recursive Rendering: The `CommentNode` component renders itself recursively to support nested replies [src/components/discussion-thread.tsx#129-135](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/discussion-thread.tsx#L129-L135)
-- Stake Selection: The `CommentComposer` includes a dropdown for selecting `stakeCredits` (1-3) [src/components/discussion-thread.tsx#67-74](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/discussion-thread.tsx#L67-L74)
-- Comment Voting: Each comment has its own up/down voting logic via `saveCommentVoteAction`[src/components/discussion-thread.tsx#112-121](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/discussion-thread.tsx#L112-L121)
-
-### KenTimingStrip
-
-`KenTimingStrip` visualizes the temporal state of a Ken, including launch countdowns and compute progress [src/components/ken-timing-strip.tsx#4-33](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/ken-timing-strip.tsx#L4-L33)
-
-- Progress Calculation: Uses `progressPercent` to determine the percentage of the execution window consumed based on `startedAt` and `expectedMaxEndAt`[src/components/ken-timing-strip.tsx#5](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/ken-timing-strip.tsx#L5-L5)
-- Compute Metrics: Displays `computeHoursUsed` against the `runtimeHours` target [src/components/ken-timing-strip.tsx#23](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/ken-timing-strip.tsx#L23-L23)
-- Human-readable Strings: Utilizes utility functions like `describeCountdown` and `formatHoursToHuman` for the UI [src/components/ken-timing-strip.tsx#17-19](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/ken-timing-strip.tsx#L17-L19)
-
-### Component Hierarchy: Ken Detail Page
-
-Sources: [src/components/discussion-thread.tsx#1-140](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/discussion-thread.tsx#L1-L140)[src/components/ken-timing-strip.tsx#1-45](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/ken-timing-strip.tsx#L1-L45)[src/components/vote-panel.tsx#8-31](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/vote-panel.tsx#L8-L31)
+Sources:`<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/vote-panel.tsx#L1-L96" min=1 max=96 file-path="src/components/vote-panel.tsx">Hii</FileRef>`, `<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/task-pulse-panel.tsx#L1-L67" min=1 max=67 file-path="src/components/task-pulse-panel.tsx">Hii</FileRef>`
 
 ---
 
-# Proposal-Form-and-Profile-Switcher
+## Timing and Progression
 
-# Proposal Form and Profile Switcher
+The `KenTimingStrip` provides a visual representation of a Ken's lifecycle and resource consumption.
+
+- Progress Calculation: Uses `progressPercent` to determine how much of the expected time window has been consumed [src/components/ken-timing-strip.tsx#5](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/ken-timing-strip.tsx#L5-L5)
+- Compute Tracking: Displays `computeHoursUsed` against the `runtimeHours` target [src/components/ken-timing-strip.tsx#23](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/ken-timing-strip.tsx#L23-L23)
+- Visuals: A CSS-based progress bar (`progress-fill`) reflects the consumption percentage [src/components/ken-timing-strip.tsx#27](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/ken-timing-strip.tsx#L27-L27)
+
+Sources:`<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/ken-timing-strip.tsx#L1-L45" min=1 max=45 file-path="src/components/ken-timing-strip.tsx">Hii</FileRef>`
+
+---
+
+## Discussion and Audit Trail
+
+The `DiscussionThread` component manages the public commentary and critique system.
+
+### DiscussionThread and CommentNode
+
+- Recursive Structure: The `CommentNode` component can render its own `replies`, allowing for nested conversations [src/components/discussion-thread.tsx#129-135](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/discussion-thread.tsx#L129-L135)
+- Staking: Comments require a "Stake" (1-3 credits), emphasizing quality over quantity [src/components/discussion-thread.tsx#69-74](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/discussion-thread.tsx#L69-L74)
+- Voting on Comments: Users can upvote or downvote individual comments via `saveCommentVoteAction`[src/components/discussion-thread.tsx#112-120](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/discussion-thread.tsx#L112-L120)
+- Composer: The `CommentComposer` handles both top-level notes and replies by optionally accepting a `parentId`[src/components/discussion-thread.tsx#40-52](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/discussion-thread.tsx#L40-L52)
+
+FeatureCode EntityAction / LogicCreate Comment`CommentComposer``createCommentAction`Vote on Comment`CommentNode``saveCommentVoteAction`Reply`CommentNode`Sets `replying` state to toggle composerStake Credits`select`Defaults to 1 credit
+
+Sources:`<FileRef file-url="https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/discussion-thread.tsx#L1-L140" min=1 max=140 file-path="src/components/discussion-thread.tsx">Hii</FileRef>`
+
+---
+
+# Proposal Form and Auth Components
 Relevant source files
 
-- [src/app/submit/page.tsx](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/submit/page.tsx)
-- [src/components/profile-switcher.tsx](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/profile-switcher.tsx)
+- [src/components/auth-panels.tsx](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/auth-panels.tsx)
 - [src/components/proposal-form.tsx](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx)
 
-This page covers the user interface and logic for submitting new Ken proposals and the infrastructure for switching between demo profiles. The primary component, `ProposalForm`, handles complex multi-field data entry with real-time tier selection and server-side validation feedback.
+This section covers the user-facing submission and authentication interfaces. These components bridge the gap between the React frontend and the server-side mutation logic, specifically handling the intake of new Ken proposals and the management of user identity.
 
-## Proposal Submission Flow
+## Proposal Form (proposal-form.tsx)
 
-The Ken submission process is centralized in the `SubmitPage` route. This page acts as a gatekeeper, ensuring that only authenticated users can access the submission interface to maintain a "bond-backed accountability trail" [src/app/submit/page.tsx#25-26](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/submit/page.tsx#L25-L26)
+The `ProposalForm` is a comprehensive "use client" component that allows users to submit new Kens for public review [src/components/proposal-form.tsx#1-3](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L1-L3) It is structured as a multi-field form that captures strategic, tactical, and risk-related data.
 
-### Submission Logic and Validation
+### Implementation and State Management
 
-The `ProposalForm` component utilizes the Next.js `useActionState` hook to manage form submissions through the `createProposalAction`[src/components/proposal-form.tsx#15](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L15-L15) This pattern allows the form to handle loading states (`isPending`) and display granular validation errors returned from the server-side Zod schema [src/components/proposal-form.tsx#17](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L17-L17)
+The form utilizes the `useActionState` hook to interface with the `createProposalAction` server action [src/components/proposal-form.tsx#15](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L15-L15) This allows for seamless error handling and loading states without manual `fetch` calls.
 
-Data Flow: Proposal Submission
+Key features include:
 
-Sources: [src/components/proposal-form.tsx#15-20](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L15-L20)[src/app/submit/page.tsx#20-28](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/submit/page.tsx#L20-L28)
+- Tier Selection: Users select a "Requested lane" (`days`, `weeks`, or `months`). This selection updates the local `requestedTier` state, which in turn updates the UI to explain the specific bond and checkpoint policy associated with that lane [src/components/proposal-form.tsx#16-44](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L16-L44)
+- Dynamic Field Rendering: A helper `Field` function standardizes the rendering of labels, inputs/textareas, and validation errors [src/components/proposal-form.tsx#76-85](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L76-L85)
+- Validation Feedback: Errors returned from the server action (via `state.fieldErrors`) are mapped to specific fields to provide granular feedback to the user [src/components/proposal-form.tsx#17-82](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L17-L82)
 
-## ProposalForm Implementation
+### Data Flow: Proposal Submission
 
-The `ProposalForm`[src/components/proposal-form.tsx#14](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L14-L14) is a "use client" component that structures a large set of qualitative and quantitative fields required for a Ken to be considered for allocation.
+Title: Proposal Submission Flow
 
-### Tier Selection and Policy Guidance
+Sources: [src/components/proposal-form.tsx#15-17](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L15-L17)[src/components/proposal-form.tsx#34-44](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L34-L44)
 
-A key feature of the form is the "Requested lane" selector. Users choose between `days`, `weeks`, or `months`[src/components/proposal-form.tsx#34-38](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L34-L38) This selection updates a local state `requestedTier`, which dynamically renders policy descriptions to the user:
+### Form Fields and Metadata
 
-TierDescription / Policy ContextDaysFast, focused Kens for narrow deliverables.WeeksMulti-stage Kens that need continuity and review.MonthsDeep Kens with repeated checkpoints and stronger release controls.
+The form captures extensive metadata to satisfy the KenMatch governance requirements:
 
-The bond required for the Ken is calculated automatically based on this lane selection [src/components/proposal-form.tsx#43](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L43-L43)
+Field GroupFieldsPurposeCore`title`, `categorySlug`, `requestedTier`Basic identification and lane allocation [src/components/proposal-form.tsx#22-39](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L22-L39)Justification`summary`, `problem`, `whyNow`, `publicBenefit`Strategic reasoning for the Ken [src/components/proposal-form.tsx#48-51](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L48-L51)Execution`deliverables`, `evaluationCriteria`Concrete outputs and success metrics [src/components/proposal-form.tsx#54-55](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L54-L55)Risk & Audit`riskFlags`, `evidence`, `dataValueNote`Constraints, provenance, and audit trails [src/components/proposal-form.tsx#56-61](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L56-L61)Sustainability`enterprisePackaging`Potential revenue paths for the public board [src/components/proposal-form.tsx#60](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L60-L60)
 
-### Input Fields and Data Structures
+Sources: [src/components/proposal-form.tsx#20-62](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L20-L62)
 
-The form utilizes a helper `Field` component [src/components/proposal-form.tsx#76](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L76-L76) to standardize the rendering of labels, inputs/textareas, and error messages. Several fields expect list-based input (one item per line), which are later processed by the server action:
+## Auth Panels (auth-panels.tsx)
 
-- Deliverables: Specific outputs of the Ken [src/components/proposal-form.tsx#54](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L54-L54)
-- Evaluation Checks: Criteria for success [src/components/proposal-form.tsx#55](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L55-L55)
-- Risk Flags: Potential constraints or hazards [src/components/proposal-form.tsx#56](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L56-L56)
-- Evidence Anchors: Links or data supporting the proposal [src/components/proposal-form.tsx#57](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L57-L57)
+The `AuthPanels` component provides the interface for both signing in existing users and creating new accounts [src/components/auth-panels.tsx#8](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/auth-panels.tsx#L8-L8) It uses a local `mode` state to toggle between the "signin" and "signup" views [src/components/auth-panels.tsx#9-23](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/auth-panels.tsx#L9-L23)
 
-Sources: [src/components/proposal-form.tsx#8-12](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L8-L12)[src/components/proposal-form.tsx#40-44](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L40-L44)[src/components/proposal-form.tsx#76-85](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L76-L85)
+### Authentication Logic
 
-## Profile Switcher
+The component maintains separate action states for sign-in and sign-up, ensuring that errors in one process do not leak into the other [src/components/auth-panels.tsx#10-12](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/auth-panels.tsx#L10-L12)
 
-The `ProfileSwitcher` component [src/components/profile-switcher.tsx#1](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/profile-switcher.tsx#L1-L1) is a utility designed for demo environments. It is intended to be enabled by the `KENMATCH_ENABLE_DEMO_PROFILE_SWITCHER` environment variable to allow developers and reviewers to quickly toggle between different seed profiles (e.g., switching from a "Standard User" to a "High-Attestation Reviewer") to test different permission levels and participation policies.
+- Sign In: Requires `email` and `password`. It invokes `signInAction`[src/components/auth-panels.tsx#30-36](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/auth-panels.tsx#L30-L36)
+- Sign Up: Requires a full profile, including `name`, `role`, `specialty`, `email`, `password`, and `bio`. It invokes `signUpAction`[src/components/auth-panels.tsx#38-50](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/auth-panels.tsx#L38-L50)
 
-Entity Association: UI to Code
+### Identity and Attestation
 
-Sources: [src/components/proposal-form.tsx#1-5](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L1-L5)[src/components/profile-switcher.tsx#1-3](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/profile-switcher.tsx#L1-L3)
+The UI includes a descriptive panel explaining that accounts are required to make public participation (comments, votes, submissions) attributable and tied to an identity-backed sign-in state [src/components/auth-panels.tsx#25-27](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/auth-panels.tsx#L25-L27)
 
-## Data Flow: Form to Database
+### Code Entity Mapping: Auth Components
 
-When the user clicks "Submit Ken for review" [src/components/proposal-form.tsx#67](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L67-L67) the following sequence occurs:
+Title: Auth Component to Server Action Mapping
 
-1. Client-Side Capture: The `formAction` triggers the server action with `FormData`[src/components/proposal-form.tsx#20](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L20-L20)
-2. Server-Side Processing: `createProposalAction` receives the data, validates it against the `proposalSchema`, and transforms newline-separated textareas (like `deliverables`) into arrays [src/components/proposal-form.tsx#54-57](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L54-L57)
-3. Persistence: The validated data is inserted into the `tasks` table in the libSQL database.
-4. Feedback: The `ActionState` is returned to the client. If successful, `state.status` is set to "success" and a message is displayed in teal [src/components/proposal-form.tsx#71](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L71-L71) If validation fails, `fieldErrors` are mapped back to the specific `Field` components [src/components/proposal-form.tsx#17](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L17-L17)
+Sources: [src/components/auth-panels.tsx#8-13](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/auth-panels.tsx#L8-L13)[src/components/auth-panels.tsx#30-51](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/auth-panels.tsx#L30-L51)
 
-Sources: [src/components/proposal-form.tsx#15-17](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L15-L17)[src/components/proposal-form.tsx#71-72](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/proposal-form.tsx#L71-L72)
+### Shared Field Component
+
+Similar to the proposal form, `AuthPanels` uses a local `Field` helper to handle input and textarea rendering [src/components/auth-panels.tsx#58-84](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/auth-panels.tsx#L58-L84) This helper supports dynamic types (e.g., `password`, `email`) and handles the display of validation errors from the `ActionState`[src/components/auth-panels.tsx#81](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/auth-panels.tsx#L81-L81)
+
+Sources: [src/components/auth-panels.tsx#58-84](https://github.com/lowestprime/KenMatch/blob/8218181e/src/components/auth-panels.tsx#L58-L84)
 
 ---
 
-# Deployment-and-Infrastructure
+# Testing
+Relevant source files
+
+- [tests/allocation.test.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/allocation.test.ts)
+- [tests/attestation.test.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/attestation.test.ts)
+- [tests/economics.test.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts)
+
+The KenMatch test suite focuses on validating the core mathematical and policy engines that govern the platform. It ensures that quadratic voting costs, participation eligibility, and treasury accounting remain accurate as the codebase evolves.
+
+KenMatch utilizes the Node.js built-in test runner (`node:test`) and strict assertions (`node:assert/strict`) to maintain a lightweight, zero-dependency testing environment. This approach allows for fast execution without the overhead of external testing frameworks.
+
+## Test Runner Strategy
+
+The test suite is located in the `tests/` directory and targets the pure-function libraries in `src/lib/`. By decoupling business logic from the React UI and database side effects, the system achieves high reliability in its "Engine" layer.
+
+### Execution
+
+Tests are executed using the Node.js test runner. The following patterns are standard across the suite:
+
+- Strict Equality: Using `assert.equal` and `assert.deepEqual` for value and object comparison [tests/economics.test.ts#1-2](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L1-L2)
+- Isolated Logic: Tests pass mock data structures to library functions to verify output without requiring a live database [tests/allocation.test.ts#25-31](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/allocation.test.ts#L25-L31)
+
+## System Mapping: Logic to Validation
+
+The following diagrams illustrate how the test suite bridges the gap between natural language requirements (e.g., "Sybil resistance", "Burn rate") and the specific code entities being validated.
+
+### Allocation and Policy Validation
+
+This diagram shows how `allocation.ts` and `attestation.ts` entities are verified against system rules.
+
+Sources:[tests/allocation.test.ts#6-24](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/allocation.test.ts#L6-L24)[tests/attestation.test.ts#4-32](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/attestation.test.ts#L4-L32)
+
+### Economic and Treasury Validation
+
+This diagram maps treasury accounting rules to the functions in `economics.ts`.
+
+Sources:[tests/economics.test.ts#6-25](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L6-L25)
+
+## Test Domains
+
+The suite is divided into three primary domains, each corresponding to a critical business logic file.
+
+### Allocation and Attestation
+
+These tests verify the integrity of the voting engine and the security of the participation ladder.
+
+- Quadratic Voting: Validates that costs grow non-linearly (e.g., 3 votes cost 9 credits) [tests/allocation.test.ts#7-9](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/allocation.test.ts#L7-L9)
+- Ranking & Tiering: Ensures tasks are correctly assigned to "months", "weeks", or "days" tiers based on their rank, and that "blocked" tasks are excluded from the ladder [tests/allocation.test.ts#16-38](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/allocation.test.ts#L16-L38)
+- Participation Policy: Confirms that high-risk or unverified accounts are relegated to "read-only" status, while low-risk accounts retain "full" voice capacity [tests/attestation.test.ts#7-32](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/attestation.test.ts#L7-L32)
+
+For details, see [Allocation and Attestation Tests](#6.1).
+
+### Economics
+
+These tests ensure the financial dashboard accurately reflects the state of the KenMatch treasury and revenue engines.
+
+- Revenue Splitting: Verifies that gross revenue is correctly split between the treasury and founder shares based on defined percentages [tests/economics.test.ts#7-23](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L7-L23)
+- Treasury Reconciliation: Checks that inflows and outflows (burn) result in the correct `treasuryBalanceUsd` and `coverageMonths`[tests/economics.test.ts#114-123](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L114-L123)
+- Sponsor Pools: Validates the detection of restricted funds and verified funding streams [tests/economics.test.ts#120-122](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L120-L122)
+
+For details, see [Economics Tests](#6.2).
+
+## Summary Table
+
+Test FileTarget ModuleKey Functions Tested`allocation.test.ts``lib/allocation.ts``quadraticCost`, `tierForRank`, `buildCategoryRankings``attestation.test.ts``lib/attestation.ts``resolveParticipationPolicy``economics.test.ts``lib/economics.ts``summarizeRevenueStream`, `summarizeEconomics`
+
+Sources:[tests/allocation.test.ts#4](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/allocation.test.ts#L4-L4)[tests/attestation.test.ts#4](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/attestation.test.ts#L4-L4)[tests/economics.test.ts#4](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L4-L4)
+
+---
+
+# Allocation and Attestation Tests
+Relevant source files
+
+- [tests/allocation.test.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/allocation.test.ts)
+- [tests/attestation.test.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/attestation.test.ts)
+
+This section details the automated test suite for the KenMatch core logic, specifically focusing on the allocation engine and the participation policy resolution. These tests utilize the built-in Node.js test runner and strict assertions to validate the mathematical integrity of the quadratic voting system and the security enforcement of the attestation ladder.
+
+## 1. Allocation Logic Tests
+
+The allocation tests in `tests/allocation.test.ts` verify the implementation of the Quadratic Voting (QV) engine and the tier-based ranking system used to determine task priority.
+
+### Quadratic Cost and Credit Accounting
+
+The system ensures that the cost of influence grows quadratically, preventing single-actor dominance. The `spentCredits` function aggregates these costs across multiple tasks to ensure a profile does not exceed its allocated voice credit budget.
+
+FunctionLogic VerifiedTest Case Example`quadraticCost`$Cost = Votes^2$3 votes = 9 credits; 6 votes = 36 credits [tests/allocation.test.ts#6-10](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/allocation.test.ts#L6-L10)`spentCredits`$\sum (Votes_i^2)$Votes [4, 2, 1] = $16 + 4 + 1 = 21$ credits [tests/allocation.test.ts#12-14](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/allocation.test.ts#L12-L14)
+
+### Tier and Ranking Resolution
+
+The `tierForRank` and `buildCategoryRankings` functions are tested to ensure that tasks are correctly categorized into the "Months", "Weeks", "Days", "Queued", or "Blocked" tiers based on their voting performance and safety status.
+
+Key Ranking Rules Tested:
+
+- Tier Thresholds: Rank 1-3 maps to "months", 4-10 to "weeks", and 11+ to "days" [tests/allocation.test.ts#16-19](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/allocation.test.ts#L16-L19)
+- Blocked Status: Tasks marked as "blocked" (e.g., via `safetyStatus`) are excluded from the allocation ladder regardless of vote count [tests/allocation.test.ts#21](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/allocation.test.ts#L21-L21)[tests/allocation.test.ts#30](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/allocation.test.ts#L30-L30)
+- Eligibility: Only tasks in specific stages (running, scheduled, voting) are eligible for ranking [tests/allocation.test.ts#26-31](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/allocation.test.ts#L26-L31)
+
+### Data Flow: Ranking and Tier Assignment
+
+The following diagram illustrates how raw task data is transformed into a ranking map during the execution of `buildCategoryRankings`.
+
+Allocation Ranking Flow
+
+Sources:[tests/allocation.test.ts#24-38](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/allocation.test.ts#L24-L38)[src/lib/allocation.ts#4-5](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L4-L5)
+
+---
+
+## 2. Attestation and Policy Tests
+
+The tests in `tests/attestation.test.ts` validate the `resolveParticipationPolicy` function, which maps a user's `AttestationStatus` and `SybilRiskBand` to a specific `ParticipationState`.
+
+### Policy Resolution Matrix
+
+The test suite covers the three primary states of the KenMatch participation ladder:
+
+1. Full Access: Verified, low-risk accounts retain their full `voiceCredits` and can perform all actions (submit, allocate, comment) [tests/attestation.test.ts#6-13](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/attestation.test.ts#L6-L13)
+2. Review-Limited: Accounts in the "review" state or with "medium" risk receive a reduced `effectiveVoiceCredits` cap but can still participate in discussions [tests/attestation.test.ts#15-22](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/attestation.test.ts#L15-L22)
+3. Read-Only: High-risk accounts or those with "limited" attestation are restricted from all mutations (allocating, submitting, commenting) and have their effective voice set to zero [tests/attestation.test.ts#24-32](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/attestation.test.ts#L24-L32)
+
+### Participation Policy Mapping
+
+This diagram maps the inputs of `resolveParticipationPolicy` to the resulting system permissions.
+
+Attestation Policy Resolution
+
+Sources:[tests/attestation.test.ts#6-32](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/attestation.test.ts#L6-L32)[src/lib/attestation.ts#4](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L4-L4)
+
+### Test Execution
+
+Tests are executed using the standard Node.js test runner. The assertions ensure that the business logic remains decoupled from the UI and database layers, allowing for rapid verification of the economic and security rules.
+
+Sources:[tests/attestation.test.ts#1-2](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/attestation.test.ts#L1-L2)[tests/allocation.test.ts#1-2](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/allocation.test.ts#L1-L2)
+
+---
+
+# Economics Tests
+Relevant source files
+
+- [tests/economics.test.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts)
+
+The economics test suite in `tests/economics.test.ts` validates the core financial logic of the KenMatch platform. These tests ensure that revenue distributions between the treasury and founders are calculated correctly, treasury balances are reconciled accurately across different buckets, and sustainability metrics like "coverage months" reflect the actual burn rate of the system.
+
+### Core Testing Objectives
+
+- Revenue Splitting: Verifying that `summarizeRevenueStream` correctly applies percentage-based splits [tests/economics.test.ts#6-23](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L6-L23)
+- Treasury Reconciliation: Ensuring that inflows and outflows in the `compute-treasury` bucket are summed correctly while ignoring non-treasury buckets like `founder-ops`[tests/economics.test.ts#101-108](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L101-L108)
+- Sustainability Metrics: Calculating `coverageMonths` by comparing the current `treasuryBalanceUsd` against the `monthlyPublicBurnUsd`[tests/economics.test.ts#110-119](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L110-L119)
+- Funding Classification: Detecting restricted funds and counting verified (live/pilot) revenue streams [tests/economics.test.ts#120-122](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L120-L122)
+
+---
+
+### Data Flow: Revenue to Economics Summary
+
+The following diagram illustrates how raw revenue streams and treasury ledger entries are processed by the economics library to produce the final dashboard metrics.
+
+Economics Calculation Pipeline
+
+Sources:
+
+- [tests/economics.test.ts#4](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L4-L4)
+- [tests/economics.test.ts#26-112](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L26-L112)
+
+---
+
+### Key Test Cases
+
+#### 1. Revenue Stream Summarization
+
+The test for `summarizeRevenueStream` validates the arithmetic for splitting gross monthly revenue. In the test case, an "Enterprise" stream with $100,000 revenue and an 80/20 split is verified to result in $80,000 for the treasury and $20,000 for founders [tests/economics.test.ts#7-22](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L7-L22)
+
+#### 2. Treasury Balance and Bucket Filtering
+
+The `summarizeEconomics` function processes an array of `TreasuryLedgerEntry` objects. The test ensures that:
+
+- Inflows: Positive adjustments to the balance [tests/economics.test.ts#70-78](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L70-L78)
+- Outflows: Negative adjustments (e.g., "Compute burn") [tests/economics.test.ts#89-98](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L89-L98)
+- Bucket Isolation: Entries targeting the `founder-ops` bucket are excluded from the `treasuryBalanceUsd` calculation [tests/economics.test.ts#101-108](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L101-L108)
+
+#### 3. Sustainability and Verification
+
+The system calculates how many months the current treasury can sustain the existing burn rate.
+
+- Coverage Months: If the balance is $46,000 and the monthly burn is $46,000, `coverageMonths` must equal 1 [tests/economics.test.ts#117-119](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L117-L119)
+- Verified Streams: Only streams with a status of `live` or `pilot` are counted as verified. In the test, two out of three streams (Enterprise and Licensing) meet this criteria, while the `planned` Sponsorship stream is excluded [tests/economics.test.ts#35-61](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L35-L61)[tests/economics.test.ts#122](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L122-L122)
+
+---
+
+### Logic Mapping: Ledger to Metrics
+
+This diagram maps specific ledger behaviors observed in the tests to the resulting economic state.
+
+Ledger Reconciliation Logic
+
+Sources:
+
+- [tests/economics.test.ts#69-109](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L69-L109)
+- [tests/economics.test.ts#117-120](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L117-L120)
+
+### Summary of Economic Metrics Tested
+
+MetricCalculation Logic in TestExpected Value in Test`monthlyRevenueUsd`Sum of all stream `monthlyRevenueUsd`$135,000 [tests/economics.test.ts#114](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L114-L114)`treasuryBalanceUsd`Inflows - Outflows in `compute-treasury` bucket$46,000 [tests/economics.test.ts#117](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L117-L117)`coverageMonths``treasuryBalanceUsd` / `monthlyPublicBurnUsd`1 [tests/economics.test.ts#119](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L119-L119)`restrictedFundingUsd`Sum of ledger entries where `streamId` is null$12,000 [tests/economics.test.ts#120](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L120-L120)`verifiedFundingStreams`Count of streams with status `live` or `pilot`2 [tests/economics.test.ts#122](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L122-L122)
+
+Sources:
+
+- [tests/economics.test.ts#25-123](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L25-L123)
+
+---
 
 # Deployment and Infrastructure
 Relevant source files
 
 - [Dockerfile](https://github.com/lowestprime/KenMatch/blob/8218181e/Dockerfile)
 - [docker-compose.synology.yml](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml)
+- [docs/synology-nas-deploy.md](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/synology-nas-deploy.md)
 - [next.config.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts)
 
-This section provides a high-level overview of how KenMatch is built, containerized, and deployed. The system is designed to be highly portable, leveraging a standalone Next.js build that can run in any environment supporting Node.js 22 or Docker.
+This section provides a high-level overview of the packaging, hosting, and configuration strategy for KenMatch. The application is designed for self-hosting portability, utilizing a multi-stage Docker build and a standalone Next.js output to minimize runtime dependencies.
 
-### System Build and Containerization
+### Deployment Architecture Overview
 
-KenMatch uses a multi-stage Docker build process to ensure a small, secure production image. The build pipeline transforms the TypeScript source into a standalone Node.js server that does not require the full `node_modules` directory at runtime.
+KenMatch is architected to run as a containerized service. The primary deployment target is a Synology NAS using DSM's Container Manager, though the standard Docker configuration allows for deployment to any OCI-compliant runtime.
 
-Build Pipeline Overview:
+The following diagram illustrates the relationship between the build process, the runtime environment, and the persistent storage layer.
 
-1. Dependency Phase: Installs production and development dependencies using `npm ci`[Dockerfile#1-4](https://github.com/lowestprime/KenMatch/blob/8218181e/Dockerfile#L1-L4)
-2. Builder Phase: Compiles the application and generates the standalone output [Dockerfile#6-10](https://github.com/lowestprime/KenMatch/blob/8218181e/Dockerfile#L6-L10)
-3. Runner Phase: A minimal Alpine-based image that copies only the necessary build artifacts and exposes port 3000 [Dockerfile#12-26](https://github.com/lowestprime/KenMatch/blob/8218181e/Dockerfile#L12-L26)
+KenMatch Deployment Flow
 
-The application persists data to a local libSQL/SQLite database stored in a dedicated `/app/data` volume [Dockerfile#22](https://github.com/lowestprime/KenMatch/blob/8218181e/Dockerfile#L22-L22)
-
-For details on the build stages and volume configuration, see [Docker Build and Container Configuration](#6.1).
-
-### Infrastructure and Self-Hosting
-
-KenMatch is optimized for self-hosting on consumer hardware, specifically Synology NAS devices using the Synology Container Manager. The deployment is managed via a specialized Docker Compose configuration that handles environment variables, volume mapping for persistence, and automated health monitoring.
-
-Key Deployment Components:
-
-- Health Monitoring: A health check loop monitors the `/api/health` endpoint to ensure the service is responsive [docker-compose.synology.yml#19-24](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml#L19-L24)
-- Persistence: Local mapping of `./data` to the container's `/app/data` directory ensures database continuity across restarts [docker-compose.synology.yml#18](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml#L18-L18)
-- Networking: Configured to bind to `0.0.0.0` on port 3000 for internal network accessibility [docker-compose.synology.yml#15-16](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml#L15-L16)
-
-For a step-by-step guide on NAS setup and SSL configuration, see [Synology NAS Self-Hosting Guide](#6.2).
-
-### Application Configuration and Security
-
-The application runtime is governed by `next.config.ts`, which enforces strict security headers and optimizes the server for production workloads.
-
-Security and Runtime Constraints:
-
-- Security Headers: Implements a strict `Content-Security-Policy` (CSP), disables camera/mic access via `Permissions-Policy`, and prevents clickjacking with `X-Frame-Options: DENY`[next.config.ts#5-26](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L5-L26)
-- Resource Limits: Limits Server Action payloads to 2MB to prevent large-scale data injection [next.config.ts#34](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L34-L34)
-- Deployment Tracking: Uses the `DEPLOYMENT_VERSION` environment variable as a `deploymentId` for cache busting and version tracking [next.config.ts#31](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L31-L31)
-
-For details on security header implementation and Next.js optimization, see [Next.js Configuration and Security Headers](#6.3).
+Sources: [Dockerfile#1-26](https://github.com/lowestprime/KenMatch/blob/8218181e/Dockerfile#L1-L26)[docker-compose.synology.yml#1-24](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml#L1-L24)[next.config.ts#30](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L30-L30)[docs/synology-nas-deploy.md#46-67](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/synology-nas-deploy.md#L46-L67)
 
 ---
 
-### Deployment Architecture: From Code to Container
+### Docker Build and Synology NAS Deployment
 
-The following diagram illustrates how the build artifacts are mapped from the repository structure into the final production container.
+The deployment process centers on a three-stage `Dockerfile` that produces a lightweight production image.
 
-Build-to-Container Mapping
+1. `deps`: Installs production and development dependencies [Dockerfile#1-4](https://github.com/lowestprime/KenMatch/blob/8218181e/Dockerfile#L1-L4)
+2. `builder`: Compiles the Next.js application [Dockerfile#6-10](https://github.com/lowestprime/KenMatch/blob/8218181e/Dockerfile#L6-L10)
+3. `runner`: Extracts the `standalone` output and serves the application via `node server.js`[Dockerfile#12-25](https://github.com/lowestprime/KenMatch/blob/8218181e/Dockerfile#L12-L25)
 
-Sources:[Dockerfile#1-26](https://github.com/lowestprime/KenMatch/blob/8218181e/Dockerfile#L1-L26)[next.config.ts#28-48](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L28-L48)[docker-compose.synology.yml#1-24](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml#L1-L24)
+For infrastructure management, the `docker-compose.synology.yml` file defines the service, environment variables, and a health check that queries the `/api/health` endpoint [docker-compose.synology.yml#1-24](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml#L1-L24) Persistent data is maintained via a volume mount to `/app/data`, ensuring that the libSQL/SQLite database survives container restarts [docker-compose.synology.yml#17-18](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml#L17-L18)
 
-### Environment and Network Configuration
+For a detailed walkthrough of the build stages, volume configuration, and DSM reverse proxy setup, see [Docker Build and Synology NAS Deployment (#7.1)](https://github.com/lowestprime/KenMatch/blob/8218181e/Docker Build and Synology NAS Deployment (#7.1)).
 
-The following diagram maps the network flow from the external client through the infrastructure layers to the internal application entities.
-
-Network and Infrastructure Flow
-
-Sources:[docker-compose.synology.yml#19-24](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml#L19-L24)[next.config.ts#5-26](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L5-L26)[Dockerfile#24-25](https://github.com/lowestprime/KenMatch/blob/8218181e/Dockerfile#L24-L25)
+Sources: [Dockerfile#1-26](https://github.com/lowestprime/KenMatch/blob/8218181e/Dockerfile#L1-L26)[docker-compose.synology.yml#1-24](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml#L1-L24)[docs/synology-nas-deploy.md#1-10](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/synology-nas-deploy.md#L1-L10)
 
 ---
 
-Sources:
+### Next.js Configuration and Security
 
-- `Dockerfile:1-26`
-- `next.config.ts:5-48`
-- `docker-compose.synology.yml:1-24`
+The application behavior is governed by `next.config.ts`, which optimizes the build for a containerized environment and enforces strict security policies.
+
+FeatureConfiguration DetailPurposeOutput Mode`standalone`Reduces image size by only including necessary files [next.config.ts#30](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L30-L30)Security Headers`securityHeaders`Implements CSP, HSTS, and Frame protection [next.config.ts#5-26](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L5-L26)Deployment ID`process.env.DEPLOYMENT_VERSION`Ensures consistent asset versioning across replicas [next.config.ts#31](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L31-L31)Server Actions`bodySizeLimit: "2mb"`Limits the payload size for Ken proposals and uploads [next.config.ts#34](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L34-L34)
+
+The security configuration dynamically adjusts based on the environment; for instance, `script-src` allows `unsafe-eval` only during development to support Next.js HMR [next.config.ts#16](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L16-L16)
+
+For details on the specific CSP directives and how environment variables influence the build, see [Next.js Configuration and Security Headers (#7.2)](https://github.com/lowestprime/KenMatch/blob/8218181e/Next.js Configuration and Security Headers (#7.2)).
+
+Sources: [next.config.ts#1-50](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L1-L50)
 
 ---
 
-# Docker-Build-and-Container-Configuration
+### Infrastructure Components Mapping
 
-# Docker Build and Container Configuration
+The following diagram maps high-level infrastructure requirements to specific files and environment variables within the codebase.
+
+Infrastructure to Code Mapping
+
+Sources: [docker-compose.synology.yml#13-18](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml#L13-L18)[next.config.ts#5-31](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L5-L31)[docs/synology-nas-deploy.md#50-60](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/synology-nas-deploy.md#L50-L60)
+
+---
+
+# Docker Build and Synology NAS Deployment
 Relevant source files
 
 - [.dockerignore](https://github.com/lowestprime/KenMatch/blob/8218181e/.dockerignore)
 - [Dockerfile](https://github.com/lowestprime/KenMatch/blob/8218181e/Dockerfile)
 - [docker-compose.synology.yml](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml)
+- [docs/synology-nas-deploy.md](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/synology-nas-deploy.md)
+- [src/app/action-state.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/action-state.ts)
+- [src/app/api/health/route.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/api/health/route.ts)
 
-This page describes the containerization strategy for KenMatch, focusing on the multi-stage Docker build process, the standalone Next.js deployment mode, and the persistence configuration required for libSQL/SQLite.
+This page details the containerization strategy and deployment pipeline for KenMatch, specifically optimized for self-hosting on a Synology NAS using Docker and DSM Container Manager. It covers the multi-stage build process, persistent storage configuration, and the health monitoring system.
 
-## Purpose and Scope
+## Multi-Stage Docker Build
 
-KenMatch is designed to be deployed as a self-contained Docker container. The architecture prioritizes a small image footprint and efficient resource utilization, specifically optimized for environments like Synology NAS or standard cloud VPS providers. The container handles its own persistence via a local volume mount for the database and exposes a standard web interface on port 3000.
+The KenMatch `Dockerfile` utilizes a three-stage build process to minimize the final image size and ensure that build-time dependencies (like the full `node_modules` and TypeScript compiler) are excluded from the production runtime environment.
 
-## Multi-Stage Build Pipeline
+### Build Stages
 
-The `Dockerfile` utilizes a three-stage build process based on the `node:22-alpine` image to minimize the final image size and ensure a clean production environment.
+1. `deps` Stage: Initializes the workspace and installs all dependencies using `npm ci` based on `package-lock.json`[Dockerfile#1-4](https://github.com/lowestprime/KenMatch/blob/8218181e/Dockerfile#L1-L4)
+2. `builder` Stage: Inherits dependencies, copies the source code, and executes `npm run build`[Dockerfile#6-10](https://github.com/lowestprime/KenMatch/blob/8218181e/Dockerfile#L6-L10) This triggers the Next.js standalone build mode, which produces a minimal `server.js` and required chunks.
+3. `runner` Stage: The final production image. It sets `NODE_ENV=production`, copies only the necessary standalone output, static assets, and public files from the `builder` stage [Dockerfile#12-20](https://github.com/lowestprime/KenMatch/blob/8218181e/Dockerfile#L12-L20) It also creates the `/app/data` directory for local persistence [Dockerfile#22](https://github.com/lowestprime/KenMatch/blob/8218181e/Dockerfile#L22-L22)
 
-### 1. Dependencies Stage (`deps`)
+### Build Pipeline and Entity Mapping
 
-The first stage focuses on installing the project dependencies. It copies `package.json` and `package-lock.json` and executes `npm ci` to ensure a reproducible dependency tree [Dockerfile#1-5](https://github.com/lowestprime/KenMatch/blob/8218181e/Dockerfile#L1-L5)
+The following diagram maps the Docker build stages to the resulting file system entities.
 
-### 2. Builder Stage (`builder`)
-
-The builder stage inherits the `node_modules` from the `deps` stage and copies the entire source code [Dockerfile#6-9](https://github.com/lowestprime/KenMatch/blob/8218181e/Dockerfile#L6-L9) It then executes `npm run build`[Dockerfile#10](https://github.com/lowestprime/KenMatch/blob/8218181e/Dockerfile#L10-L10) This trigger invokes the Next.js build process, which is configured for `standalone` output mode.
-
-### 3. Runner Stage (`runner`)
-
-The final stage is the production environment. Instead of copying the entire project, it only copies the minimal assets required for execution [Dockerfile#12-20](https://github.com/lowestprime/KenMatch/blob/8218181e/Dockerfile#L12-L20):
-
-- The `.next/standalone` directory (which contains the server-side code and necessary node_modules).
-- The `.next/static` directory for client-side assets.
-- The `public` directory for static files.
-
-Build Pipeline Flow
-
-Title: KenMatch Docker Build Stages
+Diagram: Docker Build to Standalone Output
 
 Sources: [Dockerfile#1-26](https://github.com/lowestprime/KenMatch/blob/8218181e/Dockerfile#L1-L26)
 
-## Network and Environment Configuration
+---
 
-The container is configured to listen on all network interfaces to ensure accessibility from the host machine and reverse proxies.
+## Synology NAS Service Definition
 
-- Host/Port: The environment variables `HOSTNAME=0.0.0.0` and `PORT=3000` are set within the Dockerfile [Dockerfile#15-16](https://github.com/lowestprime/KenMatch/blob/8218181e/Dockerfile#L15-L16) and reinforced in the compose configuration [docker-compose.synology.yml#15-16](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml#L15-L16)
-- Production Mode: `NODE_ENV` is explicitly set to `production` to enable Next.js production optimizations [Dockerfile#14](https://github.com/lowestprime/KenMatch/blob/8218181e/Dockerfile#L14-L14)
-- Exposition: The container exposes port `3000`[Dockerfile#24](https://github.com/lowestprime/KenMatch/blob/8218181e/Dockerfile#L24-L24) which is typically mapped to the same port on the host [docker-compose.synology.yml#10](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml#L10-L10)
+Deployment on Synology NAS is orchestrated via `docker-compose.synology.yml`. This configuration is tailored for the DSM Container Manager "Project" feature [docs/synology-nas-deploy.md#94-97](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/synology-nas-deploy.md#L94-L97)
 
-Sources: [Dockerfile#12-26](https://github.com/lowestprime/KenMatch/blob/8218181e/Dockerfile#L12-L26)[docker-compose.synology.yml#1-16](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml#L1-L16)
+### Key Service Configurations
 
-## Data Persistence and Volumes
+FeatureImplementationFile ReferenceContainer Name`kenmatch-demo`[docker-compose.synology.yml#6](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml#L6-L6)Init System`init: true` (reaps zombie processes)[docker-compose.synology.yml#7](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml#L7-L7)Port Mapping`3000:3000`[docker-compose.synology.yml#10](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml#L10-L10)Persistence`./data:/app/data`[docker-compose.synology.yml#18](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml#L18-L18)EnvironmentLoaded via `.env` file[docker-compose.synology.yml#11-12](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml#L11-L12)
 
-KenMatch uses libSQL (SQLite) for persistence. Because the database is stored in a file, the container must provide a persistent location that survives container restarts and image updates.
+### Data Flow and Persistence
 
-### The /app/data Directory
+The system supports two database modes via environment variables:
 
-The Dockerfile explicitly creates a directory at `/app/data`[Dockerfile#22](https://github.com/lowestprime/KenMatch/blob/8218181e/Dockerfile#L22-L22) This is the intended location for the SQLite database file (e.g., `kenmatch.db`).
+1. Local Mode: If `KENMATCH_DB_FILE` is set (e.g., `/app/data/kenmatch.sqlite`), the application uses a local libSQL/SQLite file stored in the mounted NAS volume [docs/synology-nas-deploy.md#52-60](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/synology-nas-deploy.md#L52-L60)
+2. Remote Mode: If `DATABASE_URL` and `DATABASE_AUTH_TOKEN` are provided, the container connects to a remote Turso/libSQL instance [docs/synology-nas-deploy.md#142-151](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/synology-nas-deploy.md#L142-L151)
 
-### Volume Mapping
-
-In the deployment configuration, a host directory is mapped to this internal path:
-
-- Source: `./data` on the host machine.
-- Destination: `/app/data` inside the container [docker-compose.synology.yml#18](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml#L18-L18)
-
-Entity Mapping: Filesystem to Code
-
-Title: Database Persistence Mapping
-
-Sources: [Dockerfile#22](https://github.com/lowestprime/KenMatch/blob/8218181e/Dockerfile#L22-L22)[docker-compose.synology.yml#17-18](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml#L17-L18)
-
-## Build Exclusion Patterns
-
-The `.dockerignore` file ensures that unnecessary files and sensitive data are not included in the Docker build context, which speeds up the build and improves security.
-
-PatternPurpose`.env`Prevents local secrets from being baked into the image [.dockerignore#3](https://github.com/lowestprime/KenMatch/blob/8218181e/.dockerignore#L3-L3)`node_modules`Prevents local OS-specific binaries from conflicting with Alpine binaries [.dockerignore#5](https://github.com/lowestprime/KenMatch/blob/8218181e/.dockerignore#L5-L5)`.next`Ensures a fresh build inside the container rather than using local cache [.dockerignore#6](https://github.com/lowestprime/KenMatch/blob/8218181e/.dockerignore#L6-L6)`data`Prevents the local database file from being included in the image [.dockerignore#7](https://github.com/lowestprime/KenMatch/blob/8218181e/.dockerignore#L7-L7)`@eaDir`, `#recycle`Excludes Synology-specific metadata and trash folders often found in NAS environments [.dockerignore#8-10](https://github.com/lowestprime/KenMatch/blob/8218181e/.dockerignore#L8-L10)
-
-Sources: [.dockerignore#1-11](https://github.com/lowestprime/KenMatch/blob/8218181e/.dockerignore#L1-L11)
-
-## Health Checks and Init
-
-To ensure high availability, the container configuration includes:
-
-- Init System: The `init: true` flag is used in the compose file to ensure proper signal handling (e.g., SIGTERM) for the Node.js process [docker-compose.synology.yml#7](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml#L7-L7)
-- Healthcheck: A health check executes every 30 seconds using `wget` against the `/api/health` endpoint [docker-compose.synology.yml#19-24](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml#L19-L24) If the endpoint fails to respond with a success code after 5 retries, the container is marked as unhealthy.
-
-Sources: [docker-compose.synology.yml#7-24](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml#L7-L24)
+Sources: [docker-compose.synology.yml#1-24](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml#L1-L24)[docs/synology-nas-deploy.md#115-127](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/synology-nas-deploy.md#L115-L127)
 
 ---
 
-# Synology-NAS-Self-Hosting-Guide
+## Health Monitoring and `/api/health`
 
-# Synology NAS Self-Hosting Guide
-Relevant source files
+The deployment includes an automated health check to ensure the Next.js server is responsive and the database connection is active.
 
-- [docker-compose.synology.yml](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml)
-- [docs/synology-nas-deploy.md](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/synology-nas-deploy.md)
-- [src/lib/env.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/env.ts)
+### Health Endpoint Implementation
 
-This page provides a technical overview of deploying KenMatch on a Synology NAS running DSM 7.2+ with Container Manager. The deployment utilizes a standalone Next.js build, a persistent local libSQL database, and Synology's native Reverse Proxy for SSL termination.
+The route `src/app/api/health/route.ts` handles `GET` requests by calling `getHealthSummary()` from the database library [src/app/api/health/route.ts#1-8](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/api/health/route.ts#L1-L8) This verifies that the libSQL client can successfully query the underlying store.
 
-## Deployment Architecture
+### Docker Health Check
 
-The Synology deployment is designed to be self-contained. It leverages a multi-stage Docker build to produce a minimal runner image that executes the `server.js` entry point. Persistence is achieved through a volume mount that maps the NAS file system to the container's internal data directory.
+The `docker-compose.synology.yml` defines a health check that runs every 30 seconds [docker-compose.synology.yml#21](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml#L21-L21) It uses `wget` to probe the internal health endpoint:
+`wget -q -O /dev/null http://127.0.0.1:3000/api/health || exit 1`[docker-compose.synology.yml#20](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml#L20-L20)
 
-### System Data Flow and Component Mapping
+Diagram: Health Check System Flow
 
-The following diagram illustrates how the Synology infrastructure interacts with the KenMatch codebase entities.
-
-Synology Deployment Component Map
-
-Sources: [docker-compose.synology.yml#1-24](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml#L1-L24)[docs/synology-nas-deploy.md#1-10](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/synology-nas-deploy.md#L1-L10)[src/lib/env.ts#25-34](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/env.ts#L25-L34)
-
-## Configuration and Environment
-
-KenMatch uses a Zod-validated environment schema to manage configuration. For Synology deployments, the `DEPLOYMENT_VERSION` is typically set to `nas-demo` to identify the instance.
-
-### Key Environment Variables
-
-The application behavior is controlled via the `.env` file located in the project root.
-
-VariableDefault / RecommendedPurpose`DATABASE_URL``""` (Empty)If empty, the app defaults to local libSQL mode.`KENMATCH_DB_FILE``/app/data/kenmatch.sqlite`Path to the SQLite file inside the container.`KENMATCH_SESSION_COOKIE``kenmatch-session`Name of the session cookie.`KENMATCH_ALLOW_SIGNUPS``true`Enables/disables the registration flow.`NODE_ENV``production`Ensures Next.js optimizations are active.
-
-Sources: [src/lib/env.ts#25-36](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/env.ts#L25-L36)[docs/synology-nas-deploy.md#52-60](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/synology-nas-deploy.md#L52-L60)
-
-## Docker Compose and Persistence
-
-The `docker-compose.synology.yml` file defines the service structure. It ensures the container restarts automatically and maintains a healthy state through a recursive check.
-
-### Volume Mapping
-
-Persistence is handled by mapping a local NAS folder to the container:
-`./data:/app/data`[docker-compose.synology.yml#18](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml#L18-L18)
-This ensures that `kenmatch.sqlite` survives container recreations and image updates.
-
-### Health Check Implementation
-
-The container includes a health check that polls the internal API every 30 seconds.
-
-Health Check Logic Flow
-
-Sources: [docker-compose.synology.yml#19-23](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml#L19-L23)[docs/synology-nas-deploy.md#79-87](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/synology-nas-deploy.md#L79-L87)
-
-## Networking and Security
-
-### Reverse Proxy Setup
-
-Synology DSM provides a built-in Nginx-based reverse proxy. The recommended configuration maps a public HTTPS hostname (e.g., `kenmatch.example.com`) to the container's internal port `3000` on `127.0.0.1`[docs/synology-nas-deploy.md#157-168](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/synology-nas-deploy.md#L157-L168)
-
-### SSL/TLS
-
-SSL is managed via DSM's Certificate Manager. Users should:
-
-1. Generate a Let's Encrypt certificate for the specific hostname.
-2. Assign the certificate to the Reverse Proxy entry in Login Portal > Advanced > Custom Certificate[docs/synology-nas-deploy.md#170-182](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/synology-nas-deploy.md#L170-L182)
-
-## Maintenance and Upgrades
-
-### Database Modes
-
-KenMatch supports two libSQL operational modes on Synology:
-
-1. Local Mode: `DATABASE_URL` is left empty. The app uses the file specified in `KENMATCH_DB_FILE`[docs/synology-nas-deploy.md#62-67](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/synology-nas-deploy.md#L62-L67)
-2. Remote Mode: `DATABASE_URL` and `DATABASE_AUTH_TOKEN` are provided. The app connects to a remote Turso/libSQL instance, bypassing the local volume for data [docs/synology-nas-deploy.md#142-152](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/synology-nas-deploy.md#L142-L152)
-
-### Upgrade Workflow
-
-To upgrade the instance, the following sequence is executed via SSH or Container Manager:
-
-1. `git pull`: Fetch latest source code.
-2. `docker compose -f docker-compose.synology.yml up -d --build`: Rebuild the multi-stage image and recreate the container [docs/synology-nas-deploy.md#196-202](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/synology-nas-deploy.md#L196-L202)
-
-The build process uses the `Dockerfile` to re-run `npm install` and `next build`, ensuring the `standalone` output is updated before the runner stage swaps the containers [docs/synology-nas-deploy.md#1-7](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/synology-nas-deploy.md#L1-L7)
-
-Sources: [docs/synology-nas-deploy.md#194-210](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/synology-nas-deploy.md#L194-L210)[docker-compose.synology.yml#1-8](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml#L1-L8)
+Sources: [src/app/api/health/route.ts#1-8](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/api/health/route.ts#L1-L8)[docker-compose.synology.yml#19-24](https://github.com/lowestprime/KenMatch/blob/8218181e/docker-compose.synology.yml#L19-L24)
 
 ---
 
-# Next.js-Configuration-and-Security-Headers
+## Synology DSM Setup Guide
+
+### 1. Environment Configuration
+
+Create a `.env` file in the project root on the NAS. For a self-contained deployment, the following variables are critical:
+
+- `KENMATCH_DB_FILE=/app/data/kenmatch.sqlite`: Points to the internal container path that is mapped to the NAS shared folder [docs/synology-nas-deploy.md#55](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/synology-nas-deploy.md#L55-L55)
+- `KENMATCH_ALLOW_SIGNUPS=true`: Enables user registration [docs/synology-nas-deploy.md#58](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/synology-nas-deploy.md#L58-L58)
+
+### 2. Deployment via Container Manager
+
+1. Project Creation: Open `Container Manager` > `Project` > `Create`.
+2. Source: Point to the folder containing `docker-compose.synology.yml`[docs/synology-nas-deploy.md#100-105](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/synology-nas-deploy.md#L100-L105)
+3. Build: The NAS will execute the multi-stage build defined in the `Dockerfile`.
+
+### 3. Reverse Proxy and TLS
+
+To expose KenMatch securely, use the DSM Login Portal (or Application Portal):
+
+- Source: `HTTPS` on port 443 with your domain (e.g., `kenmatch.example.com`).
+- Destination: `HTTP` on `127.0.0.1` port `3000`[docs/synology-nas-deploy.md#157-166](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/synology-nas-deploy.md#L157-L166)
+- Certificate: Assign a Let's Encrypt certificate to the specific hostname via DSM `Control Panel` > `Security` > `Certificate`[docs/synology-nas-deploy.md#170-182](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/synology-nas-deploy.md#L170-L182)
+
+### 4. Backup Strategy
+
+Since the database is stored in the `./data` volume mount, it is accessible on the NAS file system at `/volume1/docker/kenmatch/data/kenmatch.sqlite`[docs/synology-nas-deploy.md#123-127](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/synology-nas-deploy.md#L123-L127) This folder should be included in Hyper Backup tasks to ensure data persistence [docs/synology-nas-deploy.md#129-132](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/synology-nas-deploy.md#L129-L132)
+
+Sources: [docs/synology-nas-deploy.md#24-182](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/synology-nas-deploy.md#L24-L182)
+
+---
 
 # Next.js Configuration and Security Headers
 Relevant source files
 
-- [eslint.config.mjs](https://github.com/lowestprime/KenMatch/blob/8218181e/eslint.config.mjs)
+- [next-env.d.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/next-env.d.ts)
 - [next.config.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts)
-- [postcss.config.mjs](https://github.com/lowestprime/KenMatch/blob/8218181e/postcss.config.mjs)
+- [package-lock.json](https://github.com/lowestprime/KenMatch/blob/8218181e/package-lock.json)
+- [package.json](https://github.com/lowestprime/KenMatch/blob/8218181e/package.json)
 - [tsconfig.json](https://github.com/lowestprime/KenMatch/blob/8218181e/tsconfig.json)
 
-This page details the build-time and runtime configuration for the KenMatch application. It covers the Next.js framework settings, security hardening through HTTP headers, and the secondary configuration files for TypeScript, ESLint, and PostCSS.
+This page details the configuration of the Next.js framework within the KenMatch codebase. It covers the build-time optimizations, runtime security policies, and environment-specific adjustments defined in the core configuration file.
 
-## Next.js Framework Configuration
+## Build and Runtime Configuration
 
-The application uses `next.config.ts` to define the runtime environment and build behavior. The configuration is optimized for containerized deployment and security.
+The KenMatch application is configured using `next.config.ts`[next.config.ts#1-50](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L1-L50) The configuration focuses on containerization readiness, version tracking, and performance tuning for both development and production environments.
 
-### Build and Deployment Settings
+### Standalone Output Mode
 
-- Standalone Output: The `output: "standalone"` setting is enabled to automatically leverage the Next.js standalone build feature, which creates a minimal `node_modules` subset for production deployment [next.config.ts#30](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L30-L30)
-- Deployment ID: The `deploymentId` is sourced from the `DEPLOYMENT_VERSION` environment variable, allowing for cache busting across different deployment instances [next.config.ts#31](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L31-L31)
-- Powered By Header: The `x-powered-by` header is disabled to reduce information disclosure about the underlying technology stack [next.config.ts#29](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L29-L29)
+The application uses `output: "standalone"`[next.config.ts#30](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L30-L30) This mode instructs Next.js to automatically trace dependencies and create a minimal set of files required for production deployment, significantly reducing the size of the resulting Docker image.
 
-### Experimental and Performance Features
+### Deployment Versioning
 
-- Server Actions: A custom `bodySizeLimit` of `2mb` is configured for Server Actions to accommodate detailed Ken proposals and comment data [next.config.ts#32-35](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L32-L35)
-- Turbopack: The root of the Turbopack configuration is explicitly set to the current working directory [next.config.ts#37-39](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L37-L39)
+KenMatch utilizes the `deploymentId` property to handle cache busting and version tracking [next.config.ts#31](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L31-L31) It maps the `DEPLOYMENT_VERSION` environment variable to the internal Next.js deployment ID, ensuring that assets are correctly versioned across rolling updates.
 
-### Configuration Logic Flow
+### Server Actions and Turbopack
 
-The following diagram illustrates how environment variables and static settings are processed into the final `nextConfig` object.
+- Body Size Limit: To accommodate Ken submissions and discussions, the `serverActions.bodySizeLimit` is increased to `2mb`[next.config.ts#33-35](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L33-L35)
+- Turbopack: The configuration explicitly sets the Turbopack root to the current working directory [next.config.ts#37-39](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L37-L39)
+- Header Obfuscation: The `poweredByHeader` is set to `false` to remove the `X-Powered-By: Next.js` header for security through obscurity [next.config.ts#29](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L29-L29)
 
-Diagram: Next.js Configuration Initialization
+### Configuration Flow
 
-Sources: [next.config.ts#1-50](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L1-L50)
+The following diagram illustrates how environment variables and local constants flow into the `NextConfig` object.
+
+Next.js Configuration Mapping
+
+Sources: [next.config.ts#3-31](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L3-L31)[next.config.ts#33-35](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L33-L35)
 
 ## Security Headers
 
-KenMatch implements a strict security posture by applying a comprehensive set of HTTP headers to all application routes via the `headers()` async function [next.config.ts#40-47](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L40-L47)
+KenMatch implements a strict security posture through a comprehensive set of HTTP headers applied to all application paths [next.config.ts#40-47](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L40-L47) These headers protect against common web vulnerabilities such as Cross-Site Scripting (XSS), clickjacking, and data injection.
 
-### Header Specifications
+### Security Header Set
 
-HeaderValuePurpose`X-Content-Type-Options``nosniff`Prevents the browser from MIME-sniffing a response away from the declared content-type [next.config.ts#6](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L6-L6)`Referrer-Policy``strict-origin-when-cross-origin`Protects privacy by only sending full URLs for same-origin requests [next.config.ts#7](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L7-L7)`X-Frame-Options``DENY`Prevents clickjacking by forbidding the site from being rendered in an iFrame [next.config.ts#8](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L8-L8)`Permissions-Policy``camera=(), microphone=(), geolocation=()`Explicitly disables access to sensitive hardware and location APIs [next.config.ts#9](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L9-L9)`Content-Security-Policy`Variable (see below)Restricts resource loading to trusted sources [next.config.ts#10-25](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L10-L25)
+The `securityHeaders` constant defines the following protections:
 
-### Content Security Policy (CSP) Implementation
+HeaderValuePurpose`X-Content-Type-Options``nosniff`Prevents the browser from MIME-sniffing a response away from the declared content-type [next.config.ts#6](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L6-L6)`Referrer-Policy``strict-origin-when-cross-origin`Controls how much referrer information is included with requests [next.config.ts#7](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L7-L7)`X-Frame-Options``DENY`Prevents the site from being embedded in iframes to stop clickjacking [next.config.ts#8](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L8-L8)`Permissions-Policy``camera=(), microphone=(), geolocation=()`Disables access to sensitive browser APIs [next.config.ts#9](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L9-L9)
 
-The CSP is dynamically generated based on the environment. In development, `unsafe-eval` is permitted to support Next.js Fast Refresh, while production remains strictly locked down [next.config.ts#16](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L16-L16)
+### Content Security Policy (CSP)
 
-- Script Sources: Restricted to `'self'` and `'unsafe-inline'` (for Next.js hydration) [next.config.ts#16](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L16-L16)
-- Frame Ancestors: Set to `'none'` to reinforce the `X-Frame-Options: DENY` policy [next.config.ts#19](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L19-L19)
-- Object Sources: Set to `'none'` to prevent legacy plugin exploits [next.config.ts#22](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L22-L22)
-- Upgrade Insecure Requests: Forces all traffic over HTTPS [next.config.ts#23](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L23-L23)
+The CSP is dynamically generated based on the environment [next.config.ts#10-25](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L10-L25)
 
-Diagram: Security Header Application
+- Strict Mode (Production): In production, `script-src` is restricted to `'self'` and `'unsafe-inline'`[next.config.ts#16](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L16-L16)
+- Development Relaxation: When `isDevelopment` is true, `'unsafe-eval'` is added to the `script-src` directive to allow for Fast Refresh and HMR (Hot Module Replacement) [next.config.ts#16](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L16-L16)
+- Resource Constraints:
+
+- `default-src 'self'`: Default to only loading resources from the same origin [next.config.ts#13](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L13-L13)
+- `connect-src 'self' https: wss:`: Allows secure WebSocket connections for features like real-time updates [next.config.ts#17](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L17-L17)
+- `object-src 'none'`: Completely disables plugins like Flash [next.config.ts#22](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L22-L22)
+- `upgrade-insecure-requests`: Automatically upgrades HTTP requests to HTTPS [next.config.ts#23](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L23-L23)
+
+### Security Implementation Logic
+
+The following diagram shows how the `securityHeaders` are constructed and applied to the routing system.
+
+Security Header Resolution
 
 Sources: [next.config.ts#5-26](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L5-L26)[next.config.ts#40-47](https://github.com/lowestprime/KenMatch/blob/8218181e/next.config.ts#L40-L47)
 
-## Supporting Tooling Configuration
+## Development Environment
 
-The repository includes several configuration files that define the development environment, linting standards, and CSS processing.
+The project uses TypeScript and strict type checking. The `next-env.d.ts` file ensures that Next.js specific types, including those for the App Router and image optimization, are correctly referenced by the TypeScript compiler [next-env.d.ts#1-7](https://github.com/lowestprime/KenMatch/blob/8218181e/next-env.d.ts#L1-L7)
 
-### TypeScript Configuration (`tsconfig.json`)
+The `package.json` defines the core engine requirements and scripts for the lifecycle:
 
-The project uses `ES2022` as the target and `ESNext` for modules [tsconfig.json#3-14](https://github.com/lowestprime/KenMatch/blob/8218181e/tsconfig.json#L3-L14)
+- Dev: `next dev` for local development with Turbopack support [package.json#7](https://github.com/lowestprime/KenMatch/blob/8218181e/package.json#L7-L7)
+- Build: `next build` which triggers the standalone output generation [package.json#8](https://github.com/lowestprime/KenMatch/blob/8218181e/package.json#L8-L8)
+- Test: Utilizes the Node.js built-in test runner with `--experimental-strip-types` to execute tests in `tests/**/*.test.ts` without a separate compilation step [package.json#12](https://github.com/lowestprime/KenMatch/blob/8218181e/package.json#L12-L12)
 
-- Path Aliases: The `@/*` alias is mapped to `./src/*` for cleaner imports [tsconfig.json#27-31](https://github.com/lowestprime/KenMatch/blob/8218181e/tsconfig.json#L27-L31)
-- Strict Mode: `strict: true` is enabled to ensure type safety across the domain model and server actions [tsconfig.json#11](https://github.com/lowestprime/KenMatch/blob/8218181e/tsconfig.json#L11-L11)
-- Module Resolution: Uses the `Bundler` strategy to align with modern toolchains [tsconfig.json#15](https://github.com/lowestprime/KenMatch/blob/8218181e/tsconfig.json#L15-L15)
-
-### ESLint and PostCSS
-
-- ESLint: The project extends `eslint-config-next/core-web-vitals` and `eslint-config-next/typescript` to enforce best practices for Next.js and TypeScript [eslint.config.mjs#1-4](https://github.com/lowestprime/KenMatch/blob/8218181e/eslint.config.mjs#L1-L4)
-- PostCSS: Configured to use `@tailwindcss/postcss` for processing the utility-first CSS framework [postcss.config.mjs#1-5](https://github.com/lowestprime/KenMatch/blob/8218181e/postcss.config.mjs#L1-L5)
-
-Sources: [tsconfig.json#1-43](https://github.com/lowestprime/KenMatch/blob/8218181e/tsconfig.json#L1-L43)[eslint.config.mjs#1-6](https://github.com/lowestprime/KenMatch/blob/8218181e/eslint.config.mjs#L1-L6)[postcss.config.mjs#1-7](https://github.com/lowestprime/KenMatch/blob/8218181e/postcss.config.mjs#L1-L7)
+Sources: [next-env.d.ts#1-7](https://github.com/lowestprime/KenMatch/blob/8218181e/next-env.d.ts#L1-L7)[package.json#7-12](https://github.com/lowestprime/KenMatch/blob/8218181e/package.json#L7-L12)
 
 ---
-
-# Testing
-
-# Testing
-Relevant source files
-
-- [src/lib/allocation.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts)
-- [src/lib/attestation.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts)
-- [src/lib/economics.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts)
-- [tests/allocation.test.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/allocation.test.ts)
-- [tests/attestation.test.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/attestation.test.ts)
-- [tests/economics.test.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts)
-
-KenMatch utilizes a focused testing strategy centered on pure-function unit tests for core business logic. By isolating the complex rules governing quadratic voting, identity-based participation, and treasury economics from the side-effect-heavy UI and database layers, the system ensures that the "engine" of the platform remains mathematically and logically sound.
-
-The test suite is built using the native Node.js test runner (`node:test`) and assertion library (`node:assert/strict`), requiring no external heavy dependencies like Jest or Vitest.
-
-### Testing Philosophy: Pure Logic Isolation
-
-The codebase distinguishes between Orchestration (Server Actions, UI) and Logic (Lib functions). Testing efforts are concentrated on the `src/lib/` directory because these functions are:
-
-1. Deterministic: Given the same input, they always produce the same output.
-2. Stateless: They do not query the database or read cookies directly.
-3. Critical: They define the rules for how AI compute is allocated and how money is tracked.
-
-### Core Test Files
-
-The `tests/` directory contains three primary test files, each corresponding to a major business logic library.
-
-#### 1. Allocation Logic (`tests/allocation.test.ts`)
-
-This file validates the implementation of Quadratic Voting (QV) and the ranking pipeline that determines which Kens (tasks) receive compute resources.
-
-Key Coverage:
-
-- Quadratic Cost Calculation: Ensures `quadraticCost` correctly implements $cost = votes^2$ [src/lib/allocation.ts#5-11](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L5-L11)
-- Credit Aggregation: Validates that `spentCredits` accurately sums the quadratic costs of multiple task allocations [src/lib/allocation.ts#115-117](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L115-L117)
-- Tier Assignment: Verifies that `tierForRank` maps ranks to the correct lanes (Months, Weeks, Days) [src/lib/allocation.ts#33-55](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L33-L55)
-- Ranking Pipeline: Tests `buildCategoryRankings`, ensuring that ineligible tasks (e.g., those in `review` stage or with `blocked` safety status) are excluded from the ladder regardless of their vote count [src/lib/allocation.ts#72-113](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L72-L113)
-
-Data Flow: Ranking and Allocation
-
-ComponentCode EntityRoleInput Data`RankingSeed`Interface for task metadata needed for ranking [src/lib/allocation.ts#57-65](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L57-L65)Filter/Sort`buildCategoryRankings`Groups tasks by category and sorts by votes/date [src/lib/allocation.ts#72-113](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L72-L113)Logic Gate`isEligibleForAllocation`Predicate checking `TaskStage` and `SafetyStatus`[src/lib/allocation.ts#17-31](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L17-L31)Output State`RankingResult`Contains the assigned `rank` and `AllocationTier`[src/lib/allocation.ts#67-70](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L67-L70)
-
-Sources: [src/lib/allocation.ts#1-132](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L1-L132)[tests/allocation.test.ts#1-38](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/allocation.test.ts#L1-L38)
-
-#### 2. Attestation Policy (`tests/attestation.test.ts`)
-
-This suite tests the "Attestation Ladder," which dynamically adjusts a user's permissions and voting power based on their identity verification status and Sybil risk.
-
-Key Coverage:
-
-- Voice Multipliers: Validates that `resolveParticipationPolicy` applies the correct multipliers (e.g., 0.8 for medium risk, 1.0 for verified low risk) [src/lib/attestation.ts#14-70](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L14-L70)
-- Capability Flags: Ensures that `read-only` states correctly disable `canSubmit`, `canComment`, and `canAllocateVoice`[src/lib/attestation.ts#19-30](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L19-L30)
-- Floor Logic: Confirms that `effectiveVoiceCredits` never drops below 1 for accounts that are not in a `read-only` state [src/lib/attestation.ts#38-52](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L38-L52)
-
-Mapping: Attestation Status to Code Capabilities
-
-Sources: [src/lib/attestation.ts#1-71](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L1-L71)[tests/attestation.test.ts#1-33](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/attestation.test.ts#L1-L33)
-
-#### 3. Economics and Treasury (`tests/economics.test.ts`)
-
-This suite ensures the financial integrity of the platform by testing revenue splits and treasury runway calculations.
-
-Key Coverage:
-
-- Revenue Splits: Validates `summarizeRevenueStream` correctly calculates the `treasuryMonthlyUsd` and `founderMonthlyUsd` based on percentage shares [src/lib/economics.ts#3-12](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L3-L12)
-- Treasury Reconciliation: Tests `summarizeEconomics` to ensure it correctly filters `TreasuryEntryRecord` items by the `compute-treasury` bucket and sums inflows/outflows [src/lib/economics.ts#14-49](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L14-L49)
-- Runway Calculation: Verifies `coverageMonths` logic (Treasury Balance / Public Burn) [src/lib/economics.ts#30](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L30-L30)
-- Restricted Funding: Confirms that entries with "restricted" in the title or description are correctly aggregated into `restrictedFundingUsd`[src/lib/economics.ts#31-33](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L31-L33)
-
-Economic Data Aggregation
-
-Sources: [src/lib/economics.ts#1-50](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L1-L50)[tests/economics.test.ts#1-123](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L1-L123)
-
-### How to Run Tests
-
-Tests are executed directly using the Node.js binary. Because the project uses TypeScript, the tests are typically run via a loader or after compilation.
-
-Standard Command:
-
-```
-node --test tests/*.test.ts
-```
-
-Testing Workflow:
-
-1. Modify Logic: Change a function in `src/lib/allocation.ts`.
-2. Run Test: Execute the corresponding test in `tests/allocation.test.ts`.
-3. Assert: The `node:assert/strict` module provides deep equality checks (`assert.deepEqual`) and strict type comparisons, ensuring the logic behaves as expected.
-
-### Summary Table: Test Coverage
-
-FileLibrary TargetKey Functions Tested`allocation.test.ts``allocation.ts``quadraticCost`, `buildCategoryRankings`, `tierForRank``attestation.test.ts``attestation.ts``resolveParticipationPolicy``economics.test.ts``economics.ts``summarizeRevenueStream`, `summarizeEconomics`
-
-Sources: [tests/allocation.test.ts#1-4](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/allocation.test.ts#L1-L4)[tests/attestation.test.ts#1-4](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/attestation.test.ts#L1-L4)[tests/economics.test.ts#1-4](https://github.com/lowestprime/KenMatch/blob/8218181e/tests/economics.test.ts#L1-L4)
-
----
-
-# Glossary
 
 # Glossary
 Relevant source files
 
 - [README.md](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md)
 - [docs/architecture.md](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md)
-- [src/app/actions.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts)
+- [docs/requirements-traceability.md](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/requirements-traceability.md)
 - [src/lib/allocation.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts)
 - [src/lib/attestation.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts)
 - [src/lib/db.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts)
 - [src/lib/economics.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts)
 - [src/lib/types.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts)
 
-This page defines the fundamental domain concepts, technical terms, and architectural entities used throughout the KenMatch codebase. It serves as a reference for onboarding engineers to map business requirements (e.g., "Quadratic Voting") to specific implementation files and functions.
+This page provides definitions for the domain-specific terminology, implementation patterns, and technical jargon used throughout the KenMatch codebase. It serves as a reference for mapping product concepts to their underlying code entities.
 
-## Core Domain Concepts
-
-The following terms represent the primary entities and rules governing the KenMatch platform.
+## Core Domain Terms
 
 ### Ken (Task)
 
-A Ken is the primary unit of work in the system. It represents a proposed long-horizon AI task that requires sustained computation. In the database and older parts of the code, this is often referred to as a `task`[docs/architecture.md#43](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L43-L43)
+A Ken is the primary unit of work in the system. It represents a proposal for long-horizon AI agentic effort. While the UI uses the term "Ken", the database and internal logic frequently refer to it as a `task` for legacy compatibility.
 
-- Implementation: Defined by the `TaskRecord` interface [src/lib/types.ts#105-126](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L105-L126) and stored in the `tasks` table [src/lib/db.ts#257-285](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L257-L285)
-- Stages: A Ken progresses through several stages: `review`, `voting`, `scheduled`, `running`, `shipped`, and `blocked`[src/lib/types.ts#7-8](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L7-L8)
+- Implementation: Defined by the `TaskRecord` interface [src/lib/types.ts#105-126](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L105-L126)
+- Data Flow: Persisted in the `tasks` table and managed via `src/lib/db.ts`[src/lib/db.ts#257-285](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L257-L285)
+
+### Allocation Tier
+
+The resource bucket assigned to a Ken based on its competitive ranking. Tiers define the duration of sustained compute.
+
+- Tiers: `months` (Top 3), `weeks` (Top 10), `days` (Top 100), `queued`, and `blocked`[src/lib/types.ts#4-5](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L4-L5)
+- Logic: Determined by `tierForRank`[src/lib/allocation.ts#33-55](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L33-L55)
 
 ### Voice Credits & Quadratic Voting
 
-Voice Credits are the scarce resource allocated to contributors to express the intensity of their preference for specific Kens [README.md#18](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L18-L18) KenMatch uses Quadratic Voting to ensure that the cost of concentrating influence on a single task increases exponentially.
+A scarce resource used by contributors to influence Ken ranking. Unlike simple upvotes, Voice Credits follow a quadratic cost curve to prevent single-interest capture.
 
-- Cost Formula: The cost in credits is the square of the votes assigned: $Cost = Votes^2$ [src/lib/allocation.ts#5-11](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L5-L11)
-- Limit: Users are restricted to a maximum of 6 votes per task (`MAX_VOTES_PER_TASK`) [src/lib/allocation.ts#3](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L3-L3)
-- Logic: Handled in `src/lib/allocation.ts`[src/lib/allocation.ts#1-132](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L1-L132)
-
-### Lanes (Allocation Tiers)
-
-Lanes represent the duration of sustained agentic effort assigned to a Ken based on its ranking within a category [README.md#87-95](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L87-L95)
-
-- Months: Top 3 projects [src/lib/allocation.ts#42-44](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L42-L44)
-- Weeks: Projects ranked 4-10 [src/lib/allocation.ts#46-48](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L46-L48)
-- Days: Projects ranked 11-100 [src/lib/allocation.ts#50-52](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L50-L52)
-- Queued/Blocked: Projects that do not meet the ranking or safety criteria [src/lib/allocation.ts#54-55](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L54-L55)
+- Quadratic Cost: $Cost = Votes^2$. Implemented in `quadraticCost`[src/lib/allocation.ts#5-11](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L5-L11)
+- Limit: Users are restricted by `MAX_VOTES_PER_TASK` (currently 6) [src/lib/allocation.ts#3](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L3-L3)
+- Storage: User balance is tracked in `profiles.voiceCredits`[src/lib/db.ts#218](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L218-L218)
 
 ### Pulse
 
-A Pulse is a "fast signal" (simple upvote or downvote) used for public sentiment, distinct from the "scarce voice" of quadratic credits [README.md#15-17](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L15-L17)
+The "fast signal" mechanism. Pulse represents simple binary sentiment (upvote/downvote) that does not consume scarce Voice Credits.
 
-- Implementation: Stored in the `task_pulse_votes` table [src/lib/db.ts#311-317](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L311-L317) and validated via `pulseSchema`[src/app/actions.ts#52-56](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L52-L56)
+- Implementation: `TaskPulseVoteRecord`[src/lib/types.ts#146-152](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L146-L152)
+- Separation: Pulse is stored in `task_pulse_votes`, separate from the `votes` table used for allocation [src/lib/db.ts#321-328](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L321-L328)
 
-### Attestation & Participation Policy
+---
 
-The system evaluates a user's identity and risk profile to determine their level of access.
+## Technical Concepts & Implementation Patterns
 
-- Participation States:`full`, `review-limited`, and `read-only`[src/lib/types.ts#46-47](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L46-L47)
-- Resolution: The `resolveParticipationPolicy` function maps `AttestationStatus` and `SybilRiskBand` to specific boolean capabilities like `canSubmit` or `canAllocateVoice`[src/lib/attestation.ts#14-70](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L14-L70)
+### Participation Policy
 
-Sources:[README.md#1-97](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L1-L97)[src/lib/types.ts#1-126](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L1-L126)[src/lib/allocation.ts#1-132](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L1-L132)[src/lib/attestation.ts#1-70](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L1-L70)
+A dynamic set of permissions calculated for a user based on their identity verification status and Sybil risk.
+
+- Function: `resolveParticipationPolicy`[src/lib/attestation.ts#14-70](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L14-L70)
+- States: `full`, `review-limited`, and `read-only`[src/lib/types.ts#46-47](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L46-L47)
+- Logic: Applies a `voiceMultiplier` to a user's credits based on `SybilRiskBand`[src/lib/attestation.ts#33-52](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L33-L52)
+
+### Checkpoint Gates
+
+Conditions that must be met during a Ken's execution to allow it to continue to the next phase.
+
+- Implementation: `CheckpointGateRecord`[src/lib/types.ts#215-220](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L215-L220)
+- Status: Tracked via `ReleaseStatus` (`approved`, `pending`, `held`) [src/lib/types.ts#19-20](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L19-L20)
+
+### Treasury Buckets
+
+The accounting structure for managing platform funds, distinguishing between operational capital and compute-specific sponsorship.
+
+- Compute Treasury: The primary bucket for funding public AI work [src/lib/economics.ts#28](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L28-L28)
+- Restricted Funding: Funds tied to specific labels or descriptions, excluded from general burn calculations [src/lib/economics.ts#31-33](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L31-L33)
 
 ---
 
 ## System Architecture Mapping
 
-The following diagram bridges the gap between the high-level system concepts and the actual code entities.
+The following diagrams bridge the gap between high-level concepts and the specific code entities that implement them.
 
-### Logic Flow: From User Action to Persistence
+### Mapping: Voting & Allocation Logic
 
-"This diagram illustrates how a user's intent (e.g., voting) flows through the Next.js Server Action layer into the Business Logic and finally the Database."
+This diagram shows how user actions flow through the allocation engine to determine project tiers.
 
-Sources:[src/app/actions.ts#1-212](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/actions.ts#L1-L212)[src/lib/db.ts#1-204](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L1-L204)[docs/architecture.md#1-118](https://github.com/lowestprime/KenMatch/blob/8218181e/docs/architecture.md#L1-L118)
+Sources: [src/lib/allocation.ts#5-11](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L5-L11)[src/lib/allocation.ts#33-55](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L33-L55)[src/lib/allocation.ts#72-113](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/allocation.ts#L72-L113)[src/lib/types.ts#4-5](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L4-L5)
 
----
+### Mapping: Attestation & Permissions
 
-## Technical Glossary
+This diagram maps the identity verification process to the enforcement of system limits.
 
-TermDefinitionCode PointerActionStateStandardized response type for Server Actions containing status and field errors.[src/app/action-state.ts](https://github.com/lowestprime/KenMatch/blob/8218181e/src/app/action-state.ts)libSQLThe database client used for local SQLite or remote Turso persistence.[src/lib/db.ts#14-17](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L14-L17)HydrationThe process of bulk-loading and calculating derived state (like rankings) into memory.[src/lib/db.ts#404-450](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L404-L450)Sybil RiskA categorization (`low`, `medium`, `high`) used to mitigate identity duplication attacks.[src/lib/types.ts#43-44](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L43-L44)Treasury ShareThe percentage of revenue from a stream routed to the public compute pool.[src/lib/economics.ts#4-5](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L4-L5)Checkpoint GateA governance mechanism requiring specific approval scores before releasing compute.[src/lib/types.ts#215-220](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L215-L220)
-
-### Data Model Entity Relationships
-
-"This diagram maps the core database tables and their relationships as defined in the `initializeDatabase` function."
-
-Sources:[src/lib/db.ts#204-380](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L204-L380)[src/lib/types.ts#55-255](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L55-L255)
+Sources: [src/lib/attestation.ts#14-70](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/attestation.ts#L14-L70)[src/lib/types.ts#43-47](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L43-L47)[src/lib/types.ts#78-86](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L78-L86)
 
 ---
 
-## Economic Terms
+## Abbreviations & Jargon Table
 
-### Revenue Engine
+TermDefinitionCode PointerLLMLarge Language Model; the "compute" resource being allocated.[README.md#87](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L87-L87)SybilA type of attack where one user creates multiple identities to subvert voting.[src/lib/types.ts#43-45](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L43-L45)Burn RateThe monthly USD cost of sustained AI computation for active Kens.[src/lib/economics.ts#17](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L17-L17)CoverageThe number of months the current treasury can sustain the burn rate.[src/lib/economics.ts#30](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L30-L30)BondA required credit deposit (Quality Bond) to propose a Ken in a specific tier.[src/lib/db.ts#87-91](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L87-L91)HouseGovernance bodies: `safety-council` or `allocation-chamber`.[src/lib/types.ts#16-17](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L16-L17)BackendThe specific AI infrastructure (e.g., "DGX-H100 Cluster") running the Ken.[src/lib/types.ts#124](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L124-L124)
 
-The mechanism by which a Ken or the platform generates value. Engines include `enterprise`, `data-licensing`, `compute-arbitrage`, and `sponsorship`[src/lib/types.ts#25-26](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L25-L26)
-
-### Coverage Months
-
-A derived metric calculated by `summarizeEconomics` representing the runway of the treasury balance relative to the current monthly public burn rate [src/lib/economics.ts#30](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L30-L30)
-
-### Restricted Funding
-
-Inflows marked specifically for a single Ken or purpose, detected by searching for "restricted" in the entry title or description [src/lib/economics.ts#31-33](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L31-L33)
-
-Sources:[src/lib/economics.ts#1-49](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L1-L49)[src/lib/types.ts#232-255](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L232-L255)
+Sources: [README.md#87](https://github.com/lowestprime/KenMatch/blob/8218181e/README.md#L87-L87)[src/lib/types.ts#16-17](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L16-L17)[src/lib/types.ts#43-45](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/types.ts#L43-L45)[src/lib/economics.ts#17-30](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/economics.ts#L17-L30)[src/lib/db.ts#87-91](https://github.com/lowestprime/KenMatch/blob/8218181e/src/lib/db.ts#L87-L91)
