@@ -514,38 +514,38 @@ The following diagram illustrates the relationship between the persistence layer
 **Persistence to Code Entity Mapping**
 ```mermaid
 graph TD
-    subgraph "Natural Language Space"
-        "User Profile"
-        "Ken (Task)"
-        "Quadratic Vote"
-        "Treasury Flow"
+    subgraph NaturalLanguageSpace["Natural Language Space"]
+        UserProfile["User Profile"]
+        KenTask["Ken (Task)"]
+        QuadraticVote["Quadratic Vote"]
+        TreasuryFlow["Treasury Flow"]
     end
 
-    subgraph "Code Entity Space (src/lib/types.ts)"
+    subgraph CodeEntitySpace["Code Entity Space (src/lib/types.ts)"]
         ProfileRecord["ProfileRecord"]
         TaskRecord["TaskRecord"]
         VoteRecord["VoteRecord"]
         TreasuryEntryRecord["TreasuryEntryRecord"]
     end
 
-    subgraph "Persistence Layer (src/lib/db.ts)"
-        libSQL[("libSQL / SQLite")]
-        ensureDB["ensureDatabase()"]
-        hydrate["hydrate()"]
+    subgraph PersistenceLayer["Persistence Layer (src/lib/db.ts)"]
+        LibSQL[("libSQL / SQLite")]
+        EnsureDB["ensureDatabase()"]
+        Hydrate["hydrate()"]
     end
 
-    "User Profile" --- ProfileRecord
-    "Ken (Task)" --- TaskRecord
-    "Quadratic Vote" --- VoteRecord
-    "Treasury Flow" --- TreasuryEntryRecord
+    UserProfile --- ProfileRecord
+    KenTask --- TaskRecord
+    QuadraticVote --- VoteRecord
+    TreasuryFlow --- TreasuryEntryRecord
 
-    ProfileRecord --- libSQL
-    TaskRecord --- libSQL
-    VoteRecord --- libSQL
-    TreasuryEntryRecord --- libSQL
+    ProfileRecord --- LibSQL
+    TaskRecord --- LibSQL
+    VoteRecord --- LibSQL
+    TreasuryEntryRecord --- LibSQL
 
-    ensureDB --> libSQL
-    libSQL --> hydrate
+    EnsureDB --> LibSQL
+    LibSQL --> Hydrate
 ```
 **Sources:** [src/lib/db.ts:121-127](), [src/lib/types.ts:63-255]()
 
@@ -1448,33 +1448,33 @@ The following diagram maps the natural language economic concepts to the specifi
 **Domain to Code Entity Mapping**
 ```mermaid
 classDiagram
-    class "Treasury Accounting" {
+    class TreasuryAccounting {
         +summarizeEconomics()
         +summarizeRevenueStream()
     }
 
-    class "RevenueStreamRecord" {
+    class RevenueStreamRecord {
         +monthlyRevenueUsd: number
         +treasurySharePercent: number
-        +status: "live" | "pilot" | "planned"
+        +status: live|pilot|planned
     }
 
-    class "TreasuryEntryRecord" {
-        +bucket: "compute-treasury" | "founder-ops"
-        +direction: "inflow" | "outflow"
+    class TreasuryEntryRecord {
+        +bucket: compute_treasury|founder_ops
+        +direction: inflow|outflow
         +amountUsd: number
     }
 
-    class "EconomicsSummary" {
+    class EconomicsSummary {
         +treasuryBalanceUsd: number
         +coverageMonths: number
         +restrictedFundingUsd: number
         +verifiedFundingStreams: number
     }
 
-    "Treasury Accounting" ..> "RevenueStreamRecord" : processes
-    "Treasury Accounting" ..> "TreasuryEntryRecord" : processes
-    "Treasury Accounting" ..> "EconomicsSummary" : produces
+    TreasuryAccounting ..> RevenueStreamRecord : processes
+    TreasuryAccounting ..> TreasuryEntryRecord : processes
+    TreasuryAccounting ..> EconomicsSummary : produces
 ```
 
 **Sources:**
@@ -2855,18 +2855,18 @@ The following diagram illustrates how raw task data is transformed into a rankin
 **Allocation Ranking Flow**
 ```mermaid
 graph TD
-    subgraph "Natural Language Space"
-        "User Votes" --> "Influence"
-        "Influence" --> "Resource Tier"
+    subgraph NaturalLanguageSpace["Natural Language Space"]
+        UserVotes["User Votes"] --> Influence["Influence"]
+        Influence --> ResourceTier["Resource Tier"]
     end
 
-    subgraph "Code Entity Space"
-        A["Task Objects (id, totalVotes, safetyStatus)"] -- "buildCategoryRankings()" --> B["Rankings Map"]
-        B -- "rank: 1, 2, 3" --> C["tier: 'months'"]
-        B -- "rank: 4-10" --> D["tier: 'weeks'"]
-        B -- "rank: 11+" --> E["tier: 'days'"]
-        A -- "safetyStatus: 'blocked'" --> F["tier: 'blocked'"]
-        A -- "totalVotes: 0" --> G["tier: 'queued'"]
+    subgraph CodeEntitySpace["Code Entity Space"]
+        A["Task Objects (id, totalVotes, safetyStatus)"] -->|buildCategoryRankings| B["Rankings Map"]
+        B -->|rank 1-3| C["tier: months"]
+        B -->|rank 4-10| D["tier: weeks"]
+        B -->|rank 11+| E["tier: days"]
+        A -->|safetyStatus: blocked| F["tier: blocked"]
+        A -->|totalVotes: 0| G["tier: queued"]
     end
 ```
 **Sources:** [tests/allocation.test.ts:24-38](), [src/lib/allocation.ts:4-5]()
@@ -2891,26 +2891,26 @@ This diagram maps the inputs of `resolveParticipationPolicy` to the resulting sy
 **Attestation Policy Resolution**
 ```mermaid
 graph TD
-    subgraph "Natural Language Space"
-        "Trust Level" --> "Policy"
-        "Risk Assessment" --> "Policy"
+    subgraph NaturalLanguageSpace["Natural Language Space"]
+        TrustLevel["Trust Level"] --> Policy["Policy"]
+        RiskAssessment["Risk Assessment"] --> Policy
     end
 
-    subgraph "Code Entity Space"
+    subgraph CodeEntitySpace["Code Entity Space"]
         Input["resolveParticipationPolicy(status, risk, credits)"]
-        
-        Input -- "verified + low" --> Full["state: 'full'"]
-        Input -- "review + medium" --> Limited["state: 'review-limited'"]
-        Input -- "limited + high" --> RO["state: 'read-only'"]
+
+        Input -->|verified + low| Full["state: full"]
+        Input -->|review + medium| Limited["state: review-limited"]
+        Input -->|limited + high| ReadOnly["state: read-only"]
 
         Full --> P1["canAllocateVoice: true"]
         Full --> P2["canSubmit: true"]
 
-        Limited --> P3["effectiveVoiceCredits: (capped)"]
+        Limited --> P3["effectiveVoiceCredits: capped"]
         Limited --> P4["canComment: true"]
 
-        RO --> P5["effectiveVoiceCredits: 0"]
-        RO --> P6["canSubmit: false"]
+        ReadOnly --> P5["effectiveVoiceCredits: 0"]
+        ReadOnly --> P6["canSubmit: false"]
     end
 ```
 **Sources:** [tests/attestation.test.ts:6-32](), [src/lib/attestation.ts:4-4]()
