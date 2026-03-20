@@ -2472,24 +2472,17 @@ The following diagram maps the conceptual "Ken" entities to their specific React
 **Ken UI Entity Mapping**
 ```mermaid
 graph TD
-    subgraph "Board Context"
-        A["Ken Gallery"] --> B["TaskBoardFilters"]
-        A --> C["TaskCard"]
+    subgraph BoardContext["Board Context"]
+        A["Ken Gallery"] --> B["TaskBoardFilters (task-board-filters.tsx)"]
+        A --> C["TaskCard (task-card.tsx)"]
     end
 
-    subgraph "Detail Context"
-        D["Ken Detail Page"] --> E["KenTimingStrip"]
-        D --> F["VotePanel"]
-        D --> G["TaskPulsePanel"]
-        D --> H["DiscussionThread"]
+    subgraph DetailContext["Detail Context"]
+        D["Ken Detail Page"] --> E["KenTimingStrip (ken-timing-strip.tsx)"]
+        D --> F["VotePanel (vote-panel.tsx)"]
+        D --> G["TaskPulsePanel (task-pulse-panel.tsx)"]
+        D --> H["DiscussionThread (discussion-thread.tsx)"]
     end
-
-    B["TaskBoardFilters (task-board-filters.tsx)"]
-    C["TaskCard (task-card.tsx)"]
-    E["KenTimingStrip (ken-timing-strip.tsx)"]
-    F["VotePanel (vote-panel.tsx)"]
-    G["TaskPulsePanel (task-pulse-panel.tsx)"]
-    H["DiscussionThread (discussion-thread.tsx)"]
 ```
 **Sources:** `[src/components/task-board-filters.tsx:15-15]()`, `[src/components/task-card.tsx:15-15]()`, `[src/components/ken-timing-strip.tsx:4-4]()`, `[src/components/vote-panel.tsx:10-10]()`, `[src/components/task-pulse-panel.tsx:8-8]()`, `[src/components/discussion-thread.tsx:10-10]()`
 
