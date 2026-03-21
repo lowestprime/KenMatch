@@ -1,24 +1,23 @@
 # KenMatch
+
 KenMatch is a public board for proposing, ranking, funding, launching, and auditing long-running AI work. Each unit of work is called a **Ken**. A Ken can be an open tool, a civic workflow, a scientific evidence map, a repair assistant, or a creative service that benefits from sustained compute, checkpoints, public feedback, and visible funding.
 
-## Concept Website
-### 1. [KenMatch Concept Website](https://k.lowestprime.synology.me)
+## [KenMatch Platform Simulation](https://k.lowestprime.synology.me)
 
-## Learn More
-### 1. [KenMatch\_Conception.md](./KenMatch_Conception.md)
-### 2. [KenMatch\_DeepWiki.md](./KenMatch_DeepWiki.md)
+## Mission and Background
 
-## Mission & Background
 KenMatch democratizes access to continuous frontier AI by crowdsourcing *which* long-horizon tasks deserve sustained enterprise-grade computation, effectively allocating days, weeks, and months of agentic runtime in accordance with the transparently-resolved quantification of tasks&rsquo; collective value, independent of personal wealth. ([1](https://deepmind.google/models/model-cards/gemini-3-1-pro/))([2](https://developers.openai.com/api/docs/models/gpt-5.4))([12](https://openai.com/index/introducing-gpt-5-4/))([5](https://platform.claude.com/docs/en/about-claude/models/overview))([3](https://www.anthropic.com/news/claude-opus-4-6))([4](https://x.ai/api))
 
 As frontier models evolve from short, single-turn assistants into long-context, tool-using agents&mdash;systems explicitly designed to plan, operate software, and execute multi-step workflows&mdash;access to &ldquo;a few queries&rdquo; is no longer the dividing line. The dividing line becomes one&rsquo;s **access and representation to direct sustained agentic effort**: over hours, days, weeks, and toward the most complex applications, months. Major frontier providers now document million-token-class contexts and agentic computer-use capabilities as first-class features, underscoring a trajectory seeking to broaden the adoption and application of long-horizon computation across economic sectors. ([1](https://deepmind.google/models/model-cards/gemini-3-1-pro/))([2](https://developers.openai.com/api/docs/models/gpt-5.4))([3](https://www.anthropic.com/news/claude-opus-4-6))([4](https://x.ai/api))
 
-## Product shape
+## Concept
 
 ### Kens
+
 A Ken is a proposed unit of long-running AI work. The public board shows its goal, evidence, risks, requested lane, funding path, current review state, launch timing, and audit trail.
 
-### Public participation
+### Public Participation
+
 KenMatch separates fast public signal from scarce allocation voice:
 
 - Public vote: simple upvote or downvote support.
@@ -26,7 +25,8 @@ KenMatch separates fast public signal from scarce allocation voice:
 - Comments: threaded, voted, timestamped discussion with visible stake.
 - Attestation policy: new or partially reviewed accounts can participate with review-aware limits until stronger verification lands.
 
-### Launch and review
+### Launch and Review
+
 Kens can stay public before launch. Launch requires visible release conditions:
 
 - safety status
@@ -36,6 +36,7 @@ Kens can stay public before launch. Launch requires visible release conditions:
 - run updates and evidence logs
 
 ### Funding
+
 KenMatch keeps funding legible without turning rank into a purchasable advantage:
 
 - sponsor pools tied to specific Kens
@@ -43,7 +44,7 @@ KenMatch keeps funding legible without turning rank into a purchasable advantage
 - committed and projected support shown separately
 - founder and operations split reported separately from public compute support
 
-## **Coordination**
+## Coordination
 
 KenMatch centralizes the proposal, refinement, and prioritization of &ldquo;long-horizon tasks,&rdquo; including, but not limited to:
 
@@ -57,7 +58,7 @@ KenMatch centralizes the proposal, refinement, and prioritization of &ldquo;long
 
 The platform is designed for tasks that are naturally multi-stage: they require planning, intermediate checkpoints, continuous evaluation, and the ability to pause and resume without losing state.
 
-## **Proof-of-value Allocation Credits**
+## Proof-of-value Allocation Credits
 
 KenMatch&rsquo;s allocation credits are not a pay-to-win instrument. In KenMatch&rsquo;s intended design, **allocation rights are earned** through contribution and curation, not purchased.
 
@@ -73,7 +74,7 @@ Users earn &ldquo;proof-of-value&rdquo; credits by doing work the community can 
 
 The governance literature on token platforms emphasizes that token issuance can align incentives under some conditions, but token voting also introduces capture risks and demands careful mechanism design. KenMatch therefore treats tokens as **allocation credentials**, not a speculative asset class. ([13](https://www.philadelphiafed.org/the-economy/banking-and-financial-markets/token-based-platform-governance))([14](https://www.sciencedirect.com/science/article/pii/S2405896325031519))
 
-## **Democratic Ranking with Safeguards**
+## Safeguarded Democratic Ranking
 
 KenMatch&rsquo;s &ldquo;value&rdquo; cannot be a single number. It must be the result of a process that is:
 
@@ -89,7 +90,7 @@ A defensible default for expressing intensity of preference is quadratic voting,
 
 KenMatch pairs broad voting with a constrained &ldquo;safety and validity&rdquo; layer that can block tasks that plausibly create severe harm or cannot be evaluated responsibly. This is aligned with mainstream AI risk management guidance (governance, measurement, monitoring, and mitigation), instead of a blind trust approach. ([24](https://deepmind.google/discover/blog/introducing-the-frontier-safety-framework/))([25](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-ai-rmf-10))([26](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence))([27](https://www.oecd.org/en/topics/ai-principles.html))
 
-## **Allocation Protocol**
+## Allocation Protocol
 
 KenMatch organizes long-horizon computational tasks into explicit duration tiers, because the duration of frontier LLM&rsquo;s sustained computational effort is a finite resource, while the management of energy use and facilities pose additional constraints.
 
@@ -103,7 +104,7 @@ KenMatch&rsquo;s baseline tiering is:
 
 Modern accelerator systems are power-dense (e.g., DGX-class systems are in the tens of kilowatts), and at national and global scale data center electricity demand is now a material planning variable. Long-horizon allocations must therefore be explicit about duration, checkpointing, and rollback, as well as about evaluation and stopping conditions. ([6](https://www.energy.gov/articles/doe-releases-new-report-evaluating-increase-electricity-demand-data-centers))([7](https://www.iea.org/reports/energy-and-ai/energy-demand-from-ai))([10](https://www.nvidia.com/en-us/data-center/dgx-b200/))
 
-## **Execution Layer Neutrality**
+## Execution Layer Neutrality
 
 KenMatch is **execution-layer neutral** by design: it can route long-horizon computation to (1) enterprise APIs, (2) dedicated clusters, and/or (3) decentralized computation networks with verifiable work.
 
@@ -117,7 +118,7 @@ Decentralized computation is an active design space with concrete architectures:
 
 KenMatch contends that **the collective deserves a legitimate mechanism to determine which ideas and problems will benefit from the long-horizon effort of elite LLMs**, without defaulting to wealth as the allocator.
 
-## **Stewardship, Legitimacy, and Public Benefit**
+## Stewardship, Legitimacy, and Public Benefit
 
 KenMatch treats legitimacy as a product requirement.
 
@@ -133,7 +134,7 @@ A credible democratic computation platform must:
 
 This stance reflects widely adopted principles for AI alignment, including risk management, accountability, transparency, and respect for human rights and democratic values. ([24](https://deepmind.google/discover/blog/introducing-the-frontier-safety-framework/))([25](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-ai-rmf-10))([26](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence))([27](https://www.oecd.org/en/topics/ai-principles.html))
 
-## **Vision**
+## Vision
 
 KenMatch seeks to equalize the **long-horizon deployment of frontier AI toward the realization of collective value.** This necessitates broad participation to identify the most brilliant and innovative ideas across humanity&rsquo;s collective creativity, taste, and imagination. As equal stakeholders in a society increasingly permeated by unprecedented computational intelligence, we have a right to curate the most promising ideas of collective value for frontier autonomous AI deployment. **Capital constraints should never computationally constrain our best ideas.**
 
@@ -167,7 +168,7 @@ KenMatch seeks to equalize the **long-horizon deployment of frontier AI toward t
 - [libSQL TypeScript client](https://docs.turso.tech/sdk/ts/quickstart) for local-file or remote libSQL persistence
 - [`zod`](https://zod.dev) for form and environment validation
 
-## Running locally
+## Local Development
 
 ```bash
 npm install
@@ -211,7 +212,7 @@ KenMatch ships with a standalone Next.js build configuration and a Docker image 
 - Security headers are configured in [next.config.ts](./next.config.ts).
 - For Synology NAS deployment, use [docs/synology-nas-deploy.md](./docs/synology-nas-deploy.md).
 
-## Main routes
+## Main Routes
 
 - `/` overview and featured Kens
 - `/kens` public Ken board
@@ -223,7 +224,7 @@ KenMatch ships with a standalone Next.js build configuration and a Docker image 
 
 Legacy `/tasks` routes now redirect to `/kens` routes.
 
-## Repo map
+## Repo Map
 
 - `src/app` routes, layout, health endpoint, and server actions
 - `src/components` public UI, timing display, voting, comments, auth, and shell
@@ -239,7 +240,14 @@ Legacy `/tasks` routes now redirect to `/kens` routes.
 - The default local deployment uses a file-backed libSQL database. For public internet deployment, use a managed remote libSQL instance when possible.
 - Synology NAS hosting can run entirely self-contained with the included compose file and a mounted local data directory.
 
+## Learn More
+
+### 1. [KenMatch\_Conception.md](./KenMatch_Conception.md)
+
+### 2. [KenMatch\_DeepWiki.md](./KenMatch_DeepWiki.md)
+
 ## References
+
 1. Data center energy demand and projections: U.S. Department of Energy summary of LBNL report (U.S. share, 176 TWh, 2028 projections). ([6](https://www.energy.gov/articles/doe-releases-new-report-evaluating-increase-electricity-demand-data-centers))([7](https://www.iea.org/reports/energy-and-ai/energy-demand-from-ai))([8](https://www.iea.org/reports/energy-and-ai/executive-summary%C2%A0))  
 2. Global data center electricity demand: International Energy Agency Energy and AI report pages (415 TWh in 2024; 945 TWh by 2030; sensitivity cases). ([7](https://www.iea.org/reports/energy-and-ai/energy-demand-from-ai))([8](https://www.iea.org/reports/energy-and-ai/executive-summary%C2%A0))  
 3. Hardware power density: NVIDIA specs for H100 TDP and DGX B200 system power usage. ([9](https://www.nvidia.com/en-in/data-center/h100/))([10](https://www.nvidia.com/en-us/data-center/dgx-b200/))  
