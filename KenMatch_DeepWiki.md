@@ -47,36 +47,34 @@ The following files were used as context for generating this wiki page:
 
 </details>
 
+KenMatch is a public coordination platform designed to democratize access to long-horizon, frontier-grade AI computation [README.md:2-5](README.md?plain=1#L2-L5). It provides a structured framework for proposing, ranking, funding, and auditing AI "Kens"—units of work that require sustained agentic effort over days, weeks, or months [README.md:11-12](README.md?plain=1#L11-L12).
 
-
-KenMatch is a public coordination platform designed to democratize access to long-horizon, frontier-grade AI computation [README.md:2-5](). It provides a structured framework for proposing, ranking, funding, and auditing AI "Kens"—units of work that require sustained agentic effort over days, weeks, or months [README.md:11-12]().
-
-The system moves beyond simple query-based interactions, treating continuous computation as a finite resource to be allocated through collective judgment rather than market power [KenMatch_Conception.md:41-44]().
+The system moves beyond simple query-based interactions, treating continuous computation as a finite resource to be allocated through collective judgment rather than market power [KenMatch_Conception.md:41-44](KenMatch_Conception.md?plain=1#L41-L44).
 
 ## Mission and Purpose
 
-The mission of KenMatch is to ensure that the most complex and high-value AI tasks—such as deep scientific research, software maintenance, and public-interest analysis—receive the necessary "agentic runtime" based on transparently resolved social value [README.md:5-7](), [README.md:41-49]().
+The mission of KenMatch is to ensure that the most complex and high-value AI tasks—such as deep scientific research, software maintenance, and public-interest analysis—receive the necessary "agentic runtime" based on transparently resolved social value [README.md:5-7](README.md?plain=1#L5-L7), [README.md:41-49](README.md?plain=1#L41-L49).
 
 Key objectives include:
-*   **Democratic Ranking**: Using Quadratic Voting to allow users to express preference intensity while preventing "pay-to-win" dynamics [README.md:69-82]().
-*   **Legible Funding**: Tracking treasury flows, sponsor pools, and revenue without allowing financial contribution to directly purchase rank [README.md:31-38]().
-*   **Operational Transparency**: Providing audit trails, checkpoint gates, and safety status for all active runs [README.md:22-30]().
+*   **Democratic Ranking**: Using Quadratic Voting to allow users to express preference intensity while preventing "pay-to-win" dynamics [README.md:69-82](README.md?plain=1#L69-L82).
+*   **Legible Funding**: Tracking treasury flows, sponsor pools, and revenue without allowing financial contribution to directly purchase rank [README.md:31-38](README.md?plain=1#L31-L38).
+*   **Operational Transparency**: Providing audit trails, checkpoint gates, and safety status for all active runs [README.md:22-30](README.md?plain=1#L22-L30).
 
 ## Key Concepts
 
 KenMatch introduces several domain-specific concepts to manage the lifecycle of long-running AI tasks:
 
-*   **Kens (Tasks)**: The primary unit of work. Internally referred to as `tasks` in the schema [docs/architecture.md:43](), a Ken defines a goal, requested duration (lane), and deliverables [README.md:11-12]().
-*   **Lanes**: Duration-based tiers for computation: **Months** (Top 3), **Weeks** (Top 10), and **Days** (Top 100) per category [README.md:89-96]().
-*   **Voice Credits**: Scarce allocation rights earned through contribution, used for quadratic voting on Kens [README.md:53-67]().
-*   **Pulse**: Fast, public signal (upvotes/downvotes) separate from the scarce allocation voice [README.md:14-17]().
-*   **Attestation**: A sybil-resistance layer that determines a profile's participation limits and voice multipliers [docs/architecture.md:64]().
+*   **Kens (Tasks)**: The primary unit of work. Internally referred to as `tasks` in the schema [docs/architecture.md:43](docs/architecture.md?plain=1#L43), a Ken defines a goal, requested duration (lane), and deliverables [README.md:11-12](README.md?plain=1#L11-L12).
+*   **Lanes**: Duration-based tiers for computation: **Months** (Top 3), **Weeks** (Top 10), and **Days** (Top 100) per category [README.md:89-96](README.md?plain=1#L89-L96).
+*   **Voice Credits**: Scarce allocation rights earned through contribution, used for quadratic voting on Kens [README.md:53-67](README.md?plain=1#L53-L67).
+*   **Pulse**: Fast, public signal (upvotes/downvotes) separate from the scarce allocation voice [README.md:14-17](README.md?plain=1#L14-L17).
+*   **Attestation**: A sybil-resistance layer that determines a profile's participation limits and voice multipliers [docs/architecture.md:64](docs/architecture.md?plain=1#L64).
 
 For a full breakdown of these terms and their implementation, see **[Core Concepts and Terminology](#1.1)**.
 
 ## System Architecture
 
-KenMatch is built as a modern **Next.js 16 App Router** application [docs/architecture.md:5](). It uses **libSQL** for persistence, supporting both local file-based SQLite and remote instances [docs/architecture.md:8]().
+KenMatch is built as a modern **Next.js 16 App Router** application [docs/architecture.md:5](docs/architecture.md?plain=1#L5). It uses **libSQL** for persistence, supporting both local file-based SQLite and remote instances [docs/architecture.md:8](docs/architecture.md?plain=1#L8).
 
 ### Subsystem Interaction
 
@@ -105,7 +103,7 @@ graph TD
         J -- "Manages" --> I
     end
 ```
-**Sources:** [docs/architecture.md:12-35](), [docs/architecture.md:89-92](), [docs/architecture.md:43-45]()
+**Sources:** [docs/architecture.md:12-35](docs/architecture.md?plain=1#L12-L35), [docs/architecture.md:89-92](docs/architecture.md?plain=1#L89-L92), [docs/architecture.md:43-45](docs/architecture.md?plain=1#L43-L45)
 
 **Diagram 2: Governance and Economics Relationship**
 This diagram illustrates how the system balances financial inputs with governance outputs.
@@ -127,7 +125,7 @@ graph LR
     I -- "Weights" --> J["Voting Power"]
     B -- "Calculates" --> K["Burn Rate / Coverage"]
 ```
-**Sources:** [docs/architecture.md:22-25](), [docs/architecture.md:54-57](), [docs/architecture.md:61-64]()
+**Sources:** [docs/architecture.md:22-25](docs/architecture.md?plain=1#L22-L25), [docs/architecture.md:54-57](docs/architecture.md?plain=1#L54-L57), [docs/architecture.md:61-64](docs/architecture.md?plain=1#L61-L64)
 
 For details on the technical stack and module relationships, see **[System Architecture Overview](#1.2)**.
 
@@ -166,72 +164,72 @@ This page defines the foundational domain vocabulary and technical concepts of t
 
 ## Kens and Tasks
 
-A **Ken** is the primary unit of work in KenMatch. It represents a proposed long-horizon AI task requiring sustained computation [README.md:2-5](). In the codebase, Kens are primarily represented by the `TaskRecord` interface and the `tasks` table [src/lib/types.ts:105-126]().
+A **Ken** is the primary unit of work in KenMatch. It represents a proposed long-horizon AI task requiring sustained computation [README.md:2-5](README.md?plain=1#L2-L5). In the codebase, Kens are primarily represented by the `TaskRecord` interface and the `tasks` table [src/lib/types.ts:105-126](src/lib/types.ts#L105-L126).
 
 | Term | Code Entity | Description |
 | :--- | :--- | :--- |
 | **Ken** | `TaskRecord` | The public-facing name for a project proposal. |
-| **Task** | `tasks` (DB Table) | The internal database identifier for a Ken [docs/requirements-traceability.md:68-70](). |
-| **Stage** | `TaskStage` | The lifecycle state: `review`, `voting`, `scheduled`, `running`, `shipped`, or `blocked` [src/lib/types.ts:7-8](). |
-| **Category** | `CategoryRecord` | The thematic grouping (e.g., "creative-works", "scientific-research") [src/lib/types.ts:55-61](). |
+| **Task** | `tasks` (DB Table) | The internal database identifier for a Ken [docs/requirements-traceability.md:68-70](docs/requirements-traceability.md?plain=1#L68-L70). |
+| **Stage** | `TaskStage` | The lifecycle state: `review`, `voting`, `scheduled`, `running`, `shipped`, or `blocked` [src/lib/types.ts:7-8](src/lib/types.ts#L7-L8). |
+| **Category** | `CategoryRecord` | The thematic grouping (e.g., "creative-works", "scientific-research") [src/lib/types.ts:55-61](src/lib/types.ts#L55-L61). |
 
-**Sources:** [README.md:11-12](), [src/lib/types.ts:7-8, 105-126](), [docs/requirements-traceability.md:68-70]()
+**Sources:** [README.md:11-12](README.md?plain=1#L11-L12), [src/lib/types.ts:7-8](src/lib/types.ts#L7-L8), [src/lib/types.ts:105-126](src/lib/types.ts#L105-L126), [docs/requirements-traceability.md:68-70](docs/requirements-traceability.md?plain=1#L68-L70)
 
 ## Allocation and Duration Tiers
 
-KenMatch organizes work into explicit **Duration Tiers** (Lanes). Because frontier model compute is a finite resource, Kens compete for specific time-bound allocations [README.md:87-89]().
+KenMatch organizes work into explicit **Duration Tiers** (Lanes). Because frontier model compute is a finite resource, Kens compete for specific time-bound allocations [README.md:87-89](README.md?plain=1#L87-L89).
 
 ### Tier Logic
 The system uses a tiered ranking system defined in `src/lib/allocation.ts`. Projects are ranked by their quadratic vote totals within their category.
-*   **Months**: Top 3 projects per category [README.md:91]().
-*   **Weeks**: Top 10 projects per category [README.md:93]().
-*   **Days**: Top 100 projects per category [README.md:95]().
+*   **Months**: Top 3 projects per category [README.md:91](README.md?plain=1#L91).
+*   **Weeks**: Top 10 projects per category [README.md:93](README.md?plain=1#L93).
+*   **Days**: Top 100 projects per category [README.md:95](README.md?plain=1#L95).
 
 ### Code Mapping: Tiers
-The `AllocationTier` type includes `months`, `weeks`, `days`, `queued`, and `blocked` [src/lib/types.ts:4-5](). The function `tierForRank()` in `src/lib/allocation.ts` maps a numerical rank to these tiers based on the constants `MAX_MONTHS_RANK` and `MAX_WEEKS_RANK`.
+The `AllocationTier` type includes `months`, `weeks`, `days`, `queued`, and `blocked` [src/lib/types.ts:4-5](src/lib/types.ts#L4-L5). The function `tierForRank()` in `src/lib/allocation.ts` maps a numerical rank to these tiers based on the constants `MAX_MONTHS_RANK` and `MAX_WEEKS_RANK`.
 
-**Sources:** [README.md:87-96](), [src/lib/types.ts:1-5](), [src/lib/allocation.ts:101-110]()
+**Sources:** [README.md:87-96](README.md?plain=1#L87-L96), [src/lib/types.ts:1-5](src/lib/types.ts#L1-L5), [src/lib/allocation.ts:101-110](src/lib/allocation.ts#L101-L110)
 
 ## Voice Credits and Quadratic Voting
 
-KenMatch distinguishes between "Public Signal" (Pulse) and "Scarce Allocation Voice" (Quadratic Voting) [README.md:15-18]().
+KenMatch distinguishes between "Public Signal" (Pulse) and "Scarce Allocation Voice" (Quadratic Voting) [README.md:15-18](README.md?plain=1#L15-L18).
 
 ### Quadratic Voting (QV)
 The cost to influence a Ken's rank grows quadratically relative to the number of votes cast by a single profile.
-*   **Formula**: $\text{Cost} = \text{Votes}^2$ [README.md:81-82]().
-*   **Implementation**: `quadraticCost(votes: number)` calculates the total credits required for a specific vote count [src/lib/allocation.ts:12-14]().
-*   **Incremental Cost**: `incrementalQuadraticCost(currentVotes: number, additional: number)` calculates the cost to add more votes to an existing position [src/lib/allocation.ts:16-19]().
+*   **Formula**: $\text{Cost} = \text{Votes}^2$ [README.md:81-82](README.md?plain=1#L81-L82).
+*   **Implementation**: `quadraticCost(votes: number)` calculates the total credits required for a specific vote count [src/lib/allocation.ts:12-14](src/lib/allocation.ts#L12-L14).
+*   **Incremental Cost**: `incrementalQuadraticCost(currentVotes: number, additional: number)` calculates the cost to add more votes to an existing position [src/lib/allocation.ts:16-19](src/lib/allocation.ts#L16-L19).
 
 ### Pulse
-Pulse represents simple upvote/downvote support without credit expenditure [README.md:17](). It is tracked via the `task_pulse_votes` table and the `PulseDirection` type (-1 or 1) [src/lib/types.ts:22-23, 146-152]().
+Pulse represents simple upvote/downvote support without credit expenditure [README.md:17](README.md?plain=1#L17). It is tracked via the `task_pulse_votes` table and the `PulseDirection` type (-1 or 1) [src/lib/types.ts:22-23](src/lib/types.ts#L22-L23), [src/lib/types.ts:146-152](src/lib/types.ts#L146-L152).
 
-**Sources:** [README.md:15-19, 81-82](), [src/lib/allocation.ts:12-19](), [src/lib/types.ts:22-23, 137-152]()
+**Sources:** [README.md:15-19](README.md?plain=1#L15-L19), [README.md:81-82](README.md?plain=1#L81-L82), [src/lib/allocation.ts:12-19](src/lib/allocation.ts#L12-L19), [src/lib/types.ts:22-23](src/lib/types.ts#L22-L23), [src/lib/types.ts:137-152](src/lib/types.ts#L137-L152)
 
 ## Attestation and Participation Policy
 
-To ensure sybil resistance and platform integrity, KenMatch uses **Attestations** to gate user capabilities [README.md:69-75]().
+To ensure sybil resistance and platform integrity, KenMatch uses **Attestations** to gate user capabilities [README.md:69-75](README.md?plain=1#L69-L75).
 
 ### Sybil Risk and Participation
-Profiles are assigned a `SybilRiskBand` (`low`, `medium`, `high`) and an `AttestationStatus` (`verified`, `review`, `limited`) [src/lib/types.ts:40-44](). The function `resolveParticipationPolicy()` in `src/lib/attestation.ts` maps these signals to a `ParticipationState`:
+Profiles are assigned a `SybilRiskBand` (`low`, `medium`, `high`) and an `AttestationStatus` (`verified`, `review`, `limited`) [src/lib/types.ts:40-44](src/lib/types.ts#L40-L44). The function `resolveParticipationPolicy()` in `src/lib/attestation.ts` maps these signals to a `ParticipationState`:
 
 1.  **Full**: Unrestricted voting and commenting.
 2.  **Review-Limited**: Participation allowed but subject to moderation queues or caps.
 3.  **Read-Only**: Profile cannot cast votes or post comments.
 
 ### Voice Multiplier
-Verified profiles may receive a `voiceMultiplier` (e.g., 1.5x) that increases the impact of their credits without increasing the cost [src/lib/attestation.ts:40-60]().
+Verified profiles may receive a `voiceMultiplier` (e.g., 1.5x) that increases the impact of their credits without increasing the cost [src/lib/attestation.ts:40-60](src/lib/attestation.ts#L40-L60).
 
-**Sources:** [src/lib/types.ts:40-48, 78-86](), [src/lib/attestation.ts:25-60](), [docs/requirements-traceability.md:19-22]()
+**Sources:** [src/lib/types.ts:40-48](src/lib/types.ts#L40-L48), [src/lib/types.ts:78-86](src/lib/types.ts#L78-L86), [src/lib/attestation.ts:25-60](src/lib/attestation.ts#L25-L60), [docs/requirements-traceability.md:19-22](docs/requirements-traceability.md?plain=1#L19-L22)
 
 ## Execution: Pulse, Checkpoints, and Gates
 
-Once a Ken moves into the `running` stage, it is managed via `ComputeRunRecord` [src/lib/types.ts:172-182]().
+Once a Ken moves into the `running` stage, it is managed via `ComputeRunRecord` [src/lib/types.ts:172-182](src/lib/types.ts#L172-L182).
 
-*   **Pulse**: The real-time activity and sentiment surrounding a Ken, visualized in `TaskPulsePanel` [src/components/task-pulse-panel.tsx]().
-*   **Checkpoint**: A scheduled milestone in a Ken's execution [src/lib/types.ts:206-213]().
-*   **Checkpoint Gate**: A governance mechanism that requires an `approvalScore` to exceed a `requiredApprovals` threshold before the run can proceed to the next phase [src/lib/types.ts:215-220]().
+*   **Pulse**: The real-time activity and sentiment surrounding a Ken, visualized in `TaskPulsePanel` [src/components/task-pulse-panel.tsx](src/components/task-pulse-panel.tsx).
+*   **Checkpoint**: A scheduled milestone in a Ken's execution [src/lib/types.ts:206-213](src/lib/types.ts#L206-L213).
+*   **Checkpoint Gate**: A governance mechanism that requires an `approvalScore` to exceed a `requiredApprovals` threshold before the run can proceed to the next phase [src/lib/types.ts:215-220](src/lib/types.ts#L215-L220).
 
-**Sources:** [src/lib/types.ts:172-220](), [docs/requirements-traceability.md:28-35]()
+**Sources:** [src/lib/types.ts:172-220](src/lib/types.ts#L172-L220), [docs/requirements-traceability.md:28-35](docs/requirements-traceability.md?plain=1#L28-L35)
 
 ## Entity Mapping: Product to Code
 
@@ -266,7 +264,7 @@ graph TD
     Ranker --> TierCalc
     TierCalc --> Lane
 ```
-**Sources:** [src/lib/types.ts:63-76, 137-144](), [src/lib/allocation.ts:12-14, 55-110]()
+**Sources:** [src/lib/types.ts:63-76](src/lib/types.ts#L63-L76), [src/lib/types.ts:137-144](src/lib/types.ts#L137-L144), [src/lib/allocation.ts:12-14](src/lib/allocation.ts#L12-L14), [src/lib/allocation.ts:55-110](src/lib/allocation.ts#L55-L110)
 
 ### Diagram: Execution and Governance
 This diagram shows the relationship between a running Ken and its safety/oversight mechanisms.
@@ -295,17 +293,17 @@ graph LR
     Gov -- "Refers to" --> House
     Run -- "Drives" --> Timing
 ```
-**Sources:** [src/lib/types.ts:105-126, 172-230](), [src/components/ken-timing-strip.tsx]()
+**Sources:** [src/lib/types.ts:105-126](src/lib/types.ts#L105-L126), [src/lib/types.ts:172-230](src/lib/types.ts#L172-L230), [src/components/ken-timing-strip.tsx](src/components/ken-timing-strip.tsx)
 
 ## Economics and Treasury
 
 KenMatch maintains financial transparency through the `Economics` module.
 
-*   **Revenue Stream**: A recurring source of funds (e.g., "enterprise", "sponsorship") [src/lib/types.ts:232-244]().
-*   **Treasury Entry**: An individual ledger item representing an `inflow` or `outflow` [src/lib/types.ts:246-255]().
-*   **Coverage Months**: A calculated metric in `summarizeEconomics()` that determines how long the current treasury can sustain the burn rate [src/lib/economics.ts:80-100]().
+*   **Revenue Stream**: A recurring source of funds (e.g., "enterprise", "sponsorship") [src/lib/types.ts:232-244](src/lib/types.ts#L232-L244).
+*   **Treasury Entry**: An individual ledger item representing an `inflow` or `outflow` [src/lib/types.ts:246-255](src/lib/types.ts#L246-L255).
+*   **Coverage Months**: A calculated metric in `summarizeEconomics()` that determines how long the current treasury can sustain the burn rate [src/lib/economics.ts:80-100](src/lib/economics.ts#L80-L100).
 
-**Sources:** [src/lib/types.ts:25-32, 232-255](), [src/lib/economics.ts:80-115]()
+**Sources:** [src/lib/types.ts:25-32](src/lib/types.ts#L25-L32), [src/lib/types.ts:232-255](src/lib/types.ts#L232-L255), [src/lib/economics.ts:80-115](src/lib/economics.ts#L80-L115)
 
 ---
 
@@ -362,7 +360,7 @@ graph TD
     M -- "Calculates" --> I
     M -- "Calculates" --> K
 ```
-**Sources:** [docs/architecture.md:1-32](), [docs/requirements-traceability.md:5-50](), [src/lib/db.ts:205-350]()
+**Sources:** [docs/architecture.md:1-32](docs/architecture.md?plain=1#L1-L32), [docs/requirements-traceability.md:5-50](docs/requirements-traceability.md?plain=1#L5-L50), [src/lib/db.ts:205-350](src/lib/db.ts#L205-L350)
 
 ---
 
@@ -380,7 +378,7 @@ The application uses the Next.js App Router to handle routing, layouts, and data
 | `/submit` | Ken intake with tier-aware guidance | `src/app/submit/page.tsx` |
 | `/api/health` | Deployment health probe | `src/app/api/health/route.ts` |
 
-**Sources:** [docs/architecture.md:12-31](), [docs/requirements-traceability.md:7-9]()
+**Sources:** [docs/architecture.md:12-31](docs/architecture.md?plain=1#L12-L31), [docs/requirements-traceability.md:7-9](docs/requirements-traceability.md?plain=1#L7-L9)
 
 ---
 
@@ -411,10 +409,10 @@ sequenceDiagram
     DB-->>V: Persist to 'votes'
 ```
 
-*   **Pulse:** Non-scarce upvotes/downvotes stored in `task_pulse_votes` [src/lib/db.ts:289-301]().
-*   **Voice:** Quadratic voting using scarce `voiceCredits`. Logic is defined in `src/lib/allocation.ts` [src/lib/allocation.ts:43-52]() and enforced during the database update [src/lib/db.ts:1140-1170]().
+*   **Pulse:** Non-scarce upvotes/downvotes stored in `task_pulse_votes` [src/lib/db.ts:289-301](src/lib/db.ts#L289-L301).
+*   **Voice:** Quadratic voting using scarce `voiceCredits`. Logic is defined in `src/lib/allocation.ts` [src/lib/allocation.ts:43-52](src/lib/allocation.ts#L43-L52) and enforced during the database update [src/lib/db.ts:1140-1170](src/lib/db.ts#L1140-L1170).
 
-**Sources:** [docs/architecture.md:59-65](), [docs/requirements-traceability.md:11-14](), [src/lib/db.ts:1140-1200]()
+**Sources:** [docs/architecture.md:59-65](docs/architecture.md?plain=1#L59-L65), [docs/requirements-traceability.md:11-14](docs/requirements-traceability.md?plain=1#L11-L14), [src/lib/db.ts:1140-1200](src/lib/db.ts#L1140-L1200)
 
 ---
 
@@ -423,13 +421,13 @@ sequenceDiagram
 KenMatch uses `libSQL` for persistence, supporting both local file-based SQLite (for development/self-hosting) and remote Turso instances.
 
 ### Database Initialization and Hydration
-The system uses a lazy-initialization pattern. The `ensureDatabase()` function [src/lib/db.ts:121-127]() is called before any operation, ensuring tables exist and are seeded if necessary.
+The system uses a lazy-initialization pattern. The `ensureDatabase()` function [src/lib/db.ts:121-127](src/lib/db.ts#L121-L127) is called before any operation, ensuring tables exist and are seeded if necessary.
 
-1.  **Schema Creation:** `initializeDatabase()` [src/lib/db.ts:204-350]() runs a batch of `CREATE TABLE IF NOT EXISTS` statements.
-2.  **Seeding:** If the `profiles` table is empty, the system runs `seedDatabase()` [src/lib/db.ts:352-378](), which populates the DB with data from `seed.ts` and `seed-plus.ts`.
-3.  **Connection Management:** A global client `__kenmatchDbClient` is maintained to prevent connection exhaustion in serverless environments [src/lib/db.ts:109-119]().
+1.  **Schema Creation:** `initializeDatabase()` [src/lib/db.ts:204-350](src/lib/db.ts#L204-L350) runs a batch of `CREATE TABLE IF NOT EXISTS` statements.
+2.  **Seeding:** If the `profiles` table is empty, the system runs `seedDatabase()` [src/lib/db.ts:352-378](src/lib/db.ts#L352-L378), which populates the DB with data from `seed.ts` and `seed-plus.ts`.
+3.  **Connection Management:** A global client `__kenmatchDbClient` is maintained to prevent connection exhaustion in serverless environments [src/lib/db.ts:109-119](src/lib/db.ts#L109-L119).
 
-**Sources:** [src/lib/db.ts:84-127](), [src/lib/db.ts:204-378](), [docs/architecture.md:112-118]()
+**Sources:** [src/lib/db.ts:84-127](src/lib/db.ts#L84-L127), [src/lib/db.ts:204-378](src/lib/db.ts#L204-L378), [docs/architecture.md:112-118](docs/architecture.md?plain=1#L112-L118)
 
 ---
 
@@ -439,15 +437,15 @@ The `src/lib/` directory contains the core domain logic, decoupled from the UI c
 
 ### 1. Allocation (`allocation.ts`)
 Calculates quadratic costs and determines task ranking within specific lanes (Days, Weeks, Months).
-*   **Key Functions:** `quadraticCost()` [src/lib/allocation.ts:43-45](), `buildCategoryRankings()` [src/lib/allocation.ts:115-165]().
+*   **Key Functions:** `quadraticCost()` [src/lib/allocation.ts:43-45](src/lib/allocation.ts#L43-L45), `buildCategoryRankings()` [src/lib/allocation.ts:115-165](src/lib/allocation.ts#L115-L165).
 
 ### 2. Attestation (`attestation.ts`)
 Converts raw profile data and sybil signals into a `ParticipationPolicy`.
-*   **Key Function:** `resolveParticipationPolicy()` [src/lib/attestation.ts:42-88]() determines if a user has `full`, `review-limited`, or `read-only` access.
+*   **Key Function:** `resolveParticipationPolicy()` [src/lib/attestation.ts:42-88](src/lib/attestation.ts#L42-L88) determines if a user has `full`, `review-limited`, or `read-only` access.
 
 ### 3. Economics (`economics.ts`)
 Handles treasury accounting and revenue stream projections.
-*   **Key Function:** `summarizeEconomics()` [src/lib/economics.ts:112-160]() calculates burn rates and treasury coverage months.
+*   **Key Function:** `summarizeEconomics()` [src/lib/economics.ts:112-160](src/lib/economics.ts#L112-L160) calculates burn rates and treasury coverage months.
 
 ### 4. DB Layer (`db.ts`)
 The "God Object" that bridges the business logic and the persistence layer. It imports the logic from the modules above to return "Hydrated" records (e.g., a `TaskDetail` that includes its allocation rank and funding status).
@@ -479,7 +477,7 @@ graph LR
     PG --> DB
 ```
 
-**Sources:** [src/lib/db.ts:19-30](), [docs/architecture.md:33-58](), [docs/requirements-traceability.md:19-24]()
+**Sources:** [src/lib/db.ts:19-30](src/lib/db.ts#L19-L30), [docs/architecture.md:33-58](docs/architecture.md?plain=1#L33-L58), [docs/requirements-traceability.md:19-24](docs/requirements-traceability.md?plain=1#L19-L24)
 
 ---
 
@@ -503,10 +501,10 @@ KenMatch utilizes a lightweight yet robust persistence layer built on **libSQL**
 
 ## Persistence Strategy
 
-The application interacts with the database through the `libSQL` client, supporting both local file-based storage and remote connections via `DATABASE_URL` [src/lib/db.ts:84-85](). 
+The application interacts with the database through the `libSQL` client, supporting both local file-based storage and remote connections via `DATABASE_URL` [src/lib/db.ts:84-85](src/lib/db.ts#L84-L85). 
 
 ### Client Initialization
-The database client is managed as a global singleton to prevent connection exhaustion during Next.js hot reloads [src/lib/db.ts:93-119](). It employs a "lazy-init" pattern where the schema is verified and the connection is established only upon the first request via `ensureDatabase()` [src/lib/db.ts:121-127]().
+The database client is managed as a global singleton to prevent connection exhaustion during Next.js hot reloads [src/lib/db.ts:93-119](src/lib/db.ts#L93-L119). It employs a "lazy-init" pattern where the schema is verified and the connection is established only upon the first request via `ensureDatabase()` [src/lib/db.ts:121-127](src/lib/db.ts#L121-L127).
 
 ### Data Flow Overview
 The following diagram illustrates the relationship between the persistence layer and the application's runtime entities.
@@ -547,7 +545,7 @@ graph TD
     EnsureDB --> LibSQL
     LibSQL --> Hydrate
 ```
-**Sources:** [src/lib/db.ts:121-127](), [src/lib/types.ts:63-255]()
+**Sources:** [src/lib/db.ts:121-127](src/lib/db.ts#L121-L127), [src/lib/types.ts:63-255](src/lib/types.ts#L63-L255)
 
 ---
 
@@ -555,12 +553,12 @@ graph TD
 
 The system manages approximately 17 tables that track the entire lifecycle of a "Ken" (Task), from proposal and voting to compute execution and treasury settlement. 
 
-- **Relational Integrity**: The schema uses strict foreign key constraints (e.g., `tasks` link to `categories` and `profiles`) [src/lib/db.ts:208-257]().
-- **The Hydration Pipeline**: Because KenMatch performs complex calculations (like Quadratic Voting rankings and Treasury burn rates), it uses a `hydrate()` function. This pipeline fetches raw rows and transforms them into rich, computed objects like `EconomicsSummary` or `TaskDetail` [src/lib/db.ts:804-830]().
+- **Relational Integrity**: The schema uses strict foreign key constraints (e.g., `tasks` link to `categories` and `profiles`) [src/lib/db.ts:208-257](src/lib/db.ts#L208-L257).
+- **The Hydration Pipeline**: Because KenMatch performs complex calculations (like Quadratic Voting rankings and Treasury burn rates), it uses a `hydrate()` function. This pipeline fetches raw rows and transforms them into rich, computed objects like `EconomicsSummary` or `TaskDetail` [src/lib/db.ts:804-830](src/lib/db.ts#L804-L830).
 
 For a deep dive into the table structures and the transformation logic, see **[Database Schema and Hydration](#2.1)**.
 
-**Sources:** [src/lib/db.ts:204-450](), [src/lib/db.ts:804-830]()
+**Sources:** [src/lib/db.ts:204-450](src/lib/db.ts#L204-L450), [src/lib/db.ts:804-830](src/lib/db.ts#L804-L830)
 
 ---
 
@@ -570,14 +568,14 @@ KenMatch includes a sophisticated two-tier seeding strategy to ensure developers
 
 | Tier | File | Purpose |
 | :--- | :--- | :--- |
-| **Base Seed** | `seed.ts` | Populates core structural data: Categories, Profiles, and basic Tasks [src/lib/seed.ts:1-39](). |
-| **Plus Seed** | `seed-plus.ts` | Simulates activity: Votes, Attestations, Treasury entries, and Checkpoint gates [src/lib/seed-plus.ts:1-51](). |
+| **Base Seed** | `seed.ts` | Populates core structural data: Categories, Profiles, and basic Tasks [src/lib/seed.ts:1-39](src/lib/seed.ts#L1-L39). |
+| **Plus Seed** | `seed-plus.ts` | Simulates activity: Votes, Attestations, Treasury entries, and Checkpoint gates [src/lib/seed-plus.ts:1-51](src/lib/seed-plus.ts#L1-L51). |
 
 This strategy allows the application to demonstrate complex states, such as tasks being "blocked" by governance or treasury funds being "restricted" to specific categories.
 
 For details on how to trigger seeding and the specific scenarios modeled, see **[Seed Data and Demo Environment](#2.2)**.
 
-**Sources:** [src/lib/db.ts:31-51](), [src/lib/db.ts:452-540]()
+**Sources:** [src/lib/db.ts:31-51](src/lib/db.ts#L31-L51), [src/lib/db.ts:452-540](src/lib/db.ts#L452-L540)
 
 ---
 
@@ -604,11 +602,11 @@ sequenceDiagram
 ```
 
 ### Key Utility Functions
-- `execute(sql, args)`: The primary wrapper for running queries [src/lib/db.ts:184-187]().
-- `batch(statements)`: Used for atomic transactions, especially during initialization and seeding [src/lib/db.ts:189-192]().
-- `loadRows(sql, args)`: Helper to return typed result sets [src/lib/db.ts:194-197]().
+- `execute(sql, args)`: The primary wrapper for running queries [src/lib/db.ts:184-187](src/lib/db.ts#L184-L187).
+- `batch(statements)`: Used for atomic transactions, especially during initialization and seeding [src/lib/db.ts:189-192](src/lib/db.ts#L189-L192).
+- `loadRows(sql, args)`: Helper to return typed result sets [src/lib/db.ts:194-197](src/lib/db.ts#L194-L197).
 
-**Sources:** [src/lib/db.ts:184-202](), [src/lib/db.ts:634-650]()
+**Sources:** [src/lib/db.ts:184-202](src/lib/db.ts#L184-L202), [src/lib/db.ts:634-650](src/lib/db.ts#L634-L650)
 
 ---
 
@@ -640,11 +638,11 @@ The `ensureDatabase()` function serves as the gatekeeper for all database intera
 
 | Function | Role | Source |
 | :--- | :--- | :--- |
-| `getClient()` | Singleton provider for the libSQL `Client`. Configures URL and Auth Token. | [src/lib/db.ts:109-119]() |
-| `ensureDatabase()` | Idempotent wrapper that triggers `initializeDatabase()` once per process. | [src/lib/db.ts:121-127]() |
-| `initializeDatabase()` | Executes `CREATE TABLE IF NOT EXISTS` statements and triggers seeding. | [src/lib/db.ts:204-436]() |
+| `getClient()` | Singleton provider for the libSQL `Client`. Configures URL and Auth Token. | [src/lib/db.ts:109-119](src/lib/db.ts#L109-L119) |
+| `ensureDatabase()` | Idempotent wrapper that triggers `initializeDatabase()` once per process. | [src/lib/db.ts:121-127](src/lib/db.ts#L121-L127) |
+| `initializeDatabase()` | Executes `CREATE TABLE IF NOT EXISTS` statements and triggers seeding. | [src/lib/db.ts:204-436](src/lib/db.ts#L204-L436) |
 
-**Sources:** [src/lib/db.ts:109-127](), [src/lib/db.ts:204-436]()
+**Sources:** [src/lib/db.ts:109-127](src/lib/db.ts#L109-L127), [src/lib/db.ts:204-436](src/lib/db.ts#L204-L436)
 
 ## Database Schema
 
@@ -691,7 +689,7 @@ erDiagram
     "ProfileRecord" ||--o{ "TaskRecord" : "proposes"
     "CategoryRecord" ||--o{ "TaskRecord" : "contains"
 ```
-**Sources:** [src/lib/types.ts:55-126](), [src/lib/db.ts:209-278]()
+**Sources:** [src/lib/types.ts:55-126](src/lib/types.ts#L55-L126), [src/lib/db.ts:209-278](src/lib/db.ts#L209-L278)
 
 ### Table Definitions
 
@@ -707,7 +705,7 @@ erDiagram
 | `revenue_streams` | Sources of treasury inflow. | `monthlyRevenueUsd`, `treasurySharePercent` |
 | `treasury_entries` | Ledger of all inflows and outflows. | `amountUsd`, `bucket`, `direction` |
 
-**Sources:** [src/lib/db.ts:209-420](), [src/lib/types.ts:55-255]()
+**Sources:** [src/lib/db.ts:209-420](src/lib/db.ts#L209-L420), [src/lib/types.ts:55-255](src/lib/types.ts#L55-L255)
 
 ## The Hydration Pipeline
 
@@ -743,35 +741,35 @@ flowchart TD
     QV & AP --> CR
     CR --> TS & TD & PS
 ```
-**Sources:** [src/lib/db.ts:466-608](), [src/lib/allocation.ts:101-140](), [src/lib/attestation.ts:27-52]()
+**Sources:** [src/lib/db.ts:466-608](src/lib/db.ts#L466-L608), [src/lib/allocation.ts:101-140](src/lib/allocation.ts#L101-L140), [src/lib/attestation.ts:27-52](src/lib/attestation.ts#L27-L52)
 
 ### Key Hydration Functions
 
 #### 1. `hydrate()`
 The primary engine for building the in-memory state. It performs the following:
-1.  **Joins**: Aggregates tasks with their proposer profiles and categories [src/lib/db.ts:474-500]().
-2.  **Vote Aggregation**: Sums `voteCount` per task to determine allocation eligibility [src/lib/db.ts:511-525]().
-3.  **Ranking**: Calls `buildCategoryRankings()` to sort tasks into "months", "weeks", "days", or "queued" tiers based on relative vote weight [src/lib/db.ts:560-580]().
+1.  **Joins**: Aggregates tasks with their proposer profiles and categories [src/lib/db.ts:474-500](src/lib/db.ts#L474-L500).
+2.  **Vote Aggregation**: Sums `voteCount` per task to determine allocation eligibility [src/lib/db.ts:511-525](src/lib/db.ts#L511-L525).
+3.  **Ranking**: Calls `buildCategoryRankings()` to sort tasks into "months", "weeks", "days", or "queued" tiers based on relative vote weight [src/lib/db.ts:560-580](src/lib/db.ts#L560-L580).
 
 #### 2. `getTaskDetail(slug, viewerProfileId)`
 Builds a comprehensive view of a single task, including:
-*   **Finance**: Joins `task_finance` for bond and budget data [src/lib/db.ts:684-690]().
-*   **Timing**: Fetches `task_timings` for compute usage and end dates [src/lib/db.ts:691-695]().
-*   **Governance**: Attaches `governance_events` related to the task [src/lib/db.ts:718-725]().
+*   **Finance**: Joins `task_finance` for bond and budget data [src/lib/db.ts:684-690](src/lib/db.ts#L684-L690).
+*   **Timing**: Fetches `task_timings` for compute usage and end dates [src/lib/db.ts:691-695](src/lib/db.ts#L691-L695).
+*   **Governance**: Attaches `governance_events` related to the task [src/lib/db.ts:718-725](src/lib/db.ts#L718-L725).
 
 #### 3. `getViewerSession(token)`
-Maps a session token to a `ProfileSummary`, which includes the `ParticipationState` (full, review-limited, or read-only) resolved via `resolveParticipationPolicy()` [src/lib/db.ts:1145-1170]().
+Maps a session token to a `ProfileSummary`, which includes the `ParticipationState` (full, review-limited, or read-only) resolved via `resolveParticipationPolicy()` [src/lib/db.ts:1145-1170](src/lib/db.ts#L1145-L1170).
 
-**Sources:** [src/lib/db.ts:466-608](), [src/lib/db.ts:663-750](), [src/lib/db.ts:1145-1170]()
+**Sources:** [src/lib/db.ts:466-608](src/lib/db.ts#L466-L608), [src/lib/db.ts:663-750](src/lib/db.ts#L663-L750), [src/lib/db.ts:1145-1170](src/lib/db.ts#L1145-L1170)
 
 ## Data Transformation Helpers
 
 Since libSQL/SQLite has limited data types, `src/lib/db.ts` includes several utilities to handle serialization:
 
-*   **List Serialization**: `serializeList()` and `parseList()` convert TypeScript string arrays to JSON strings for storage in `TEXT` columns (used for `deliverables`, `riskFlags`, etc.) [src/lib/db.ts:129-139]().
-*   **Type Casting**: `getNumber()` and `getString()` provide safe extraction from `DbRow` objects, handling the conversion from libSQL `Value` types (which may be `bigint` or `number`) to standard TypeScript types [src/lib/db.ts:141-178]().
+*   **List Serialization**: `serializeList()` and `parseList()` convert TypeScript string arrays to JSON strings for storage in `TEXT` columns (used for `deliverables`, `riskFlags`, etc.) [src/lib/db.ts:129-139](src/lib/db.ts#L129-L139).
+*   **Type Casting**: `getNumber()` and `getString()` provide safe extraction from `DbRow` objects, handling the conversion from libSQL `Value` types (which may be `bigint` or `number`) to standard TypeScript types [src/lib/db.ts:141-178](src/lib/db.ts#L141-L178).
 
-**Sources:** [src/lib/db.ts:129-178]()
+**Sources:** [src/lib/db.ts:129-178](src/lib/db.ts#L129-L178)
 
 ---
 
@@ -808,13 +806,13 @@ The seeding process is typically triggered during database initialization. The `
 
 | Concept | Code Entity / File | Role |
 | :--- | :--- | :--- |
-| **Identity & Access** | `seedProfiles` [src/lib/seed.ts:3-11]() | Defines users with roles, specialties, and voice credits. |
-| **Taxonomy** | `seedCategories` [src/lib/seed.ts:13-19]() | Defines the five core investment lanes (e.g., "Open Tools"). |
-| **Core Work** | `seedTasks` [src/lib/seed.ts:21-25]() | Defines Kens with summaries, budget, and safety status. |
-| **Trust Layer** | `seedProfileAttestations` [src/lib/seed-plus.ts:3-11]() | Links profiles to verification signals (ORCID, GitHub). |
-| **Fiscal Health** | `seedTaskFinance` [src/lib/seed-plus.ts:13-25]() | Sets sponsor pools and enterprise packaging notes. |
+| **Identity & Access** | `seedProfiles` [src/lib/seed.ts:3-11](src/lib/seed.ts#L3-L11) | Defines users with roles, specialties, and voice credits. |
+| **Taxonomy** | `seedCategories` [src/lib/seed.ts:13-19](src/lib/seed.ts#L13-L19) | Defines the five core investment lanes (e.g., "Open Tools"). |
+| **Core Work** | `seedTasks` [src/lib/seed.ts:21-25](src/lib/seed.ts#L21-L25) | Defines Kens with summaries, budget, and safety status. |
+| **Trust Layer** | `seedProfileAttestations` [src/lib/seed-plus.ts:3-11](src/lib/seed-plus.ts#L3-L11) | Links profiles to verification signals (ORCID, GitHub). |
+| **Fiscal Health** | `seedTaskFinance` [src/lib/seed-plus.ts:13-25](src/lib/seed-plus.ts#L13-L25) | Sets sponsor pools and enterprise packaging notes. |
 
-Sources: [src/lib/seed.ts:1-25](), [src/lib/seed-plus.ts:1-25]()
+Sources: [src/lib/seed.ts:1-25](src/lib/seed.ts#L1-L25), [src/lib/seed-plus.ts:1-25](src/lib/seed-plus.ts#L1-L25)
 
 ---
 
@@ -824,18 +822,18 @@ The seed data is designed to showcase Kens at every stage of the pipeline, from 
 
 ### 1. Task States and Safety Gating
 The `seedTasks` array includes examples of:
-*   **Approved & Running**: `home-energy-upgrade-companion` [src/lib/seed.ts:22-22]().
-*   **Shipped**: `repair-manual-finder` [src/lib/seed.ts:23-23]().
-*   **Blocked/Prohibited**: `autonomous-phishing-lure-optimizer` [src/lib/seed.ts:25-25](). This task demonstrates the `safetyStatus: "blocked"` state, which prevents it from receiving funding or appearing in standard lists.
+*   **Approved & Running**: `home-energy-upgrade-companion` [src/lib/seed.ts:22-22](src/lib/seed.ts#L22-L22).
+*   **Shipped**: `repair-manual-finder` [src/lib/seed.ts:23-23](src/lib/seed.ts#L23-L23).
+*   **Blocked/Prohibited**: `autonomous-phishing-lure-optimizer` [src/lib/seed.ts:25-25](src/lib/seed.ts#L25-L25). This task demonstrates the `safetyStatus: "blocked"` state, which prevents it from receiving funding or appearing in standard lists.
 
 ### 2. Allocation and Voting
 To test the **Quadratic Voting (QV)** engine, `seedVotes` provides a distribution of voice credits across tasks.
-*   **Voice Credits**: Profiles like `maya-chen` start with specific `voiceCredits` (e.g., 64) [src/lib/seed.ts:4-4]().
+*   **Voice Credits**: Profiles like `maya-chen` start with specific `voiceCredits` (e.g., 64) [src/lib/seed.ts:4-4](src/lib/seed.ts#L4-L4).
 *   **Vote Distribution**: Votes are cast with varying `value` amounts to test the `quadraticCost` calculation in `src/lib/allocation.ts`.
 
 ### 3. Checkpoint Gates and Governance
 The `seedCheckpointGates` in `seed-plus.ts` model the "Review-Triggered" gates required for a Ken to progress.
-*   **Gate Types**: Includes `technical-review`, `safety-audit`, and `public-demo` [src/lib/seed-plus.ts:121-135]().
+*   **Gate Types**: Includes `technical-review`, `safety-audit`, and `public-demo` [src/lib/seed-plus.ts:121-135](src/lib/seed-plus.ts#L121-L135).
 *   **Status**: Gates are marked as `pending`, `approved`, or `blocked`, allowing the UI to render the governance "ladder."
 
 **Code Entity Interaction: Governance and Finance**
@@ -859,7 +857,7 @@ graph TD
     PA -- "sybilRisk" --> AS["Attestation Logic"]
 ```
 
-Sources: [src/lib/seed.ts:21-30](), [src/lib/seed-plus.ts:3-25](), [src/lib/seed-plus.ts:121-135]()
+Sources: [src/lib/seed.ts:21-30](src/lib/seed.ts#L21-L30), [src/lib/seed-plus.ts:3-25](src/lib/seed-plus.ts#L3-L25), [src/lib/seed-plus.ts:121-135](src/lib/seed-plus.ts#L121-L135)
 
 ---
 
@@ -870,13 +868,13 @@ The `seed-plus.ts` file contains the logic for the "Demo Environment" economics,
 ### Revenue Streams
 The `seedRevenueStreams` array models different types of incoming capital:
 *   **Sponsor Pools**: Large-scale funding for specific categories.
-*   **Verified Streams**: Recurring revenue from enterprise packaging (e.g., `museum-oral-history-indexer` [src/lib/seed-plus.ts:22-22]()).
-*   **Founder/Platform Split**: Streams define `founderShare` and `treasuryShare` to test the logic in `src/lib/economics.ts` [src/lib/seed-plus.ts:101-110]().
+*   **Verified Streams**: Recurring revenue from enterprise packaging (e.g., `museum-oral-history-indexer` [src/lib/seed-plus.ts:22-22](src/lib/seed-plus.ts#L22-L22)).
+*   **Founder/Platform Split**: Streams define `founderShare` and `treasuryShare` to test the logic in `src/lib/economics.ts` [src/lib/seed-plus.ts:101-110](src/lib/seed-plus.ts#L101-L110).
 
 ### Treasury Ledger
 The `seedTreasuryEntries` provide a historical ledger of "Inflow" vs "Outflow" (Burn). This allows the `summarizeEconomics()` function to calculate:
 *   **Current Balance**: Sum of all entries.
-*   **Coverage Months**: How long the treasury can sustain current Ken runtimes based on simulated burn [src/lib/seed-plus.ts:112-119]().
+*   **Coverage Months**: How long the treasury can sustain current Ken runtimes based on simulated burn [src/lib/seed-plus.ts:112-119](src/lib/seed-plus.ts#L112-L119).
 
 | Entity | Key Fields | Purpose in Demo |
 | :--- | :--- | :--- |
@@ -884,7 +882,7 @@ The `seedTreasuryEntries` provide a historical ledger of "Inflow" vs "Outflow" (
 | `RevenueStreamRecord` | `status`, `amountMonthly`, `treasuryShare` | Simulates platform sustainability and burn rate. |
 | `ProfileAttestationRecord` | `sybilRisk`, `signals` | Determines `voiceMultiplier` in `src/lib/attestation.ts`. |
 
-Sources: [src/lib/seed-plus.ts:13-25](), [src/lib/seed-plus.ts:101-119]()
+Sources: [src/lib/seed-plus.ts:13-25](src/lib/seed-plus.ts#L13-L25), [src/lib/seed-plus.ts:101-119](src/lib/seed-plus.ts#L101-L119)
 
 ---
 
@@ -892,8 +890,8 @@ Sources: [src/lib/seed-plus.ts:13-25](), [src/lib/seed-plus.ts:101-119]()
 
 A critical part of the demo environment is the **Checkpoint Gate** system. This models the friction and rigor required for high-stakes Kens.
 
-*   **Gate Records**: Each record in `seedCheckpointGates` links a `taskId` to a specific `gateType` [src/lib/seed-plus.ts:121-125]().
-*   **Blocking Logic**: In the demo, `autonomous-phishing-lure-optimizer` has a `blocked` gate with a `failureReason` ("Prohibited offensive security work"), which serves as the primary example for the Governance decision log [src/lib/seed-plus.ts:131-135]().
+*   **Gate Records**: Each record in `seedCheckpointGates` links a `taskId` to a specific `gateType` [src/lib/seed-plus.ts:121-125](src/lib/seed-plus.ts#L121-L125).
+*   **Blocking Logic**: In the demo, `autonomous-phishing-lure-optimizer` has a `blocked` gate with a `failureReason` ("Prohibited offensive security work"), which serves as the primary example for the Governance decision log [src/lib/seed-plus.ts:131-135](src/lib/seed-plus.ts#L131-L135).
 
 **Sequence: Data Hydration to UI**
 
@@ -915,7 +913,7 @@ sequenceDiagram
     Note right of UI: Displays "Technical Review" status
 ```
 
-Sources: [src/lib/seed-plus.ts:121-135](), [src/lib/types.ts:1-20]() (for record types)
+Sources: [src/lib/seed-plus.ts:121-135](src/lib/seed-plus.ts#L121-L135), [src/lib/types.ts:1-20](src/lib/types.ts#L1-L20) (for record types)
 
 ---
 
@@ -974,18 +972,18 @@ graph TD
         D1 --> F1
     end
 ```
-Sources: [src/lib/allocation.ts:5-11](), [src/lib/attestation.ts:14-18](), [src/lib/economics.ts:14-19]()
+Sources: [src/lib/allocation.ts:5-11](src/lib/allocation.ts#L5-L11), [src/lib/attestation.ts:14-18](src/lib/attestation.ts#L14-L18), [src/lib/economics.ts:14-19](src/lib/economics.ts#L14-L19)
 
 ---
 
 ### [Allocation and Quadratic Voting Engine](#3.1)
 
-The allocation engine governs how "Voice Credits" are converted into "Votes" and how those votes determine task priority. It enforces the quadratic cost rule where the cost of votes scales by the square of the count [src/lib/allocation.ts:5-11](). It also manages the tiering system (`months`, `weeks`, `days`) that dictates resource allocation based on a task's rank within its category [src/lib/allocation.ts:33-55]().
+The allocation engine governs how "Voice Credits" are converted into "Votes" and how those votes determine task priority. It enforces the quadratic cost rule where the cost of votes scales by the square of the count [src/lib/allocation.ts:5-11](src/lib/allocation.ts#L5-L11). It also manages the tiering system (`months`, `weeks`, `days`) that dictates resource allocation based on a task's rank within its category [src/lib/allocation.ts:33-55](src/lib/allocation.ts#L33-L55).
 
 **Key Functions:**
-- `quadraticCost(votes)`: Calculates $Cost = Votes^2$ [src/lib/allocation.ts:5-11]().
-- `buildCategoryRankings(tasks)`: Groups tasks by category and assigns ranks based on vote totals and creation dates [src/lib/allocation.ts:72-113]().
-- `isEligibleForAllocation(...)`: Determines if a task can move out of the queue based on its `TaskStage` and `SafetyStatus` [src/lib/allocation.ts:17-31]().
+- `quadraticCost(votes)`: Calculates $Cost = Votes^2$ [src/lib/allocation.ts:5-11](src/lib/allocation.ts#L5-L11).
+- `buildCategoryRankings(tasks)`: Groups tasks by category and assigns ranks based on vote totals and creation dates [src/lib/allocation.ts:72-113](src/lib/allocation.ts#L72-L113).
+- `isEligibleForAllocation(...)`: Determines if a task can move out of the queue based on its `TaskStage` and `SafetyStatus` [src/lib/allocation.ts:17-31](src/lib/allocation.ts#L17-L31).
 
 For details, see [Allocation and Quadratic Voting Engine](#3.1).
 
@@ -993,12 +991,12 @@ For details, see [Allocation and Quadratic Voting Engine](#3.1).
 
 ### [Attestation and Participation Policy](#3.2)
 
-KenMatch uses an attestation-based system to mitigate Sybil attacks. The logic in `src/lib/attestation.ts` maps a user's `AttestationStatus` and `SybilRiskBand` to a `ParticipationPolicy` [src/lib/attestation.ts:14-18](). This policy defines whether a user can perform public actions like submitting Kens, commenting, or pulsing [src/lib/attestation.ts:3-12]().
+KenMatch uses an attestation-based system to mitigate Sybil attacks. The logic in `src/lib/attestation.ts` maps a user's `AttestationStatus` and `SybilRiskBand` to a `ParticipationPolicy` [src/lib/attestation.ts:14-18](src/lib/attestation.ts#L14-L18). This policy defines whether a user can perform public actions like submitting Kens, commenting, or pulsing [src/lib/attestation.ts:3-12](src/lib/attestation.ts#L3-L12).
 
 **Participation States:**
-- `full`: Unrestricted access [src/lib/attestation.ts:60-69]().
-- `review-limited`: Reduced `voiceMultiplier` (e.g., 0.6 to 0.8) while identity signals are pending [src/lib/attestation.ts:32-58]().
-- `read-only`: All public actions paused due to high risk or limited status [src/lib/attestation.ts:19-30]().
+- `full`: Unrestricted access [src/lib/attestation.ts:60-69](src/lib/attestation.ts#L60-L69).
+- `review-limited`: Reduced `voiceMultiplier` (e.g., 0.6 to 0.8) while identity signals are pending [src/lib/attestation.ts:32-58](src/lib/attestation.ts#L32-L58).
+- `read-only`: All public actions paused due to high risk or limited status [src/lib/attestation.ts:19-30](src/lib/attestation.ts#L19-L30).
 
 For details, see [Attestation and Participation Policy](#3.2).
 
@@ -1006,12 +1004,12 @@ For details, see [Attestation and Participation Policy](#3.2).
 
 ### [Economics and Treasury Logic](#3.3)
 
-The economics module processes revenue streams and treasury entries to provide a snapshot of the platform's financial health. It calculates "Coverage Months" (runway) by comparing the `treasuryBalanceUsd` against the `monthlyPublicBurnUsd` [src/lib/economics.ts:27-30]().
+The economics module processes revenue streams and treasury entries to provide a snapshot of the platform's financial health. It calculates "Coverage Months" (runway) by comparing the `treasuryBalanceUsd` against the `monthlyPublicBurnUsd` [src/lib/economics.ts:27-30](src/lib/economics.ts#L27-L30).
 
 **Core Logic:**
-- **Revenue Splitting**: Automatically calculates splits between the treasury and founders based on defined percentages [src/lib/economics.ts:3-12]().
-- **Restricted Funding**: Identifies and isolates funds marked as "restricted" within the treasury [src/lib/economics.ts:31-33]().
-- **Summary Generation**: Aggregates all streams into an `EconomicsSummary` object for the dashboard [src/lib/economics.ts:14-49]().
+- **Revenue Splitting**: Automatically calculates splits between the treasury and founders based on defined percentages [src/lib/economics.ts:3-12](src/lib/economics.ts#L3-L12).
+- **Restricted Funding**: Identifies and isolates funds marked as "restricted" within the treasury [src/lib/economics.ts:31-33](src/lib/economics.ts#L31-L33).
+- **Summary Generation**: Aggregates all streams into an `EconomicsSummary` object for the dashboard [src/lib/economics.ts:14-49](src/lib/economics.ts#L14-L49).
 
 For details, see [Economics and Treasury Logic](#3.3).
 
@@ -1021,8 +1019,8 @@ For details, see [Economics and Treasury Logic](#3.3).
 
 These libraries handle the "plumbing" of the application: environment validation and user sessions.
 
-- **Environment (`env.ts`)**: Uses `zod` to validate all `process.env` variables, ensuring the app does not start with missing or malformed configuration [src/lib/env.ts:25-36]().
-- **Sessions (`session.ts`)**: Manages the lifecycle of the `KENMATCH_SESSION_COOKIE`, providing utilities to get the current viewer's profile or clear the session on logout [src/lib/session.ts:18-42]().
+- **Environment (`env.ts`)**: Uses `zod` to validate all `process.env` variables, ensuring the app does not start with missing or malformed configuration [src/lib/env.ts:25-36](src/lib/env.ts#L25-L36).
+- **Sessions (`session.ts`)**: Manages the lifecycle of the `KENMATCH_SESSION_COOKIE`, providing utilities to get the current viewer's profile or clear the session on logout [src/lib/session.ts:18-42](src/lib/session.ts#L18-L42).
 
 **Session Interaction Flow**
 ```mermaid
@@ -1041,7 +1039,7 @@ sequenceDiagram
     DB-->>SessionLib: Profile Data
     SessionLib-->>ServerAction: Viewer Session
 ```
-Sources: [src/lib/session.ts:18-22](), [src/lib/session.ts:29-32]()
+Sources: [src/lib/session.ts:18-22](src/lib/session.ts#L18-L22), [src/lib/session.ts:29-32](src/lib/session.ts#L29-L32)
 
 For details, see [Session Management and Environment Configuration](#3.4).
 
@@ -1070,57 +1068,57 @@ The Allocation and Quadratic Voting Engine, implemented primarily in `src/lib/al
 KenMatch employs Quadratic Voting (QV) to allow users to express the intensity of their preferences rather than just a binary "yes/no."
 
 ### Cost Functions
-The system uses a power-of-two cost model where the cost in Voice Credits is the square of the number of votes cast on a single task [src/lib/allocation.ts:5-11]().
+The system uses a power-of-two cost model where the cost in Voice Credits is the square of the number of votes cast on a single task [src/lib/allocation.ts:5-11](src/lib/allocation.ts#L5-L11).
 
-*   **`quadraticCost(votes: number)`**: Calculates the total cost for a given number of votes. For example, 3 votes cost 9 credits, while 6 votes cost 36 credits [src/lib/allocation.ts:5-11]().
-*   **`incrementalQuadraticCost(currentVotes, nextVotes)`**: Determines the additional credits required to increase a vote count from an existing level to a new level [src/lib/allocation.ts:13-15]().
-*   **`spentCredits(votes: Array<{ voteCount: number }>)`**: Aggregates the total credit expenditure across multiple tasks for a specific user profile [src/lib/allocation.ts:115-117]().
+*   **`quadraticCost(votes: number)`**: Calculates the total cost for a given number of votes. For example, 3 votes cost 9 credits, while 6 votes cost 36 credits [src/lib/allocation.ts:5-11](src/lib/allocation.ts#L5-L11).
+*   **`incrementalQuadraticCost(currentVotes, nextVotes)`**: Determines the additional credits required to increase a vote count from an existing level to a new level [src/lib/allocation.ts:13-15](src/lib/allocation.ts#L13-L15).
+*   **`spentCredits(votes: Array<{ voteCount: number }>)`**: Aggregates the total credit expenditure across multiple tasks for a specific user profile [src/lib/allocation.ts:115-117](src/lib/allocation.ts#L115-L117).
 
 ### Constraints
 To prevent extreme concentration of influence, the system enforces a hard cap on individual task voting:
-*   **`MAX_VOTES_PER_TASK`**: Set to `6` [src/lib/allocation.ts:3-3](). This means the maximum credits a user can spend on one task is 36.
+*   **`MAX_VOTES_PER_TASK`**: Set to `6` [src/lib/allocation.ts:3-3](src/lib/allocation.ts#L3-L3). This means the maximum credits a user can spend on one task is 36.
 
 ## Task Eligibility and Ranking
 
 Not all tasks are eligible to receive an allocation rank. The engine filters tasks based on their lifecycle stage and safety status before placing them on the "ladder."
 
 ### Eligibility Criteria
-The function `isEligibleForAllocation()` determines if a task can enter the ranking process [src/lib/allocation.ts:17-31]().
+The function `isEligibleForAllocation()` determines if a task can enter the ranking process [src/lib/allocation.ts:17-31](src/lib/allocation.ts#L17-L31).
 
 | Condition | Eligibility | Reason |
 | :--- | :--- | :--- |
-| `stage` is "review" or "blocked" | `false` | Tasks in initial intake or explicitly halted cannot be ranked [src/lib/allocation.ts:22-24](). |
-| `safetyStatus` is "pending" or "blocked" | `false` | Safety/Policy checks must be "approved" for allocation [src/lib/allocation.ts:26-28](). |
-| `totalVotes` <= 0 | `false` | Tasks with no community support remain queued [src/lib/allocation.ts:30-30](). |
+| `stage` is "review" or "blocked" | `false` | Tasks in initial intake or explicitly halted cannot be ranked [src/lib/allocation.ts:22-24](src/lib/allocation.ts#L22-L24). |
+| `safetyStatus` is "pending" or "blocked" | `false` | Safety/Policy checks must be "approved" for allocation [src/lib/allocation.ts:26-28](src/lib/allocation.ts#L26-L28). |
+| `totalVotes` <= 0 | `false` | Tasks with no community support remain queued [src/lib/allocation.ts:30-30](src/lib/allocation.ts#L30-L30). |
 
 ### The Ranking Pipeline
-The `buildCategoryRankings()` function processes a list of `RankingSeed` objects to generate a map of results [src/lib/allocation.ts:72-113]().
+The `buildCategoryRankings()` function processes a list of `RankingSeed` objects to generate a map of results [src/lib/allocation.ts:72-113](src/lib/allocation.ts#L72-L113).
 
-1.  **Grouping**: Tasks are grouped by their `categoryId` [src/lib/allocation.ts:76-80]().
+1.  **Grouping**: Tasks are grouped by their `categoryId` [src/lib/allocation.ts:76-80](src/lib/allocation.ts#L76-L80).
 2.  **Sorting**: Within each category, eligible tasks are sorted by:
-    *   `totalVotes` (Descending) [src/lib/allocation.ts:86-88]().
-    *   `createdAt` (Ascending/Oldest first) as a tie-breaker [src/lib/allocation.ts:90-92]().
-    *   `title` (Alphabetical) as a final tie-breaker [src/lib/allocation.ts:94-94]().
-3.  **Assignment**: Ranks are assigned starting from 1 for the top-voted eligible task [src/lib/allocation.ts:97-100]().
+    *   `totalVotes` (Descending) [src/lib/allocation.ts:86-88](src/lib/allocation.ts#L86-L88).
+    *   `createdAt` (Ascending/Oldest first) as a tie-breaker [src/lib/allocation.ts:90-92](src/lib/allocation.ts#L90-L92).
+    *   `title` (Alphabetical) as a final tie-breaker [src/lib/allocation.ts:94-94](src/lib/allocation.ts#L94-L94).
+3.  **Assignment**: Ranks are assigned starting from 1 for the top-voted eligible task [src/lib/allocation.ts:97-100](src/lib/allocation.ts#L97-L100).
 
-**Sources:** [src/lib/allocation.ts:17-113](), [tests/allocation.test.ts:24-38]()
+**Sources:** [src/lib/allocation.ts:17-113](src/lib/allocation.ts#L17-L113), [tests/allocation.test.ts:24-38](tests/allocation.test.ts#L24-L38)
 
 ## Allocation Tiers
 
 The system maps numerical ranks into human-readable "Tiers" that represent the velocity and resource commitment for a task.
 
 ### Tier Definitions
-The `tierForRank()` function assigns a `AllocationTier` based on the task's position in its category [src/lib/allocation.ts:33-55]().
+The `tierForRank()` function assigns a `AllocationTier` based on the task's position in its category [src/lib/allocation.ts:33-55](src/lib/allocation.ts#L33-L55).
 
 | Rank | Tier | Weight | Description |
 | :--- | :--- | :--- | :--- |
-| 1 - 3 | `months` | 3 | High priority; sustained long-term focus [src/lib/allocation.ts:42-44](). |
-| 4 - 10 | `weeks` | 2 | Medium priority; active development [src/lib/allocation.ts:46-48](). |
-| 11 - 100 | `days` | 1 | Low priority; intermittent progress [src/lib/allocation.ts:50-52](). |
-| > 100 or Ineligible | `queued` | 0 | Backlog; waiting for votes or approval [src/lib/allocation.ts:54-54](). |
-| Blocked | `blocked` | -1 | Explicitly halted by governance [src/lib/allocation.ts:34-36](). |
+| 1 - 3 | `months` | 3 | High priority; sustained long-term focus [src/lib/allocation.ts:42-44](src/lib/allocation.ts#L42-L44). |
+| 4 - 10 | `weeks` | 2 | Medium priority; active development [src/lib/allocation.ts:46-48](src/lib/allocation.ts#L46-L48). |
+| 11 - 100 | `days` | 1 | Low priority; intermittent progress [src/lib/allocation.ts:50-52](src/lib/allocation.ts#L50-L52). |
+| > 100 or Ineligible | `queued` | 0 | Backlog; waiting for votes or approval [src/lib/allocation.ts:54-54](src/lib/allocation.ts#L54-L54). |
+| Blocked | `blocked` | -1 | Explicitly halted by governance [src/lib/allocation.ts:34-36](src/lib/allocation.ts#L34-L36). |
 
-**Sources:** [src/lib/allocation.ts:33-55](), [src/lib/allocation.ts:119-132](), [tests/allocation.test.ts:16-22]()
+**Sources:** [src/lib/allocation.ts:33-55](src/lib/allocation.ts#L33-L55), [src/lib/allocation.ts:119-132](src/lib/allocation.ts#L119-L132), [tests/allocation.test.ts:16-22](tests/allocation.test.ts#L16-L22)
 
 ## System Flow Diagrams
 
@@ -1151,7 +1149,7 @@ graph TD
     tierForRank --> RankingResult
     RankingResult --> Priority
 ```
-**Sources:** [src/lib/allocation.ts:17-21](), [src/lib/allocation.ts:57-70](), [src/lib/allocation.ts:72-73]()
+**Sources:** [src/lib/allocation.ts:17-21](src/lib/allocation.ts#L17-L21), [src/lib/allocation.ts:57-70](src/lib/allocation.ts#L57-L70), [src/lib/allocation.ts:72-73](src/lib/allocation.ts#L72-L73)
 
 ### Allocation Logic Flow
 This diagram illustrates the decision logic within the engine when evaluating a single task's position.
@@ -1177,7 +1175,7 @@ flowchart TD
     Days --> End
     Queued --> End
 ```
-**Sources:** [src/lib/allocation.ts:33-55](), [src/lib/allocation.ts:83-95](), [src/lib/allocation.ts:119-132]()
+**Sources:** [src/lib/allocation.ts:33-55](src/lib/allocation.ts#L33-L55), [src/lib/allocation.ts:83-95](src/lib/allocation.ts#L83-L95), [src/lib/allocation.ts:119-132](src/lib/allocation.ts#L119-L132)
 
 ---
 
@@ -1236,7 +1234,7 @@ graph TD
     D --> G
     D --> H
 ```
-**Sources:** `[src/lib/attestation.ts:14-18]()`, `[src/lib/attestation.ts:3-12]()`
+**Sources:** `[src/lib/attestation.ts:14-18](src/lib/attestation.ts#L14-L18)`, `[src/lib/attestation.ts:3-12](src/lib/attestation.ts#L3-L12)`
 
 ## Participation States
 
@@ -1248,7 +1246,7 @@ KenMatch defines three distinct participation states that determine what a user 
 | `review-limited` | Identity is pending or carries medium risk. | All actions enabled; Voice Credits are reduced by a multiplier. |
 | `read-only` | High risk detected or account explicitly limited. | Public actions (voting, commenting, submitting) are disabled. |
 
-**Sources:** `[src/lib/attestation.ts:19-69]()`
+**Sources:** `[src/lib/attestation.ts:19-69](src/lib/attestation.ts#L19-L69)`
 
 ## Sybil Resistance and Voice Multipliers
 
@@ -1258,17 +1256,17 @@ To mitigate the impact of potential Sybil attacks (where one person creates mult
 
 The `resolveParticipationPolicy` function implements the following logic:
 
-1.  **Read-Only Trigger**: If `AttestationStatus` is `limited` OR `SybilRiskBand` is `high`, the multiplier is `0` `[src/lib/attestation.ts:19-30]()`.
+1.  **Read-Only Trigger**: If `AttestationStatus` is `limited` OR `SybilRiskBand` is `high`, the multiplier is `0` `[src/lib/attestation.ts:19-30](src/lib/attestation.ts#L19-L30)`.
 2.  **Review Logic**: If status is `review`:
-    *   Low Risk: `0.7` multiplier `[src/lib/attestation.ts:33-33]()`.
-    *   Medium Risk: `0.6` multiplier `[src/lib/attestation.ts:33-33]()`.
-3.  **Medium Risk Verified**: If status is `verified` but risk is `medium`, a `0.8` multiplier is applied `[src/lib/attestation.ts:46-58]()`.
-4.  **Full Access**: Verified users with low risk receive a `1.0` multiplier `[src/lib/attestation.ts:60-69]()`.
+    *   Low Risk: `0.7` multiplier `[src/lib/attestation.ts:33-33](src/lib/attestation.ts#L33-L33)`.
+    *   Medium Risk: `0.6` multiplier `[src/lib/attestation.ts:33-33](src/lib/attestation.ts#L33-L33)`.
+3.  **Medium Risk Verified**: If status is `verified` but risk is `medium`, a `0.8` multiplier is applied `[src/lib/attestation.ts:46-58](src/lib/attestation.ts#L46-L58)`.
+4.  **Full Access**: Verified users with low risk receive a `1.0` multiplier `[src/lib/attestation.ts:60-69](src/lib/attestation.ts#L60-L69)`.
 
 ### Effective Voice Credit Calculation
-The final voting power is calculated using `Math.floor(voiceCredits * voiceMultiplier)`, with a floor of `1` for any account that is not in a `read-only` state `[src/lib/attestation.ts:38-38]()`, `[src/lib/attestation.ts:52-52]()`.
+The final voting power is calculated using `Math.floor(voiceCredits * voiceMultiplier)`, with a floor of `1` for any account that is not in a `read-only` state `[src/lib/attestation.ts:38-38](src/lib/attestation.ts#L38-L38)`, `[src/lib/attestation.ts:52-52](src/lib/attestation.ts#L52-L52)`.
 
-**Sources:** `[src/lib/attestation.ts:14-70]()`
+**Sources:** `[src/lib/attestation.ts:14-70](src/lib/attestation.ts#L14-L70)`
 
 ## Implementation Detail: ParticipationPolicy Interface
 
@@ -1306,17 +1304,17 @@ classDiagram
     AttestationStatus ..> resolveParticipationPolicy : input
     SybilRiskBand ..> resolveParticipationPolicy : input
 ```
-**Sources:** `[src/lib/attestation.ts:3-12]()`, `[src/lib/attestation.ts:14-18]()`
+**Sources:** `[src/lib/attestation.ts:3-12](src/lib/attestation.ts#L3-L12)`, `[src/lib/attestation.ts:14-18](src/lib/attestation.ts#L14-L18)`
 
 ## Testing the Policy Engine
 
 The policy resolution logic is strictly tested to ensure that multipliers and state transitions behave as expected.
 
-*   **Full Capacity**: Verified low-risk accounts must retain 100% of their credits `[tests/attestation.test.ts:6-13]()`.
-*   **Voice Capping**: Accounts under review must have their credits reduced (e.g., 20 credits at medium risk becomes 12) `[tests/attestation.test.ts:15-22]()`.
-*   **Read-Only Enforcement**: High-risk or limited accounts must have all `can...` flags set to `false` and `effectiveVoiceCredits` set to `0` `[tests/attestation.test.ts:24-32]()`.
+*   **Full Capacity**: Verified low-risk accounts must retain 100% of their credits `[tests/attestation.test.ts:6-13](tests/attestation.test.ts#L6-L13)`.
+*   **Voice Capping**: Accounts under review must have their credits reduced (e.g., 20 credits at medium risk becomes 12) `[tests/attestation.test.ts:15-22](tests/attestation.test.ts#L15-L22)`.
+*   **Read-Only Enforcement**: High-risk or limited accounts must have all `can...` flags set to `false` and `effectiveVoiceCredits` set to `0` `[tests/attestation.test.ts:24-32](tests/attestation.test.ts#L24-L32)`.
 
-**Sources:** `[tests/attestation.test.ts:1-33]()`
+**Sources:** `[tests/attestation.test.ts:1-33](tests/attestation.test.ts#L1-L33)`
 
 ---
 
@@ -1351,8 +1349,8 @@ The function `summarizeRevenueStream` calculates the absolute USD values for the
 | **Founder Monthly USD** | `(monthlyRevenueUsd * founderSharePercent) / 100` |
 
 **Sources:**
-- `summarizeRevenueStream` definition: [src/lib/economics.ts:3-12]()
-- Logic implementation: [src/lib/economics.ts:4-5]()
+- `summarizeRevenueStream` definition: [src/lib/economics.ts:3-12](src/lib/economics.ts#L3-L12)
+- Logic implementation: [src/lib/economics.ts:4-5](src/lib/economics.ts#L4-L5)
 
 ## Treasury Bucket Accounting
 
@@ -1360,13 +1358,13 @@ The system tracks financial movements through `TreasuryEntryRecord` objects. The
 
 ### Balance and Restricted Funding
 The `summarizeEconomics` function aggregates these entries to determine the current liquidity:
-1.  **Treasury Balance**: Calculated by summing all `inflow` and subtracting all `outflow` entries specifically assigned to the `compute-treasury` bucket [src/lib/economics.ts:27-29]().
-2.  **Restricted Funding Detection**: The system identifies "restricted" funds by scanning the `title` and `description` fields of treasury entries for the keyword "restricted" [src/lib/economics.ts:31-33](). This allows the system to track capital that is earmarked for specific Ken categories (e.g., civic health) rather than general compute.
+1.  **Treasury Balance**: Calculated by summing all `inflow` and subtracting all `outflow` entries specifically assigned to the `compute-treasury` bucket [src/lib/economics.ts:27-29](src/lib/economics.ts#L27-L29).
+2.  **Restricted Funding Detection**: The system identifies "restricted" funds by scanning the `title` and `description` fields of treasury entries for the keyword "restricted" [src/lib/economics.ts:31-33](src/lib/economics.ts#L31-L33). This allows the system to track capital that is earmarked for specific Ken categories (e.g., civic health) rather than general compute.
 
 **Sources:**
-- `summarizeEconomics` definition: [src/lib/economics.ts:14-19]()
-- Balance logic: [src/lib/economics.ts:27-29]()
-- Restricted detection: [src/lib/economics.ts:31-33]()
+- `summarizeEconomics` definition: [src/lib/economics.ts:14-19](src/lib/economics.ts#L14-L19)
+- Balance logic: [src/lib/economics.ts:27-29](src/lib/economics.ts#L27-L29)
+- Restricted detection: [src/lib/economics.ts:31-33](src/lib/economics.ts#L31-L33)
 
 ## Economic Summary Pipeline
 
@@ -1407,39 +1405,39 @@ graph TD
     SUM --> RF
 ```
 **Sources:**
-- Pipeline logic: [src/lib/economics.ts:14-49]()
-- Mapping function: [src/lib/economics.ts:20-20]()
+- Pipeline logic: [src/lib/economics.ts:14-49](src/lib/economics.ts#L14-L49)
+- Mapping function: [src/lib/economics.ts:20-20](src/lib/economics.ts#L20-L20)
 
 ## Burn Rate and Coverage Months
 
 KenMatch calculates its "Runway" or `coverageMonths` by comparing the current treasury balance against the `monthlyPublicBurnUsd`. 
 
 *   **Burn Rate**: The total USD spent per month to sustain the "Month" and "Week" tier Kens.
-*   **Coverage Months**: Calculated as `treasuryBalanceUsd / monthlyPublicBurnUsd`, rounded to one decimal place [src/lib/economics.ts:30-30]().
+*   **Coverage Months**: Calculated as `treasuryBalanceUsd / monthlyPublicBurnUsd`, rounded to one decimal place [src/lib/economics.ts:30-30](src/lib/economics.ts#L30-L30).
 
-If the burn rate is zero, the coverage months default to `0` to avoid division by zero errors [src/lib/economics.ts:30-30]().
+If the burn rate is zero, the coverage months default to `0` to avoid division by zero errors [src/lib/economics.ts:30-30](src/lib/economics.ts#L30-L30).
 
 **Sources:**
-- Coverage calculation: [src/lib/economics.ts:30-30]()
-- Unit test for coverage: [tests/economics.test.ts:118-119]()
+- Coverage calculation: [src/lib/economics.ts:30-30](src/lib/economics.ts#L30-L30)
+- Unit test for coverage: [tests/economics.test.ts:118-119](tests/economics.test.ts#L118-L119)
 
 ## Revenue Engines and Status
 
 The system distinguishes between "Committed" and "Planned" revenue to provide a realistic view of financial stability.
 
-*   **Committed Revenue**: Any stream where the `status` is not `"planned"` (e.g., `"live"`, `"pilot"`) [src/lib/economics.ts:21-21]().
-*   **Verified Funding Streams**: A count of all non-planned revenue streams [src/lib/economics.ts:34-34]().
+*   **Committed Revenue**: Any stream where the `status` is not `"planned"` (e.g., `"live"`, `"pilot"`) [src/lib/economics.ts:21-21](src/lib/economics.ts#L21-L21).
+*   **Verified Funding Streams**: A count of all non-planned revenue streams [src/lib/economics.ts:34-34](src/lib/economics.ts#L34-L34).
 
 ### Revenue Engine Types
 The codebase references several revenue engines used to categorize streams:
-*   `enterprise`: Managed product layers [tests/economics.test.ts:11-12]().
-*   `data-licensing`: Anonymized trajectory licensing [tests/economics.test.ts:45-46]().
-*   `sponsorship`: Restricted pools for specific civic goals [tests/economics.test.ts:58-59]().
+*   `enterprise`: Managed product layers [tests/economics.test.ts:11-12](tests/economics.test.ts#L11-L12).
+*   `data-licensing`: Anonymized trajectory licensing [tests/economics.test.ts:45-46](tests/economics.test.ts#L45-L46).
+*   `sponsorship`: Restricted pools for specific civic goals [tests/economics.test.ts:58-59](tests/economics.test.ts#L58-L59).
 
 **Sources:**
-- Status filtering: [src/lib/economics.ts:21-25]()
-- Verified stream count: [src/lib/economics.ts:34-34]()
-- Engine examples: [tests/economics.test.ts:6-67]()
+- Status filtering: [src/lib/economics.ts:21-25](src/lib/economics.ts#L21-L25)
+- Verified stream count: [src/lib/economics.ts:34-34](src/lib/economics.ts#L34-L34)
+- Engine examples: [tests/economics.test.ts:6-67](tests/economics.test.ts#L6-L67)
 
 ## Summary of Logic Entities
 
@@ -1478,9 +1476,9 @@ classDiagram
 ```
 
 **Sources:**
-- Type imports: [src/lib/economics.ts:1-1]()
-- Summary interface usage: [src/lib/economics.ts:19-19]()
-- Record processing: [src/lib/economics.ts:20-34]()
+- Type imports: [src/lib/economics.ts:1-1](src/lib/economics.ts#L1-L1)
+- Summary interface usage: [src/lib/economics.ts:19-19](src/lib/economics.ts#L19-L19)
+- Record processing: [src/lib/economics.ts:20-34](src/lib/economics.ts#L20-L34)
 
 ---
 
@@ -1507,7 +1505,7 @@ This section details the mechanisms for managing user sessions and the robust en
 KenMatch utilizes a centralized, Zod-validated environment configuration system defined in `src/lib/env.ts`. This ensures that the application fails fast during startup if required variables are missing or malformed.
 
 ### Validation Schema
-The system uses a `booleanish` preprocessor to handle various ways environment variables might represent truthy/falsy values (e.g., "true", "1", "false", "0") [src/lib/env.ts:3-23](). The `envSchema` defines the expected structure and default values for the application [src/lib/env.ts:25-34]().
+The system uses a `booleanish` preprocessor to handle various ways environment variables might represent truthy/falsy values (e.g., "true", "1", "false", "0") [src/lib/env.ts:3-23](src/lib/env.ts#L3-L23). The `envSchema` defines the expected structure and default values for the application [src/lib/env.ts:25-34](src/lib/env.ts#L25-L34).
 
 ### Configuration Variables
 | Variable | Description | Default |
@@ -1522,10 +1520,10 @@ The system uses a `booleanish` preprocessor to handle various ways environment v
 | `KENMATCH_ENABLE_DEMO_PROFILE_SWITCHER` | Enables the UI for rapid profile switching in dev/demo | `false` |
 
 ### Database Connectivity Modes
-The application determines its persistence strategy based on the presence of `DATABASE_URL`. If provided, it connects to a remote libSQL instance; otherwise, it defaults to a local file-based SQLite database specified by `KENMATCH_DB_FILE` [src/lib/env.ts:27-29]().
+The application determines its persistence strategy based on the presence of `DATABASE_URL`. If provided, it connects to a remote libSQL instance; otherwise, it defaults to a local file-based SQLite database specified by `KENMATCH_DB_FILE` [src/lib/env.ts:27-29](src/lib/env.ts#L27-L29).
 
 **Sources:**
-- [src/lib/env.ts:3-36]()
+- [src/lib/env.ts:3-36](src/lib/env.ts#L3-L36)
 
 ---
 
@@ -1534,17 +1532,17 @@ The application determines its persistence strategy based on the presence of `DA
 Session management is handled via secure, server-side cookies. The logic is encapsulated in `src/lib/session.ts`, which interacts with Next.js `headers` and the database layer to authenticate requests.
 
 ### Cookie Lifecycle
-The `cookieOptions` function defines the security profile for the session cookie [src/lib/session.ts:8-16](). 
+The `cookieOptions` function defines the security profile for the session cookie [src/lib/session.ts:8-16](src/lib/session.ts#L8-L16). 
 - **httpOnly**: Always `true` to prevent XSS-based token theft.
 - **sameSite**: Set to `lax` for CSRF protection while allowing top-level navigations.
 - **secure**: Set to `true` only when `NODE_ENV` is `production`.
-- **maxAge**: Calculated based on `KENMATCH_SESSION_DAYS` [src/lib/session.ts:31]().
+- **maxAge**: Calculated based on `KENMATCH_SESSION_DAYS` [src/lib/session.ts:31](src/lib/session.ts#L31).
 
 ### Key Functions
-- `getViewerSession()`: Retrieves the current session by reading the cookie and looking up the corresponding token in the database via `getViewerSessionByToken` [src/lib/session.ts:18-22]().
-- `getViewerProfileId()`: A helper that extracts only the `profile.id` from the current session [src/lib/session.ts:24-27]().
-- `setViewerSessionCookie(token)`: Persists a session token to the browser with the configured expiration [src/lib/session.ts:29-32]().
-- `clearViewerSessionCookie()`: Effectively logs out the user by setting the cookie expiration to `0` [src/lib/session.ts:34-37]().
+- `getViewerSession()`: Retrieves the current session by reading the cookie and looking up the corresponding token in the database via `getViewerSessionByToken` [src/lib/session.ts:18-22](src/lib/session.ts#L18-L22).
+- `getViewerProfileId()`: A helper that extracts only the `profile.id` from the current session [src/lib/session.ts:24-27](src/lib/session.ts#L24-L27).
+- `setViewerSessionCookie(token)`: Persists a session token to the browser with the configured expiration [src/lib/session.ts:29-32](src/lib/session.ts#L29-L32).
+- `clearViewerSessionCookie()`: Effectively logs out the user by setting the cookie expiration to `0` [src/lib/session.ts:34-37](src/lib/session.ts#L34-L37).
 
 ### Session Data Flow
 The following diagram illustrates how a user request is authenticated against the database using the session utilities.
@@ -1564,8 +1562,8 @@ sequenceDiagram
 ```
 
 **Sources:**
-- [src/lib/session.ts:1-42]()
-- [src/lib/env.ts:30-31]()
+- [src/lib/session.ts:1-42](src/lib/session.ts#L1-L42)
+- [src/lib/env.ts:30-31](src/lib/env.ts#L30-L31)
 
 ---
 
@@ -1598,13 +1596,13 @@ graph TD
 ```
 
 ### Technical Implementation Details
-1. **Cookie Name**: The constant `ACTIVE_SESSION_COOKIE` is directly assigned from `env.KENMATCH_SESSION_COOKIE` [src/lib/session.ts:6]().
-2. **Security**: The `secure` flag in `cookieOptions` is dynamically set based on `env.NODE_ENV === "production"` [src/lib/session.ts:12]().
-3. **Session Expiry**: When `setViewerSessionCookie` is called, it converts `env.KENMATCH_SESSION_DAYS` into seconds for the `maxAge` attribute [src/lib/session.ts:31]().
+1. **Cookie Name**: The constant `ACTIVE_SESSION_COOKIE` is directly assigned from `env.KENMATCH_SESSION_COOKIE` [src/lib/session.ts:6](src/lib/session.ts#L6).
+2. **Security**: The `secure` flag in `cookieOptions` is dynamically set based on `env.NODE_ENV === "production"` [src/lib/session.ts:12](src/lib/session.ts#L12).
+3. **Session Expiry**: When `setViewerSessionCookie` is called, it converts `env.KENMATCH_SESSION_DAYS` into seconds for the `maxAge` attribute [src/lib/session.ts:31](src/lib/session.ts#L31).
 
 **Sources:**
-- [src/lib/session.ts:6-32]()
-- [src/lib/env.ts:25-34]()
+- [src/lib/session.ts:6-32](src/lib/session.ts#L6-L32)
+- [src/lib/env.ts:25-34](src/lib/env.ts#L25-L34)
 
 ---
 
@@ -1639,8 +1637,8 @@ The application is organized into several key route groups:
 
 ### Data Hydration Pattern
 When a request hits a route, the following flow occurs:
-1.  **Layout Fetching**: The `RootLayout` concurrently fetches the global profile list and the current viewer session [src/app/layout.tsx:27-27]().
-2.  **Page Fetching**: Individual pages call specialized getters (e.g., `getHealthSummary()`) to retrieve specific slices of the system state [src/app/api/health/route.ts:6-6]().
+1.  **Layout Fetching**: The `RootLayout` concurrently fetches the global profile list and the current viewer session [src/app/layout.tsx:27-27](src/app/layout.tsx#L27-L27).
+2.  **Page Fetching**: Individual pages call specialized getters (e.g., `getHealthSummary()`) to retrieve specific slices of the system state [src/app/api/health/route.ts:6-6](src/app/api/health/route.ts#L6-L6).
 3.  **UI Projection**: The fetched data is passed into Client Components for interactivity (like voting or filtering) while maintaining server-side rendering for SEO and initial load performance.
 
 ### System Routing Map
@@ -1672,7 +1670,7 @@ graph TD
         DB1 & DB2 & DB3 & DB4 & DB5 --> SQL["libSQL / SQLite"]
     end
 ```
-Sources: [src/app/layout.tsx:27-27](), [src/app/api/health/route.ts:6-6](), [src/app/actions.ts:126-126]()
+Sources: [src/app/layout.tsx:27-27](src/app/layout.tsx#L27-L27), [src/app/api/health/route.ts:6-6](src/app/api/health/route.ts#L6-L6), [src/app/actions.ts:126-126](src/app/actions.ts#L126-L126)
 
 ## Server Actions and Mutations
 
@@ -1680,9 +1678,9 @@ Mutations in KenMatch are handled via **Next.js Server Actions** defined in `src
 
 ### Action State Pattern
 All actions follow a standardized `ActionState` interface to communicate results back to the UI:
-*   **Status**: `idle`, `error`, or `success` [src/app/action-state.ts:2-2]().
-*   **Validation**: Uses **Zod** schemas (e.g., `proposalSchema`, `voteSchema`) to validate `FormData` before hitting the database [src/app/actions.ts:29-82]().
-*   **Feedback**: Returns `fieldErrors` for specific UI highlighting [src/app/action-state.ts:4-4]().
+*   **Status**: `idle`, `error`, or `success` [src/app/action-state.ts:2-2](src/app/action-state.ts#L2-L2).
+*   **Validation**: Uses **Zod** schemas (e.g., `proposalSchema`, `voteSchema`) to validate `FormData` before hitting the database [src/app/actions.ts:29-82](src/app/actions.ts#L29-L82).
+*   **Feedback**: Returns `fieldErrors` for specific UI highlighting [src/app/action-state.ts:4-4](src/app/action-state.ts#L4-L4).
 
 ### Mutation Lifecycle
 The diagram below shows how a user action (like submitting a Ken) moves through the system.
@@ -1703,7 +1701,7 @@ sequenceDiagram
     SA->>NC: revalidateCorePaths()
     SA->>UI: redirect() or return ActionState
 ```
-Sources: [src/app/actions.ts:95-101](), [src/app/actions.ts:103-114](), [src/app/actions.ts:182-212]()
+Sources: [src/app/actions.ts:95-101](src/app/actions.ts#L95-L101), [src/app/actions.ts:103-114](src/app/actions.ts#L103-L114), [src/app/actions.ts:182-212](src/app/actions.ts#L182-L212)
 
 ## Sub-Topic Overviews
 
@@ -1721,10 +1719,10 @@ Describes the session management flow. It covers the `signInAction` and `signUpA
 
 ---
 **Sources:**
-*   [src/app/actions.ts:1-212]()
-*   [src/app/layout.tsx:1-39]()
-*   [src/app/action-state.ts:1-11]()
-*   [src/app/api/health/route.ts:1-9]()
+*   [src/app/actions.ts:1-212](src/app/actions.ts#L1-L212)
+*   [src/app/layout.tsx:1-39](src/app/layout.tsx#L1-L39)
+*   [src/app/action-state.ts:1-11](src/app/action-state.ts#L1-L11)
+*   [src/app/api/health/route.ts:1-9](src/app/api/health/route.ts#L1-L9)
 
 ---
 
@@ -1754,18 +1752,18 @@ This page details the implementation of the primary user-facing routes in KenMat
 The homepage `src/app/page.tsx` serves as the entry point, providing a high-level overview of the system's health, active allocation lanes, and featured Kens.
 
 ### Implementation and Data Flow
-The page is a Server Component that retrieves a comprehensive data snapshot via `getHomeData(viewerProfileId)` [src/app/page.tsx:10](). This function aggregates:
-- **Global Metrics**: Counts for total proposals, active runs, bonded voice credits, and monthly treasury commitments [src/app/page.tsx:50-53]().
-- **Allocation Lanes**: Static definitions for "Months", "Weeks", and "Days" tiers which describe the scope of Kens in each bucket [src/app/page.tsx:41-47]().
-- **Featured Kens**: A subset of tasks currently leading the board [src/app/page.tsx:66]().
-- **Economic Snapshot**: Real-time treasury coverage months, sponsor pool totals, and verified funding streams [src/app/page.tsx:91-95]().
+The page is a Server Component that retrieves a comprehensive data snapshot via `getHomeData(viewerProfileId)` [src/app/page.tsx:10](src/app/page.tsx#L10). This function aggregates:
+- **Global Metrics**: Counts for total proposals, active runs, bonded voice credits, and monthly treasury commitments [src/app/page.tsx:50-53](src/app/page.tsx#L50-L53).
+- **Allocation Lanes**: Static definitions for "Months", "Weeks", and "Days" tiers which describe the scope of Kens in each bucket [src/app/page.tsx:41-47](src/app/page.tsx#L41-L47).
+- **Featured Kens**: A subset of tasks currently leading the board [src/app/page.tsx:66](src/app/page.tsx#L66).
+- **Economic Snapshot**: Real-time treasury coverage months, sponsor pool totals, and verified funding streams [src/app/page.tsx:91-95](src/app/page.tsx#L91-L95).
 
 ### Visual Components
-- **Hero Section**: Displays the primary mission and call-to-action links (`/kens`, `/submit`, `/economics`) [src/app/page.tsx:14-27]().
-- **Category Grid**: Lists available Ken categories and their respective proposal counts [src/app/page.tsx:74-82]().
-- **Governance & Contributors**: Shows recent decision logs from various "Houses" and a sample of active community contributors [src/app/page.tsx:112-124]().
+- **Hero Section**: Displays the primary mission and call-to-action links (`/kens`, `/submit`, `/economics`) [src/app/page.tsx:14-27](src/app/page.tsx#L14-L27).
+- **Category Grid**: Lists available Ken categories and their respective proposal counts [src/app/page.tsx:74-82](src/app/page.tsx#L74-L82).
+- **Governance & Contributors**: Shows recent decision logs from various "Houses" and a sample of active community contributors [src/app/page.tsx:112-124](src/app/page.tsx#L112-L124).
 
-**Sources:** [src/app/page.tsx:1-124](), [src/lib/db.ts:4]().
+**Sources:** [src/app/page.tsx:1-124](src/app/page.tsx#L1-L124), [src/lib/db.ts:4](src/lib/db.ts#L4).
 
 ---
 
@@ -1774,16 +1772,16 @@ The page is a Server Component that retrieves a comprehensive data snapshot via 
 The Ken Board (`src/app/kens/page.tsx`) provides a filtered interface for browsing the full library of tasks. It supports searching, category filtering, and status-based navigation.
 
 ### Routing and Redirection
-To maintain URL consistency, the legacy `/tasks` route is redirected to `/kens` [src/app/tasks/page.tsx:4-5](). Similarly, individual task slugs are redirected to the Ken detail path [src/app/tasks/[slug]/page.tsx:5]().
+To maintain URL consistency, the legacy `/tasks` route is redirected to `/kens` [src/app/tasks/page.tsx:4-5](src/app/tasks/page.tsx#L4-L5). Similarly, individual task slugs are redirected to the Ken detail path [src/app/tasks/[slug]/page.tsx:5](src/app/tasks/[slug]/page.tsx#L5).
 
 ### Filtering Logic
 The `KensPage` component parses `searchParams` to determine the current view state:
-- **Query (`q`)**: Text search against titles and summaries [src/app/kens/page.tsx:18]().
-- **Category**: Filters by specific domain (e.g., "AI Safety", "Public Tools") [src/app/kens/page.tsx:19]().
-- **Tier**: Filters by allocation lane (`months`, `weeks`, `days`) [src/app/kens/page.tsx:20]().
-- **Stage**: Filters by lifecycle state (`proposed`, `active`, `shipped`, `blocked`) [src/app/kens/page.tsx:21]().
+- **Query (`q`)**: Text search against titles and summaries [src/app/kens/page.tsx:18](src/app/kens/page.tsx#L18).
+- **Category**: Filters by specific domain (e.g., "AI Safety", "Public Tools") [src/app/kens/page.tsx:19](src/app/kens/page.tsx#L19).
+- **Tier**: Filters by allocation lane (`months`, `weeks`, `days`) [src/app/kens/page.tsx:20](src/app/kens/page.tsx#L20).
+- **Stage**: Filters by lifecycle state (`proposed`, `active`, `shipped`, `blocked`) [src/app/kens/page.tsx:21](src/app/kens/page.tsx#L21).
 
-Data is fetched via `getMarketplaceData(viewerProfileId, filters)` [src/app/kens/page.tsx:22]().
+Data is fetched via `getMarketplaceData(viewerProfileId, filters)` [src/app/kens/page.tsx:22](src/app/kens/page.tsx#L22).
 
 ### Natural Language to Code Entity Map: Discovery
 The following diagram maps user-facing "Board" concepts to the underlying code entities.
@@ -1813,7 +1811,7 @@ graph TD
   MarketplaceFilters --> GetMarketplaceData
   GetMarketplaceData -->|"Returns Task[]"| KenGrid
 ```
-**Sources:** [src/app/kens/page.tsx:1-51](), [src/lib/types.ts:5-6]().
+**Sources:** [src/app/kens/page.tsx:1-51](src/app/kens/page.tsx#L1-L51), [src/lib/types.ts:5-6](src/lib/types.ts#L5-L6).
 
 ---
 
@@ -1822,22 +1820,22 @@ graph TD
 The detail page (`src/app/kens/[slug]/page.tsx`) is the most data-intensive route, combining descriptive content, economic data, run plans, and interactive voting panels.
 
 ### Data Aggregation
-The page calls `getTaskDetail(slug, viewerProfileId)` [src/app/kens/[slug]/page.tsx:16](). If the slug does not exist, it triggers a `notFound()` [src/app/kens/[slug]/page.tsx:18]().
+The page calls `getTaskDetail(slug, viewerProfileId)` [src/app/kens/[slug]/page.tsx:16](src/app/kens/[slug]/page.tsx#L16). If the slug does not exist, it triggers a `notFound()` [src/app/kens/[slug]/page.tsx:18](src/app/kens/[slug]/page.tsx#L18).
 
 ### Key Sections
 | Section | Description | Code Reference |
 | :--- | :--- | :--- |
-| **Hero & Meta** | Displays tier chip, stage, category, and public score. | [src/app/kens/[slug]/page.tsx:23-39]() |
-| **Timing Strip** | Visualizes the Ken's lifecycle timeline. | [src/app/kens/[slug]/page.tsx:40]() |
-| **Metrics** | Total voice credits, supporter count, and category rank. | [src/app/kens/[slug]/page.tsx:41-45]() |
-| **Content Blocks** | Problem statement, public benefit, and deliverables. | [src/app/kens/[slug]/page.tsx:50-63]() |
-| **Run Plan** | Backend details, runtime caps, and checkpoint gates. | [src/app/kens/[slug]/page.tsx:77-102]() |
-| **Audit Trail** | Incremental updates and historical activity logs. | [src/app/kens/[slug]/page.tsx:113-120]() |
+| **Hero & Meta** | Displays tier chip, stage, category, and public score. | [src/app/kens/[slug]/page.tsx:23-39](src/app/kens/[slug]/page.tsx#L23-L39) |
+| **Timing Strip** | Visualizes the Ken's lifecycle timeline. | [src/app/kens/[slug]/page.tsx:40](src/app/kens/[slug]/page.tsx#L40) |
+| **Metrics** | Total voice credits, supporter count, and category rank. | [src/app/kens/[slug]/page.tsx:41-45](src/app/kens/[slug]/page.tsx#L41-L45) |
+| **Content Blocks** | Problem statement, public benefit, and deliverables. | [src/app/kens/[slug]/page.tsx:50-63](src/app/kens/[slug]/page.tsx#L50-L63) |
+| **Run Plan** | Backend details, runtime caps, and checkpoint gates. | [src/app/kens/[slug]/page.tsx:77-102](src/app/kens/[slug]/page.tsx#L77-L102) |
+| **Audit Trail** | Incremental updates and historical activity logs. | [src/app/kens/[slug]/page.tsx:113-120](src/app/kens/[slug]/page.tsx#L113-L120) |
 
 ### Interactive Panels
-- **VotePanel**: Handles Quadratic Voting (QV) for authenticated users. It displays the viewer's available voice credits and current allocation to the Ken [src/app/kens/[slug]/page.tsx:135]().
-- **TaskPulsePanel**: Displays the "Public Pulse" score, a separate signal from scarce voice credits [src/app/kens/[slug]/page.tsx:134]().
-- **DiscussionThread**: Provides a threaded comment interface for community review [src/app/kens/[slug]/page.tsx:136]().
+- **VotePanel**: Handles Quadratic Voting (QV) for authenticated users. It displays the viewer's available voice credits and current allocation to the Ken [src/app/kens/[slug]/page.tsx:135](src/app/kens/[slug]/page.tsx#L135).
+- **TaskPulsePanel**: Displays the "Public Pulse" score, a separate signal from scarce voice credits [src/app/kens/[slug]/page.tsx:134](src/app/kens/[slug]/page.tsx#L134).
+- **DiscussionThread**: Provides a threaded comment interface for community review [src/app/kens/[slug]/page.tsx:136](src/app/kens/[slug]/page.tsx#L136).
 
 ### Natural Language to Code Entity Map: Ken Lifecycle
 The following diagram bridges the conceptual "Ken Lifecycle" to the database entities and components that render them.
@@ -1866,19 +1864,19 @@ graph LR
   Execution --> CheckpointDB
   Audit --> RunUpdates
 ```
-**Sources:** [src/app/kens/[slug]/page.tsx:1-140](), [src/lib/db.ts:7](), [src/components/vote-panel.tsx:6]().
+**Sources:** [src/app/kens/[slug]/page.tsx:1-140](src/app/kens/[slug]/page.tsx#L1-L140), [src/lib/db.ts:7](src/lib/db.ts#L7), [src/components/vote-panel.tsx:6](src/components/vote-panel.tsx#L6).
 
 ---
 
 ## 4. Participation and Session Logic
 
-The behavior of these pages changes based on the `viewerProfile` status, which is retrieved via `getViewerSession()` [src/app/kens/[slug]/page.tsx:13]().
+The behavior of these pages changes based on the `viewerProfile` status, which is retrieved via `getViewerSession()` [src/app/kens/[slug]/page.tsx:13](src/app/kens/[slug]/page.tsx#L13).
 
-- **Anonymous Access**: Users can read all Kens, view metrics, and browse the board. They are prompted with a `publicParticipationMessage` suggesting they sign in to vote or comment [src/app/kens/[slug]/page.tsx:15]().
-- **Authenticated Access**: Users see their specific `availableCredits` [src/app/page.tsx:31]() and can interact with the `VotePanel` and `DiscussionThread`.
-- **Policy Enforcement**: The `participationNote` from the profile (resolved via attestation logic) informs the user of any restrictions (e.g., read-only mode due to high Sybil risk) [src/app/kens/[slug]/page.tsx:15]().
+- **Anonymous Access**: Users can read all Kens, view metrics, and browse the board. They are prompted with a `publicParticipationMessage` suggesting they sign in to vote or comment [src/app/kens/[slug]/page.tsx:15](src/app/kens/[slug]/page.tsx#L15).
+- **Authenticated Access**: Users see their specific `availableCredits` [src/app/page.tsx:31](src/app/page.tsx#L31) and can interact with the `VotePanel` and `DiscussionThread`.
+- **Policy Enforcement**: The `participationNote` from the profile (resolved via attestation logic) informs the user of any restrictions (e.g., read-only mode due to high Sybil risk) [src/app/kens/[slug]/page.tsx:15](src/app/kens/[slug]/page.tsx#L15).
 
-**Sources:** [src/app/kens/[slug]/page.tsx:13-16](), [src/app/page.tsx:29-35](), [src/lib/session.ts:8]().
+**Sources:** [src/app/kens/[slug]/page.tsx:13-16](src/app/kens/[slug]/page.tsx#L13-L16), [src/app/page.tsx:29-35](src/app/page.tsx#L29-L35), [src/lib/session.ts:8](src/lib/session.ts#L8).
 
 ---
 
@@ -1903,15 +1901,15 @@ This section covers the administrative and intake layers of KenMatch. These page
 
 ## Governance Page
 
-The Governance page ([src/app/governance/page.tsx]()) serves as the transparency layer for the platform. It visualizes the "Attestation Ladder," the "Recent Governance Log," and "Blocked Kens." The primary goal is to maintain a legible public process for resource allocation and safety boundaries.
+The Governance page ([src/app/governance/page.tsx](src/app/governance/page.tsx)) serves as the transparency layer for the platform. It visualizes the "Attestation Ladder," the "Recent Governance Log," and "Blocked Kens." The primary goal is to maintain a legible public process for resource allocation and safety boundaries.
 
 ### Implementation Details
-The page is a React Server Component that fetches data via `getGovernanceData` [src/app/governance/page.tsx:7-7]().
+The page is a React Server Component that fetches data via `getGovernanceData` [src/app/governance/page.tsx:7-7](src/app/governance/page.tsx#L7-L7).
 
-*   **Attestation Ladder**: Displays the top profiles, showing their `attestationLevel`, `sybilRisk`, and `effectiveVoiceCredits` [src/app/governance/page.tsx:30-52](). This reflects how much "Voice" (voting power) an account holds based on its verified standing.
-*   **Governance Log**: A chronological list of decisions made by different "Houses" (e.g., community, founders). It displays the `decision` and the `outcome` [src/app/governance/page.tsx:56-69]().
-*   **Blocked Kens**: Specifically filters and displays tasks where the `allocatedTier` is set to a blocked state [src/app/governance/page.tsx:71-81](). These are rendered with a distinct red visual style to indicate they have been rejected or halted for safety/policy reasons.
-*   **Category Health**: Summarizes the status of different categories, showing counts for `eligible`, `running`, and `shipped` Kens [src/app/governance/page.tsx:84-95]().
+*   **Attestation Ladder**: Displays the top profiles, showing their `attestationLevel`, `sybilRisk`, and `effectiveVoiceCredits` [src/app/governance/page.tsx:30-52](src/app/governance/page.tsx#L30-L52). This reflects how much "Voice" (voting power) an account holds based on its verified standing.
+*   **Governance Log**: A chronological list of decisions made by different "Houses" (e.g., community, founders). It displays the `decision` and the `outcome` [src/app/governance/page.tsx:56-69](src/app/governance/page.tsx#L56-L69).
+*   **Blocked Kens**: Specifically filters and displays tasks where the `allocatedTier` is set to a blocked state [src/app/governance/page.tsx:71-81](src/app/governance/page.tsx#L71-L81). These are rendered with a distinct red visual style to indicate they have been rejected or halted for safety/policy reasons.
+*   **Category Health**: Summarizes the status of different categories, showing counts for `eligible`, `running`, and `shipped` Kens [src/app/governance/page.tsx:84-95](src/app/governance/page.tsx#L84-L95).
 
 ### Data Flow: Governance
 The following diagram maps the UI sections to the underlying data entities retrieved from the database.
@@ -1944,20 +1942,20 @@ graph TD
     TABLE_TASK -- "allocatedTier = 'blocked'" --> UI_BLOCKED
     TABLE_CAT --> UI_HEALTH
 ```
-Sources: [src/app/governance/page.tsx:1-98](), [src/lib/db.ts:1-1]()
+Sources: [src/app/governance/page.tsx:1-98](src/app/governance/page.tsx#L1-L98), [src/lib/db.ts:1-1](src/lib/db.ts#L1-L1)
 
 ---
 
 ## Economics Page
 
-The Economics page ([src/app/economics/page.tsx]()) provides a dashboard for the KenMatch treasury. It distinguishes between revenue that supports operations and revenue that is restricted to specific Kens (Sponsor Pools).
+The Economics page ([src/app/economics/page.tsx](src/app/economics/page.tsx)) provides a dashboard for the KenMatch treasury. It distinguishes between revenue that supports operations and revenue that is restricted to specific Kens (Sponsor Pools).
 
 ### Key Metrics and Logic
-The page consumes data from `getEconomicsData` [src/app/economics/page.tsx:7-7](), which calculates:
-*   **Coverage Months**: How long the current treasury can sustain the current burn rate [src/app/economics/page.tsx:25-25]().
-*   **Revenue Streams**: Individual sources of income, split between `treasuryMonthlyUsd` (shared compute) and `founderMonthlyUsd` (operations) [src/app/economics/page.tsx:35-48]().
-*   **Treasury Ledger**: A granular list of `treasury_entries` showing the `direction` (inflow/outflow) and `amountUsd` [src/app/economics/page.tsx:51-65]().
-*   **Funded Kens**: Tasks that have successfully attracted a "Sponsor Pool," which is restricted funding for that specific deliverable [src/app/economics/page.tsx:81-94]().
+The page consumes data from `getEconomicsData` [src/app/economics/page.tsx:7-7](src/app/economics/page.tsx#L7-L7), which calculates:
+*   **Coverage Months**: How long the current treasury can sustain the current burn rate [src/app/economics/page.tsx:25-25](src/app/economics/page.tsx#L25-L25).
+*   **Revenue Streams**: Individual sources of income, split between `treasuryMonthlyUsd` (shared compute) and `founderMonthlyUsd` (operations) [src/app/economics/page.tsx:35-48](src/app/economics/page.tsx#L35-L48).
+*   **Treasury Ledger**: A granular list of `treasury_entries` showing the `direction` (inflow/outflow) and `amountUsd` [src/app/economics/page.tsx:51-65](src/app/economics/page.tsx#L51-L65).
+*   **Funded Kens**: Tasks that have successfully attracted a "Sponsor Pool," which is restricted funding for that specific deliverable [src/app/economics/page.tsx:81-94](src/app/economics/page.tsx#L81-L94).
 
 ### Economics System Architecture
 This diagram illustrates how revenue flows through the system into different buckets.
@@ -1988,18 +1986,18 @@ graph LR
     
     TREASURY --> COVERAGE["Coverage Months Calculation"]
 ```
-Sources: [src/app/economics/page.tsx:1-98](), [src/lib/economics.ts:1-1]()
+Sources: [src/app/economics/page.tsx:1-98](src/app/economics/page.tsx#L1-L98), [src/lib/economics.ts:1-1](src/lib/economics.ts#L1-L1)
 
 ---
 
 ## Submit Page
 
-The Submit page ([src/app/submit/page.tsx]()) is the entry point for new Ken proposals. It enforces an "accountable intake" policy where anonymous submissions are prohibited.
+The Submit page ([src/app/submit/page.tsx](src/app/submit/page.tsx)) is the entry point for new Ken proposals. It enforces an "accountable intake" policy where anonymous submissions are prohibited.
 
 ### Intake Process
-1.  **Session Check**: The page calls `getViewerSession()` [src/app/submit/page.tsx:8-8]().
-2.  **Auth Guard**: If no viewer is present, it renders a "Sign in required" message [src/app/submit/page.tsx:23-27]().
-3.  **Proposal Form**: If authenticated, it renders the `ProposalForm` component, passing the available `categories` for selection [src/app/submit/page.tsx:21-21]().
+1.  **Session Check**: The page calls `getViewerSession()` [src/app/submit/page.tsx:8-8](src/app/submit/page.tsx#L8-L8).
+2.  **Auth Guard**: If no viewer is present, it renders a "Sign in required" message [src/app/submit/page.tsx:23-27](src/app/submit/page.tsx#L23-L27).
+3.  **Proposal Form**: If authenticated, it renders the `ProposalForm` component, passing the available `categories` for selection [src/app/submit/page.tsx:21-21](src/app/submit/page.tsx#L21-L21).
 
 ### Proposal Form Components
 The `ProposalForm` (defined in `src/components/proposal-form.tsx`) handles the complex state of a Ken submission, including:
@@ -2027,7 +2025,7 @@ sequenceDiagram
         Action-->>User: Redirect to New Ken Detail Page
     end
 ```
-Sources: [src/app/submit/page.tsx:1-31](), [src/components/proposal-form.tsx:1-1]()
+Sources: [src/app/submit/page.tsx:1-31](src/app/submit/page.tsx#L1-L31), [src/components/proposal-form.tsx:1-1](src/components/proposal-form.tsx#L1-L1)
 
 ## Summary of Key Entities
 
@@ -2037,7 +2035,7 @@ Sources: [src/app/submit/page.tsx:1-31](), [src/components/proposal-form.tsx:1-1
 | **Economics** | `getEconomicsData` | `MetricGrid` | Calculates `coverageMonths` and splits revenue streams. |
 | **Submit** | `getHomeData` | `ProposalForm` | Enforces `viewer` session for accountability. |
 
-Sources: [src/app/governance/page.tsx:7-7](), [src/app/economics/page.tsx:7-7](), [src/app/submit/page.tsx:8-9]()
+Sources: [src/app/governance/page.tsx:7-7](src/app/governance/page.tsx#L7-L7), [src/app/economics/page.tsx:7-7](src/app/economics/page.tsx#L7-L7), [src/app/submit/page.tsx:8-9](src/app/submit/page.tsx#L8-L9)
 
 ---
 
@@ -2063,7 +2061,7 @@ This page details the implementation of the authentication system in KenMatch, f
 
 ## Authentication Overview
 
-KenMatch uses a custom session-based authentication system backed by libSQL. It separates "open reading" from "accountable participation" (voting, commenting, and submission) by requiring a verified contributor profile for the latter [src/app/auth/page.tsx:17-19]().
+KenMatch uses a custom session-based authentication system backed by libSQL. It separates "open reading" from "accountable participation" (voting, commenting, and submission) by requiring a verified contributor profile for the latter [src/app/auth/page.tsx:17-19](src/app/auth/page.tsx#L17-L19).
 
 ### Authentication Flow
 The following diagram illustrates the transition from the `AuthPage` UI through Server Actions to the persistence layer.
@@ -2094,54 +2092,54 @@ graph TD
     SignInAction -- "Calls" --> DB_Auth
     SignUpAction -- "Calls" --> DB_Create
 ```
-Sources: [src/app/auth/page.tsx:3-21](), [src/app/actions.ts:116-170]()
+Sources: [src/app/auth/page.tsx:3-21](src/app/auth/page.tsx#L3-L21), [src/app/actions.ts:116-170](src/app/actions.ts#L116-L170)
 
 ## Authentication Route (`/auth`)
 
-The authentication route is handled by `src/app/auth/page.tsx`. It serves as the entry point for users to join the "public ledger" [src/app/auth/page.tsx:16]().
+The authentication route is handled by `src/app/auth/page.tsx`. It serves as the entry point for users to join the "public ledger" [src/app/auth/page.tsx:16](src/app/auth/page.tsx#L16).
 
-- **Session Check**: The page first calls `getViewerSession()` [src/app/auth/page.tsx:7](). If a session already exists, the user is redirected to the home page [src/app/auth/page.tsx:9]().
-- **UI Rendering**: It renders the `AuthPanels` component, which contains the actual forms for signing in and signing up [src/app/auth/page.tsx:21]().
+- **Session Check**: The page first calls `getViewerSession()` [src/app/auth/page.tsx:7](src/app/auth/page.tsx#L7). If a session already exists, the user is redirected to the home page [src/app/auth/page.tsx:9](src/app/auth/page.tsx#L9).
+- **UI Rendering**: It renders the `AuthPanels` component, which contains the actual forms for signing in and signing up [src/app/auth/page.tsx:21](src/app/auth/page.tsx#L21).
 
-Sources: [src/app/auth/page.tsx:1-24]()
+Sources: [src/app/auth/page.tsx:1-24](src/app/auth/page.tsx#L1-L24)
 
 ## Server Actions and Mutation Logic
 
 Authentication mutations are handled via Next.js Server Actions defined in `src/app/actions.ts`. These actions follow a standardized `ActionState` pattern for error reporting.
 
 ### ActionState Pattern
-Every action returns an `ActionState` object [src/app/action-state.ts:1-5](), which allows the UI to display granular feedback:
+Every action returns an `ActionState` object [src/app/action-state.ts:1-5](src/app/action-state.ts#L1-L5), which allows the UI to display granular feedback:
 | Property | Type | Description |
 | :--- | :--- | :--- |
 | `status` | `"idle" \| "error" \| "success"` | The current state of the operation. |
 | `message` | `string` | A human-readable summary of the result. |
 | `fieldErrors` | `Record<string, string>` | Map of field names to specific Zod validation errors. |
 
-Sources: [src/app/action-state.ts:1-11](), [src/app/actions.ts:118-123]()
+Sources: [src/app/action-state.ts:1-11](src/app/action-state.ts#L1-L11), [src/app/actions.ts:118-123](src/app/actions.ts#L118-L123)
 
 ### Key Server Actions
 
 #### `signInAction`
 Authenticates an existing user and establishes a session.
-1. **Validation**: Uses `signInSchema` to validate email and password [src/app/actions.ts:117]().
-2. **Authentication**: Calls `authenticateAccount()` to verify credentials against the database [src/app/actions.ts:126]().
-3. **Session Creation**: If successful, calls `createSession()` and `setViewerSessionCookie()` [src/app/actions.ts:134-135]().
-4. **Redirection**: Triggers `revalidateCorePaths()` and redirects to `/` [src/app/actions.ts:136-137]().
+1. **Validation**: Uses `signInSchema` to validate email and password [src/app/actions.ts:117](src/app/actions.ts#L117).
+2. **Authentication**: Calls `authenticateAccount()` to verify credentials against the database [src/app/actions.ts:126](src/app/actions.ts#L126).
+3. **Session Creation**: If successful, calls `createSession()` and `setViewerSessionCookie()` [src/app/actions.ts:134-135](src/app/actions.ts#L134-L135).
+4. **Redirection**: Triggers `revalidateCorePaths()` and redirects to `/` [src/app/actions.ts:136-137](src/app/actions.ts#L136-L137).
 
 #### `signUpAction`
 Creates a new contributor profile and account.
-1. **Signup Gate**: Checks `env.KENMATCH_ALLOW_SIGNUPS`. If `false`, it returns an error immediately [src/app/actions.ts:141-146]().
-2. **Validation**: Uses `signUpSchema` which extends the sign-in schema with profile fields like `name`, `role`, and `bio` [src/app/actions.ts:77-82]().
-3. **Account Creation**: Calls `createAccount()` [src/app/actions.ts:158]().
-4. **Auto-Login**: Immediately creates a session for the new account [src/app/actions.ts:159-160]().
+1. **Signup Gate**: Checks `env.KENMATCH_ALLOW_SIGNUPS`. If `false`, it returns an error immediately [src/app/actions.ts:141-146](src/app/actions.ts#L141-L146).
+2. **Validation**: Uses `signUpSchema` which extends the sign-in schema with profile fields like `name`, `role`, and `bio` [src/app/actions.ts:77-82](src/app/actions.ts#L77-L82).
+3. **Account Creation**: Calls `createAccount()` [src/app/actions.ts:158](src/app/actions.ts#L158).
+4. **Auto-Login**: Immediately creates a session for the new account [src/app/actions.ts:159-160](src/app/actions.ts#L159-L160).
 
 #### `signOutAction`
 Terminates the current session.
-1. **Token Retrieval**: Gets the current token via `getViewerToken()` [src/app/actions.ts:173]().
-2. **Revocation**: Deletes the session from the database using `deleteSessionByToken()` [src/app/actions.ts:175]().
-3. **Cookie Cleanup**: Calls `clearViewerSessionCookie()` [src/app/actions.ts:177]().
+1. **Token Retrieval**: Gets the current token via `getViewerToken()` [src/app/actions.ts:173](src/app/actions.ts#L173).
+2. **Revocation**: Deletes the session from the database using `deleteSessionByToken()` [src/app/actions.ts:175](src/app/actions.ts#L175).
+3. **Cookie Cleanup**: Calls `clearViewerSessionCookie()` [src/app/actions.ts:177](src/app/actions.ts#L177).
 
-Sources: [src/app/actions.ts:116-180]()
+Sources: [src/app/actions.ts:116-180](src/app/actions.ts#L116-L180)
 
 ## Implementation Details
 
@@ -2165,15 +2163,15 @@ sequenceDiagram
     Action->>Session: setViewerSessionCookie(token)
     Action->>Client: Redirect("/")
 ```
-Sources: [src/app/actions.ts:116-138](), [src/lib/session.ts:26]()
+Sources: [src/app/actions.ts:116-138](src/app/actions.ts#L116-L138), [src/lib/session.ts:26](src/lib/session.ts#L26)
 
 ### Global Revalidation
-After any authentication state change (sign-in, sign-up, or sign-out), the system calls `revalidateCorePaths()` [src/app/actions.ts:136, 168, 178](). This helper ensures that cached pages reflecting user-specific data (like the "Submit" page or "Governance" dashboard) are updated immediately [src/app/actions.ts:103-114]().
+After any authentication state change (sign-in, sign-up, or sign-out), the system calls `revalidateCorePaths()` [src/app/actions.ts:136](src/app/actions.ts#L136), [src/app/actions.ts:168](src/app/actions.ts#L168), [src/app/actions.ts:178](src/app/actions.ts#L178). This helper ensures that cached pages reflecting user-specific data (like the "Submit" page or "Governance" dashboard) are updated immediately [src/app/actions.ts:103-114](src/app/actions.ts#L103-L114).
 
 ### Security Gating
-KenMatch uses the `requireViewerProfileId()` helper within other server actions (like `createProposalAction`) to enforce authentication [src/app/actions.ts:95-101](). If no session is found, it throws an error that is caught by the `ActionState` handler [src/app/actions.ts:201, 208-211]().
+KenMatch uses the `requireViewerProfileId()` helper within other server actions (like `createProposalAction`) to enforce authentication [src/app/actions.ts:95-101](src/app/actions.ts#L95-L101). If no session is found, it throws an error that is caught by the `ActionState` handler [src/app/actions.ts:201](src/app/actions.ts#L201), [src/app/actions.ts:208-211](src/app/actions.ts#L208-L211).
 
-Sources: [src/app/actions.ts:95-114](), [src/app/actions.ts:182-212]()
+Sources: [src/app/actions.ts:95-114](src/app/actions.ts#L95-L114), [src/app/actions.ts:182-212](src/app/actions.ts#L182-L212)
 
 ---
 
@@ -2230,17 +2228,17 @@ graph TD
     A1 -.-> E1
     B1 -.-> C1
 ```
-Sources: [src/components/site-shell.tsx:1-77](), [src/app/globals.css:1-100](), [src/app/layout.tsx:26-39]()
+Sources: [src/components/site-shell.tsx:1-77](src/components/site-shell.tsx#L1-L77), [src/app/globals.css:1-100](src/app/globals.css#L1-L100), [src/app/layout.tsx:26-39](src/app/layout.tsx#L26-L39)
 
 ---
 
 ### Layout and Navigation Components
-The global application frame is managed by the `SiteShell` component, which wraps the entire application within `RootLayout` [src/app/layout.tsx:33-35](). It provides a sticky header [src/app/globals.css:103-110](), the primary navigation links (Overview, Kens, Submit, Governance, Funding) [src/components/site-shell.tsx:8-14](), and a profile strip displaying featured contributors [src/components/site-shell.tsx:58-64]().
+The global application frame is managed by the `SiteShell` component, which wraps the entire application within `RootLayout` [src/app/layout.tsx:33-35](src/app/layout.tsx#L33-L35). It provides a sticky header [src/app/globals.css:103-110](src/app/globals.css#L103-L110), the primary navigation links (Overview, Kens, Submit, Governance, Funding) [src/components/site-shell.tsx:8-14](src/components/site-shell.tsx#L8-L14), and a profile strip displaying featured contributors [src/components/site-shell.tsx:58-64](src/components/site-shell.tsx#L58-L64).
 
 Key features include:
-*   **Branding**: The `KenMatchMark` component [src/components/kenmatch-mark.tsx]() provides the SVG identity.
-*   **Theme System**: A robust CSS variable system in `globals.css` supports **Light**, **Dark**, and **OLED** modes [src/app/globals.css:15-74](), toggled via `ThemeToggle` [src/components/theme-toggle.tsx]().
-*   **Session State**: The `viewer-inline-card` displays the current user's available Voice Credits and participation state [src/components/site-shell.tsx:34-44]().
+*   **Branding**: The `KenMatchMark` component [src/components/kenmatch-mark.tsx](src/components/kenmatch-mark.tsx) provides the SVG identity.
+*   **Theme System**: A robust CSS variable system in `globals.css` supports **Light**, **Dark**, and **OLED** modes [src/app/globals.css:15-74](src/app/globals.css#L15-L74), toggled via `ThemeToggle` [src/components/theme-toggle.tsx](src/components/theme-toggle.tsx).
+*   **Session State**: The `viewer-inline-card` displays the current user's available Voice Credits and participation state [src/components/site-shell.tsx:34-44](src/components/site-shell.tsx#L34-L44).
 
 For details, see [Layout and Navigation Components](#5.1).
 
@@ -2277,7 +2275,7 @@ graph LR
     VP -- "Updates" --> KTS
     DT -- "Context" --> VP
 ```
-Sources: [src/app/globals.css:206-233](), [src/components/site-shell.tsx:8-14]()
+Sources: [src/app/globals.css:206-233](src/app/globals.css#L206-L233), [src/components/site-shell.tsx:8-14](src/components/site-shell.tsx#L8-L14)
 
 For details, see [Ken Board and Detail Components](#5.2).
 
@@ -2287,14 +2285,14 @@ For details, see [Ken Board and Detail Components](#5.2).
 The system uses a structured intake process to ensure Kens are properly scoped before entering the voting pool.
 
 *   **ProposalForm**: A multi-field form located in `src/components/proposal-form.tsx` that captures deliverables, risk flags, and enterprise packaging. It maps directly to the `tasks` table schema.
-*   **AuthPanels**: Located in `src/components/auth-panels.tsx`, these components manage the transition between `signInAction` and `signUpAction` [src/app/actions.ts](), enforcing the `KENMATCH_ALLOW_SIGNUPS` policy.
+*   **AuthPanels**: Located in `src/components/auth-panels.tsx`, these components manage the transition between `signInAction` and `signUpAction` [src/app/actions.ts](src/app/actions.ts), enforcing the `KENMATCH_ALLOW_SIGNUPS` policy.
 
 For details, see [Proposal Form and Auth Components](#5.3).
 
 ---
 
 ### Theming and Visual Language
-KenMatch uses a "glassmorphism" approach with `backdrop-filter: blur(18px)` [src/app/globals.css:210-211]() and ambient radial gradients [src/app/globals.css:80-91](). The visual language distinguishes between **Public Signal** (teal/strong accents) and **Scarce Allocation** (gold/ember accents).
+KenMatch uses a "glassmorphism" approach with `backdrop-filter: blur(18px)` [src/app/globals.css:210-211](src/app/globals.css#L210-L211) and ambient radial gradients [src/app/globals.css:80-91](src/app/globals.css#L80-L91). The visual language distinguishes between **Public Signal** (teal/strong accents) and **Scarce Allocation** (gold/ember accents).
 
 **Color Variable Map**
 | Variable | Light Value | Dark Value | Purpose |
@@ -2304,7 +2302,7 @@ KenMatch uses a "glassmorphism" approach with `backdrop-filter: blur(18px)` [src
 | `--accent-gold` | `#d7a646` | `#f0c968` | High Rank / Funding |
 | `--panel` | `rgba(255, 250, 243, 0.8)` | `rgba(17, 29, 38, 0.84)` | Card Backgrounds |
 
-Sources: [src/app/globals.css:15-51]()
+Sources: [src/app/globals.css:15-51](src/app/globals.css#L15-L51)
 
 ---
 
@@ -2331,12 +2329,12 @@ This section covers the structural and aesthetic foundations of the KenMatch int
 
 ## Site Shell and Global Layout
 
-The `SiteShell` component serves as the primary layout wrapper for the entire application. It establishes the `site-frame` [src/app/globals.css:99-99](), which includes ambient background animations, a sticky header, and a persistent footer.
+The `SiteShell` component serves as the primary layout wrapper for the entire application. It establishes the `site-frame` [src/app/globals.css:99-99](src/app/globals.css#L99-L99), which includes ambient background animations, a sticky header, and a persistent footer.
 
 ### Implementation Details
-- **Navigation Structure**: The primary navigation is defined as a static array of links [src/components/site-shell.tsx:8-14]() pointing to core routes: Overview (`/`), Kens (`/kens`), Submit (`/submit`), Governance (`/governance`), and Funding (`/economics`).
-- **Authentication State**: The shell consumes a `viewer` object of type `ViewerSession`. If a session exists, it renders a `viewer-inline-card` showing the user's name, `participationState`, and `availableCredits` [src/components/site-shell.tsx:33-44]().
-- **Featured Contributors**: A "profile strip" displays a subset of `featuredProfiles`, showing their names and `attestationLevel` [src/components/site-shell.tsx:58-65]().
+- **Navigation Structure**: The primary navigation is defined as a static array of links [src/components/site-shell.tsx:8-14](src/components/site-shell.tsx#L8-L14) pointing to core routes: Overview (`/`), Kens (`/kens`), Submit (`/submit`), Governance (`/governance`), and Funding (`/economics`).
+- **Authentication State**: The shell consumes a `viewer` object of type `ViewerSession`. If a session exists, it renders a `viewer-inline-card` showing the user's name, `participationState`, and `availableCredits` [src/components/site-shell.tsx:33-44](src/components/site-shell.tsx#L33-L44).
+- **Featured Contributors**: A "profile strip" displays a subset of `featuredProfiles`, showing their names and `attestationLevel` [src/components/site-shell.tsx:58-65](src/components/site-shell.tsx#L58-L65).
 
 ### Component Data Flow
 The following diagram illustrates how the `SiteShell` organizes the page hierarchy and handles user sessions.
@@ -2368,17 +2366,17 @@ graph TD
     UTIL -- "If null" --> AL["Link /auth"]
     VIC --> SIG
 ```
-Sources: [src/components/site-shell.tsx:16-77](), [src/app/globals.css:103-117]()
+Sources: [src/components/site-shell.tsx:16-77](src/components/site-shell.tsx#L16-L77), [src/app/globals.css:103-117](src/app/globals.css#L103-L117)
 
 ## Branding and Visual Identity
 
 ### KenMatchMark
-The `KenMatchMark` component provides the SVG-based visual identity for the platform. It utilizes a complex linear gradient (`#kenmatch-mark-gradient`) that maps to CSS variables: `--accent-strong`, `--accent-glow`, and `--accent-warm` [src/components/kenmatch-mark.tsx:5-9](). This ensures the logo's colors shift dynamically with the active theme.
+The `KenMatchMark` component provides the SVG-based visual identity for the platform. It utilizes a complex linear gradient (`#kenmatch-mark-gradient`) that maps to CSS variables: `--accent-strong`, `--accent-glow`, and `--accent-warm` [src/components/kenmatch-mark.tsx:5-9](src/components/kenmatch-mark.tsx#L5-L9). This ensures the logo's colors shift dynamically with the active theme.
 
 ### ProfileSwitcher
-The `ProfileSwitcher` is a placeholder component intended for future multi-profile management [src/components/profile-switcher.tsx:1-4](). Currently, profile switching is handled via the `viewer-inline-card` in the `SiteShell` [src/components/site-shell.tsx:34-44]().
+The `ProfileSwitcher` is a placeholder component intended for future multi-profile management [src/components/profile-switcher.tsx:1-4](src/components/profile-switcher.tsx#L1-L4). Currently, profile switching is handled via the `viewer-inline-card` in the `SiteShell` [src/components/site-shell.tsx:34-44](src/components/site-shell.tsx#L34-L44).
 
-Sources: [src/components/kenmatch-mark.tsx:1-19](), [src/components/profile-switcher.tsx:1-4]()
+Sources: [src/components/kenmatch-mark.tsx:1-19](src/components/kenmatch-mark.tsx#L1-L19), [src/components/profile-switcher.tsx:1-4](src/components/profile-switcher.tsx#L1-L4)
 
 ## Theming and Design System
 
@@ -2395,7 +2393,7 @@ The system is built on Tailwind CSS `@theme` variables and standard CSS custom p
 | `--accent-strong` | `#0f766e` (Teal) | `#63e0cf` | `#62ffe4` |
 
 ### Ambient Animations and Glassmorphism
-The interface utilizes "ambient" background elements (`.ambient-a`, `.ambient-b`) defined in the `SiteShell` [src/components/site-shell.tsx:19-20](). These interact with `backdrop-filter: blur()` applied to headers and panels to create a layered, depth-heavy UI [src/app/globals.css:109-110]().
+The interface utilizes "ambient" background elements (`.ambient-a`, `.ambient-b`) defined in the `SiteShell` [src/components/site-shell.tsx:19-20](src/components/site-shell.tsx#L19-L20). These interact with `backdrop-filter: blur()` applied to headers and panels to create a layered, depth-heavy UI [src/app/globals.css:109-110](src/app/globals.css#L109-L110).
 
 ### Theme Switching Logic
 The `ThemeToggle` component manages theme persistence using `localStorage` and `data-theme` attributes on the `html` element.
@@ -2421,21 +2419,21 @@ graph TD
     SET --> DOM
     SET --> STORE
 ```
-Sources: [src/app/globals.css:15-74](), [src/components/theme-toggle.tsx:17-42]()
+Sources: [src/app/globals.css:15-74](src/app/globals.css#L15-L74), [src/components/theme-toggle.tsx:17-42](src/components/theme-toggle.tsx#L17-L42)
 
 ## CSS Architecture and Layout Classes
 
 The codebase uses a "Stack and Grid" philosophy for layouts, minimizing custom margins in favor of standardized gap utilities.
 
-- **`.site-main`**: Central container with a `max-width` of `76rem` and auto-margins [src/app/globals.css:100-100]().
-- **`.page-stack`**: A CSS Grid utility with a `1.5rem` gap for vertical spacing between major sections [src/app/globals.css:101-101]().
-- **`.panel` & `.task-card`**: Shared visual styles including `border: 1px solid var(--line)`, `backdrop-filter: blur(18px)`, and `box-shadow: var(--shadow-soft)` [src/app/globals.css:206-211]().
+- **`.site-main`**: Central container with a `max-width` of `76rem` and auto-margins [src/app/globals.css:100-100](src/app/globals.css#L100-L100).
+- **`.page-stack`**: A CSS Grid utility with a `1.5rem` gap for vertical spacing between major sections [src/app/globals.css:101-101](src/app/globals.css#L101-L101).
+- **`.panel` & `.task-card`**: Shared visual styles including `border: 1px solid var(--line)`, `backdrop-filter: blur(18px)`, and `box-shadow: var(--shadow-soft)` [src/app/globals.css:206-211](src/app/globals.css#L206-L211).
 - **Typography**: The system defines three font stacks:
-    - `.font-display`: Serif stack (Iowan Old Style, Georgia) [src/app/globals.css:95-95]().
-    - `.font-body`: Sans-serif stack (Aptos, system-ui) [src/app/globals.css:96-96]().
-    - `.font-mono`: Monospace stack (Cascadia Code, JetBrains Mono) [src/app/globals.css:97-97]().
+    - `.font-display`: Serif stack (Iowan Old Style, Georgia) [src/app/globals.css:95-95](src/app/globals.css#L95-L95).
+    - `.font-body`: Sans-serif stack (Aptos, system-ui) [src/app/globals.css:96-96](src/app/globals.css#L96-L96).
+    - `.font-mono`: Monospace stack (Cascadia Code, JetBrains Mono) [src/app/globals.css:97-97](src/app/globals.css#L97-L97).
 
-Sources: [src/app/globals.css:76-251]()
+Sources: [src/app/globals.css:76-251](src/app/globals.css#L76-L251)
 
 ---
 
@@ -2484,7 +2482,7 @@ graph TD
         D --> H["DiscussionThread (discussion-thread.tsx)"]
     end
 ```
-**Sources:** `[src/components/task-board-filters.tsx:15-15]()`, `[src/components/task-card.tsx:15-15]()`, `[src/components/ken-timing-strip.tsx:4-4]()`, `[src/components/vote-panel.tsx:10-10]()`, `[src/components/task-pulse-panel.tsx:8-8]()`, `[src/components/discussion-thread.tsx:10-10]()`
+**Sources:** `[src/components/task-board-filters.tsx:15-15](src/components/task-board-filters.tsx#L15-L15)`, `[src/components/task-card.tsx:15-15](src/components/task-card.tsx#L15-L15)`, `[src/components/ken-timing-strip.tsx:4-4](src/components/ken-timing-strip.tsx#L4-L4)`, `[src/components/vote-panel.tsx:10-10](src/components/vote-panel.tsx#L10-L10)`, `[src/components/task-pulse-panel.tsx:8-8](src/components/task-pulse-panel.tsx#L8-L8)`, `[src/components/discussion-thread.tsx:10-10](src/components/discussion-thread.tsx#L10-L10)`
 
 ---
 
@@ -2495,16 +2493,16 @@ The board utilizes `TaskBoardFilters` to manage state via URL parameters, ensuri
 ### TaskBoardFilters
 This component uses `useTransition` and `useDeferredValue` to provide a responsive search experience without blocking the UI thread during heavy re-renders.
 
-- **Implementation**: It tracks four primary states: `query`, `category`, `tier`, and `stage` [src/components/task-board-filters.tsx:19-22]().
-- **Data Flow**: When a filter changes, `buildTarget` constructs a new URL [src/components/task-board-filters.tsx:6-13](). The component then calls `router.replace` within a transition [src/components/task-board-filters.tsx:33-33]().
-- **Search Logic**: Uses `useDeferredValue` on the search query to prevent excessive routing updates while the user is typing [src/components/task-board-filters.tsx:23-23]().
+- **Implementation**: It tracks four primary states: `query`, `category`, `tier`, and `stage` [src/components/task-board-filters.tsx:19-22](src/components/task-board-filters.tsx#L19-L22).
+- **Data Flow**: When a filter changes, `buildTarget` constructs a new URL [src/components/task-board-filters.tsx:6-13](src/components/task-board-filters.tsx#L6-L13). The component then calls `router.replace` within a transition [src/components/task-board-filters.tsx:33-33](src/components/task-board-filters.tsx#L33-L33).
+- **Search Logic**: Uses `useDeferredValue` on the search query to prevent excessive routing updates while the user is typing [src/components/task-board-filters.tsx:23-23](src/components/task-board-filters.tsx#L23-L23).
 
 ### TaskCard
 The `TaskCard` is the primary entry point for a Ken on the board.
-- **Visual Indicators**: Displays the `allocatedTier` (Months, Weeks, Days, etc.) using `tierStyles` [src/components/task-card.tsx:7-13]() and the current `stage` [src/components/task-card.tsx:21-21]().
-- **Metrics**: Aggregates high-level data including `totalVotes`, `taskPulseScore`, and `sponsorPoolUsd` [src/components/task-card.tsx:32-35]().
+- **Visual Indicators**: Displays the `allocatedTier` (Months, Weeks, Days, etc.) using `tierStyles` [src/components/task-card.tsx:7-13](src/components/task-card.tsx#L7-L13) and the current `stage` [src/components/task-card.tsx:21-21](src/components/task-card.tsx#L21-L21).
+- **Metrics**: Aggregates high-level data including `totalVotes`, `taskPulseScore`, and `sponsorPoolUsd` [src/components/task-card.tsx:32-35](src/components/task-card.tsx#L32-L35).
 
-**Sources:** `[src/components/task-board-filters.tsx:1-77]()`, `[src/components/task-card.tsx:1-49]()`
+**Sources:** `[src/components/task-board-filters.tsx:1-77](src/components/task-board-filters.tsx#L1-L77)`, `[src/components/task-card.tsx:1-49](src/components/task-card.tsx#L1-L49)`
 
 ---
 
@@ -2514,14 +2512,14 @@ Ken detail pages allow users to contribute "Voice" (scarce allocation) or "Pulse
 
 ### VotePanel (Quadratic Voting)
 The `VotePanel` facilitates the allocation of scarce voice credits.
-- **Quadratic Calculation**: It imports `quadraticCost` from `@/lib/allocation` to calculate the cost of the current selection [src/components/vote-panel.tsx:31-31]().
-- **State Management**: Uses `useActionState` to trigger `saveVoteAction` [src/components/vote-panel.tsx:30-30]().
-- **Real-time Feedback**: Displays the "Free after save" metric by calculating the `delta` between the new cost and the `initialVotes` cost [src/components/vote-panel.tsx:32-59]().
+- **Quadratic Calculation**: It imports `quadraticCost` from `@/lib/allocation` to calculate the cost of the current selection [src/components/vote-panel.tsx:31-31](src/components/vote-panel.tsx#L31-L31).
+- **State Management**: Uses `useActionState` to trigger `saveVoteAction` [src/components/vote-panel.tsx:30-30](src/components/vote-panel.tsx#L30-L30).
+- **Real-time Feedback**: Displays the "Free after save" metric by calculating the `delta` between the new cost and the `initialVotes` cost [src/components/vote-panel.tsx:32-59](src/components/vote-panel.tsx#L32-L59).
 
 ### TaskPulsePanel (Public Signaling)
 Unlike the `VotePanel`, the `TaskPulsePanel` represents non-scarce public sentiment.
-- **Functionality**: Users can "Upvote" or "Downvote" to signal support or concern [src/components/task-pulse-panel.tsx:40-41]().
-- **Action**: Triggers `saveTaskPulseAction` to persist the signal [src/components/task-pulse-panel.tsx:6-25]().
+- **Functionality**: Users can "Upvote" or "Downvote" to signal support or concern [src/components/task-pulse-panel.tsx:40-41](src/components/task-pulse-panel.tsx#L40-L41).
+- **Action**: Triggers `saveTaskPulseAction` to persist the signal [src/components/task-pulse-panel.tsx:6-25](src/components/task-pulse-panel.tsx#L6-L25).
 
 **Interaction Flow**
 ```mermaid
@@ -2539,7 +2537,7 @@ sequenceDiagram
     User->>TaskPulsePanel: Click "Upvote"
     TaskPulsePanel->>ServerActions: saveTaskPulseAction(taskId, value: 1)
 ```
-**Sources:** `[src/components/vote-panel.tsx:1-96]()`, `[src/components/task-pulse-panel.tsx:1-67]()`
+**Sources:** `[src/components/vote-panel.tsx:1-96](src/components/vote-panel.tsx#L1-L96)`, `[src/components/task-pulse-panel.tsx:1-67](src/components/task-pulse-panel.tsx#L1-L67)`
 
 ---
 
@@ -2547,11 +2545,11 @@ sequenceDiagram
 
 The `KenTimingStrip` provides a visual representation of a Ken's lifecycle and resource consumption.
 
-- **Progress Calculation**: Uses `progressPercent` to determine how much of the expected time window has been consumed [src/components/ken-timing-strip.tsx:5-5]().
-- **Compute Tracking**: Displays `computeHoursUsed` against the `runtimeHours` target [src/components/ken-timing-strip.tsx:23-23]().
-- **Visuals**: A CSS-based progress bar (`progress-fill`) reflects the consumption percentage [src/components/ken-timing-strip.tsx:27-27]().
+- **Progress Calculation**: Uses `progressPercent` to determine how much of the expected time window has been consumed [src/components/ken-timing-strip.tsx:5-5](src/components/ken-timing-strip.tsx#L5-L5).
+- **Compute Tracking**: Displays `computeHoursUsed` against the `runtimeHours` target [src/components/ken-timing-strip.tsx:23-23](src/components/ken-timing-strip.tsx#L23-L23).
+- **Visuals**: A CSS-based progress bar (`progress-fill`) reflects the consumption percentage [src/components/ken-timing-strip.tsx:27-27](src/components/ken-timing-strip.tsx#L27-L27).
 
-**Sources:** `[src/components/ken-timing-strip.tsx:1-45]()`
+**Sources:** `[src/components/ken-timing-strip.tsx:1-45](src/components/ken-timing-strip.tsx#L1-L45)`
 
 ---
 
@@ -2560,10 +2558,10 @@ The `KenTimingStrip` provides a visual representation of a Ken's lifecycle and r
 The `DiscussionThread` component manages the public commentary and critique system.
 
 ### DiscussionThread and CommentNode
-- **Recursive Structure**: The `CommentNode` component can render its own `replies`, allowing for nested conversations [src/components/discussion-thread.tsx:129-135]().
-- **Staking**: Comments require a "Stake" (1-3 credits), emphasizing quality over quantity [src/components/discussion-thread.tsx:69-74]().
-- **Voting on Comments**: Users can upvote or downvote individual comments via `saveCommentVoteAction` [src/components/discussion-thread.tsx:112-120]().
-- **Composer**: The `CommentComposer` handles both top-level notes and replies by optionally accepting a `parentId` [src/components/discussion-thread.tsx:40-52]().
+- **Recursive Structure**: The `CommentNode` component can render its own `replies`, allowing for nested conversations [src/components/discussion-thread.tsx:129-135](src/components/discussion-thread.tsx#L129-L135).
+- **Staking**: Comments require a "Stake" (1-3 credits), emphasizing quality over quantity [src/components/discussion-thread.tsx:69-74](src/components/discussion-thread.tsx#L69-L74).
+- **Voting on Comments**: Users can upvote or downvote individual comments via `saveCommentVoteAction` [src/components/discussion-thread.tsx:112-120](src/components/discussion-thread.tsx#L112-L120).
+- **Composer**: The `CommentComposer` handles both top-level notes and replies by optionally accepting a `parentId` [src/components/discussion-thread.tsx:40-52](src/components/discussion-thread.tsx#L40-L52).
 
 | Feature | Code Entity | Action / Logic |
 | :--- | :--- | :--- |
@@ -2572,7 +2570,7 @@ The `DiscussionThread` component manages the public commentary and critique syst
 | Reply | `CommentNode` | Sets `replying` state to toggle composer |
 | Stake Credits | `select` | Defaults to 1 credit |
 
-**Sources:** `[src/components/discussion-thread.tsx:1-140]()`
+**Sources:** `[src/components/discussion-thread.tsx:1-140](src/components/discussion-thread.tsx#L1-L140)`
 
 ---
 
@@ -2596,15 +2594,15 @@ This section covers the user-facing submission and authentication interfaces. Th
 
 ## Proposal Form (proposal-form.tsx)
 
-The `ProposalForm` is a comprehensive "use client" component that allows users to submit new Kens for public review [src/components/proposal-form.tsx:1-3](). It is structured as a multi-field form that captures strategic, tactical, and risk-related data.
+The `ProposalForm` is a comprehensive "use client" component that allows users to submit new Kens for public review [src/components/proposal-form.tsx:1-3](src/components/proposal-form.tsx#L1-L3). It is structured as a multi-field form that captures strategic, tactical, and risk-related data.
 
 ### Implementation and State Management
-The form utilizes the `useActionState` hook to interface with the `createProposalAction` server action [src/components/proposal-form.tsx:15](). This allows for seamless error handling and loading states without manual `fetch` calls.
+The form utilizes the `useActionState` hook to interface with the `createProposalAction` server action [src/components/proposal-form.tsx:15](src/components/proposal-form.tsx#L15). This allows for seamless error handling and loading states without manual `fetch` calls.
 
 Key features include:
-- **Tier Selection**: Users select a "Requested lane" (`days`, `weeks`, or `months`). This selection updates the local `requestedTier` state, which in turn updates the UI to explain the specific bond and checkpoint policy associated with that lane [src/components/proposal-form.tsx:16, 33-44]().
-- **Dynamic Field Rendering**: A helper `Field` function standardizes the rendering of labels, inputs/textareas, and validation errors [src/components/proposal-form.tsx:76-85]().
-- **Validation Feedback**: Errors returned from the server action (via `state.fieldErrors`) are mapped to specific fields to provide granular feedback to the user [src/components/proposal-form.tsx:17, 82]().
+- **Tier Selection**: Users select a "Requested lane" (`days`, `weeks`, or `months`). This selection updates the local `requestedTier` state, which in turn updates the UI to explain the specific bond and checkpoint policy associated with that lane [src/components/proposal-form.tsx:16](src/components/proposal-form.tsx#L16), [src/components/proposal-form.tsx:33-44](src/components/proposal-form.tsx#L33-L44).
+- **Dynamic Field Rendering**: A helper `Field` function standardizes the rendering of labels, inputs/textareas, and validation errors [src/components/proposal-form.tsx:76-85](src/components/proposal-form.tsx#L76-L85).
+- **Validation Feedback**: Errors returned from the server action (via `state.fieldErrors`) are mapped to specific fields to provide granular feedback to the user [src/components/proposal-form.tsx:17](src/components/proposal-form.tsx#L17), [src/components/proposal-form.tsx:82](src/components/proposal-form.tsx#L82).
 
 ### Data Flow: Proposal Submission
 
@@ -2620,33 +2618,33 @@ graph TD
     Validation -- "Failure" --> State["initialActionState (fieldErrors)"]
     State --> FormUI["Display field-level errors"]
 ```
-Sources: [src/components/proposal-form.tsx:15-17](), [src/components/proposal-form.tsx:34-44]()
+Sources: [src/components/proposal-form.tsx:15-17](src/components/proposal-form.tsx#L15-L17), [src/components/proposal-form.tsx:34-44](src/components/proposal-form.tsx#L34-L44)
 
 ### Form Fields and Metadata
 The form captures extensive metadata to satisfy the KenMatch governance requirements:
 
 | Field Group | Fields | Purpose |
 | :--- | :--- | :--- |
-| **Core** | `title`, `categorySlug`, `requestedTier` | Basic identification and lane allocation [src/components/proposal-form.tsx:22-39](). |
-| **Justification** | `summary`, `problem`, `whyNow`, `publicBenefit` | Strategic reasoning for the Ken [src/components/proposal-form.tsx:48-51](). |
-| **Execution** | `deliverables`, `evaluationCriteria` | Concrete outputs and success metrics [src/components/proposal-form.tsx:54-55](). |
-| **Risk & Audit** | `riskFlags`, `evidence`, `dataValueNote` | Constraints, provenance, and audit trails [src/components/proposal-form.tsx:56-61](). |
-| **Sustainability** | `enterprisePackaging` | Potential revenue paths for the public board [src/components/proposal-form.tsx:60](). |
+| **Core** | `title`, `categorySlug`, `requestedTier` | Basic identification and lane allocation [src/components/proposal-form.tsx:22-39](src/components/proposal-form.tsx#L22-L39). |
+| **Justification** | `summary`, `problem`, `whyNow`, `publicBenefit` | Strategic reasoning for the Ken [src/components/proposal-form.tsx:48-51](src/components/proposal-form.tsx#L48-L51). |
+| **Execution** | `deliverables`, `evaluationCriteria` | Concrete outputs and success metrics [src/components/proposal-form.tsx:54-55](src/components/proposal-form.tsx#L54-L55). |
+| **Risk & Audit** | `riskFlags`, `evidence`, `dataValueNote` | Constraints, provenance, and audit trails [src/components/proposal-form.tsx:56-61](src/components/proposal-form.tsx#L56-L61). |
+| **Sustainability** | `enterprisePackaging` | Potential revenue paths for the public board [src/components/proposal-form.tsx:60](src/components/proposal-form.tsx#L60). |
 
-Sources: [src/components/proposal-form.tsx:20-62]()
+Sources: [src/components/proposal-form.tsx:20-62](src/components/proposal-form.tsx#L20-L62)
 
 ## Auth Panels (auth-panels.tsx)
 
-The `AuthPanels` component provides the interface for both signing in existing users and creating new accounts [src/components/auth-panels.tsx:8](). It uses a local `mode` state to toggle between the "signin" and "signup" views [src/components/auth-panels.tsx:9, 16-23]().
+The `AuthPanels` component provides the interface for both signing in existing users and creating new accounts [src/components/auth-panels.tsx:8](src/components/auth-panels.tsx#L8). It uses a local `mode` state to toggle between the "signin" and "signup" views [src/components/auth-panels.tsx:9](src/components/auth-panels.tsx#L9), [src/components/auth-panels.tsx:16-23](src/components/auth-panels.tsx#L16-L23).
 
 ### Authentication Logic
-The component maintains separate action states for sign-in and sign-up, ensuring that errors in one process do not leak into the other [src/components/auth-panels.tsx:10-12]().
+The component maintains separate action states for sign-in and sign-up, ensuring that errors in one process do not leak into the other [src/components/auth-panels.tsx:10-12](src/components/auth-panels.tsx#L10-L12).
 
-- **Sign In**: Requires `email` and `password`. It invokes `signInAction` [src/components/auth-panels.tsx:30-36]().
-- **Sign Up**: Requires a full profile, including `name`, `role`, `specialty`, `email`, `password`, and `bio`. It invokes `signUpAction` [src/components/auth-panels.tsx:38-50]().
+- **Sign In**: Requires `email` and `password`. It invokes `signInAction` [src/components/auth-panels.tsx:30-36](src/components/auth-panels.tsx#L30-L36).
+- **Sign Up**: Requires a full profile, including `name`, `role`, `specialty`, `email`, `password`, and `bio`. It invokes `signUpAction` [src/components/auth-panels.tsx:38-50](src/components/auth-panels.tsx#L38-L50).
 
 ### Identity and Attestation
-The UI includes a descriptive panel explaining that accounts are required to make public participation (comments, votes, submissions) attributable and tied to an identity-backed sign-in state [src/components/auth-panels.tsx:25-27]().
+The UI includes a descriptive panel explaining that accounts are required to make public participation (comments, votes, submissions) attributable and tied to an identity-backed sign-in state [src/components/auth-panels.tsx:25-27](src/components/auth-panels.tsx#L25-L27).
 
 ### Code Entity Mapping: Auth Components
 
@@ -2673,12 +2671,12 @@ graph LR
     F -- "returns" --> G
     G -- "updates" --> A
 ```
-Sources: [src/components/auth-panels.tsx:8-13](), [src/components/auth-panels.tsx:30-51]()
+Sources: [src/components/auth-panels.tsx:8-13](src/components/auth-panels.tsx#L8-L13), [src/components/auth-panels.tsx:30-51](src/components/auth-panels.tsx#L30-L51)
 
 ### Shared Field Component
-Similar to the proposal form, `AuthPanels` uses a local `Field` helper to handle input and textarea rendering [src/components/auth-panels.tsx:58-84](). This helper supports dynamic types (e.g., `password`, `email`) and handles the display of validation errors from the `ActionState` [src/components/auth-panels.tsx:81]().
+Similar to the proposal form, `AuthPanels` uses a local `Field` helper to handle input and textarea rendering [src/components/auth-panels.tsx:58-84](src/components/auth-panels.tsx#L58-L84). This helper supports dynamic types (e.g., `password`, `email`) and handles the display of validation errors from the `ActionState` [src/components/auth-panels.tsx:81](src/components/auth-panels.tsx#L81).
 
-Sources: [src/components/auth-panels.tsx:58-84]()
+Sources: [src/components/auth-panels.tsx:58-84](src/components/auth-panels.tsx#L58-L84)
 
 ---
 
@@ -2709,8 +2707,8 @@ The test suite is located in the `tests/` directory and targets the pure-functio
 
 ### Execution
 Tests are executed using the Node.js test runner. The following patterns are standard across the suite:
-*   **Strict Equality**: Using `assert.equal` and `assert.deepEqual` for value and object comparison [tests/economics.test.ts:1-2]().
-*   **Isolated Logic**: Tests pass mock data structures to library functions to verify output without requiring a live database [tests/allocation.test.ts:25-31]().
+*   **Strict Equality**: Using `assert.equal` and `assert.deepEqual` for value and object comparison [tests/economics.test.ts:1-2](tests/economics.test.ts#L1-L2).
+*   **Isolated Logic**: Tests pass mock data structures to library functions to verify output without requiring a live database [tests/allocation.test.ts:25-31](tests/allocation.test.ts#L25-L31).
 
 ## System Mapping: Logic to Validation
 
@@ -2744,7 +2742,7 @@ graph TD
     style F font-family:monospace
     style G font-family:monospace
 ```
-**Sources:** [tests/allocation.test.ts:6-24](), [tests/attestation.test.ts:4-32]()
+**Sources:** [tests/allocation.test.ts:6-24](tests/allocation.test.ts#L6-L24), [tests/attestation.test.ts:4-32](tests/attestation.test.ts#L4-L32)
 
 ### Economic and Treasury Validation
 This diagram maps treasury accounting rules to the functions in `economics.ts`.
@@ -2769,7 +2767,7 @@ graph TD
     style K font-family:monospace
     style L font-family:monospace
 ```
-**Sources:** [tests/economics.test.ts:6-25]()
+**Sources:** [tests/economics.test.ts:6-25](tests/economics.test.ts#L6-L25)
 
 ## Test Domains
 
@@ -2777,17 +2775,17 @@ The suite is divided into three primary domains, each corresponding to a critica
 
 ### Allocation and Attestation
 These tests verify the integrity of the voting engine and the security of the participation ladder.
-*   **Quadratic Voting**: Validates that costs grow non-linearly (e.g., 3 votes cost 9 credits) [tests/allocation.test.ts:7-9]().
-*   **Ranking & Tiering**: Ensures tasks are correctly assigned to "months", "weeks", or "days" tiers based on their rank, and that "blocked" tasks are excluded from the ladder [tests/allocation.test.ts:16-38]().
-*   **Participation Policy**: Confirms that high-risk or unverified accounts are relegated to "read-only" status, while low-risk accounts retain "full" voice capacity [tests/attestation.test.ts:7-32]().
+*   **Quadratic Voting**: Validates that costs grow non-linearly (e.g., 3 votes cost 9 credits) [tests/allocation.test.ts:7-9](tests/allocation.test.ts#L7-L9).
+*   **Ranking & Tiering**: Ensures tasks are correctly assigned to "months", "weeks", or "days" tiers based on their rank, and that "blocked" tasks are excluded from the ladder [tests/allocation.test.ts:16-38](tests/allocation.test.ts#L16-L38).
+*   **Participation Policy**: Confirms that high-risk or unverified accounts are relegated to "read-only" status, while low-risk accounts retain "full" voice capacity [tests/attestation.test.ts:7-32](tests/attestation.test.ts#L7-L32).
 
 For details, see [Allocation and Attestation Tests](#6.1).
 
 ### Economics
 These tests ensure the financial dashboard accurately reflects the state of the KenMatch treasury and revenue engines.
-*   **Revenue Splitting**: Verifies that gross revenue is correctly split between the treasury and founder shares based on defined percentages [tests/economics.test.ts:7-23]().
-*   **Treasury Reconciliation**: Checks that inflows and outflows (burn) result in the correct `treasuryBalanceUsd` and `coverageMonths` [tests/economics.test.ts:114-123]().
-*   **Sponsor Pools**: Validates the detection of restricted funds and verified funding streams [tests/economics.test.ts:120-122]().
+*   **Revenue Splitting**: Verifies that gross revenue is correctly split between the treasury and founder shares based on defined percentages [tests/economics.test.ts:7-23](tests/economics.test.ts#L7-L23).
+*   **Treasury Reconciliation**: Checks that inflows and outflows (burn) result in the correct `treasuryBalanceUsd` and `coverageMonths` [tests/economics.test.ts:114-123](tests/economics.test.ts#L114-L123).
+*   **Sponsor Pools**: Validates the detection of restricted funds and verified funding streams [tests/economics.test.ts:120-122](tests/economics.test.ts#L120-L122).
 
 For details, see [Economics Tests](#6.2).
 
@@ -2799,7 +2797,7 @@ For details, see [Economics Tests](#6.2).
 | `attestation.test.ts` | `lib/attestation.ts` | `resolveParticipationPolicy` |
 | `economics.test.ts` | `lib/economics.ts` | `summarizeRevenueStream`, `summarizeEconomics` |
 
-**Sources:** [tests/allocation.test.ts:4](), [tests/attestation.test.ts:4](), [tests/economics.test.ts:4]()
+**Sources:** [tests/allocation.test.ts:4](tests/allocation.test.ts#L4), [tests/attestation.test.ts:4](tests/attestation.test.ts#L4), [tests/economics.test.ts:4](tests/economics.test.ts#L4)
 
 ---
 
@@ -2830,16 +2828,16 @@ The system ensures that the cost of influence grows quadratically, preventing si
 
 | Function | Logic Verified | Test Case Example |
 | :--- | :--- | :--- |
-| `quadraticCost` | $Cost = Votes^2$ | 3 votes = 9 credits; 6 votes = 36 credits [tests/allocation.test.ts:6-10]() |
-| `spentCredits` | $\sum (Votes_i^2)$ | Votes [4, 2, 1] = $16 + 4 + 1 = 21$ credits [tests/allocation.test.ts:12-14]() |
+| `quadraticCost` | $Cost = Votes^2$ | 3 votes = 9 credits; 6 votes = 36 credits [tests/allocation.test.ts:6-10](tests/allocation.test.ts#L6-L10) |
+| `spentCredits` | $\sum (Votes_i^2)$ | Votes [4, 2, 1] = $16 + 4 + 1 = 21$ credits [tests/allocation.test.ts:12-14](tests/allocation.test.ts#L12-L14) |
 
 ### Tier and Ranking Resolution
 The `tierForRank` and `buildCategoryRankings` functions are tested to ensure that tasks are correctly categorized into the "Months", "Weeks", "Days", "Queued", or "Blocked" tiers based on their voting performance and safety status.
 
 **Key Ranking Rules Tested:**
-*   **Tier Thresholds:** Rank 1-3 maps to "months", 4-10 to "weeks", and 11+ to "days" [tests/allocation.test.ts:16-19]().
-*   **Blocked Status:** Tasks marked as "blocked" (e.g., via `safetyStatus`) are excluded from the allocation ladder regardless of vote count [tests/allocation.test.ts:21](), [tests/allocation.test.ts:30]().
-*   **Eligibility:** Only tasks in specific stages (running, scheduled, voting) are eligible for ranking [tests/allocation.test.ts:26-31]().
+*   **Tier Thresholds:** Rank 1-3 maps to "months", 4-10 to "weeks", and 11+ to "days" [tests/allocation.test.ts:16-19](tests/allocation.test.ts#L16-L19).
+*   **Blocked Status:** Tasks marked as "blocked" (e.g., via `safetyStatus`) are excluded from the allocation ladder regardless of vote count [tests/allocation.test.ts:21](tests/allocation.test.ts#L21), [tests/allocation.test.ts:30](tests/allocation.test.ts#L30).
+*   **Eligibility:** Only tasks in specific stages (running, scheduled, voting) are eligible for ranking [tests/allocation.test.ts:26-31](tests/allocation.test.ts#L26-L31).
 
 ### Data Flow: Ranking and Tier Assignment
 
@@ -2862,7 +2860,7 @@ graph TD
         A -->|totalVotes: 0| G["tier: queued"]
     end
 ```
-**Sources:** [tests/allocation.test.ts:24-38](), [src/lib/allocation.ts:4-5]()
+**Sources:** [tests/allocation.test.ts:24-38](tests/allocation.test.ts#L24-L38), [src/lib/allocation.ts:4-5](src/lib/allocation.ts#L4-L5)
 
 ---
 
@@ -2873,9 +2871,9 @@ The tests in `tests/attestation.test.ts` validate the `resolveParticipationPolic
 ### Policy Resolution Matrix
 The test suite covers the three primary states of the KenMatch participation ladder:
 
-1.  **Full Access:** Verified, low-risk accounts retain their full `voiceCredits` and can perform all actions (submit, allocate, comment) [tests/attestation.test.ts:6-13]().
-2.  **Review-Limited:** Accounts in the "review" state or with "medium" risk receive a reduced `effectiveVoiceCredits` cap but can still participate in discussions [tests/attestation.test.ts:15-22]().
-3.  **Read-Only:** High-risk accounts or those with "limited" attestation are restricted from all mutations (allocating, submitting, commenting) and have their effective voice set to zero [tests/attestation.test.ts:24-32]().
+1.  **Full Access:** Verified, low-risk accounts retain their full `voiceCredits` and can perform all actions (submit, allocate, comment) [tests/attestation.test.ts:6-13](tests/attestation.test.ts#L6-L13).
+2.  **Review-Limited:** Accounts in the "review" state or with "medium" risk receive a reduced `effectiveVoiceCredits` cap but can still participate in discussions [tests/attestation.test.ts:15-22](tests/attestation.test.ts#L15-L22).
+3.  **Read-Only:** High-risk accounts or those with "limited" attestation are restricted from all mutations (allocating, submitting, commenting) and have their effective voice set to zero [tests/attestation.test.ts:24-32](tests/attestation.test.ts#L24-L32).
 
 ### Participation Policy Mapping
 
@@ -2906,12 +2904,12 @@ graph TD
         ReadOnly --> P6["canSubmit: false"]
     end
 ```
-**Sources:** [tests/attestation.test.ts:6-32](), [src/lib/attestation.ts:4-4]()
+**Sources:** [tests/attestation.test.ts:6-32](tests/attestation.test.ts#L6-L32), [src/lib/attestation.ts:4-4](src/lib/attestation.ts#L4-L4)
 
 ### Test Execution
 Tests are executed using the standard Node.js test runner. The assertions ensure that the business logic remains decoupled from the UI and database layers, allowing for rapid verification of the economic and security rules.
 
-**Sources:** [tests/attestation.test.ts:1-2](), [tests/allocation.test.ts:1-2]()
+**Sources:** [tests/attestation.test.ts:1-2](tests/attestation.test.ts#L1-L2), [tests/allocation.test.ts:1-2](tests/allocation.test.ts#L1-L2)
 
 ---
 
@@ -2934,10 +2932,10 @@ The economics test suite in `tests/economics.test.ts` validates the core financi
 
 ### Core Testing Objectives
 
-*   **Revenue Splitting**: Verifying that `summarizeRevenueStream` correctly applies percentage-based splits [tests/economics.test.ts:6-23]().
-*   **Treasury Reconciliation**: Ensuring that inflows and outflows in the `compute-treasury` bucket are summed correctly while ignoring non-treasury buckets like `founder-ops` [tests/economics.test.ts:101-108]().
-*   **Sustainability Metrics**: Calculating `coverageMonths` by comparing the current `treasuryBalanceUsd` against the `monthlyPublicBurnUsd` [tests/economics.test.ts:110-119]().
-*   **Funding Classification**: Detecting restricted funds and counting verified (live/pilot) revenue streams [tests/economics.test.ts:120-122]().
+*   **Revenue Splitting**: Verifying that `summarizeRevenueStream` correctly applies percentage-based splits [tests/economics.test.ts:6-23](tests/economics.test.ts#L6-L23).
+*   **Treasury Reconciliation**: Ensuring that inflows and outflows in the `compute-treasury` bucket are summed correctly while ignoring non-treasury buckets like `founder-ops` [tests/economics.test.ts:101-108](tests/economics.test.ts#L101-L108).
+*   **Sustainability Metrics**: Calculating `coverageMonths` by comparing the current `treasuryBalanceUsd` against the `monthlyPublicBurnUsd` [tests/economics.test.ts:110-119](tests/economics.test.ts#L110-L119).
+*   **Funding Classification**: Detecting restricted funds and counting verified (live/pilot) revenue streams [tests/economics.test.ts:120-122](tests/economics.test.ts#L120-L122).
 
 ---
 
@@ -2981,26 +2979,26 @@ graph TD
 ```
 
 **Sources:**
-* [tests/economics.test.ts:4-4]()
-* [tests/economics.test.ts:26-112]()
+* [tests/economics.test.ts:4-4](tests/economics.test.ts#L4-L4)
+* [tests/economics.test.ts:26-112](tests/economics.test.ts#L26-L112)
 
 ---
 
 ### Key Test Cases
 
 #### 1. Revenue Stream Summarization
-The test for `summarizeRevenueStream` validates the arithmetic for splitting gross monthly revenue. In the test case, an "Enterprise" stream with \$100,000 revenue and an 80/20 split is verified to result in \$80,000 for the treasury and \$20,000 for founders [tests/economics.test.ts:7-22]().
+The test for `summarizeRevenueStream` validates the arithmetic for splitting gross monthly revenue. In the test case, an "Enterprise" stream with \$100,000 revenue and an 80/20 split is verified to result in \$80,000 for the treasury and \$20,000 for founders [tests/economics.test.ts:7-22](tests/economics.test.ts#L7-L22).
 
 #### 2. Treasury Balance and Bucket Filtering
 The `summarizeEconomics` function processes an array of `TreasuryLedgerEntry` objects. The test ensures that:
-*   **Inflows**: Positive adjustments to the balance [tests/economics.test.ts:70-78]().
-*   **Outflows**: Negative adjustments (e.g., "Compute burn") [tests/economics.test.ts:89-98]().
-*   **Bucket Isolation**: Entries targeting the `founder-ops` bucket are excluded from the `treasuryBalanceUsd` calculation [tests/economics.test.ts:101-108]().
+*   **Inflows**: Positive adjustments to the balance [tests/economics.test.ts:70-78](tests/economics.test.ts#L70-L78).
+*   **Outflows**: Negative adjustments (e.g., "Compute burn") [tests/economics.test.ts:89-98](tests/economics.test.ts#L89-L98).
+*   **Bucket Isolation**: Entries targeting the `founder-ops` bucket are excluded from the `treasuryBalanceUsd` calculation [tests/economics.test.ts:101-108](tests/economics.test.ts#L101-L108).
 
 #### 3. Sustainability and Verification
 The system calculates how many months the current treasury can sustain the existing burn rate.
-*   **Coverage Months**: If the balance is \$46,000 and the monthly burn is \$46,000, `coverageMonths` must equal 1 [tests/economics.test.ts:117-119]().
-*   **Verified Streams**: Only streams with a status of `live` or `pilot` are counted as verified. In the test, two out of three streams (Enterprise and Licensing) meet this criteria, while the `planned` Sponsorship stream is excluded [tests/economics.test.ts:35-61](), [tests/economics.test.ts:122-122]().
+*   **Coverage Months**: If the balance is \$46,000 and the monthly burn is \$46,000, `coverageMonths` must equal 1 [tests/economics.test.ts:117-119](tests/economics.test.ts#L117-L119).
+*   **Verified Streams**: Only streams with a status of `live` or `pilot` are counted as verified. In the test, two out of three streams (Enterprise and Licensing) meet this criteria, while the `planned` Sponsorship stream is excluded [tests/economics.test.ts:35-61](tests/economics.test.ts#L35-L61), [tests/economics.test.ts:122-122](tests/economics.test.ts#L122-L122).
 
 ---
 
@@ -3039,21 +3037,21 @@ graph LR
 ```
 
 **Sources:**
-* [tests/economics.test.ts:69-109]()
-* [tests/economics.test.ts:117-120]()
+* [tests/economics.test.ts:69-109](tests/economics.test.ts#L69-L109)
+* [tests/economics.test.ts:117-120](tests/economics.test.ts#L117-L120)
 
 ### Summary of Economic Metrics Tested
 
 | Metric | Calculation Logic in Test | Expected Value in Test |
 | :--- | :--- | :--- |
-| `monthlyRevenueUsd` | Sum of all stream `monthlyRevenueUsd` | \$135,000 [tests/economics.test.ts:114-114]() |
-| `treasuryBalanceUsd` | Inflows - Outflows in `compute-treasury` bucket | \$46,000 [tests/economics.test.ts:117-117]() |
-| `coverageMonths` | `treasuryBalanceUsd` / `monthlyPublicBurnUsd` | 1 [tests/economics.test.ts:119-119]() |
-| `restrictedFundingUsd` | Sum of ledger entries where `streamId` is null | \$12,000 [tests/economics.test.ts:120-120]() |
-| `verifiedFundingStreams` | Count of streams with status `live` or `pilot` | 2 [tests/economics.test.ts:122-122]() |
+| `monthlyRevenueUsd` | Sum of all stream `monthlyRevenueUsd` | \$135,000 [tests/economics.test.ts:114-114](tests/economics.test.ts#L114-L114) |
+| `treasuryBalanceUsd` | Inflows - Outflows in `compute-treasury` bucket | \$46,000 [tests/economics.test.ts:117-117](tests/economics.test.ts#L117-L117) |
+| `coverageMonths` | `treasuryBalanceUsd` / `monthlyPublicBurnUsd` | 1 [tests/economics.test.ts:119-119](tests/economics.test.ts#L119-L119) |
+| `restrictedFundingUsd` | Sum of ledger entries where `streamId` is null | \$12,000 [tests/economics.test.ts:120-120](tests/economics.test.ts#L120-L120) |
+| `verifiedFundingStreams` | Count of streams with status `live` or `pilot` | 2 [tests/economics.test.ts:122-122](tests/economics.test.ts#L122-L122) |
 
 **Sources:**
-* [tests/economics.test.ts:25-123]()
+* [tests/economics.test.ts:25-123](tests/economics.test.ts#L25-L123)
 
 ---
 
@@ -3107,7 +3105,7 @@ graph TD
     E -- "monitored by" --> EM["docker-compose.synology.yml"]
     F -- "path from" --> FP["KENMATCH_DB_FILE"]
 ```
-Sources: [Dockerfile:1-26](), [docker-compose.synology.yml:1-24](), [next.config.ts:30-30](), [docs/synology-nas-deploy.md:46-67]()
+Sources: [Dockerfile:1-26](Dockerfile#L1-L26), [docker-compose.synology.yml:1-24](docker-compose.synology.yml#L1-L24), [next.config.ts:30-30](next.config.ts#L30-L30), [docs/synology-nas-deploy.md:46-67](docs/synology-nas-deploy.md?plain=1#L46-L67)
 
 ---
 
@@ -3115,15 +3113,15 @@ Sources: [Dockerfile:1-26](), [docker-compose.synology.yml:1-24](), [next.config
 
 The deployment process centers on a three-stage `Dockerfile` that produces a lightweight production image. 
 
-1.  **`deps`**: Installs production and development dependencies [Dockerfile:1-4]().
-2.  **`builder`**: Compiles the Next.js application [Dockerfile:6-10]().
-3.  **`runner`**: Extracts the `standalone` output and serves the application via `node server.js` [Dockerfile:12-25]().
+1.  **`deps`**: Installs production and development dependencies [Dockerfile:1-4](Dockerfile#L1-L4).
+2.  **`builder`**: Compiles the Next.js application [Dockerfile:6-10](Dockerfile#L6-L10).
+3.  **`runner`**: Extracts the `standalone` output and serves the application via `node server.js` [Dockerfile:12-25](Dockerfile#L12-L25).
 
-For infrastructure management, the `docker-compose.synology.yml` file defines the service, environment variables, and a health check that queries the `/api/health` endpoint [docker-compose.synology.yml:1-24](). Persistent data is maintained via a volume mount to `/app/data`, ensuring that the libSQL/SQLite database survives container restarts [docker-compose.synology.yml:17-18]().
+For infrastructure management, the `docker-compose.synology.yml` file defines the service, environment variables, and a health check that queries the `/api/health` endpoint [docker-compose.synology.yml:1-24](docker-compose.synology.yml#L1-L24). Persistent data is maintained via a volume mount to `/app/data`, ensuring that the libSQL/SQLite database survives container restarts [docker-compose.synology.yml:17-18](docker-compose.synology.yml#L17-L18).
 
 For a detailed walkthrough of the build stages, volume configuration, and DSM reverse proxy setup, see **[Docker Build and Synology NAS Deployment (#7.1)](#)**.
 
-Sources: [Dockerfile:1-26](), [docker-compose.synology.yml:1-24](), [docs/synology-nas-deploy.md:1-10]()
+Sources: [Dockerfile:1-26](Dockerfile#L1-L26), [docker-compose.synology.yml:1-24](docker-compose.synology.yml#L1-L24), [docs/synology-nas-deploy.md:1-10](docs/synology-nas-deploy.md?plain=1#L1-L10)
 
 ---
 
@@ -3133,16 +3131,16 @@ The application behavior is governed by `next.config.ts`, which optimizes the bu
 
 | Feature | Configuration Detail | Purpose |
 | :--- | :--- | :--- |
-| **Output Mode** | `standalone` | Reduces image size by only including necessary files [next.config.ts:30-30](). |
-| **Security Headers** | `securityHeaders` | Implements CSP, HSTS, and Frame protection [next.config.ts:5-26](). |
-| **Deployment ID** | `process.env.DEPLOYMENT_VERSION` | Ensures consistent asset versioning across replicas [next.config.ts:31-31](). |
-| **Server Actions** | `bodySizeLimit: "2mb"` | Limits the payload size for Ken proposals and uploads [next.config.ts:34-34](). |
+| **Output Mode** | `standalone` | Reduces image size by only including necessary files [next.config.ts:30-30](next.config.ts#L30-L30). |
+| **Security Headers** | `securityHeaders` | Implements CSP, HSTS, and Frame protection [next.config.ts:5-26](next.config.ts#L5-L26). |
+| **Deployment ID** | `process.env.DEPLOYMENT_VERSION` | Ensures consistent asset versioning across replicas [next.config.ts:31-31](next.config.ts#L31-L31). |
+| **Server Actions** | `bodySizeLimit: "2mb"` | Limits the payload size for Ken proposals and uploads [next.config.ts:34-34](next.config.ts#L34-L34). |
 
-The security configuration dynamically adjusts based on the environment; for instance, `script-src` allows `unsafe-eval` only during development to support Next.js HMR [next.config.ts:16-16]().
+The security configuration dynamically adjusts based on the environment; for instance, `script-src` allows `unsafe-eval` only during development to support Next.js HMR [next.config.ts:16-16](next.config.ts#L16-L16).
 
 For details on the specific CSP directives and how environment variables influence the build, see **[Next.js Configuration and Security Headers (#7.2)](#)**.
 
-Sources: [next.config.ts:1-50]()
+Sources: [next.config.ts:1-50](next.config.ts#L1-L50)
 
 ---
 
@@ -3183,7 +3181,7 @@ graph LR
     CE3 --> SF3
     CE4 --> SF2
 ```
-Sources: [docker-compose.synology.yml:13-18](), [next.config.ts:5-31](), [docs/synology-nas-deploy.md:50-60]()
+Sources: [docker-compose.synology.yml:13-18](docker-compose.synology.yml#L13-L18), [next.config.ts:5-31](next.config.ts#L5-L31), [docs/synology-nas-deploy.md:50-60](docs/synology-nas-deploy.md?plain=1#L50-L60)
 
 ---
 
@@ -3215,9 +3213,9 @@ The KenMatch `Dockerfile` utilizes a three-stage build process to minimize the f
 
 ### Build Stages
 
-1.  **`deps` Stage**: Initializes the workspace and installs all dependencies using `npm ci` based on `package-lock.json` [Dockerfile:1-4]().
-2.  **`builder` Stage**: Inherits dependencies, copies the source code, and executes `npm run build` [Dockerfile:6-10](). This triggers the Next.js standalone build mode, which produces a minimal `server.js` and required chunks.
-3.  **`runner` Stage**: The final production image. It sets `NODE_ENV=production`, copies only the necessary standalone output, static assets, and public files from the `builder` stage [Dockerfile:12-20](). It also creates the `/app/data` directory for local persistence [Dockerfile:22]().
+1.  **`deps` Stage**: Initializes the workspace and installs all dependencies using `npm ci` based on `package-lock.json` [Dockerfile:1-4](Dockerfile#L1-L4).
+2.  **`builder` Stage**: Inherits dependencies, copies the source code, and executes `npm run build` [Dockerfile:6-10](Dockerfile#L6-L10). This triggers the Next.js standalone build mode, which produces a minimal `server.js` and required chunks.
+3.  **`runner` Stage**: The final production image. It sets `NODE_ENV=production`, copies only the necessary standalone output, static assets, and public files from the `builder` stage [Dockerfile:12-20](Dockerfile#L12-L20). It also creates the `/app/data` directory for local persistence [Dockerfile:22](Dockerfile#L22).
 
 ### Build Pipeline and Entity Mapping
 
@@ -3247,31 +3245,31 @@ graph TD
 
     H -- "Entry Point" --> L["node server.js"]
 ```
-Sources: [Dockerfile:1-26]()
+Sources: [Dockerfile:1-26](Dockerfile#L1-L26)
 
 ---
 
 ## Synology NAS Service Definition
 
-Deployment on Synology NAS is orchestrated via `docker-compose.synology.yml`. This configuration is tailored for the DSM Container Manager "Project" feature [docs/synology-nas-deploy.md:94-97]().
+Deployment on Synology NAS is orchestrated via `docker-compose.synology.yml`. This configuration is tailored for the DSM Container Manager "Project" feature [docs/synology-nas-deploy.md:94-97](docs/synology-nas-deploy.md?plain=1#L94-L97).
 
 ### Key Service Configurations
 
 | Feature | Implementation | File Reference |
 | :--- | :--- | :--- |
-| **Container Name** | `kenmatch-demo` | [docker-compose.synology.yml:6]() |
-| **Init System** | `init: true` (reaps zombie processes) | [docker-compose.synology.yml:7]() |
-| **Port Mapping** | `3000:3000` | [docker-compose.synology.yml:10]() |
-| **Persistence** | `./data:/app/data` | [docker-compose.synology.yml:18]() |
-| **Environment** | Loaded via `.env` file | [docker-compose.synology.yml:11-12]() |
+| **Container Name** | `kenmatch-demo` | [docker-compose.synology.yml:6](docker-compose.synology.yml#L6) |
+| **Init System** | `init: true` (reaps zombie processes) | [docker-compose.synology.yml:7](docker-compose.synology.yml#L7) |
+| **Port Mapping** | `3000:3000` | [docker-compose.synology.yml:10](docker-compose.synology.yml#L10) |
+| **Persistence** | `./data:/app/data` | [docker-compose.synology.yml:18](docker-compose.synology.yml#L18) |
+| **Environment** | Loaded via `.env` file | [docker-compose.synology.yml:11-12](docker-compose.synology.yml#L11-L12) |
 
 ### Data Flow and Persistence
 
 The system supports two database modes via environment variables:
-1.  **Local Mode**: If `KENMATCH_DB_FILE` is set (e.g., `/app/data/kenmatch.sqlite`), the application uses a local libSQL/SQLite file stored in the mounted NAS volume [docs/synology-nas-deploy.md:52-60]().
-2.  **Remote Mode**: If `DATABASE_URL` and `DATABASE_AUTH_TOKEN` are provided, the container connects to a remote Turso/libSQL instance [docs/synology-nas-deploy.md:142-151]().
+1.  **Local Mode**: If `KENMATCH_DB_FILE` is set (e.g., `/app/data/kenmatch.sqlite`), the application uses a local libSQL/SQLite file stored in the mounted NAS volume [docs/synology-nas-deploy.md:52-60](docs/synology-nas-deploy.md?plain=1#L52-L60).
+2.  **Remote Mode**: If `DATABASE_URL` and `DATABASE_AUTH_TOKEN` are provided, the container connects to a remote Turso/libSQL instance [docs/synology-nas-deploy.md:142-151](docs/synology-nas-deploy.md?plain=1#L142-L151).
 
-Sources: [docker-compose.synology.yml:1-24](), [docs/synology-nas-deploy.md:115-127]()
+Sources: [docker-compose.synology.yml:1-24](docker-compose.synology.yml#L1-L24), [docs/synology-nas-deploy.md:115-127](docs/synology-nas-deploy.md?plain=1#L115-L127)
 
 ---
 
@@ -3280,11 +3278,11 @@ Sources: [docker-compose.synology.yml:1-24](), [docs/synology-nas-deploy.md:115-
 The deployment includes an automated health check to ensure the Next.js server is responsive and the database connection is active.
 
 ### Health Endpoint Implementation
-The route `src/app/api/health/route.ts` handles `GET` requests by calling `getHealthSummary()` from the database library [src/app/api/health/route.ts:1-8](). This verifies that the libSQL client can successfully query the underlying store.
+The route `src/app/api/health/route.ts` handles `GET` requests by calling `getHealthSummary()` from the database library [src/app/api/health/route.ts:1-8](src/app/api/health/route.ts#L1-L8). This verifies that the libSQL client can successfully query the underlying store.
 
 ### Docker Health Check
-The `docker-compose.synology.yml` defines a health check that runs every 30 seconds [docker-compose.synology.yml:21](). It uses `wget` to probe the internal health endpoint:
-`wget -q -O /dev/null http://127.0.0.1:3000/api/health || exit 1` [docker-compose.synology.yml:20]().
+The `docker-compose.synology.yml` defines a health check that runs every 30 seconds [docker-compose.synology.yml:21](docker-compose.synology.yml#L21). It uses `wget` to probe the internal health endpoint:
+`wget -q -O /dev/null http://127.0.0.1:3000/api/health || exit 1` [docker-compose.synology.yml:20](docker-compose.synology.yml#L20).
 
 **Diagram: Health Check System Flow**
 ```mermaid
@@ -3303,7 +3301,7 @@ sequenceDiagram
         API-->>DHC: 200 OK
     end
 ```
-Sources: [src/app/api/health/route.ts:1-8](), [docker-compose.synology.yml:19-24]()
+Sources: [src/app/api/health/route.ts:1-8](src/app/api/health/route.ts#L1-L8), [docker-compose.synology.yml:19-24](docker-compose.synology.yml#L19-L24)
 
 ---
 
@@ -3311,24 +3309,24 @@ Sources: [src/app/api/health/route.ts:1-8](), [docker-compose.synology.yml:19-24
 
 ### 1. Environment Configuration
 Create a `.env` file in the project root on the NAS. For a self-contained deployment, the following variables are critical:
-*   `KENMATCH_DB_FILE=/app/data/kenmatch.sqlite`: Points to the internal container path that is mapped to the NAS shared folder [docs/synology-nas-deploy.md:55]().
-*   `KENMATCH_ALLOW_SIGNUPS=true`: Enables user registration [docs/synology-nas-deploy.md:58]().
+*   `KENMATCH_DB_FILE=/app/data/kenmatch.sqlite`: Points to the internal container path that is mapped to the NAS shared folder [docs/synology-nas-deploy.md:55](docs/synology-nas-deploy.md?plain=1#L55).
+*   `KENMATCH_ALLOW_SIGNUPS=true`: Enables user registration [docs/synology-nas-deploy.md:58](docs/synology-nas-deploy.md?plain=1#L58).
 
 ### 2. Deployment via Container Manager
 1.  **Project Creation**: Open `Container Manager` > `Project` > `Create`.
-2.  **Source**: Point to the folder containing `docker-compose.synology.yml` [docs/synology-nas-deploy.md:100-105]().
+2.  **Source**: Point to the folder containing `docker-compose.synology.yml` [docs/synology-nas-deploy.md:100-105](docs/synology-nas-deploy.md?plain=1#L100-L105).
 3.  **Build**: The NAS will execute the multi-stage build defined in the `Dockerfile`.
 
 ### 3. Reverse Proxy and TLS
 To expose KenMatch securely, use the DSM **Login Portal** (or **Application Portal**):
 *   **Source**: `HTTPS` on port 443 with your domain (e.g., `kenmatch.example.com`).
-*   **Destination**: `HTTP` on `127.0.0.1` port `3000` [docs/synology-nas-deploy.md:157-166]().
-*   **Certificate**: Assign a Let's Encrypt certificate to the specific hostname via DSM `Control Panel` > `Security` > `Certificate` [docs/synology-nas-deploy.md:170-182]().
+*   **Destination**: `HTTP` on `127.0.0.1` port `3000` [docs/synology-nas-deploy.md:157-166](docs/synology-nas-deploy.md?plain=1#L157-L166).
+*   **Certificate**: Assign a Let's Encrypt certificate to the specific hostname via DSM `Control Panel` > `Security` > `Certificate` [docs/synology-nas-deploy.md:170-182](docs/synology-nas-deploy.md?plain=1#L170-L182).
 
 ### 4. Backup Strategy
-Since the database is stored in the `./data` volume mount, it is accessible on the NAS file system at `/volume1/docker/kenmatch/data/kenmatch.sqlite` [docs/synology-nas-deploy.md:123-127](). This folder should be included in **Hyper Backup** tasks to ensure data persistence [docs/synology-nas-deploy.md:129-132]().
+Since the database is stored in the `./data` volume mount, it is accessible on the NAS file system at `/volume1/docker/kenmatch/data/kenmatch.sqlite` [docs/synology-nas-deploy.md:123-127](docs/synology-nas-deploy.md?plain=1#L123-L127). This folder should be included in **Hyper Backup** tasks to ensure data persistence [docs/synology-nas-deploy.md:129-132](docs/synology-nas-deploy.md?plain=1#L129-L132).
 
-Sources: [docs/synology-nas-deploy.md:24-182]()
+Sources: [docs/synology-nas-deploy.md:24-182](docs/synology-nas-deploy.md?plain=1#L24-L182)
 
 ---
 
@@ -3355,18 +3353,18 @@ This page details the configuration of the Next.js framework within the KenMatch
 
 ## Build and Runtime Configuration
 
-The KenMatch application is configured using `next.config.ts` [next.config.ts:1-50](). The configuration focuses on containerization readiness, version tracking, and performance tuning for both development and production environments.
+The KenMatch application is configured using `next.config.ts` [next.config.ts:1-50](next.config.ts#L1-L50). The configuration focuses on containerization readiness, version tracking, and performance tuning for both development and production environments.
 
 ### Standalone Output Mode
-The application uses `output: "standalone"` [next.config.ts:30-30](). This mode instructs Next.js to automatically trace dependencies and create a minimal set of files required for production deployment, significantly reducing the size of the resulting Docker image.
+The application uses `output: "standalone"` [next.config.ts:30-30](next.config.ts#L30-L30). This mode instructs Next.js to automatically trace dependencies and create a minimal set of files required for production deployment, significantly reducing the size of the resulting Docker image.
 
 ### Deployment Versioning
-KenMatch utilizes the `deploymentId` property to handle cache busting and version tracking [next.config.ts:31-31](). It maps the `DEPLOYMENT_VERSION` environment variable to the internal Next.js deployment ID, ensuring that assets are correctly versioned across rolling updates.
+KenMatch utilizes the `deploymentId` property to handle cache busting and version tracking [next.config.ts:31-31](next.config.ts#L31-L31). It maps the `DEPLOYMENT_VERSION` environment variable to the internal Next.js deployment ID, ensuring that assets are correctly versioned across rolling updates.
 
 ### Server Actions and Turbopack
-- **Body Size Limit**: To accommodate Ken submissions and discussions, the `serverActions.bodySizeLimit` is increased to `2mb` [next.config.ts:33-35]().
-- **Turbopack**: The configuration explicitly sets the Turbopack root to the current working directory [next.config.ts:37-39]().
-- **Header Obfuscation**: The `poweredByHeader` is set to `false` to remove the `X-Powered-By: Next.js` header for security through obscurity [next.config.ts:29-29]().
+- **Body Size Limit**: To accommodate Ken submissions and discussions, the `serverActions.bodySizeLimit` is increased to `2mb` [next.config.ts:33-35](next.config.ts#L33-L35).
+- **Turbopack**: The configuration explicitly sets the Turbopack root to the current working directory [next.config.ts:37-39](next.config.ts#L37-L39).
+- **Header Obfuscation**: The `poweredByHeader` is set to `false` to remove the `X-Powered-By: Next.js` header for security through obscurity [next.config.ts:29-29](next.config.ts#L29-L29).
 
 ### Configuration Flow
 The following diagram illustrates how environment variables and local constants flow into the `NextConfig` object.
@@ -3393,32 +3391,32 @@ graph TD
     CFG_OBJ -->|output| STANDALONE["'standalone'"]
     CFG_OBJ -->|experimental| ACTIONS["serverActions: bodySizeLimit: '2mb'"]
 ```
-Sources: [next.config.ts:3-31](), [next.config.ts:33-35]()
+Sources: [next.config.ts:3-31](next.config.ts#L3-L31), [next.config.ts:33-35](next.config.ts#L33-L35)
 
 ## Security Headers
 
-KenMatch implements a strict security posture through a comprehensive set of HTTP headers applied to all application paths [next.config.ts:40-47](). These headers protect against common web vulnerabilities such as Cross-Site Scripting (XSS), clickjacking, and data injection.
+KenMatch implements a strict security posture through a comprehensive set of HTTP headers applied to all application paths [next.config.ts:40-47](next.config.ts#L40-L47). These headers protect against common web vulnerabilities such as Cross-Site Scripting (XSS), clickjacking, and data injection.
 
 ### Security Header Set
 The `securityHeaders` constant defines the following protections:
 
 | Header | Value | Purpose |
 | :--- | :--- | :--- |
-| `X-Content-Type-Options` | `nosniff` | Prevents the browser from MIME-sniffing a response away from the declared content-type [next.config.ts:6-6](). |
-| `Referrer-Policy` | `strict-origin-when-cross-origin` | Controls how much referrer information is included with requests [next.config.ts:7-7](). |
-| `X-Frame-Options` | `DENY` | Prevents the site from being embedded in iframes to stop clickjacking [next.config.ts:8-8](). |
-| `Permissions-Policy` | `camera=(), microphone=(), geolocation=()` | Disables access to sensitive browser APIs [next.config.ts:9-9](). |
+| `X-Content-Type-Options` | `nosniff` | Prevents the browser from MIME-sniffing a response away from the declared content-type [next.config.ts:6-6](next.config.ts#L6-L6). |
+| `Referrer-Policy` | `strict-origin-when-cross-origin` | Controls how much referrer information is included with requests [next.config.ts:7-7](next.config.ts#L7-L7). |
+| `X-Frame-Options` | `DENY` | Prevents the site from being embedded in iframes to stop clickjacking [next.config.ts:8-8](next.config.ts#L8-L8). |
+| `Permissions-Policy` | `camera=(), microphone=(), geolocation=()` | Disables access to sensitive browser APIs [next.config.ts:9-9](next.config.ts#L9-L9). |
 
 ### Content Security Policy (CSP)
-The CSP is dynamically generated based on the environment [next.config.ts:10-25]().
+The CSP is dynamically generated based on the environment [next.config.ts:10-25](next.config.ts#L10-L25).
 
-- **Strict Mode (Production)**: In production, `script-src` is restricted to `'self'` and `'unsafe-inline'` [next.config.ts:16-16]().
-- **Development Relaxation**: When `isDevelopment` is true, `'unsafe-eval'` is added to the `script-src` directive to allow for Fast Refresh and HMR (Hot Module Replacement) [next.config.ts:16-16]().
+- **Strict Mode (Production)**: In production, `script-src` is restricted to `'self'` and `'unsafe-inline'` [next.config.ts:16-16](next.config.ts#L16-L16).
+- **Development Relaxation**: When `isDevelopment` is true, `'unsafe-eval'` is added to the `script-src` directive to allow for Fast Refresh and HMR (Hot Module Replacement) [next.config.ts:16-16](next.config.ts#L16-L16).
 - **Resource Constraints**:
-    - `default-src 'self'`: Default to only loading resources from the same origin [next.config.ts:13-13]().
-    - `connect-src 'self' https: wss:`: Allows secure WebSocket connections for features like real-time updates [next.config.ts:17-17]().
-    - `object-src 'none'`: Completely disables plugins like Flash [next.config.ts:22-22]().
-    - `upgrade-insecure-requests`: Automatically upgrades HTTP requests to HTTPS [next.config.ts:23-23]().
+    - `default-src 'self'`: Default to only loading resources from the same origin [next.config.ts:13-13](next.config.ts#L13-L13).
+    - `connect-src 'self' https: wss:`: Allows secure WebSocket connections for features like real-time updates [next.config.ts:17-17](next.config.ts#L17-L17).
+    - `object-src 'none'`: Completely disables plugins like Flash [next.config.ts:22-22](next.config.ts#L22-L22).
+    - `upgrade-insecure-requests`: Automatically upgrades HTTP requests to HTTPS [next.config.ts:23-23](next.config.ts#L23-L23).
 
 ### Security Implementation Logic
 The following diagram shows how the `securityHeaders` are constructed and applied to the routing system.
@@ -3446,17 +3444,17 @@ graph TD
     HDR_VAR --> HDR_FUNC
     HDR_FUNC -->|source: '/:path*'| NEXT_ROUTER["Next.js Middleware/Router"]
 ```
-Sources: [next.config.ts:5-26](), [next.config.ts:40-47]()
+Sources: [next.config.ts:5-26](next.config.ts#L5-L26), [next.config.ts:40-47](next.config.ts#L40-L47)
 
 ## Development Environment
-The project uses TypeScript and strict type checking. The `next-env.d.ts` file ensures that Next.js specific types, including those for the App Router and image optimization, are correctly referenced by the TypeScript compiler [next-env.d.ts:1-7](). 
+The project uses TypeScript and strict type checking. The `next-env.d.ts` file ensures that Next.js specific types, including those for the App Router and image optimization, are correctly referenced by the TypeScript compiler [next-env.d.ts:1-7](next-env.d.ts#L1-L7). 
 
 The `package.json` defines the core engine requirements and scripts for the lifecycle:
-- **Dev**: `next dev` for local development with Turbopack support [package.json:7-7]().
-- **Build**: `next build` which triggers the standalone output generation [package.json:8-8]().
-- **Test**: Utilizes the Node.js built-in test runner with `--experimental-strip-types` to execute tests in `tests/**/*.test.ts` without a separate compilation step [package.json:12-12]().
+- **Dev**: `next dev` for local development with Turbopack support [package.json:7-7](package.json#L7-L7).
+- **Build**: `next build` which triggers the standalone output generation [package.json:8-8](package.json#L8-L8).
+- **Test**: Utilizes the Node.js built-in test runner with `--experimental-strip-types` to execute tests in `tests/**/*.test.ts` without a separate compilation step [package.json:12-12](package.json#L12-L12).
 
-Sources: [next-env.d.ts:1-7](), [package.json:7-12]()
+Sources: [next-env.d.ts:1-7](next-env.d.ts#L1-L7), [package.json:7-12](package.json#L7-L12)
 
 ---
 
@@ -3488,24 +3486,24 @@ This page provides definitions for the domain-specific terminology, implementati
 
 ### Ken (Task)
 A **Ken** is the primary unit of work in the system. It represents a proposal for long-horizon AI agentic effort. While the UI uses the term "Ken", the database and internal logic frequently refer to it as a `task` for legacy compatibility.
-- **Implementation**: Defined by the `TaskRecord` interface [src/lib/types.ts:105-126]().
-- **Data Flow**: Persisted in the `tasks` table and managed via `src/lib/db.ts` [src/lib/db.ts:257-285]().
+- **Implementation**: Defined by the `TaskRecord` interface [src/lib/types.ts:105-126](src/lib/types.ts#L105-L126).
+- **Data Flow**: Persisted in the `tasks` table and managed via `src/lib/db.ts` [src/lib/db.ts:257-285](src/lib/db.ts#L257-L285).
 
 ### Allocation Tier
 The resource bucket assigned to a Ken based on its competitive ranking. Tiers define the duration of sustained compute.
-- **Tiers**: `months` (Top 3), `weeks` (Top 10), `days` (Top 100), `queued`, and `blocked` [src/lib/types.ts:4-5]().
-- **Logic**: Determined by `tierForRank` [src/lib/allocation.ts:33-55]().
+- **Tiers**: `months` (Top 3), `weeks` (Top 10), `days` (Top 100), `queued`, and `blocked` [src/lib/types.ts:4-5](src/lib/types.ts#L4-L5).
+- **Logic**: Determined by `tierForRank` [src/lib/allocation.ts:33-55](src/lib/allocation.ts#L33-L55).
 
 ### Voice Credits & Quadratic Voting
 A scarce resource used by contributors to influence Ken ranking. Unlike simple upvotes, Voice Credits follow a quadratic cost curve to prevent single-interest capture.
-- **Quadratic Cost**: $Cost = Votes^2$. Implemented in `quadraticCost` [src/lib/allocation.ts:5-11]().
-- **Limit**: Users are restricted by `MAX_VOTES_PER_TASK` (currently 6) [src/lib/allocation.ts:3-3]().
-- **Storage**: User balance is tracked in `profiles.voiceCredits` [src/lib/db.ts:218-218]().
+- **Quadratic Cost**: $Cost = Votes^2$. Implemented in `quadraticCost` [src/lib/allocation.ts:5-11](src/lib/allocation.ts#L5-L11).
+- **Limit**: Users are restricted by `MAX_VOTES_PER_TASK` (currently 6) [src/lib/allocation.ts:3-3](src/lib/allocation.ts#L3-L3).
+- **Storage**: User balance is tracked in `profiles.voiceCredits` [src/lib/db.ts:218-218](src/lib/db.ts#L218-L218).
 
 ### Pulse
 The "fast signal" mechanism. Pulse represents simple binary sentiment (upvote/downvote) that does not consume scarce Voice Credits.
-- **Implementation**: `TaskPulseVoteRecord` [src/lib/types.ts:146-152]().
-- **Separation**: Pulse is stored in `task_pulse_votes`, separate from the `votes` table used for allocation [src/lib/db.ts:321-328]().
+- **Implementation**: `TaskPulseVoteRecord` [src/lib/types.ts:146-152](src/lib/types.ts#L146-L152).
+- **Separation**: Pulse is stored in `task_pulse_votes`, separate from the `votes` table used for allocation [src/lib/db.ts:321-328](src/lib/db.ts#L321-L328).
 
 ---
 
@@ -3513,19 +3511,19 @@ The "fast signal" mechanism. Pulse represents simple binary sentiment (upvote/do
 
 ### Participation Policy
 A dynamic set of permissions calculated for a user based on their identity verification status and Sybil risk.
-- **Function**: `resolveParticipationPolicy` [src/lib/attestation.ts:14-70]().
-- **States**: `full`, `review-limited`, and `read-only` [src/lib/types.ts:46-47]().
-- **Logic**: Applies a `voiceMultiplier` to a user's credits based on `SybilRiskBand` [src/lib/attestation.ts:33-52]().
+- **Function**: `resolveParticipationPolicy` [src/lib/attestation.ts:14-70](src/lib/attestation.ts#L14-L70).
+- **States**: `full`, `review-limited`, and `read-only` [src/lib/types.ts:46-47](src/lib/types.ts#L46-L47).
+- **Logic**: Applies a `voiceMultiplier` to a user's credits based on `SybilRiskBand` [src/lib/attestation.ts:33-52](src/lib/attestation.ts#L33-L52).
 
 ### Checkpoint Gates
 Conditions that must be met during a Ken's execution to allow it to continue to the next phase.
-- **Implementation**: `CheckpointGateRecord` [src/lib/types.ts:215-220]().
-- **Status**: Tracked via `ReleaseStatus` (`approved`, `pending`, `held`) [src/lib/types.ts:19-20]().
+- **Implementation**: `CheckpointGateRecord` [src/lib/types.ts:215-220](src/lib/types.ts#L215-L220).
+- **Status**: Tracked via `ReleaseStatus` (`approved`, `pending`, `held`) [src/lib/types.ts:19-20](src/lib/types.ts#L19-L20).
 
 ### Treasury Buckets
 The accounting structure for managing platform funds, distinguishing between operational capital and compute-specific sponsorship.
-- **Compute Treasury**: The primary bucket for funding public AI work [src/lib/economics.ts:28-28]().
-- **Restricted Funding**: Funds tied to specific labels or descriptions, excluded from general burn calculations [src/lib/economics.ts:31-33]().
+- **Compute Treasury**: The primary bucket for funding public AI work [src/lib/economics.ts:28-28](src/lib/economics.ts#L28-L28).
+- **Restricted Funding**: Funds tied to specific labels or descriptions, excluded from general burn calculations [src/lib/economics.ts:31-33](src/lib/economics.ts#L31-L33).
 
 ---
 
@@ -3556,7 +3554,7 @@ graph TD
     style E stroke-dasharray: 5 5
     style I stroke-dasharray: 5 5
 ```
-**Sources**: [src/lib/allocation.ts:5-11](), [src/lib/allocation.ts:33-55](), [src/lib/allocation.ts:72-113](), [src/lib/types.ts:4-5]()
+**Sources**: [src/lib/allocation.ts:5-11](src/lib/allocation.ts#L5-L11), [src/lib/allocation.ts:33-55](src/lib/allocation.ts#L33-L55), [src/lib/allocation.ts:72-113](src/lib/allocation.ts#L72-L113), [src/lib/types.ts:4-5](src/lib/types.ts#L4-L5)
 
 ### Mapping: Attestation & Permissions
 This diagram maps the identity verification process to the enforcement of system limits.
@@ -3583,7 +3581,7 @@ graph LR
     C --> E
     C --> F
 ```
-**Sources**: [src/lib/attestation.ts:14-70](), [src/lib/types.ts:43-47](), [src/lib/types.ts:78-86]()
+**Sources**: [src/lib/attestation.ts:14-70](src/lib/attestation.ts#L14-L70), [src/lib/types.ts:43-47](src/lib/types.ts#L43-L47), [src/lib/types.ts:78-86](src/lib/types.ts#L78-L86)
 
 ---
 
@@ -3591,12 +3589,12 @@ graph LR
 
 | Term | Definition | Code Pointer |
 | :--- | :--- | :--- |
-| **LLM** | Large Language Model; the "compute" resource being allocated. | [README.md:87-87]() |
-| **Sybil** | A type of attack where one user creates multiple identities to subvert voting. | [src/lib/types.ts:43-45]() |
-| **Burn Rate** | The monthly USD cost of sustained AI computation for active Kens. | [src/lib/economics.ts:17-17]() |
-| **Coverage** | The number of months the current treasury can sustain the burn rate. | [src/lib/economics.ts:30-30]() |
-| **Bond** | A required credit deposit (Quality Bond) to propose a Ken in a specific tier. | [src/lib/db.ts:87-91]() |
-| **House** | Governance bodies: `safety-council` or `allocation-chamber`. | [src/lib/types.ts:16-17]() |
-| **Backend** | The specific AI infrastructure (e.g., "DGX-H100 Cluster") running the Ken. | [src/lib/types.ts:124-124]() |
+| **LLM** | Large Language Model; the "compute" resource being allocated. | [README.md:87-87](README.md?plain=1#L87-L87) |
+| **Sybil** | A type of attack where one user creates multiple identities to subvert voting. | [src/lib/types.ts:43-45](src/lib/types.ts#L43-L45) |
+| **Burn Rate** | The monthly USD cost of sustained AI computation for active Kens. | [src/lib/economics.ts:17-17](src/lib/economics.ts#L17-L17) |
+| **Coverage** | The number of months the current treasury can sustain the burn rate. | [src/lib/economics.ts:30-30](src/lib/economics.ts#L30-L30) |
+| **Bond** | A required credit deposit (Quality Bond) to propose a Ken in a specific tier. | [src/lib/db.ts:87-91](src/lib/db.ts#L87-L91) |
+| **House** | Governance bodies: `safety-council` or `allocation-chamber`. | [src/lib/types.ts:16-17](src/lib/types.ts#L16-L17) |
+| **Backend** | The specific AI infrastructure (e.g., "DGX-H100 Cluster") running the Ken. | [src/lib/types.ts:124-124](src/lib/types.ts#L124-L124) |
 
-**Sources**: [README.md:87-87](), [src/lib/types.ts:16-17](), [src/lib/types.ts:43-45](), [src/lib/economics.ts:17-30](), [src/lib/db.ts:87-91]()
+**Sources**: [README.md:87-87](README.md?plain=1#L87-L87), [src/lib/types.ts:16-17](src/lib/types.ts#L16-L17), [src/lib/types.ts:43-45](src/lib/types.ts#L43-L45), [src/lib/economics.ts:17-30](src/lib/economics.ts#L17-L30), [src/lib/db.ts:87-91](src/lib/db.ts#L87-L91)
