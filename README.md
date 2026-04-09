@@ -60,7 +60,7 @@ The platform is designed for tasks that are naturally multi-stage: they require 
 
 ## Proof-of-value Allocation Credits
 
-KenMatch&rsquo;s allocation credits are not a pay-to-win instrument. In KenMatch&rsquo;s intended design, **allocation rights are earned** through contribution and curation, not purchased.
+KenMatch&rsquo;s allocation credits are not a pay-to-win instrument. In KenMatch&rsquo;s intended design, **allocation rights are earned** through contribution and curation.
 
 Users earn &ldquo;proof-of-value&rdquo; credits by doing work the community can audit and validate, such as:
 
