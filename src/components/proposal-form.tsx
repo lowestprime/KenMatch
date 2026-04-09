@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 
 import { initialActionState } from "@/app/action-state";
 import { createProposalAction } from "@/app/actions";
+import { AbuseGuardFields } from "@/components/abuse-guard-fields";
 
 const tierDetails = {
   days: "Fast, focused Kens for narrow deliverables.",
@@ -15,6 +16,7 @@ export function ProposalForm({ categories, disabled }: { categories: Array<{ slu
   const [state, formAction, isPending] = useActionState(createProposalAction, initialActionState);
   const [requestedTier, setRequestedTier] = useState<keyof typeof tierDetails>("weeks");
   const errorFor = (field: string) => state.fieldErrors?.[field];
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
   return (
     <form action={formAction} className="panel grid gap-5">
@@ -68,6 +70,7 @@ export function ProposalForm({ categories, disabled }: { categories: Array<{ slu
           {isPending ? "Submitting Ken" : "Submit Ken for review"}
         </button>
       </div>
+      <AbuseGuardFields action="submit-ken" siteKey={turnstileSiteKey} />
       {state.message ? <p className={`text-sm ${state.status === "error" ? "text-red-500" : "text-teal"}`}>{state.message}</p> : null}
     </form>
   );

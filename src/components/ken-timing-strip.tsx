@@ -5,6 +5,8 @@ export function KenTimingStrip({ ken, compact = false }: { ken: TaskSummary; com
   const progress = progressPercent(ken.startedAt, ken.expectedMaxEndAt);
   const remaining = remainingHours(ken.expectedMaxEndAt);
   const computeTarget = ken.runtimeHours;
+  const ageAnchor = ken.startedAt ?? ken.createdAt;
+  const ageMeta = ken.startedAt ? "since launch" : "since submission";
 
   return (
     <section className={`timing-strip ${compact ? "is-compact" : ""}`}>
@@ -15,7 +17,7 @@ export function KenTimingStrip({ ken, compact = false }: { ken: TaskSummary; com
       </div>
       <div className="timing-grid">
         <TimingStat label="Launch" value={describeCountdown(ken.launchAt)} meta={ken.launchAt ? formatDateTime(ken.launchAt) : "Pending"} />
-        <TimingStat label="Run age" value={describeElapsedSince(ken.createdAt)} meta="since submission" />
+        <TimingStat label="Run age" value={describeElapsedSince(ageAnchor)} meta={ageMeta} />
         <TimingStat label="Compute" value={`${formatHoursToHuman(ken.computeHoursUsed)} used`} meta={remaining !== null ? `${formatHoursToHuman(remaining)} remaining` : "No cap yet"} />
       </div>
       <div className="progress-shell" aria-label="Ken compute progression">

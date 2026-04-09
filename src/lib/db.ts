@@ -44,6 +44,7 @@ import {
   seedProfileAttestations,
   seedRevenueStreams,
   seedRunUpdates,
+  seedSponsorshipCommitments,
   seedTaskFinance,
   seedTaskPulseVotes,
   seedTaskTimings,
@@ -68,6 +69,7 @@ import type {
   RevenueStreamSummary,
   RunUpdateRecord,
   SessionRecord,
+  SponsorshipCommitmentRecord,
   TaskDetail,
   TaskFinanceRecord,
   TaskPulseVoteRecord,
@@ -226,6 +228,7 @@ async function initializeDatabase() {
         email TEXT NOT NULL UNIQUE,
         passwordHash TEXT NOT NULL,
         passwordSalt TEXT NOT NULL,
+        licensingConsent TEXT NOT NULL DEFAULT 'audit-only',
         createdAt TEXT NOT NULL,
         FOREIGN KEY (profileId) REFERENCES profiles(id)
       )`,
@@ -285,6 +288,13 @@ async function initializeDatabase() {
         checkpointApprovalTarget INTEGER NOT NULL,
         enterprisePackaging TEXT NOT NULL,
         dataValueNote TEXT NOT NULL,
+        sandboxCapitalUsd INTEGER NOT NULL DEFAULT 0,
+        sandboxApiSpendUsd INTEGER NOT NULL DEFAULT 0,
+        sandboxPilotUsers INTEGER NOT NULL DEFAULT 0,
+        modelLineup TEXT NOT NULL DEFAULT '[]',
+        simulationSummary TEXT NOT NULL DEFAULT '',
+        sampleOutcome TEXT NOT NULL DEFAULT '',
+        sponsorAppeal TEXT NOT NULL DEFAULT '',
         FOREIGN KEY (taskId) REFERENCES tasks(id)
       )`,
       `CREATE TABLE IF NOT EXISTS votes (
@@ -401,7 +411,11 @@ async function initializeDatabase() {
         monthlyRevenueUsd INTEGER NOT NULL,
         grossMargin REAL NOT NULL,
         treasurySharePercent INTEGER NOT NULL,
-        founderSharePercent INTEGER NOT NULL
+        founderSharePercent INTEGER NOT NULL,
+        publicBenefitCovenant TEXT NOT NULL DEFAULT '',
+        openDeliverableBoundary TEXT NOT NULL DEFAULT '',
+        contributorDividendPercent INTEGER NOT NULL DEFAULT 0,
+        requiresContributorConsent INTEGER NOT NULL DEFAULT 0
       )`,
       `CREATE TABLE IF NOT EXISTS treasury_entries (
         id TEXT PRIMARY KEY,
@@ -411,8 +425,46 @@ async function initializeDatabase() {
         bucket TEXT NOT NULL,
         direction TEXT NOT NULL,
         amountUsd INTEGER NOT NULL,
+        fundingState TEXT NOT NULL DEFAULT 'committed',
+        restrictionMode TEXT NOT NULL DEFAULT 'unrestricted',
+        restrictionScope TEXT NOT NULL DEFAULT 'general',
+        restrictionTargetId TEXT,
+        restrictionTargetLabel TEXT,
         createdAt TEXT NOT NULL,
         FOREIGN KEY (streamId) REFERENCES revenue_streams(id)
+      )`,
+      `CREATE TABLE IF NOT EXISTS sponsorship_commitments (
+        id TEXT PRIMARY KEY,
+        sponsorName TEXT NOT NULL,
+        sponsorType TEXT NOT NULL,
+        sponsorContact TEXT NOT NULL,
+        note TEXT NOT NULL,
+        amountUsd INTEGER NOT NULL,
+        fundingState TEXT NOT NULL,
+        status TEXT NOT NULL,
+        restrictionScope TEXT NOT NULL,
+        restrictionTargetId TEXT,
+        restrictionTargetLabel TEXT,
+        checkoutSessionId TEXT UNIQUE,
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL,
+        paidAt TEXT
+      )`,
+      `CREATE TABLE IF NOT EXISTS request_rate_limits (
+        scope TEXT NOT NULL,
+        identifier TEXT NOT NULL,
+        bucketStart TEXT NOT NULL,
+        count INTEGER NOT NULL,
+        updatedAt TEXT NOT NULL,
+        PRIMARY KEY (scope, identifier, bucketStart)
+      )`,
+      `CREATE TABLE IF NOT EXISTS security_events (
+        id TEXT PRIMARY KEY,
+        eventType TEXT NOT NULL,
+        ipAddress TEXT,
+        actorId TEXT,
+        detail TEXT NOT NULL,
+        createdAt TEXT NOT NULL
       )`,
       "CREATE INDEX IF NOT EXISTS idx_votes_profileId ON votes(profileId)",
       "CREATE INDEX IF NOT EXISTS idx_votes_taskId ON votes(taskId)",
@@ -422,11 +474,40 @@ async function initializeDatabase() {
       "CREATE INDEX IF NOT EXISTS idx_run_updates_taskId ON run_updates(taskId)",
       "CREATE INDEX IF NOT EXISTS idx_sessions_tokenHash ON sessions(tokenHash)",
       "CREATE INDEX IF NOT EXISTS idx_task_pulse_votes_taskId ON task_pulse_votes(taskId)",
+      "CREATE INDEX IF NOT EXISTS idx_sponsorship_commitments_status ON sponsorship_commitments(status)",
+      "CREATE INDEX IF NOT EXISTS idx_request_rate_limits_updatedAt ON request_rate_limits(updatedAt)",
+      "CREATE INDEX IF NOT EXISTS idx_security_events_createdAt ON security_events(createdAt)",
     ],
     "write",
   );
 
+  await ensureColumn(client, "accounts", "licensingConsent", "TEXT NOT NULL DEFAULT 'audit-only'");
+  await ensureColumn(client, "revenue_streams", "publicBenefitCovenant", "TEXT NOT NULL DEFAULT ''");
+  await ensureColumn(client, "revenue_streams", "openDeliverableBoundary", "TEXT NOT NULL DEFAULT ''");
+  await ensureColumn(client, "revenue_streams", "contributorDividendPercent", "INTEGER NOT NULL DEFAULT 0");
+  await ensureColumn(client, "revenue_streams", "requiresContributorConsent", "INTEGER NOT NULL DEFAULT 0");
+  await ensureColumn(client, "treasury_entries", "fundingState", "TEXT NOT NULL DEFAULT 'committed'");
+  await ensureColumn(client, "treasury_entries", "restrictionMode", "TEXT NOT NULL DEFAULT 'unrestricted'");
+  await ensureColumn(client, "treasury_entries", "restrictionScope", "TEXT NOT NULL DEFAULT 'general'");
+  await ensureColumn(client, "treasury_entries", "restrictionTargetId", "TEXT");
+  await ensureColumn(client, "treasury_entries", "restrictionTargetLabel", "TEXT");
+  await ensureColumn(client, "task_finance", "sandboxCapitalUsd", "INTEGER NOT NULL DEFAULT 0");
+  await ensureColumn(client, "task_finance", "sandboxApiSpendUsd", "INTEGER NOT NULL DEFAULT 0");
+  await ensureColumn(client, "task_finance", "sandboxPilotUsers", "INTEGER NOT NULL DEFAULT 0");
+  await ensureColumn(client, "task_finance", "modelLineup", "TEXT NOT NULL DEFAULT '[]'");
+  await ensureColumn(client, "task_finance", "simulationSummary", "TEXT NOT NULL DEFAULT ''");
+  await ensureColumn(client, "task_finance", "sampleOutcome", "TEXT NOT NULL DEFAULT ''");
+  await ensureColumn(client, "task_finance", "sponsorAppeal", "TEXT NOT NULL DEFAULT ''");
+
   await seedDatabase();
+}
+
+async function ensureColumn(client: Client, table: string, column: string, definition: string) {
+  const info = await client.execute(`PRAGMA table_info(${table})`);
+  const hasColumn = info.rows.some((row) => getString(row as DbRow, "name") === column);
+  if (!hasColumn) {
+    await client.execute(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+  }
 }
 
 function normalizeSeedProfile(profile: ProfileRecord, index: number): ProfileRecord & {
@@ -449,10 +530,22 @@ async function seedDatabase() {
   const profileStatements = seedProfiles.map((profile, index) => {
     const normalized = normalizeSeedProfile(profile, index);
     return {
-      sql: `INSERT OR IGNORE INTO profiles (
+      sql: `INSERT INTO profiles (
         id, name, role, bio, specialty, attestation, attestationLevel, moderationStatus,
         voiceCredits, credibility, avatarHue, createdAt
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        name = excluded.name,
+        role = excluded.role,
+        bio = excluded.bio,
+        specialty = excluded.specialty,
+        attestation = excluded.attestation,
+        attestationLevel = excluded.attestationLevel,
+        moderationStatus = excluded.moderationStatus,
+        voiceCredits = excluded.voiceCredits,
+        credibility = excluded.credibility,
+        avatarHue = excluded.avatarHue,
+        createdAt = excluded.createdAt`,
       args: [
         normalized.id,
         normalized.name,
@@ -476,7 +569,12 @@ async function seedDatabase() {
   } satisfies InStatement));
 
   const categoryStatements = seedCategories.map((category) => ({
-    sql: "INSERT OR IGNORE INTO categories (id, slug, name, description, thesis) VALUES (?, ?, ?, ?, ?)",
+    sql: `INSERT INTO categories (id, slug, name, description, thesis) VALUES (?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        slug = excluded.slug,
+        name = excluded.name,
+        description = excluded.description,
+        thesis = excluded.thesis`,
     args: [category.id, category.slug, category.name, category.description, category.thesis],
   } satisfies InStatement));
 
@@ -484,11 +582,31 @@ async function seedDatabase() {
     const finance = seedTaskFinance.find((entry) => entry.taskId === task.id);
     return [
       {
-        sql: `INSERT OR IGNORE INTO tasks (
+        sql: `INSERT INTO tasks (
           id, slug, categoryId, proposerId, title, summary, problem, whyNow, publicBenefit,
           deliverables, evaluationCriteria, riskFlags, evidence, requestedTier, stage, safetyStatus,
           budgetUsd, runtimeHours, backend, createdAt
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          slug = excluded.slug,
+          categoryId = excluded.categoryId,
+          proposerId = excluded.proposerId,
+          title = excluded.title,
+          summary = excluded.summary,
+          problem = excluded.problem,
+          whyNow = excluded.whyNow,
+          publicBenefit = excluded.publicBenefit,
+          deliverables = excluded.deliverables,
+          evaluationCriteria = excluded.evaluationCriteria,
+          riskFlags = excluded.riskFlags,
+          evidence = excluded.evidence,
+          requestedTier = excluded.requestedTier,
+          stage = excluded.stage,
+          safetyStatus = excluded.safetyStatus,
+          budgetUsd = excluded.budgetUsd,
+          runtimeHours = excluded.runtimeHours,
+          backend = excluded.backend,
+          createdAt = excluded.createdAt`,
         args: [
           task.id,
           task.slug,
@@ -513,14 +631,37 @@ async function seedDatabase() {
         ],
       } satisfies InStatement,
       {
-        sql: "INSERT OR IGNORE INTO task_finance (taskId, qualityBondCredits, sponsorPoolUsd, checkpointApprovalTarget, enterprisePackaging, dataValueNote) VALUES (?, ?, ?, ?, ?, ?)",
+        sql: `INSERT INTO task_finance (
+          taskId, qualityBondCredits, sponsorPoolUsd, checkpointApprovalTarget, enterprisePackaging, dataValueNote,
+          sandboxCapitalUsd, sandboxApiSpendUsd, sandboxPilotUsers, modelLineup, simulationSummary, sampleOutcome, sponsorAppeal
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(taskId) DO UPDATE SET
+          qualityBondCredits = excluded.qualityBondCredits,
+          sponsorPoolUsd = excluded.sponsorPoolUsd,
+          checkpointApprovalTarget = excluded.checkpointApprovalTarget,
+          enterprisePackaging = excluded.enterprisePackaging,
+          dataValueNote = excluded.dataValueNote,
+          sandboxCapitalUsd = excluded.sandboxCapitalUsd,
+          sandboxApiSpendUsd = excluded.sandboxApiSpendUsd,
+          sandboxPilotUsers = excluded.sandboxPilotUsers,
+          modelLineup = excluded.modelLineup,
+          simulationSummary = excluded.simulationSummary,
+          sampleOutcome = excluded.sampleOutcome,
+          sponsorAppeal = excluded.sponsorAppeal`,
         args: [
           task.id,
           finance?.qualityBondCredits ?? tierDefaults[task.requestedTier].bond,
           finance?.sponsorPoolUsd ?? 0,
           finance?.checkpointApprovalTarget ?? tierDefaults[task.requestedTier].checkpointTarget,
-          finance?.enterprisePackaging ?? "Open output first, commercial packaging optional.",
-          finance?.dataValueNote ?? "Preference and correction traces remain auditable public-good inputs.",
+          finance?.enterprisePackaging ?? "Public output first, with an optional service version for groups that need support.",
+          finance?.dataValueNote ?? "Corrections and audit traces remain useful public-good inputs.",
+          finance?.sandboxCapitalUsd ?? 0,
+          finance?.sandboxApiSpendUsd ?? 0,
+          finance?.sandboxPilotUsers ?? 0,
+          serializeList(finance?.modelLineup ?? []),
+          finance?.simulationSummary ?? "",
+          finance?.sampleOutcome ?? "",
+          finance?.sponsorAppeal ?? "",
         ],
       } satisfies InStatement,
     ];
@@ -587,10 +728,26 @@ async function seedDatabase() {
   } satisfies InStatement));
 
   const revenueStatements = seedRevenueStreams.map((stream) => ({
-    sql: `INSERT OR IGNORE INTO revenue_streams (
+    sql: `INSERT INTO revenue_streams (
       id, slug, name, engine, description, pricingModel, status, monthlyRevenueUsd, grossMargin,
-      treasurySharePercent, founderSharePercent
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      treasurySharePercent, founderSharePercent, publicBenefitCovenant, openDeliverableBoundary,
+      contributorDividendPercent, requiresContributorConsent
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      slug = excluded.slug,
+      name = excluded.name,
+      engine = excluded.engine,
+      description = excluded.description,
+      pricingModel = excluded.pricingModel,
+      status = excluded.status,
+      monthlyRevenueUsd = excluded.monthlyRevenueUsd,
+      grossMargin = excluded.grossMargin,
+      treasurySharePercent = excluded.treasurySharePercent,
+      founderSharePercent = excluded.founderSharePercent,
+      publicBenefitCovenant = excluded.publicBenefitCovenant,
+      openDeliverableBoundary = excluded.openDeliverableBoundary,
+      contributorDividendPercent = excluded.contributorDividendPercent,
+      requiresContributorConsent = excluded.requiresContributorConsent`,
     args: [
       stream.id,
       stream.slug,
@@ -603,12 +760,72 @@ async function seedDatabase() {
       stream.grossMargin,
       stream.treasurySharePercent,
       stream.founderSharePercent,
+      stream.publicBenefitCovenant,
+      stream.openDeliverableBoundary,
+      stream.contributorDividendPercent,
+      stream.requiresContributorConsent ? 1 : 0,
     ],
   } satisfies InStatement));
 
   const treasuryStatements = seedTreasuryEntries.map((entry) => ({
-    sql: "INSERT OR IGNORE INTO treasury_entries (id, streamId, title, description, bucket, direction, amountUsd, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    args: [entry.id, entry.streamId, entry.title, entry.description, entry.bucket, entry.direction, entry.amountUsd, entry.createdAt],
+    sql: `INSERT OR IGNORE INTO treasury_entries (
+      id, streamId, title, description, bucket, direction, amountUsd, fundingState,
+      restrictionMode, restrictionScope, restrictionTargetId, restrictionTargetLabel, createdAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    args: [
+      entry.id,
+      entry.streamId,
+      entry.title,
+      entry.description,
+      entry.bucket,
+      entry.direction,
+      entry.amountUsd,
+      entry.fundingState,
+      entry.restrictionMode,
+      entry.restrictionScope,
+      entry.restrictionTargetId,
+      entry.restrictionTargetLabel,
+      entry.createdAt,
+    ],
+  } satisfies InStatement));
+
+  const sponsorshipStatements = seedSponsorshipCommitments.map((commitment) => ({
+    sql: `INSERT INTO sponsorship_commitments (
+      id, sponsorName, sponsorType, sponsorContact, note, amountUsd, fundingState, status,
+      restrictionScope, restrictionTargetId, restrictionTargetLabel, checkoutSessionId, createdAt, updatedAt, paidAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      sponsorName = excluded.sponsorName,
+      sponsorType = excluded.sponsorType,
+      sponsorContact = excluded.sponsorContact,
+      note = excluded.note,
+      amountUsd = excluded.amountUsd,
+      fundingState = excluded.fundingState,
+      status = excluded.status,
+      restrictionScope = excluded.restrictionScope,
+      restrictionTargetId = excluded.restrictionTargetId,
+      restrictionTargetLabel = excluded.restrictionTargetLabel,
+      checkoutSessionId = excluded.checkoutSessionId,
+      createdAt = excluded.createdAt,
+      updatedAt = excluded.updatedAt,
+      paidAt = excluded.paidAt`,
+    args: [
+      commitment.id,
+      commitment.sponsorName,
+      commitment.sponsorType,
+      commitment.sponsorContact,
+      commitment.note,
+      commitment.amountUsd,
+      commitment.fundingState,
+      commitment.status,
+      commitment.restrictionScope,
+      commitment.restrictionTargetId,
+      commitment.restrictionTargetLabel,
+      commitment.checkoutSessionId,
+      commitment.createdAt,
+      commitment.updatedAt,
+      commitment.paidAt,
+    ],
   } satisfies InStatement));
 
   const client = getClient();
@@ -630,6 +847,7 @@ async function seedDatabase() {
       ...governanceStatements,
       ...revenueStatements,
       ...treasuryStatements,
+      ...sponsorshipStatements,
     ],
     "write",
   );
@@ -738,6 +956,13 @@ function mapTaskFinance(row: DbRow): TaskFinanceRecord {
     checkpointApprovalTarget: getNumber(row, "checkpointApprovalTarget"),
     enterprisePackaging: getString(row, "enterprisePackaging"),
     dataValueNote: getString(row, "dataValueNote"),
+    sandboxCapitalUsd: getNumber(row, "sandboxCapitalUsd"),
+    sandboxApiSpendUsd: getNumber(row, "sandboxApiSpendUsd"),
+    sandboxPilotUsers: getNumber(row, "sandboxPilotUsers"),
+    modelLineup: parseList(row.modelLineup),
+    simulationSummary: getString(row, "simulationSummary"),
+    sampleOutcome: getString(row, "sampleOutcome"),
+    sponsorAppeal: getString(row, "sponsorAppeal"),
   };
 }
 
@@ -881,6 +1106,10 @@ function mapRevenueStream(row: DbRow): RevenueStreamRecord {
     grossMargin: getNumber(row, "grossMargin"),
     treasurySharePercent: getNumber(row, "treasurySharePercent"),
     founderSharePercent: getNumber(row, "founderSharePercent"),
+    publicBenefitCovenant: getString(row, "publicBenefitCovenant"),
+    openDeliverableBoundary: getString(row, "openDeliverableBoundary"),
+    contributorDividendPercent: getNumber(row, "contributorDividendPercent"),
+    requiresContributorConsent: getNumber(row, "requiresContributorConsent") > 0,
   };
 }
 
@@ -893,7 +1122,32 @@ function mapTreasuryEntry(row: DbRow): TreasuryEntryRecord {
     bucket: getString(row, "bucket"),
     direction: getString(row, "direction") as TreasuryEntryRecord["direction"],
     amountUsd: getNumber(row, "amountUsd"),
+    fundingState: getString(row, "fundingState") as TreasuryEntryRecord["fundingState"],
+    restrictionMode: getString(row, "restrictionMode") as TreasuryEntryRecord["restrictionMode"],
+    restrictionScope: getString(row, "restrictionScope") as TreasuryEntryRecord["restrictionScope"],
+    restrictionTargetId: getNullableString(row, "restrictionTargetId"),
+    restrictionTargetLabel: getNullableString(row, "restrictionTargetLabel"),
     createdAt: getString(row, "createdAt"),
+  };
+}
+
+function mapSponsorshipCommitment(row: DbRow): SponsorshipCommitmentRecord {
+  return {
+    id: getString(row, "id"),
+    sponsorName: getString(row, "sponsorName"),
+    sponsorType: getString(row, "sponsorType") as SponsorshipCommitmentRecord["sponsorType"],
+    sponsorContact: getString(row, "sponsorContact"),
+    note: getString(row, "note"),
+    amountUsd: getNumber(row, "amountUsd"),
+    fundingState: getString(row, "fundingState") as SponsorshipCommitmentRecord["fundingState"],
+    status: getString(row, "status") as SponsorshipCommitmentRecord["status"],
+    restrictionScope: getString(row, "restrictionScope") as SponsorshipCommitmentRecord["restrictionScope"],
+    restrictionTargetId: getNullableString(row, "restrictionTargetId"),
+    restrictionTargetLabel: getNullableString(row, "restrictionTargetLabel"),
+    checkoutSessionId: getNullableString(row, "checkoutSessionId"),
+    createdAt: getString(row, "createdAt"),
+    updatedAt: getString(row, "updatedAt"),
+    paidAt: getNullableString(row, "paidAt"),
   };
 }
 
@@ -904,6 +1158,7 @@ function mapAccount(row: DbRow): AccountRecord {
     email: getString(row, "email"),
     passwordHash: getString(row, "passwordHash"),
     passwordSalt: getString(row, "passwordSalt"),
+    licensingConsent: getString(row, "licensingConsent") as AccountRecord["licensingConsent"],
     createdAt: getString(row, "createdAt"),
   };
 }
@@ -944,6 +1199,8 @@ const loadCheckpointGates = () => loadRows("SELECT * FROM checkpoint_gates").the
 const loadGovernanceEvents = () => loadRows("SELECT * FROM governance_events ORDER BY createdAt DESC").then((rows) => rows.map(mapGovernance));
 const loadRevenueStreams = () => loadRows("SELECT * FROM revenue_streams ORDER BY monthlyRevenueUsd DESC").then((rows) => rows.map(mapRevenueStream));
 const loadTreasuryEntries = () => loadRows("SELECT * FROM treasury_entries ORDER BY createdAt DESC").then((rows) => rows.map(mapTreasuryEntry));
+const loadSponsorshipCommitments = () =>
+  loadRows("SELECT * FROM sponsorship_commitments ORDER BY updatedAt DESC, createdAt DESC").then((rows) => rows.map(mapSponsorshipCommitment));
 
 async function findProfileById(profileId: string) {
   const row = await loadOne("SELECT * FROM profiles WHERE id = ? LIMIT 1", [profileId]);
@@ -1055,18 +1312,36 @@ function buildDiscussionTree(
 }
 
 function sortTasks(tasks: TaskSummary[]) {
+  const stageWeight: Record<TaskSummary["stage"], number> = {
+    running: 5,
+    voting: 4,
+    scheduled: 3,
+    review: 2,
+    shipped: 1,
+    blocked: 0,
+  };
+
   return [...tasks].sort((left, right) => {
-    const tierDelta = tierWeight(right.allocatedTier) - tierWeight(left.allocatedTier);
-    if (tierDelta !== 0) {
-      return tierDelta;
+    const stageDelta = stageWeight[right.stage] - stageWeight[left.stage];
+    if (stageDelta !== 0) {
+      return stageDelta;
+    }
+
+    if (right.taskPulseScore !== left.taskPulseScore) {
+      return right.taskPulseScore - left.taskPulseScore;
+    }
+
+    if (right.discussionCount !== left.discussionCount) {
+      return right.discussionCount - left.discussionCount;
     }
 
     if (right.totalVotes !== left.totalVotes) {
       return right.totalVotes - left.totalVotes;
     }
 
-    if (right.taskPulseScore !== left.taskPulseScore) {
-      return right.taskPulseScore - left.taskPulseScore;
+    const tierDelta = tierWeight(right.allocatedTier) - tierWeight(left.allocatedTier);
+    if (tierDelta !== 0) {
+      return tierDelta;
     }
 
     return right.lastActivityAt.localeCompare(left.lastActivityAt);
@@ -1074,7 +1349,7 @@ function sortTasks(tasks: TaskSummary[]) {
 }
 
 async function hydrate(viewerProfileId?: string | null) {
-  const [profiles, profileAttestations, categories, tasks, finances, votes, pulseVotes, comments, commentVotes, runs, taskTimings, runUpdates, checkpoints, checkpointGates, governance, revenueStreams, treasuryEntries] =
+  const [profiles, profileAttestations, categories, tasks, finances, votes, pulseVotes, comments, commentVotes, runs, taskTimings, runUpdates, checkpoints, checkpointGates, governance, revenueStreams, treasuryEntries, sponsorshipCommitments] =
     await Promise.all([
       loadProfiles(),
       loadProfileAttestations(),
@@ -1093,6 +1368,7 @@ async function hydrate(viewerProfileId?: string | null) {
       loadGovernanceEvents(),
       loadRevenueStreams(),
       loadTreasuryEntries(),
+      loadSponsorshipCommitments(),
     ]);
 
   const voteByTask = new Map<string, VoteRecord[]>();
@@ -1215,8 +1491,15 @@ async function hydrate(viewerProfileId?: string | null) {
       qualityBondCredits: tierDefaults[task.requestedTier].bond,
       sponsorPoolUsd: 0,
       checkpointApprovalTarget: tierDefaults[task.requestedTier].checkpointTarget,
-      enterprisePackaging: "Open output first, commercial packaging optional.",
-      dataValueNote: "Preference and correction traces remain auditable public-good inputs.",
+      enterprisePackaging: "Public output first, with an optional service version for groups that need support.",
+      dataValueNote: "Corrections and audit traces remain useful public-good inputs.",
+      sandboxCapitalUsd: 0,
+      sandboxApiSpendUsd: 0,
+      sandboxPilotUsers: 0,
+      modelLineup: [],
+      simulationSummary: "",
+      sampleOutcome: "",
+      sponsorAppeal: "",
     };
     const timing = timingMap.get(task.id) ?? {
       taskId: task.id,
@@ -1296,7 +1579,14 @@ async function hydrate(viewerProfileId?: string | null) {
     .filter((entry) => entry.bucket === "compute-treasury" && entry.direction === "outflow")
     .reduce((total, entry) => total + entry.amountUsd, 0);
   const sponsorPoolsUsd = taskSummaries.reduce((total, task) => total + task.sponsorPoolUsd, 0);
-  const economics = summarizeEconomics(revenueStreams, treasuryEntries, monthlyPublicBurnUsd, sponsorPoolsUsd);
+  const economics = summarizeEconomics(
+    revenueStreams,
+    treasuryEntries,
+    sponsorshipCommitments,
+    monthlyPublicBurnUsd,
+    sponsorPoolsUsd,
+    env.KENMATCH_TREASURY_TARGET_MONTHS,
+  );
 
   return {
     profiles: profileSummaries,
@@ -1311,6 +1601,7 @@ async function hydrate(viewerProfileId?: string | null) {
     governanceByTask,
     revenueSummaries,
     treasuryEntries,
+    sponsorshipCommitments,
     economics,
     runUpdatesByTask,
     viewer: viewerProfileId ? profileMap.get(viewerProfileId) ?? null : null,
@@ -1389,7 +1680,18 @@ export async function getMarketplaceData(viewerProfileId: string | null | undefi
     categories: snapshot.categories,
     tasks: snapshot.tasks.filter((task) => {
       if (query) {
-        const haystack = [task.title, task.summary, task.problem, task.categoryName, task.enterprisePackaging, task.dataValueNote].join(" ").toLowerCase();
+        const haystack = [
+          task.title,
+          task.summary,
+          task.problem,
+          task.categoryName,
+          task.enterprisePackaging,
+          task.dataValueNote,
+          task.simulationSummary,
+          task.sampleOutcome,
+          task.sponsorAppeal,
+          ...task.modelLineup,
+        ].join(" ").toLowerCase();
         if (!haystack.includes(query)) {
           return false;
         }
@@ -1446,6 +1748,7 @@ export async function getEconomicsData(viewerProfileId?: string | null): Promise
   summary: EconomicsSummary;
   revenueStreams: RevenueStreamSummary[];
   treasuryEntries: TreasuryEntryRecord[];
+  sponsorshipCommitments: SponsorshipCommitmentRecord[];
   fundedTasks: TaskSummary[];
 }> {
   const snapshot = await hydrate(viewerProfileId);
@@ -1455,6 +1758,7 @@ export async function getEconomicsData(viewerProfileId?: string | null): Promise
     summary: snapshot.economics,
     revenueStreams: snapshot.revenueSummaries,
     treasuryEntries: snapshot.treasuryEntries,
+    sponsorshipCommitments: snapshot.sponsorshipCommitments,
     fundedTasks: snapshot.tasks.filter((task) => fundedTaskIds.has(task.id)).slice(0, 8),
   };
 }
@@ -1466,6 +1770,7 @@ export async function createAccount(input: {
   role: string;
   specialty: string;
   bio: string;
+  licensingConsent: AccountRecord["licensingConsent"];
 }) {
   const existing = await findAccountByEmail(input.email);
   if (existing) {
@@ -1504,8 +1809,8 @@ export async function createAccount(input: {
         args: [profileId, "Email + profile review", "review", "medium", now, serializeList(["Verified email", "Fresh profile", "Rate limits"]), "New accounts can read immediately and participate with provisional standing while review is pending."],
       },
       {
-        sql: "INSERT INTO accounts (id, profileId, email, passwordHash, passwordSalt, createdAt) VALUES (?, ?, ?, ?, ?, ?)",
-        args: [accountId, profileId, input.email.toLowerCase(), passwordHash, passwordSalt, now],
+        sql: "INSERT INTO accounts (id, profileId, email, passwordHash, passwordSalt, licensingConsent, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        args: [accountId, profileId, input.email.toLowerCase(), passwordHash, passwordSalt, input.licensingConsent, now],
       },
     ],
     "write",
@@ -1619,8 +1924,25 @@ export async function createProposal(input: CreateProposalInput, proposerId: str
         ],
       },
       {
-        sql: "INSERT INTO task_finance (taskId, qualityBondCredits, sponsorPoolUsd, checkpointApprovalTarget, enterprisePackaging, dataValueNote) VALUES (?, ?, ?, ?, ?, ?)",
-        args: [slug, defaults.bond, 0, defaults.checkpointTarget, input.enterprisePackaging, input.dataValueNote],
+        sql: `INSERT INTO task_finance (
+          taskId, qualityBondCredits, sponsorPoolUsd, checkpointApprovalTarget, enterprisePackaging, dataValueNote,
+          sandboxCapitalUsd, sandboxApiSpendUsd, sandboxPilotUsers, modelLineup, simulationSummary, sampleOutcome, sponsorAppeal
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        args: [
+          slug,
+          defaults.bond,
+          0,
+          defaults.checkpointTarget,
+          input.enterprisePackaging,
+          input.dataValueNote,
+          0,
+          0,
+          0,
+          serializeList([]),
+          "",
+          "",
+          "",
+        ],
       },
       {
         sql: "INSERT INTO task_timings (taskId, launchAt, startedAt, expectedMaxEndAt, computeHoursUsed, completionMode, completionSummary, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
@@ -1788,6 +2110,233 @@ export async function saveCommentVote(commentId: string, profileId: string, valu
   }
 
   await execute("INSERT INTO comment_votes (id, commentId, profileId, value, updatedAt) VALUES (?, ?, ?, ?, ?)", [randomUUID(), commentId, profileId, value, now]);
+}
+
+function bucketStartIso(windowSeconds: number, reference = Date.now()) {
+  const windowMs = windowSeconds * 1000;
+  return new Date(Math.floor(reference / windowMs) * windowMs).toISOString();
+}
+
+export async function consumeRateLimit(input: {
+  scope: string;
+  identifier: string;
+  limit: number;
+  windowSeconds: number;
+}) {
+  const now = Date.now();
+  const bucketStart = bucketStartIso(input.windowSeconds, now);
+  const bucketCutoff = new Date(now - input.windowSeconds * 3 * 1000).toISOString();
+  await execute("DELETE FROM request_rate_limits WHERE updatedAt < ?", [bucketCutoff]);
+
+  const existing = await loadOne(
+    "SELECT count FROM request_rate_limits WHERE scope = ? AND identifier = ? AND bucketStart = ? LIMIT 1",
+    [input.scope, input.identifier, bucketStart],
+  );
+  const current = existing ? getNumber(existing, "count") : 0;
+  const resetAt = new Date(new Date(bucketStart).getTime() + input.windowSeconds * 1000).toISOString();
+
+  if (current >= input.limit) {
+    return {
+      allowed: false,
+      remaining: 0,
+      resetAt,
+      count: current,
+    };
+  }
+
+  if (existing) {
+    await execute(
+      "UPDATE request_rate_limits SET count = ?, updatedAt = ? WHERE scope = ? AND identifier = ? AND bucketStart = ?",
+      [current + 1, new Date(now).toISOString(), input.scope, input.identifier, bucketStart],
+    );
+  } else {
+    await execute(
+      "INSERT INTO request_rate_limits (scope, identifier, bucketStart, count, updatedAt) VALUES (?, ?, ?, ?, ?)",
+      [input.scope, input.identifier, bucketStart, 1, new Date(now).toISOString()],
+    );
+  }
+
+  return {
+    allowed: true,
+    remaining: Math.max(input.limit - (current + 1), 0),
+    resetAt,
+    count: current + 1,
+  };
+}
+
+export async function logSecurityEvent(input: {
+  eventType: string;
+  detail: string;
+  ipAddress?: string | null;
+  actorId?: string | null;
+}) {
+  await execute(
+    "INSERT INTO security_events (id, eventType, ipAddress, actorId, detail, createdAt) VALUES (?, ?, ?, ?, ?, ?)",
+    [randomUUID(), input.eventType, input.ipAddress ?? null, input.actorId ?? null, input.detail, new Date().toISOString()],
+  );
+}
+
+export async function resolveSponsorRestrictionTarget(
+  scope: SponsorshipCommitmentRecord["restrictionScope"],
+  targetId?: string | null,
+) {
+  if (scope === "general") {
+    return { id: null, label: "Shared compute treasury" };
+  }
+
+  if (scope === "safety-reserve") {
+    return { id: "safety-reserve", label: "Safety and audit reserve" };
+  }
+
+  if (!targetId) {
+    throw new Error("Choose where the sponsorship should be restricted.");
+  }
+
+  if (scope === "ken") {
+    const task = await findTaskById(targetId);
+    if (!task) {
+      throw new Error("Selected Ken was not found.");
+    }
+    return { id: task.id, label: task.title };
+  }
+
+  const category = await loadOne("SELECT id, name FROM categories WHERE id = ? OR slug = ? LIMIT 1", [targetId, targetId]);
+  if (!category) {
+    throw new Error("Selected category was not found.");
+  }
+
+  return { id: getString(category, "id"), label: getString(category, "name") };
+}
+
+async function applySponsorshipTreasuryEffects(commitment: SponsorshipCommitmentRecord) {
+  const entryId = `treasury-sponsor-${commitment.id}`;
+  const existing = await loadOne("SELECT id FROM treasury_entries WHERE id = ? LIMIT 1", [entryId]);
+  if (existing) {
+    return;
+  }
+
+  const bucket = commitment.restrictionScope === "safety-reserve" ? "safety-reserve" : "compute-treasury";
+  const restrictionMode = commitment.restrictionScope === "general" ? "unrestricted" : "restricted";
+  const targetLabel = commitment.restrictionTargetLabel ?? "Shared compute treasury";
+
+  await execute(
+    `INSERT INTO treasury_entries (
+      id, streamId, title, description, bucket, direction, amountUsd, fundingState,
+      restrictionMode, restrictionScope, restrictionTargetId, restrictionTargetLabel, createdAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      entryId,
+      "revenue-4",
+      `Sponsor contribution from ${commitment.sponsorName}`,
+      commitment.note || `Sponsored contribution reserved for ${targetLabel}.`,
+      bucket,
+      "inflow",
+      commitment.amountUsd,
+      commitment.fundingState,
+      restrictionMode,
+      commitment.restrictionScope,
+      commitment.restrictionTargetId,
+      targetLabel,
+      commitment.paidAt ?? commitment.updatedAt,
+    ],
+  );
+
+  if (commitment.restrictionScope === "ken" && commitment.restrictionTargetId) {
+    await execute("UPDATE task_finance SET sponsorPoolUsd = sponsorPoolUsd + ? WHERE taskId = ?", [
+      commitment.amountUsd,
+      commitment.restrictionTargetId,
+    ]);
+  }
+}
+
+export async function createSponsorshipCommitment(input: {
+  sponsorName: string;
+  sponsorType: SponsorshipCommitmentRecord["sponsorType"];
+  sponsorContact: string;
+  note: string;
+  amountUsd: number;
+  fundingState: SponsorshipCommitmentRecord["fundingState"];
+  status: SponsorshipCommitmentRecord["status"];
+  restrictionScope: SponsorshipCommitmentRecord["restrictionScope"];
+  restrictionTargetId?: string | null;
+  restrictionTargetLabel?: string | null;
+  checkoutSessionId?: string | null;
+}) {
+  const now = new Date().toISOString();
+  const commitment: SponsorshipCommitmentRecord = {
+    id: randomUUID(),
+    sponsorName: input.sponsorName,
+    sponsorType: input.sponsorType,
+    sponsorContact: input.sponsorContact,
+    note: input.note,
+    amountUsd: input.amountUsd,
+    fundingState: input.fundingState,
+    status: input.status,
+    restrictionScope: input.restrictionScope,
+    restrictionTargetId: input.restrictionTargetId ?? null,
+    restrictionTargetLabel: input.restrictionTargetLabel ?? null,
+    checkoutSessionId: input.checkoutSessionId ?? null,
+    createdAt: now,
+    updatedAt: now,
+    paidAt: input.status === "paid" ? now : null,
+  };
+
+  await execute(
+    `INSERT INTO sponsorship_commitments (
+      id, sponsorName, sponsorType, sponsorContact, note, amountUsd, fundingState, status,
+      restrictionScope, restrictionTargetId, restrictionTargetLabel, checkoutSessionId, createdAt, updatedAt, paidAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      commitment.id,
+      commitment.sponsorName,
+      commitment.sponsorType,
+      commitment.sponsorContact,
+      commitment.note,
+      commitment.amountUsd,
+      commitment.fundingState,
+      commitment.status,
+      commitment.restrictionScope,
+      commitment.restrictionTargetId,
+      commitment.restrictionTargetLabel,
+      commitment.checkoutSessionId,
+      commitment.createdAt,
+      commitment.updatedAt,
+      commitment.paidAt,
+    ],
+  );
+
+  if (commitment.status === "paid") {
+    await applySponsorshipTreasuryEffects(commitment);
+  }
+
+  return commitment;
+}
+
+export async function bindSponsorshipCheckoutSession(commitmentId: string, checkoutSessionId: string) {
+  const now = new Date().toISOString();
+  await execute(
+    "UPDATE sponsorship_commitments SET checkoutSessionId = ?, status = 'checkout', updatedAt = ? WHERE id = ?",
+    [checkoutSessionId, now, commitmentId],
+  );
+}
+
+export async function markSponsorshipCheckoutPaid(checkoutSessionId: string) {
+  const row = await loadOne("SELECT * FROM sponsorship_commitments WHERE checkoutSessionId = ? LIMIT 1", [checkoutSessionId]);
+  if (!row) {
+    return null;
+  }
+
+  const now = new Date().toISOString();
+  await execute(
+    "UPDATE sponsorship_commitments SET fundingState = 'committed', status = 'paid', paidAt = ?, updatedAt = ? WHERE checkoutSessionId = ?",
+    [now, now, checkoutSessionId],
+  );
+  const updatedRow = await loadOne("SELECT * FROM sponsorship_commitments WHERE checkoutSessionId = ? LIMIT 1", [checkoutSessionId]);
+  const commitment = updatedRow ? mapSponsorshipCommitment(updatedRow) : null;
+  if (commitment) {
+    await applySponsorshipTreasuryEffects(commitment);
+  }
+  return commitment;
 }
 
 export async function getHealthSummary() {

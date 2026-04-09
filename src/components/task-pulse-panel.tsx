@@ -27,10 +27,10 @@ export function TaskPulsePanel({
   return (
     <div className="panel space-y-4">
       <div>
-        <div className="eyebrow">Public vote</div>
-        <h2 className="mt-2 font-display text-2xl font-semibold text-foreground">Quick support and concern, separate from scarce voice</h2>
+        <div className="eyebrow">Quick pulse</div>
+        <h2 className="mt-2 font-display text-2xl font-semibold text-foreground">Fast upvotes and downvotes for the public feed</h2>
         <p className="mt-2 text-sm leading-7 text-muted">
-          Anyone with an approved participation state can leave an upvote or downvote. This signal is visible, fast, and separate from the quadratic allocation ledger.
+          Anyone with an approved participation state can leave an upvote or downvote. It is the fast community signal and stays separate from the slower priority-credit system.
         </p>
       </div>
       <form action={formAction} className="grid gap-3">
@@ -42,11 +42,11 @@ export function TaskPulsePanel({
         </div>
         <div className="grid gap-3 sm:grid-cols-2 text-sm text-muted">
           <div className="stat-card">
-            <span>Support</span>
+            <span>Upvotes</span>
             <strong>{positivePulseCount}</strong>
           </div>
           <div className="stat-card">
-            <span>Concern</span>
+            <span>Downvotes</span>
             <strong>{negativePulseCount}</strong>
           </div>
         </div>

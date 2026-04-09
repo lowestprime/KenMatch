@@ -1,41 +1,43 @@
-# Synology NAS deployment guide for KenMatch
+# Synology NAS Deployment Guide
 
-This guide is written for a Synology NAS running DSM 7.2.x with Container Manager. It matches the current repository state:
+This guide matches the current repository state on DSM 7.2+ with Container Manager.
 
-- standalone Next.js build
-- Docker image driven by `server.js`
-- compose file at `docker-compose.synology.yml`
-- persistent local libSQL file database mounted at `./data`
-- health endpoint at `/api/health`
+The current KenMatch deployment model is designed for a private home network origin:
 
-## What this guide assumes
+- the app container binds to `127.0.0.1:3000` only
+- the app runs as a non-root user (`1001:1001`)
+- the container filesystem is read-only except for the mounted data directory
+- public traffic is expected to reach the NAS through a reverse proxy or, preferably, a Cloudflare Tunnel
 
-- Your NAS already has outbound internet access for image builds.
-- Container Manager is installed.
-- You have a shared folder for Docker projects, for example `/volume1/docker/kenmatch`.
-- You can either use SSH or the DSM web UI.
+Do not publish the container directly with raw router port forwarding to the internet unless you fully understand and accept the risk. For a public home-network deployment, the safer default is:
 
-## Files used from this repo
+1. internet traffic -> Cloudflare edge
+2. Cloudflare Tunnel -> your NAS
+3. optional DSM reverse proxy -> KenMatch container on `127.0.0.1:3000`
 
-- `Dockerfile`
-- `docker-compose.synology.yml`
-- `.env.example`
+## 1. Before you deploy
 
-## 1. Prepare the project folder on the NAS
+Complete these NAS-side checks first:
 
-Create a folder such as:
+1. Update DSM, Container Manager, and all security-related packages.
+2. Enable MFA on DSM administrator accounts.
+3. Disable or avoid daily use of the default `admin` account.
+4. Turn on Auto Block and Synology firewall rules.
+5. Keep KenMatch in its own Docker project folder and back up the `data` directory.
 
-```bash
+If you skip those steps, app-level hardening alone is not enough.
+
+## 2. Prepare the project folder
+
+Create a project folder, for example:
+
+```text
 /volume1/docker/kenmatch
 ```
 
-Copy the repository into that folder either by:
+Copy the repository there by SSH, SMB, or File Station.
 
-- `git clone` over SSH
-- SMB / Finder / Explorer copy
-- File Station upload
-
-If you use SSH:
+Example SSH flow:
 
 ```bash
 cd /volume1/docker
@@ -43,11 +45,24 @@ git clone <your-repo-url> kenmatch
 cd kenmatch
 ```
 
-## 2. Create the environment file
+## 3. Prepare writable storage for the app
 
-In the project root, create `.env`.
+The container runs as user `1001:1001`, and only `/app/data` is writable.
 
-Recommended first-run settings for a self-contained NAS demo:
+Create the data folder and make sure it is writable by UID/GID `1001`:
+
+```bash
+mkdir -p /volume1/docker/kenmatch/data
+chown -R 1001:1001 /volume1/docker/kenmatch/data
+```
+
+If you prefer to manage permissions through DSM shared-folder ACLs, ensure the mapped folder still resolves to writable storage for that UID/GID.
+
+## 4. Create `.env`
+
+Copy `.env.example` to `.env` and fill it out.
+
+Minimal public-ready example:
 
 ```env
 DATABASE_URL=
@@ -56,24 +71,35 @@ KENMATCH_DB_FILE=/app/data/kenmatch.sqlite
 KENMATCH_SESSION_COOKIE=kenmatch-session
 KENMATCH_SESSION_DAYS=30
 KENMATCH_ALLOW_SIGNUPS=true
-DEPLOYMENT_VERSION=nas-demo
+KENMATCH_PUBLIC_ORIGIN=https://kenmatch.your-domain.tld
+KENMATCH_ALLOWED_HOSTS=kenmatch.your-domain.tld
+KENMATCH_HEALTH_TOKEN=<long-random-secret>
+KENMATCH_TREASURY_TARGET_MONTHS=6
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=<optional>
+KENMATCH_TURNSTILE_SECRET_KEY=<optional>
+STRIPE_SECRET_KEY=<optional>
+STRIPE_WEBHOOK_SECRET=<optional>
+DEPLOYMENT_VERSION=synology-public
 ```
 
-Why this setup is the safest first deployment:
+Guidance:
 
-- the app keeps its database inside the mounted NAS folder
-- no external database dependency is required
-- the health check can verify the entire stack locally
+- Leave `DATABASE_URL` empty if you want the NAS to use the mounted local libSQL file.
+- Set `KENMATCH_PUBLIC_ORIGIN` to the final public HTTPS origin.
+- Set `KENMATCH_ALLOWED_HOSTS` to the exact hostname users should reach.
+- Set `KENMATCH_HEALTH_TOKEN` before public deployment, even if your container health check only uses the public-safe response.
+- Add Turnstile keys for public signups and sponsor intake.
+- Add Stripe keys only if you want live sponsor checkout.
 
-## 3. Deploy from SSH with Docker Compose
+## 5. Build and run the project
 
-From the repository root on the NAS:
+From the repo root on the NAS:
 
 ```bash
 docker compose -f docker-compose.synology.yml up -d --build
 ```
 
-Then verify:
+Verify:
 
 ```bash
 docker ps --filter name=kenmatch-demo
@@ -83,117 +109,119 @@ curl -f http://127.0.0.1:3000/api/health
 Expected result:
 
 - the container is running
-- `/api/health` returns JSON with `ok: true`
+- `/api/health` returns `ok: true`
 
-Open the app on your LAN:
+Because the compose file binds `127.0.0.1:3000:3000`, the app is intentionally not reachable from the LAN by direct port access.
 
-```text
-http://<NAS-LAN-IP>:3000
+## 6. Public access: preferred topology
+
+### Recommended: Cloudflare Tunnel
+
+Use a Cloudflare Tunnel so your NAS origin does not require direct inbound router port exposure for KenMatch itself.
+
+Recommended target:
+
+- public hostname: `kenmatch.your-domain.tld`
+- tunnel destination: `http://127.0.0.1:3000`
+
+You can run the tunnel with `cloudflared` on the NAS, either as another container or as a host service.
+
+This repo includes:
+
+- `docker-compose.synology.tunnel.yml`
+- `cloudflared/config.yml.example`
+
+Minimal containerized flow:
+
+1. Copy `cloudflared/config.yml.example` to `cloudflared/config.yml`.
+2. Put your tunnel credentials JSON in the same `cloudflared/` folder.
+3. Replace the placeholder tunnel ID and hostname.
+4. Launch:
+
+```bash
+docker compose -f docker-compose.synology.tunnel.yml up -d --build
 ```
 
-## 4. Deploy from DSM Container Manager without SSH
+High-level flow:
 
-Synology’s official Container Manager feature page says the **Project** dashboard can create and manage multi-container Docker projects using Compose files. That lines up directly with this repository’s `docker-compose.synology.yml` file.
+1. Create the hostname in Cloudflare DNS.
+2. Create a tunnel in Cloudflare Zero Trust.
+3. Point the public hostname to `http://127.0.0.1:3000`.
+4. Run the tunnel connector on the NAS.
+5. Confirm the hostname loads KenMatch over HTTPS.
 
-### DSM web UI path
+If you also want DSM to terminate or route multiple local services, you can instead point the tunnel at a DSM reverse proxy rule and let DSM forward to `127.0.0.1:3000`.
 
-1. Open `Container Manager`.
-2. Open `Project`.
-3. Choose `Create`.
-4. Choose the option to create a project from a compose file or from a folder that contains one.
-5. Point it at your copied KenMatch folder.
-6. Select `docker-compose.synology.yml`.
-7. Make sure the `.env` file exists in the same folder.
-8. Create the project and wait for the image build and container start.
+### Acceptable fallback: DSM reverse proxy plus router exposure
 
-After the project shows as running, test the health endpoint in a browser:
+If you do not use Cloudflare Tunnel, the next-best option is:
 
-```text
-http://<NAS-LAN-IP>:3000/api/health
-```
+1. DSM reverse proxy on HTTPS
+2. valid TLS certificate
+3. router exposure only for the reverse proxy
+4. KenMatch still bound only to `127.0.0.1:3000`
 
-## 5. Persistent data and backups
+Do not change the compose file back to `3000:3000` for internet exposure.
 
-The compose file mounts:
+## 7. Optional public protections
 
-```text
-./data:/app/data
-```
+### Turnstile
 
-That means the live database file will end up under your NAS project folder, typically:
-
-```text
-/volume1/docker/kenmatch/data/kenmatch.sqlite
-```
-
-Recommended backup target:
-
-- include `/volume1/docker/kenmatch/data` in Hyper Backup
-- keep the repository folder itself under your normal NAS backup policy
-
-To reset the demo database completely:
-
-1. stop the project
-2. delete `data/kenmatch.sqlite`
-3. start the project again
-
-The app will recreate and reseed the local database.
-
-## 6. Optional remote libSQL mode
-
-If you want the NAS to run the app while the database lives elsewhere, set:
+If you set:
 
 ```env
-DATABASE_URL=<your-libsql-url>
-DATABASE_AUTH_TOKEN=<your-libsql-token>
+NEXT_PUBLIC_TURNSTILE_SITE_KEY=...
+KENMATCH_TURNSTILE_SECRET_KEY=...
 ```
 
-In that mode the `./data` mount can stay in place, but it will no longer be the active database if `DATABASE_URL` is set.
+KenMatch adds Turnstile verification to:
 
-## 7. Reverse proxy and HTTPS on Synology
+- sign-in
+- account creation
+- Ken submission
+- sponsor intake
 
-Next.js’ official self-hosting guide recommends putting a reverse proxy in front of the Next.js server instead of exposing the app container directly to the internet.
+### Stripe sponsorship checkout
 
-### DSM reverse proxy flow
+If you set:
 
-Use DSM’s reverse proxy UI and point a public hostname to the local KenMatch container.
+```env
+STRIPE_SECRET_KEY=...
+STRIPE_WEBHOOK_SECRET=...
+KENMATCH_PUBLIC_ORIGIN=https://kenmatch.your-domain.tld
+```
 
-Typical target mapping:
+KenMatch can redirect sponsor intake through Stripe Checkout.
 
-- source host: `kenmatch.your-domain.tld`
-- source protocol: `HTTPS`
-- destination host: `127.0.0.1`
-- destination port: `3000`
+You must also configure a Stripe webhook endpoint:
 
-DSM UI names can vary slightly by version, but the official Synology Knowledge Center pages for **Application Portal** / **Login Portal** are the right references for this part of DSM.
+```text
+https://kenmatch.your-domain.tld/api/stripe/webhook
+```
 
-### Certificate flow
+Listen for at least:
 
-Use DSM certificate management to issue or attach a certificate for the KenMatch hostname.
+- `checkout.session.completed`
 
-A practical flow is:
+Without the webhook, live sponsor payments will not be promoted into committed treasury entries automatically.
 
-1. create the DNS record for `kenmatch.your-domain.tld`
-2. request or attach a certificate in DSM
-3. bind that certificate to the reverse proxy host
-4. test `https://kenmatch.your-domain.tld`
+## 8. Health monitoring
 
-The relevant Synology Knowledge Center reference title is **How do I obtain a certificate from Let's Encrypt on my Synology NAS?**
+Public requests to `/api/health` receive a minimal response.
 
-## 8. Resource notes for a DS923+
+Detailed health output is available by sending:
 
-A DS923+ is a good fit for this demo profile.
+```text
+X-KenMatch-Health-Token: <KENMATCH_HEALTH_TOKEN>
+```
 
-Practical recommendations:
+Example:
 
-- start with one replica only
-- do not cap memory immediately unless the NAS is crowded
-- keep the database on SSD-backed storage if possible
-- monitor the health endpoint after large upgrades
+```bash
+curl -H "X-KenMatch-Health-Token: <token>" https://kenmatch.your-domain.tld/api/health
+```
 
 ## 9. Upgrade workflow
-
-### SSH path
 
 ```bash
 cd /volume1/docker/kenmatch
@@ -201,52 +229,60 @@ git pull
 docker compose -f docker-compose.synology.yml up -d --build
 ```
 
-### DSM Container Manager path
+After each upgrade:
 
-- update the repository files in the project folder
-- reopen the project in Container Manager
-- trigger rebuild / recreate from the updated compose project
-- wait for the health check to turn healthy
+1. check container status
+2. confirm `/api/health`
+3. open the site in a browser
+4. test sign-in, voting, comments, and the economics page
+5. if you use the tunnel sidecar, confirm `cloudflared` is still healthy and the hostname resolves through Cloudflare
 
-## 10. Troubleshooting
+## 10. Backup and recovery
 
-### Container will not start
+Back up at least:
 
-Check:
+- `/volume1/docker/kenmatch/data`
+- `/volume1/docker/kenmatch/.env`
 
-```bash
-docker logs --tail=200 kenmatch-demo
-```
+To fully reset a local demo database:
 
-### Health check fails
+1. stop the container
+2. remove `data/kenmatch.sqlite`
+3. start the container again
 
-Check:
+The app will recreate and reseed the local database.
 
-- `DATABASE_URL`
-- `DATABASE_AUTH_TOKEN`
-- that `/app/data` is writable through the mounted folder
-- that port `3000` is not already occupied on the NAS
+## 11. Troubleshooting
 
-### You changed the public port
-
-If `3000:3000` conflicts with another service, change it in `docker-compose.synology.yml`, for example:
-
-```yaml
-ports:
-  - "3010:3000"
-```
-
-Then browse to:
-
-```text
-http://<NAS-LAN-IP>:3010
-```
-
-### The site works on LAN but not through the public hostname
+### The container starts but the site is unavailable publicly
 
 Check:
 
-- DNS resolves to your NAS or reverse proxy endpoint
-- the reverse proxy rule points to `127.0.0.1:3000`
-- the certificate is attached to the same hostname
-- your router forwards ports 80 and 443 correctly if you are exposing the service publicly
+- Cloudflare Tunnel or DSM reverse proxy target is `127.0.0.1:3000`
+- `KENMATCH_PUBLIC_ORIGIN` matches the real public hostname exactly
+- `KENMATCH_ALLOWED_HOSTS` matches the same hostname
+- your TLS and DNS configuration are correct
+
+### The app cannot write the database
+
+Check:
+
+- `/volume1/docker/kenmatch/data` exists
+- that folder is writable by UID/GID `1001:1001`
+
+### Signups or sponsor intake always fail
+
+Check:
+
+- Turnstile keys if enabled
+- `KENMATCH_PUBLIC_ORIGIN`
+- browser console/network errors at the public hostname
+
+### Live sponsor checkout fails
+
+Check:
+
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- the public webhook endpoint
+- that the public hostname is reachable from Stripe

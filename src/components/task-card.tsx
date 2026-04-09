@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { KenSandboxStrip } from "@/components/ken-sandbox-strip";
 import { KenTimingStrip } from "@/components/ken-timing-strip";
 import { formatCurrency, formatDateTime, labelForStage, labelForTier } from "@/lib/utils";
 import type { TaskSummary } from "@/lib/types";
@@ -14,35 +15,44 @@ const tierStyles: Record<TaskSummary["allocatedTier"], string> = {
 
 export function TaskCard({ task }: { task: TaskSummary }) {
   return (
-    <article className="task-card fade-up">
-      <div className="task-card-header">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className={tierStyles[task.allocatedTier]}>{labelForTier(task.allocatedTier)}</span>
-          <span className="tag">{labelForStage(task.stage)}</span>
-          <span className="tag">{task.categoryName}</span>
+    <article className="task-card task-feed-card fade-up">
+      <div className="task-feed-rail" aria-label="Ken pulse summary">
+        <div className="task-feed-score">{task.taskPulseScore > 0 ? `+${task.taskPulseScore}` : task.taskPulseScore}</div>
+        <div className="task-feed-score-label">Pulse</div>
+        <div className="task-feed-score-meta">{task.discussionCount} comments</div>
+      </div>
+      <div className="task-feed-body">
+        <div className="task-card-header">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={tierStyles[task.allocatedTier]}>{labelForTier(task.allocatedTier)}</span>
+            <span className="tag">{labelForStage(task.stage)}</span>
+            <span className="tag">{task.categoryName}</span>
+          </div>
+          <div className="task-card-meta">Updated {formatDateTime(task.lastActivityAt)}</div>
         </div>
-        <div className="task-card-meta">Created {formatDateTime(task.createdAt)}</div>
-      </div>
-      <div className="space-y-3">
-        <h3 className="font-display text-2xl font-semibold text-foreground">{task.title}</h3>
-        <p className="text-sm leading-7 text-muted">{task.summary}</p>
-      </div>
-      <KenTimingStrip ken={task} compact />
-      <div className="grid gap-3 text-sm text-muted sm:grid-cols-2">
-        <div className="stat-card"><span>Voice</span><strong>{task.totalVotes}</strong></div>
-        <div className="stat-card"><span>Public score</span><strong>{task.taskPulseScore}</strong></div>
-        <div className="stat-card"><span>Comments</span><strong>{task.discussionCount}</strong></div>
-        <div className="stat-card"><span>Sponsor pool</span><strong>{formatCurrency(task.sponsorPoolUsd)}</strong></div>
-      </div>
-      <div className="rounded-[1.3rem] border border-border bg-background/55 p-4 text-sm text-muted">
-        <div className="font-medium text-foreground">Funding and delivery path</div>
-        <p className="mt-2 line-clamp-3">{task.enterprisePackaging}</p>
-      </div>
-      <div className="mt-auto flex items-center justify-between gap-4 border-t border-border pt-4 text-sm text-muted">
-        <span>Proposed by {task.proposerName}</span>
-        <Link href={`/kens/${task.slug}`} className="font-semibold text-teal transition hover:text-foreground">
-          Open Ken
-        </Link>
+        <div className="space-y-3">
+          <div className="task-card-kicker">Posted by {task.proposerName} · Created {formatDateTime(task.createdAt)}</div>
+          <h3 className="font-display text-2xl font-semibold text-foreground">{task.title}</h3>
+          <p className="text-sm leading-7 text-muted">{task.summary}</p>
+        </div>
+        <div className="grid gap-3 text-sm text-muted sm:grid-cols-4">
+          <div className="stat-card"><span>Voice</span><strong>{task.totalVotes}</strong></div>
+          <div className="stat-card"><span>Backers</span><strong>{task.supporterCount}</strong></div>
+          <div className="stat-card"><span>Pilot users</span><strong>{task.sandboxPilotUsers}</strong></div>
+          <div className="stat-card"><span>Sponsor pool</span><strong>{formatCurrency(task.sponsorPoolUsd)}</strong></div>
+        </div>
+        <KenSandboxStrip ken={task} compact />
+        <KenTimingStrip ken={task} compact />
+        <div className="task-card-callout">
+          <div className="eyebrow">Service version</div>
+          <p className="mt-2 line-clamp-3 text-sm leading-7 text-muted">{task.enterprisePackaging}</p>
+        </div>
+        <div className="task-card-footer">
+          <span className="task-card-footer-meta line-clamp-3">{task.sampleOutcome}</span>
+          <Link href={`/kens/${task.slug}`} className="cta-secondary cta-compact">
+            Open Ken
+          </Link>
+        </div>
       </div>
     </article>
   );

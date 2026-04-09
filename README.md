@@ -1,14 +1,14 @@
 # KenMatch
 
-KenMatch is a public board for proposing, ranking, funding, launching, and auditing long-running AI work. Each unit of work is called a **Ken**. A Ken can be an open tool, a civic workflow, a scientific evidence map, a repair assistant, or a creative service that benefits from sustained compute, checkpoints, public feedback, and visible funding.
+KenMatch is a public board for proposing, ranking, funding, launching, and auditing long-running AI work. Each unit of work is called a **Ken**. A Ken can be an open tool, a civic workflow, a scientific evidence map, a repair assistant, or a creative service that benefits from sustained compute, checkpoints, public feedback, visible funding, and clearly labeled sandbox demos.
 
 [Platform Simulator](https://k.lowestprime.synology.me)
 
 ## Mission and Background
 
-KenMatch democratizes access to continuous frontier AI by crowdsourcing *which* long-horizon tasks deserve sustained enterprise-grade computation, effectively allocating days, weeks, and months of agentic runtime in accordance with the transparently-resolved quantification of tasks&rsquo; collective value, independent of personal wealth. ([1](https://deepmind.google/models/model-cards/gemini-3-1-pro/))([2](https://developers.openai.com/api/docs/models/gpt-5.4))([12](https://openai.com/index/introducing-gpt-5-4/))([5](https://platform.claude.com/docs/en/about-claude/models/overview))([3](https://www.anthropic.com/news/claude-opus-4-6))([4](https://x.ai/api))
+KenMatch is built around a simple idea: people should have a public, legible way to decide which longer-running AI projects deserve more time, more review, and more funding, without turning wealth into the main decision-maker. ([1](https://deepmind.google/models/model-cards/gemini-3-1-pro/))([2](https://developers.openai.com/api/docs/models/gpt-5.4))([12](https://openai.com/index/introducing-gpt-5-4/))([5](https://platform.claude.com/docs/en/about-claude/models/overview))([3](https://www.anthropic.com/news/claude-opus-4-6))([4](https://x.ai/api))
 
-As frontier models evolve from short, single-turn assistants into long-context, tool-using agents&mdash;systems explicitly designed to plan, operate software, and execute multi-step workflows&mdash;access to &ldquo;a few queries&rdquo; is no longer the dividing line. The dividing line becomes one&rsquo;s **access and representation to direct sustained agentic effort**: over hours, days, weeks, and toward the most complex applications, months. Major frontier providers now document million-token-class contexts and agentic computer-use capabilities as first-class features, underscoring a trajectory seeking to broaden the adoption and application of long-horizon computation across economic sectors. ([1](https://deepmind.google/models/model-cards/gemini-3-1-pro/))([2](https://developers.openai.com/api/docs/models/gpt-5.4))([3](https://www.anthropic.com/news/claude-opus-4-6))([4](https://x.ai/api))
+As frontier models evolve from short, single-turn assistants into long-context, tool-using agents, access to “a few queries” is no longer the full story. The real question becomes who gets to aim longer-running AI effort at problems that matter in everyday life, public services, research, and creative work. Major providers now document advanced reasoning, long context, and agentic capabilities as first-class features, which makes the governance question more practical, not less. ([1](https://deepmind.google/models/model-cards/gemini-3-1-pro/))([2](https://developers.openai.com/api/docs/models/gpt-5.4))([3](https://www.anthropic.com/news/claude-opus-4-6))([4](https://x.ai/api))
 
 ## Concept
 
@@ -116,7 +116,7 @@ Decentralized computation is an active design space with concrete architectures:
 
 3. and peer-to-peer &ldquo;intelligence markets&rdquo; that reward contributors based on ledgered value signals. ([23](https://bittensor.com/whitepaper))
 
-KenMatch contends that **the collective deserves a legitimate mechanism to determine which ideas and problems will benefit from the long-horizon effort of elite LLMs**, without defaulting to wealth as the allocator.
+KenMatch contends that **the collective deserves a legitimate mechanism to determine which ideas and problems will benefit from the long-horizon effort of advanced API-accessible models**, without defaulting to wealth as the allocator.
 
 ## Stewardship, Legitimacy, and Public Benefit
 
@@ -142,23 +142,25 @@ KenMatch seeks to equalize the **long-horizon deployment of frontier AI toward t
 
 ## Features
 
-- Public proposal marketplace with search, categories, stage/tier filters, and realistic long-horizon AI/public-interest examples.
+- Public proposal feed with search, categories, stage/tier filters, and realistic community-facing examples.
 - Demonstration contributor accounts and server-side sessions.
 - Earned quadratic voice for scarce allocation, with separate up/down pulse voting for broad public curation.
 - Threaded comments with replies, voting, and small stakes for discussion quality.
 - Proposal quality bonds, checkpoint approval gates, run metadata, rollback plans, and visible blocked work.
-- Economics surface for enterprise packaging, data licensing, compute arbitrage, sponsorship routing, treasury entries, and the 80/20 public reporting split.
-- Three theme modes (`Light`, `Dark`, and `OLED`), rich motion, strong visual hierarchy, security headers, and health endpoint support.
+- Economics surface for supported service packaging, screened evaluation licensing, compute routing, sponsorship routing, treasury entries, and the 80/20 public reporting split.
+- Structured sponsor commitments with projected, simulated, and committed funding states plus optional Stripe Checkout for live sponsor intake.
+- Sandbox-backed demo Kens with simulated capital, model lineups, API spend, pilot-user counts, and sample outcomes shown directly in the UI.
+- Three theme modes (`Light`, `Dark`, and `OLED`), rich motion, strong visual hierarchy, and updated KenMatch icon/favicons.
 - Public board at `/kens` with search, category, lane, and status filters.
 - Real account creation and persistent signed-in accounts.
 - libSQL-backed persistence with local-file or remote libSQL support.
 - Public upvote/downvote signal, separate quadratic voice allocation, and threaded comments with voting.
 - Ken timing metadata: created and updated timestamps, launch countdown, submission age, compute usage, remaining runtime window, and completion state.
 - Incremental run audit history for partial delivery, early completion, and checkpoint-by-checkpoint evidence notes.
-- Economics and treasury views with committed versus projected support, sponsor pools, restricted funding, and treasury coverage.
+- Economics and treasury views with committed versus projected support, sponsor pools, restricted funding, simulated runway, safety reserve coverage, and sponsor covenant details.
 - Governance view with blocked Kens, attestation state, enforceable participation limits, review timing, and visible decision logs.
-- Security headers in `next.config.ts` and health checks at `/api/health`.
-- Standalone Next.js Docker build and Synology NAS deployment support.
+- Security headers, host filtering, request-origin checks, structured rate limits, optional Turnstile verification, and public-safe health checks.
+- Standalone Next.js Docker build, non-root container runtime, loopback-only Synology deployment, and public-hosting guidance for Cloudflare Tunnel or equivalent origin shielding.
 
 ## Stack
 
@@ -187,6 +189,12 @@ Copy `.env.example` and set values as needed.
 - `KENMATCH_SESSION_COOKIE`: cookie name for the signed-in account cookie.
 - `KENMATCH_SESSION_DAYS`: sign-in lifetime in days.
 - `KENMATCH_ALLOW_SIGNUPS`: set to `false` to disable public account creation.
+- `KENMATCH_PUBLIC_ORIGIN`: exact public HTTPS origin for redirects, Stripe success URLs, and host validation.
+- `KENMATCH_ALLOWED_HOSTS`: comma-separated list of allowed public hostnames.
+- `KENMATCH_HEALTH_TOKEN`: token for detailed health responses.
+- `KENMATCH_TREASURY_TARGET_MONTHS`: reserve target used by the economics view.
+- `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `KENMATCH_TURNSTILE_SECRET_KEY`: optional Cloudflare Turnstile keys for public forms.
+- `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET`: optional Stripe Checkout and webhook settings for live sponsorships.
 - `DEPLOYMENT_VERSION`: optional deployment identifier passed into Next.js.
 
 ## Scripts
@@ -204,13 +212,15 @@ npm run build
 KenMatch ships with a standalone Next.js build configuration and a Docker image intended for self-hosting.
 
 - `next.config.ts` sets `output: "standalone"`.
-- `Dockerfile` runs the generated standalone server.
-- `docker-compose.synology.yml` mounts persistent local data and includes a health check.
-- The [`/api/health`](./src/app/api/health) health endpoint returns a JSON readiness summary for the app and database.
+- `npm run build` uses `next build --experimental-build-mode compile --webpack`, which produces the standalone server artifact used by the Docker and Synology deployment flow in this repository.
+- `Dockerfile` runs the generated standalone server as a non-root user.
+- `docker-compose.synology.yml` mounts persistent local data, keeps the container read-only except for `/app/data`, and binds the app to `127.0.0.1:3000`.
+- `docker-compose.synology.tunnel.yml` adds a `cloudflared` sidecar for a direct Cloudflare Tunnel deployment from Synology.
+- The [`/api/health`](./src/app/api/health) health endpoint exposes a public-safe summary and can return detailed diagnostics when `KENMATCH_HEALTH_TOKEN` is supplied.
 - For local development, KenMatch constructs a file-backed SQLite-compatible database via libSQL.
 - For public deployment, `DATABASE_URL` and `DATABASE_AUTH_TOKEN` can be specified for managed remote libSQL database integration.
-- Security headers are configured in [next.config.ts](./next.config.ts).
-- For Synology NAS deployment, use [docs/synology-nas-deploy.md](./docs/synology-nas-deploy.md).
+- Security headers, host filtering, and mutation-origin checks live in [middleware.ts](./middleware.ts).
+- For public Synology NAS deployment, read [docs/synology-nas-deploy.md](./docs/synology-nas-deploy.md) and [docs/public-security-hardening.md](./docs/public-security-hardening.md) before exposing the service.
 
 ## Main Routes
 
@@ -227,18 +237,23 @@ Legacy `/tasks` routes now redirect to `/kens` routes.
 ## Repo Map
 
 - `src/app` routes, layout, health endpoint, and server actions
-- `src/components` public UI, timing display, voting, comments, auth, and shell
+- `src/components` public UI, timing display, voting, comments, sponsor intake, auth, and shell
 - `src/lib/attestation.ts` participation policy derived from attestation state
-- `src/lib/db.ts` database schema, seeding, hydration, account persistence, and write flows
+- `src/lib/db.ts` database schema, seeding, hydration, account persistence, funding ledger, rate limits, and write flows
+- `src/lib/security.ts` form hardening, origin checks, rate-limit integration, and Turnstile verification
+- `src/lib/stripe.ts` optional hosted sponsor checkout wiring
 - `src/lib/seed.ts` and `src/lib/seed-plus.ts` realistic demo data
 - `docs/architecture.md` implementation structure
 - `docs/requirements-traceability.md` conception-to-code mapping
 - `docs/synology-nas-deploy.md` Synology NAS deployment guide
+- `docs/public-security-hardening.md` public-hosting security checklist
+- `cloudflared/config.yml.example` Cloudflare Tunnel example configuration for NAS deployments
 
 ## Notes
 
 - The default local deployment uses a file-backed libSQL database. For public internet deployment, use a managed remote libSQL instance when possible.
-- Synology NAS hosting can run entirely self-contained with the included compose file and a mounted local data directory.
+- The included Synology compose file is intentionally loopback-only. Put Cloudflare Tunnel or another reverse proxy in front of it instead of exposing the container directly.
+- The deployment artifact in this repository is currently produced through Next.js compile mode. The generated standalone server was validated locally in this session, but the underlying build mode is still marked experimental by Next.js.
 
 ## Learn More
 

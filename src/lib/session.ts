@@ -8,10 +8,11 @@ export const ACTIVE_SESSION_COOKIE = env.KENMATCH_SESSION_COOKIE;
 function cookieOptions(maxAge?: number) {
   return {
     httpOnly: true,
-    sameSite: "lax" as const,
+    sameSite: "strict" as const,
     secure: env.NODE_ENV === "production",
     path: "/",
     maxAge,
+    priority: "high" as const,
   };
 }
 

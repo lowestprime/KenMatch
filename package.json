@@ -5,17 +5,18 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "build": "next build --experimental-build-mode compile --webpack",
+    "start": "node .next/standalone/server.js",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test tests/**/*.test.ts"
+    "test": "node --experimental-strip-types --test --test-isolation=none tests/**/*.test.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.17.0",
     "next": "^16.1.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "stripe": "^22.0.1",
     "zod": "^4.1.12"
   },
   "devDependencies": {

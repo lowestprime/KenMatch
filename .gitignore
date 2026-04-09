@@ -10,6 +10,8 @@ node_modules/
 dist/
 build/
 coverage/
+.npm-cache/
+.volta/
 
 # Python
 __pycache__/
@@ -32,4 +34,6 @@ data/*.sqlite-wal
 .env.*
 *.pem
 *.key
+cloudflared/*.json
+cloudflared/config.yml
 *.tsbuildinfo

@@ -31,6 +31,24 @@ export type RevenueStatus = (typeof revenueStatuses)[number];
 export const treasuryDirections = ["inflow", "outflow"] as const;
 export type TreasuryDirection = (typeof treasuryDirections)[number];
 
+export const fundingStates = ["simulated", "projected", "committed"] as const;
+export type FundingState = (typeof fundingStates)[number];
+
+export const restrictionModes = ["unrestricted", "restricted"] as const;
+export type RestrictionMode = (typeof restrictionModes)[number];
+
+export const restrictionScopes = ["general", "category", "ken", "safety-reserve"] as const;
+export type RestrictionScope = (typeof restrictionScopes)[number];
+
+export const sponsorshipStatuses = ["intake", "checkout", "paid", "released"] as const;
+export type SponsorshipStatus = (typeof sponsorshipStatuses)[number];
+
+export const sponsorTypes = ["individual", "nonprofit", "public-agency", "company", "foundation"] as const;
+export type SponsorType = (typeof sponsorTypes)[number];
+
+export const licensingConsents = ["audit-only", "allow-screened-licensing"] as const;
+export type LicensingConsent = (typeof licensingConsents)[number];
+
 export const moderationStatuses = ["active", "restricted", "suspended"] as const;
 export type ModerationStatus = (typeof moderationStatuses)[number];
 
@@ -91,6 +109,7 @@ export interface AccountRecord {
   email: string;
   passwordHash: string;
   passwordSalt: string;
+  licensingConsent: LicensingConsent;
   createdAt: string;
 }
 
@@ -132,6 +151,13 @@ export interface TaskFinanceRecord {
   checkpointApprovalTarget: number;
   enterprisePackaging: string;
   dataValueNote: string;
+  sandboxCapitalUsd: number;
+  sandboxApiSpendUsd: number;
+  sandboxPilotUsers: number;
+  modelLineup: string[];
+  simulationSummary: string;
+  sampleOutcome: string;
+  sponsorAppeal: string;
 }
 
 export interface VoteRecord {
@@ -241,6 +267,10 @@ export interface RevenueStreamRecord {
   grossMargin: number;
   treasurySharePercent: number;
   founderSharePercent: number;
+  publicBenefitCovenant: string;
+  openDeliverableBoundary: string;
+  contributorDividendPercent: number;
+  requiresContributorConsent: boolean;
 }
 
 export interface TreasuryEntryRecord {
@@ -251,7 +281,30 @@ export interface TreasuryEntryRecord {
   bucket: string;
   direction: TreasuryDirection;
   amountUsd: number;
+  fundingState: FundingState;
+  restrictionMode: RestrictionMode;
+  restrictionScope: RestrictionScope;
+  restrictionTargetId: string | null;
+  restrictionTargetLabel: string | null;
   createdAt: string;
+}
+
+export interface SponsorshipCommitmentRecord {
+  id: string;
+  sponsorName: string;
+  sponsorType: SponsorType;
+  sponsorContact: string;
+  note: string;
+  amountUsd: number;
+  fundingState: FundingState;
+  status: SponsorshipStatus;
+  restrictionScope: RestrictionScope;
+  restrictionTargetId: string | null;
+  restrictionTargetLabel: string | null;
+  checkoutSessionId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  paidAt: string | null;
 }
 
 export interface ProfileSummary extends ProfileRecord {
@@ -365,8 +418,16 @@ export interface EconomicsSummary {
   treasuryBalanceUsd: number;
   monthlyPublicBurnUsd: number;
   coverageMonths: number;
+  coverageTargetMonths: number;
+  coverageGapMonths: number;
+  coverageStatus: "critical" | "watch" | "healthy";
   restrictedFundingUsd: number;
+  committedRestrictedFundingUsd: number;
+  projectedRestrictedFundingUsd: number;
+  simulatedFundingUsd: number;
   sponsorPoolsUsd: number;
+  sponsorCommitmentsUsd: number;
+  safetyReserveUsd: number;
   verifiedFundingStreams: number;
 }
 
