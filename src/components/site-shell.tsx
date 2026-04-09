@@ -7,10 +7,10 @@ import type { ParticipationState, ProfileSummary, ViewerSession } from "@/lib/ty
 
 const nav = [
   { href: "/", label: "Overview" },
-  { href: "/kens", label: "Kens" },
+  { href: "/kens", label: "Feed" },
   { href: "/submit", label: "Submit" },
-  { href: "/governance", label: "Governance" },
-  { href: "/economics", label: "Funding" },
+  { href: "/governance", label: "Rules" },
+  { href: "/economics", label: "Backing" },
 ];
 
 export function SiteShell({ viewer, featuredProfiles, children }: { viewer: ViewerSession | null; featuredProfiles: ProfileSummary[]; children: React.ReactNode }) {
@@ -25,7 +25,7 @@ export function SiteShell({ viewer, featuredProfiles, children }: { viewer: View
               <KenMatchMark className="brand-mark" />
               <span>
                 <strong>KenMatch</strong>
-                <span>Public allocation for long-running AI work</span>
+                <span>Community board for helpful long-running AI Kens</span>
               </span>
             </Link>
             <div className="site-utility-row">
@@ -35,7 +35,7 @@ export function SiteShell({ viewer, featuredProfiles, children }: { viewer: View
                   <div>
                     <div className="viewer-inline-name">{viewer.profile.name}</div>
                     <div className="viewer-inline-meta">
-                      {labelForParticipationState(viewer.profile.participationState)} · {viewer.profile.availableCredits}/{viewer.profile.effectiveVoiceCredits} voice free
+                      {labelForParticipationState(viewer.profile.participationState)} · {viewer.profile.availableCredits}/{viewer.profile.effectiveVoiceCredits} priority credits free
                     </div>
                   </div>
                   <form action={signOutAction}>
@@ -58,7 +58,7 @@ export function SiteShell({ viewer, featuredProfiles, children }: { viewer: View
             <div className="site-profile-strip" aria-label="Featured contributors">
               {featuredProfiles.slice(0, 5).map((profile) => (
                 <span key={profile.id} className="tag">
-                  {profile.name} · {profile.attestationLevel}
+                  {profile.name} · {profile.specialty}
                 </span>
               ))}
             </div>
@@ -69,7 +69,7 @@ export function SiteShell({ viewer, featuredProfiles, children }: { viewer: View
       <footer className="site-footer">
         <div className="site-footer-inner">
           <p>Kens stay public from intake through launch, checkpoints, partial delivery, and final audit.</p>
-          <p className="site-footer-meta">Voice stays separate from money. Funding supports compute, review, and operations without buying rank.</p>
+          <p className="site-footer-meta">Voice stays separate from money. Backing supports compute, review, and operations without buying rank.</p>
         </div>
       </footer>
     </div>

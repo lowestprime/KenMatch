@@ -5,7 +5,7 @@ import { useActionState, useState } from "react";
 import { initialActionState } from "@/app/action-state";
 import { createCommentAction, saveCommentVoteAction } from "@/app/actions";
 import type { DiscussionComment } from "@/lib/types";
-import { formatDateTime } from "@/lib/utils";
+import { describeRelativeTime, formatDateTime } from "@/lib/utils";
 
 export function DiscussionThread({
   taskId,
@@ -23,10 +23,10 @@ export function DiscussionThread({
   return (
     <div className="panel space-y-6">
       <div>
-        <div className="eyebrow">Comments</div>
-        <h2 className="mt-2 font-display text-2xl font-semibold text-foreground">Public notes, critiques, and replies</h2>
+        <div className="eyebrow">Discussion</div>
+        <h2 className="mt-2 font-display text-2xl font-semibold text-foreground">Community notes, critiques, and replies</h2>
         <p className="mt-2 text-sm leading-7 text-muted">
-          Keep comments specific. The most useful notes clarify scope, challenge assumptions, or improve the audit trail for a Ken.
+          Keep comments specific and plainspoken. The strongest posts add a correction, a real-world use case, a missing risk, or a better success bar.
         </p>
       </div>
       <CommentComposer taskId={taskId} slug={slug} disabled={disabled} disabledMessage={disabledMessage} />
@@ -60,12 +60,12 @@ function CommentComposer({
         name="body"
         rows={parentId ? 3 : 4}
         className="field"
-        placeholder={parentId ? "Add a reply with a concrete correction, concern, or improvement." : "Add a public note about scope, value, risks, or delivery quality."}
+        placeholder={parentId ? "Add a reply with a concrete correction, concern, or improvement." : "Add a comment about what makes this useful, risky, confusing, or worth backing."}
         disabled={disabled || isPending}
       />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <label className="text-xs uppercase tracking-[0.22em] text-muted">
-          Stake
+          Comment stake
           <select name="stakeCredits" className="field mt-2 max-w-28" defaultValue="1" disabled={disabled || isPending}>
             <option value="1">1 credit</option>
             <option value="2">2 credits</option>
@@ -97,31 +97,36 @@ function CommentNode({
   const [state, action, isPending] = useActionState(saveCommentVoteAction, initialActionState);
 
   return (
-    <article className="rounded-[1.5rem] border border-border bg-panel/72 p-4 shadow-soft">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <div className="font-semibold text-foreground">{comment.profileName}</div>
-          <div className="text-sm text-muted">{comment.profileRole}</div>
-        </div>
-        <div className="comment-meta-stack">
-          <span className="tag">Stake {comment.stakeCredits}</span>
-          <span className="text-xs uppercase tracking-[0.22em] text-muted">{formatDateTime(comment.createdAt)}</span>
-        </div>
-      </div>
-      <p className="mt-3 text-sm leading-7 text-muted">{comment.body}</p>
-      <form action={action} className="mt-4 flex flex-wrap items-center gap-3 text-sm">
+    <article className="comment-card">
+      <form action={action} className="comment-shell">
         <input type="hidden" name="commentId" value={comment.id} />
         <input type="hidden" name="slug" value={slug} />
-        <button type="submit" name="value" value={String(comment.userVote === 1 ? 0 : 1)} className={`vote-chip ${comment.userVote === 1 ? "is-active" : ""}`} disabled={disabled || isPending}>
-          Up {comment.upvotes}
-        </button>
-        <button type="submit" name="value" value={String(comment.userVote === -1 ? 0 : -1)} className={`vote-chip ${comment.userVote === -1 ? "is-active" : ""}`} disabled={disabled || isPending}>
-          Down {comment.downvotes}
-        </button>
-        <span className="text-muted">Score {comment.score}</span>
-        <button type="button" className="text-teal" onClick={() => setReplying((value) => !value)} disabled={disabled}>
-          {replying ? "Cancel" : "Reply"}
-        </button>
+        <div className="comment-vote-rail">
+          <button type="submit" name="value" value={String(comment.userVote === 1 ? 0 : 1)} className={`comment-vote-button ${comment.userVote === 1 ? "is-active" : ""}`} disabled={disabled || isPending} aria-label="Upvote comment">
+            ▲
+          </button>
+          <span className="comment-score">{comment.score}</span>
+          <button type="submit" name="value" value={String(comment.userVote === -1 ? 0 : -1)} className={`comment-vote-button ${comment.userVote === -1 ? "is-active" : ""}`} disabled={disabled || isPending} aria-label="Downvote comment">
+            ▼
+          </button>
+        </div>
+        <div className="comment-content">
+          <div className="comment-topline">
+            <span className="comment-author">{comment.profileName}</span>
+            <span>{comment.profileRole}</span>
+            <span>{describeRelativeTime(comment.createdAt)}</span>
+            <span title={formatDateTime(comment.createdAt)}>{formatDateTime(comment.createdAt)}</span>
+          </div>
+          <p className="mt-3 text-sm leading-7 text-muted">{comment.body}</p>
+          <div className="comment-toolbar">
+            <span className="tag">Stake {comment.stakeCredits}</span>
+            <span className="text-muted">▲ {comment.upvotes}</span>
+            <span className="text-muted">▼ {comment.downvotes}</span>
+            <button type="button" className="comment-reply-link" onClick={() => setReplying((value) => !value)} disabled={disabled}>
+              {replying ? "Cancel" : "Reply"}
+            </button>
+          </div>
+        </div>
       </form>
       {disabled && !replying ? <p className="mt-2 text-sm text-muted">{disabledMessage ?? "Sign in to interact with comments."}</p> : null}
       {state.message ? <p className={`mt-2 text-sm ${state.status === "error" ? "text-red-500" : "text-teal"}`}>{state.message}</p> : null}

@@ -13,31 +13,31 @@ export default async function HomePage() {
     <div className="page-stack">
       <section className="hero-layout">
         <div className="panel hero-panel fade-up">
-          <div className="eyebrow">Public board for long-running AI work</div>
+          <div className="eyebrow">Community board for helpful AI work</div>
           <h1 className="max-w-4xl font-display text-4xl font-semibold leading-tight text-foreground sm:text-5xl lg:text-6xl">
-            Propose, rank, launch, and audit Kens that deserve sustained compute.
+            Vote on the Kens worth running longer than one quick prompt.
           </h1>
           <p className="max-w-3xl text-lg leading-8 text-muted">
-            KenMatch is a public board for work that needs more than a quick prompt: community services, open tools, scientific evidence maps, cultural archives, and other Kens that benefit from continuous review and clear checkpoints.
+            KenMatch is a public board for work that needs more than one shot: lowering power bills, making smoke days easier to navigate, helping people appeal denied benefits, keeping open tools safer, and giving schools or archives better starter tools.
           </p>
           <div className="hero-actions">
             <Link href="/kens" className="cta-primary">Browse Kens</Link>
             <Link href="/submit" className="cta-secondary">Submit a Ken</Link>
-            <Link href="/economics" className="cta-secondary">See funding</Link>
+            <Link href="/economics" className="cta-secondary">See backing</Link>
           </div>
           <div className="hero-note">
             {viewer ? (
               <p>
-                Signed in as <span className="font-semibold text-foreground">{viewer.name}</span> with <span className="font-semibold text-foreground">{viewer.availableCredits}</span> free voice credits.
+                Signed in as <span className="font-semibold text-foreground">{viewer.name}</span> with <span className="font-semibold text-foreground">{viewer.availableCredits}</span> free priority credits.
               </p>
             ) : (
-              <p>Reading is open. Accounts are required for public votes, comments, and Ken submission.</p>
+              <p>Reading is open. Accounts are only required for voting, comments, and submitting a Ken.</p>
             )}
           </div>
         </div>
         <div className="space-y-4 fade-up stagger-1">
           <div className="panel space-y-4">
-            <div className="eyebrow">Allocation lanes</div>
+            <div className="eyebrow">How long a Ken can run</div>
             {[ ["Months", "Top 3 per category", "Long-running Kens with repeated human checkpoints and bigger public stakes."], ["Weeks", "Next 10 per category", "Multi-step Kens that need continuity, not just a single burst."], ["Days", "Next 100 per category", "Fast, focused Kens with a concrete public or community-facing output."] ].map(([label, value, copy]) => (
               <div key={label} className="rounded-[1.25rem] border border-border bg-background/55 p-4">
                 <div className="font-display text-xl font-semibold text-foreground">{label}</div>
@@ -57,13 +57,13 @@ export default async function HomePage() {
       <section className="space-y-5">
         <div className="section-heading">
           <div>
-            <div className="eyebrow">Leading Kens</div>
-            <h2 className="font-display text-3xl font-semibold text-foreground">What would launch from the board right now</h2>
+            <div className="eyebrow">Trending Kens</div>
+            <h2 className="font-display text-3xl font-semibold text-foreground">What people are backing right now</h2>
           </div>
-          <Link href="/kens" className="text-sm font-semibold text-teal">Open the full board</Link>
+          <Link href="/kens" className="text-sm font-semibold text-teal">Open the full feed</Link>
         </div>
-        <div className="section-grid" data-columns="3">
-          {featuredTasks.map((task) => <TaskCard key={task.id} task={task} />)}
+        <div className="feed-list">
+          {featuredTasks.slice(0, 4).map((task) => <TaskCard key={task.id} task={task} />)}
         </div>
       </section>
 
@@ -84,9 +84,9 @@ export default async function HomePage() {
         </div>
         <div className="panel space-y-5">
           <div className="eyebrow">Funding snapshot</div>
-          <h2 className="font-display text-3xl font-semibold text-foreground">Public ranking and revenue stay deliberately separate</h2>
+          <h2 className="font-display text-3xl font-semibold text-foreground">Backers can add supply, but they cannot buy rank</h2>
           <p className="text-sm leading-7 text-muted">
-            A Ken can attract sponsored delivery and hosted service revenue without turning rank into a purchasable privilege. Treasury reporting stays visible so people can see where support comes from and where compute is going.
+            A Ken can attract backing, sandbox demonstrations, and hosted service revenue without turning rank into a purchasable privilege. Treasury reporting stays visible so people can see where support comes from and where compute is going.
           </p>
           <div className="signal-bar">
             <div className="flow-card"><div className="eyebrow">Coverage</div><div className="metric-value">{economics.coverageMonths.toFixed(1)} mo</div></div>
@@ -119,7 +119,7 @@ export default async function HomePage() {
           ))}
         </div>
         <div className="panel space-y-4">
-          <div className="eyebrow">Contributor sample</div>
+          <div className="eyebrow">People on the board</div>
           {contributors.map((profile) => (
             <div key={profile.id} className="rounded-[1.3rem] border border-border bg-background/55 p-4">
               <div className="flex items-center justify-between gap-3">

@@ -43,8 +43,8 @@ This file maps the stable product requirements from `KenMatch_Conception.md` to 
 
 ### Funding, treasury, and commercialization split
 - Ken finance metadata is stored in `task_finance`.
-- Revenue streams and treasury ledger data live in `revenue_streams` and `treasury_entries`.
-- Supporting summary logic in `src/lib/economics.ts` distinguishes committed support from projected support so planned sponsorship does not masquerade as already-available recurring treasury income.
+- Revenue streams, sponsor commitments, and treasury ledger data live in `revenue_streams`, `sponsorship_commitments`, and `treasury_entries`.
+- Supporting summary logic in `src/lib/economics.ts` distinguishes committed support from projected support, simulated runway, restricted funding, and safety reserve coverage so optimistic sponsorship does not masquerade as committed treasury support.
 - Public rendering is implemented on `src/app/economics/page.tsx`.
 
 ### Creative and cultural work alongside practical/public-interest work
@@ -60,6 +60,8 @@ This file maps the stable product requirements from `KenMatch_Conception.md` to 
 - Standalone Next.js output is configured in `next.config.ts`.
 - Docker deployment lives in `Dockerfile` and `docker-compose.synology.yml`.
 - Health checks are exposed through `src/app/api/health/route.ts`.
+- Public-hosting request filtering is implemented in `middleware.ts`.
+- Synology-specific public-hosting guidance and hardening checklists live in `docs/synology-nas-deploy.md` and `docs/public-security-hardening.md`.
 - Synology NAS deployment instructions live in `docs/synology-nas-deploy.md`.
 
 ## Honest boundaries
@@ -69,9 +71,9 @@ This file maps the stable product requirements from `KenMatch_Conception.md` to 
 - Some internal code and database identifiers still use `task` for compatibility and to avoid high-risk schema churn.
 
 ### Anti-sybil integrations
-- The current build models attestation state, provider metadata, review timestamps, sybil-risk bands, and enforceable participation policy in-app.
+- The current build models attestation state, provider metadata, review timestamps, sybil-risk bands, rate limits, origin checks, Turnstile hooks, and enforceable participation policy in-app.
 - External identity providers and stronger attestations can still be layered on top of the current schema.
 
 ### Treasury integrations
-- The economics layer is production-shaped but demo-backed.
-- Live payment rails, accounting systems, or external billing providers are not wired in this repository.
+- The economics layer is production-shaped but still partly demo-backed because simulated runway remains part of the seeded public ledger.
+- Live sponsor checkout is wired for Stripe Checkout plus webhook confirmation, but accounting exports, CRM sync, and broader payments operations are still future integrations.

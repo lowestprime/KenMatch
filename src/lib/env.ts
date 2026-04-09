@@ -31,6 +31,19 @@ const envSchema = z.object({
   KENMATCH_SESSION_DAYS: z.coerce.number().int().min(1).default(14),
   KENMATCH_ALLOW_SIGNUPS: booleanish.default(true),
   KENMATCH_ENABLE_DEMO_PROFILE_SWITCHER: booleanish.default(false),
+  KENMATCH_PUBLIC_ORIGIN: z.string().url().optional(),
+  KENMATCH_ALLOWED_HOSTS: z.string().optional(),
+  KENMATCH_HEALTH_TOKEN: z.string().optional(),
+  KENMATCH_TURNSTILE_SECRET_KEY: z.string().optional(),
+  NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().optional(),
+  KENMATCH_TREASURY_TARGET_MONTHS: z.coerce.number().min(1).max(24).default(6),
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
 });
 
 export const env = envSchema.parse(process.env);
+
+export const allowedHosts = (env.KENMATCH_ALLOWED_HOSTS ?? "")
+  .split(",")
+  .map((value) => value.trim().toLowerCase())
+  .filter(Boolean);

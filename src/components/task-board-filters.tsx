@@ -37,7 +37,7 @@ export function TaskBoardFilters({ initialQuery, initialCategory, initialTier, i
     <section className="panel filters-panel">
       <label className="flex-1 space-y-2 text-xs uppercase tracking-[0.22em] text-muted">
         Search Kens
-        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by title, category, problem, or service path" className="field" />
+        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by title, use case, model, sponsor fit, or category" className="field" />
       </label>
       <FilterSelect label="Category" value={category} onChange={(next) => { setCategory(next); startTransition(() => router.replace(buildTarget(pathname, deferredQuery.trim(), next, tier, stage))); }}>
         <option value="all">All categories</option>

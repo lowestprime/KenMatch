@@ -31,3 +31,19 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: kenmatch-cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    depends_on:
+      kenmatch:
+        condition: service_healthy
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    volumes:
+      - ./cloudflared:/etc/cloudflared:ro

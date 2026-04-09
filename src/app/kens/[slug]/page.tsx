@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { DiscussionThread } from "@/components/discussion-thread";
+import { KenSandboxStrip } from "@/components/ken-sandbox-strip";
 import { KenTimingStrip } from "@/components/ken-timing-strip";
 import { TaskPulsePanel } from "@/components/task-pulse-panel";
 import { VotePanel } from "@/components/vote-panel";
@@ -25,10 +26,10 @@ export default async function KenDetailPage({ params }: { params: Promise<{ slug
           <span className={`tier-chip is-${task.allocatedTier}`}>{labelForTier(task.allocatedTier)}</span>
           <span className="tag">{labelForStage(task.stage)}</span>
           <span className="tag">{task.categoryName}</span>
-          <span className="tag">Public score {task.taskPulseScore}</span>
+          <span className="tag">Pulse {task.taskPulseScore > 0 ? `+${task.taskPulseScore}` : task.taskPulseScore}</span>
         </div>
         <div className="space-y-4">
-          <div className="eyebrow">Ken detail</div>
+          <div className="eyebrow">Ken thread</div>
           <h1 className="max-w-4xl font-display text-4xl font-semibold text-foreground sm:text-5xl">{task.title}</h1>
           <p className="max-w-4xl text-lg leading-8 text-muted">{task.summary}</p>
         </div>
@@ -39,7 +40,7 @@ export default async function KenDetailPage({ params }: { params: Promise<{ slug
         </div>
         <KenTimingStrip ken={task} />
         <div className="metric-grid">
-          {[ ["Voice", String(task.totalVotes)], ["Supporters", String(task.supporterCount)], ["Category rank", task.categoryRank ? String(task.categoryRank) : "-"], ["Budget lane", formatCurrency(task.budgetUsd)] ].map(([label, value]) => (
+          {[ ["Voice", String(task.totalVotes)], ["Backers", String(task.supporterCount)], ["Comments", String(task.discussionCount)], ["Sandbox backing", formatCurrency(task.sandboxCapitalUsd)] ].map(([label, value]) => (
             <div key={label} className="metric-card"><div className="eyebrow">{label}</div><div className="metric-value">{value}</div></div>
           ))}
         </div>
@@ -47,9 +48,11 @@ export default async function KenDetailPage({ params }: { params: Promise<{ slug
 
       <section className="detail-layout">
         <div className="space-y-6">
+          <KenSandboxStrip ken={task} />
+
           <div className="panel space-y-4">
-            <div className="eyebrow">Why this Ken exists</div>
-            <h2 className="font-display text-2xl font-semibold text-foreground">Problem, timing, and public value</h2>
+            <div className="eyebrow">Why this Ken matters</div>
+            <h2 className="font-display text-2xl font-semibold text-foreground">Problem, timing, and public usefulness</h2>
             <p className="text-sm leading-7 text-muted">{task.problem}</p>
             <p className="text-sm leading-7 text-muted">{task.whyNow}</p>
             <p className="text-sm leading-7 text-muted">{task.publicBenefit}</p>
@@ -64,8 +67,8 @@ export default async function KenDetailPage({ params }: { params: Promise<{ slug
 
           <div className="panel grid gap-4 lg:grid-cols-2">
             <InfoCard title="Bond held during review" body={`${task.qualityBondCredits} voice credits remain locked while this Ken is unresolved or still in review.`} />
-            <InfoCard title="Sponsor pool" body={`${formatCurrency(task.sponsorPoolUsd)} currently reserved for this Ken's delivery path.`} />
-            <InfoCard title="Service path" body={task.enterprisePackaging} />
+            <InfoCard title="Sponsor pool" body={`${formatCurrency(task.sponsorPoolUsd)} is currently reserved for this Ken's delivery path.`} />
+            <InfoCard title="Service version" body={task.enterprisePackaging} />
             <InfoCard title="Correction and audit value" body={task.dataValueNote} />
           </div>
 
@@ -177,8 +180,8 @@ export default async function KenDetailPage({ params }: { params: Promise<{ slug
 
           <div className="panel space-y-4">
             <div>
-              <div className="eyebrow">Voice ledger</div>
-              <h2 className="mt-2 font-display text-2xl font-semibold text-foreground">Who is backing this Ken</h2>
+              <div className="eyebrow">Priority backing</div>
+              <h2 className="mt-2 font-display text-2xl font-semibold text-foreground">Who is spending voice here</h2>
             </div>
             <div className="space-y-3">
               {task.votes.length > 0 ? task.votes.map((vote) => (
