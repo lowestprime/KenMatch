@@ -23,8 +23,8 @@ export function KenSandboxStrip({ ken, compact = false }: { ken: Pick<TaskSummar
       </div>
       {ken.modelLineup.length > 0 ? (
         <div className="sandbox-chip-row" aria-label="Model lineup">
-          {ken.modelLineup.map((label) => (
-            <span key={label} className="tag">{label}</span>
+          {ken.modelLineup.map((label, index) => (
+            <span key={`${index}-${label}`} className="tag">{label}</span>
           ))}
         </div>
       ) : null}

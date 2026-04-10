@@ -15,9 +15,10 @@ services:
       NODE_ENV: production
       HOSTNAME: 0.0.0.0
       PORT: 3000
+      TMPDIR: /tmp
     read_only: true
     tmpfs:
-      - /tmp:size=64m,noexec,nosuid
+      - /tmp:size=64m,noexec,nosuid,nodev
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -26,7 +27,7 @@ services:
     volumes:
       - ./data:/app/data
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/api/health || exit 1"]
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3000/api/health').then(r=>{if(!r.ok)throw r.status}).catch(()=>process.exit(1))\""]
       interval: 30s
       timeout: 5s
       retries: 5

@@ -137,7 +137,12 @@ function parseList(value: Value) {
     return [];
   }
 
-  return JSON.parse(value) as string[];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? (parsed as string[]) : [];
+  } catch {
+    return [];
+  }
 }
 
 function getString(row: DbRow, key: string) {
@@ -249,6 +254,15 @@ async function initializeDatabase() {
         expiresAt TEXT NOT NULL,
         createdAt TEXT NOT NULL,
         FOREIGN KEY (accountId) REFERENCES accounts(id)
+      )`,
+      `CREATE TABLE IF NOT EXISTS bookmarks (
+        id TEXT PRIMARY KEY,
+        profileId TEXT NOT NULL,
+        taskId TEXT NOT NULL,
+        createdAt TEXT NOT NULL,
+        FOREIGN KEY (profileId) REFERENCES profiles(id),
+        FOREIGN KEY (taskId) REFERENCES tasks(id),
+        UNIQUE(profileId, taskId)
       )`,
       `CREATE TABLE IF NOT EXISTS categories (
         id TEXT PRIMARY KEY,
@@ -477,6 +491,7 @@ async function initializeDatabase() {
       "CREATE INDEX IF NOT EXISTS idx_sponsorship_commitments_status ON sponsorship_commitments(status)",
       "CREATE INDEX IF NOT EXISTS idx_request_rate_limits_updatedAt ON request_rate_limits(updatedAt)",
       "CREATE INDEX IF NOT EXISTS idx_security_events_createdAt ON security_events(createdAt)",
+      "CREATE INDEX IF NOT EXISTS idx_bookmarks_profileId ON bookmarks(profileId)",
     ],
     "write",
   );
@@ -498,6 +513,9 @@ async function initializeDatabase() {
   await ensureColumn(client, "task_finance", "simulationSummary", "TEXT NOT NULL DEFAULT ''");
   await ensureColumn(client, "task_finance", "sampleOutcome", "TEXT NOT NULL DEFAULT ''");
   await ensureColumn(client, "task_finance", "sponsorAppeal", "TEXT NOT NULL DEFAULT ''");
+  await ensureColumn(client, "accounts", "systemRole", "TEXT NOT NULL DEFAULT 'contributor'");
+  await ensureColumn(client, "accounts", "emailVerified", "INTEGER NOT NULL DEFAULT 0");
+  await ensureColumn(client, "profiles", "slug", "TEXT");
 
   await seedDatabase();
 }
@@ -1159,6 +1177,8 @@ function mapAccount(row: DbRow): AccountRecord {
     passwordHash: getString(row, "passwordHash"),
     passwordSalt: getString(row, "passwordSalt"),
     licensingConsent: getString(row, "licensingConsent") as AccountRecord["licensingConsent"],
+    systemRole: (getString(row, "systemRole") || "contributor") as AccountRecord["systemRole"],
+    emailVerified: Boolean(getNumber(row, "emailVerified")),
     createdAt: getString(row, "createdAt"),
   };
 }
@@ -1641,7 +1661,7 @@ export async function getViewerSessionByToken(token: string): Promise<ViewerSess
   }
 
   return {
-    account: { id: account.id, email: account.email, createdAt: account.createdAt },
+    account: { id: account.id, email: account.email, createdAt: account.createdAt, systemRole: account.systemRole ?? "contributor", emailVerified: Boolean(account.emailVerified) },
     profile: snapshot.viewer,
   };
 }
@@ -1664,7 +1684,7 @@ export async function getHomeData(viewerProfileId?: string | null) {
     viewer: snapshot.viewer,
     metrics,
     categories: snapshot.categories,
-    featuredTasks: snapshot.tasks.slice(0, 6),
+    featuredTasks: snapshot.tasks.slice(0, 4),
     contributors: [...snapshot.profiles].sort((left, right) => right.credibility - left.credibility).slice(0, 6),
     governance: snapshot.governance.slice(0, 6),
     economics: snapshot.economics,
@@ -1674,39 +1694,55 @@ export async function getHomeData(viewerProfileId?: string | null) {
 
 export async function getMarketplaceData(viewerProfileId: string | null | undefined, filters: MarketplaceFilters) {
   const snapshot = await hydrate(viewerProfileId);
-  const query = filters.query?.trim().toLowerCase() ?? "";
+  const queryTokens = (filters.query?.trim().toLowerCase() ?? "").split(/\s+/).filter(Boolean);
+  const filtered = snapshot.tasks.filter((task) => {
+    if (queryTokens.length > 0) {
+      const haystack = [
+        task.title,
+        task.summary,
+        task.problem,
+        task.categoryName,
+        task.enterprisePackaging,
+        task.dataValueNote,
+        task.simulationSummary,
+        task.sampleOutcome,
+        task.sponsorAppeal,
+        ...task.modelLineup,
+      ].join(" ").toLowerCase();
+      if (!queryTokens.every((token) => haystack.includes(token))) {
+        return false;
+      }
+    }
+    if (filters.category && filters.category !== "all" && task.categorySlug !== filters.category) {
+      return false;
+    }
+    if (filters.tier && filters.tier !== "all" && task.allocatedTier !== filters.tier) {
+      return false;
+    }
+    if (filters.stage && filters.stage !== "all" && task.stage !== filters.stage) {
+      return false;
+    }
+    return true;
+  });
+
+  const sort = filters.sort ?? "pulse";
+  filtered.sort((a, b) => {
+    switch (sort) {
+      case "voice":
+        return b.totalVotes - a.totalVotes;
+      case "recent":
+        return new Date(b.lastActivityAt).getTime() - new Date(a.lastActivityAt).getTime();
+      case "newest":
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      default:
+        return b.taskPulseScore - a.taskPulseScore;
+    }
+  });
+
   return {
     viewer: snapshot.viewer,
     categories: snapshot.categories,
-    tasks: snapshot.tasks.filter((task) => {
-      if (query) {
-        const haystack = [
-          task.title,
-          task.summary,
-          task.problem,
-          task.categoryName,
-          task.enterprisePackaging,
-          task.dataValueNote,
-          task.simulationSummary,
-          task.sampleOutcome,
-          task.sponsorAppeal,
-          ...task.modelLineup,
-        ].join(" ").toLowerCase();
-        if (!haystack.includes(query)) {
-          return false;
-        }
-      }
-      if (filters.category && filters.category !== "all" && task.categorySlug !== filters.category) {
-        return false;
-      }
-      if (filters.tier && filters.tier !== "all" && task.allocatedTier !== filters.tier) {
-        return false;
-      }
-      if (filters.stage && filters.stage !== "all" && task.stage !== filters.stage) {
-        return false;
-      }
-      return true;
-    }),
+    tasks: filtered,
   };
 }
 
@@ -1822,6 +1858,72 @@ export async function createAccount(input: {
 export async function authenticateAccount(email: string, password: string) {
   const account = await findAccountByEmail(email.toLowerCase());
   return account && verifyPassword(password, account.passwordHash, account.passwordSalt) ? account : null;
+}
+
+export async function updateProfile(profileId: string, input: {
+  name: string;
+  role: string;
+  specialty: string;
+  bio: string;
+}) {
+  await execute(
+    "UPDATE profiles SET name = ?, role = ?, specialty = ?, bio = ? WHERE id = ?",
+    [input.name, input.role, input.specialty, input.bio, profileId],
+  );
+}
+
+export async function changePassword(accountId: string, newPassword: string) {
+  const { passwordHash, passwordSalt } = createPasswordHash(newPassword);
+  await execute(
+    "UPDATE accounts SET passwordHash = ?, passwordSalt = ? WHERE id = ?",
+    [passwordHash, passwordSalt, accountId],
+  );
+}
+
+export async function updateLicensingConsent(accountId: string, consent: AccountRecord["licensingConsent"]) {
+  await execute("UPDATE accounts SET licensingConsent = ? WHERE id = ?", [consent, accountId]);
+}
+
+export async function toggleBookmark(profileId: string, taskId: string): Promise<boolean> {
+  const existing = await loadOne("SELECT id FROM bookmarks WHERE profileId = ? AND taskId = ?", [profileId, taskId]);
+  if (existing) {
+    await execute("DELETE FROM bookmarks WHERE id = ?", [getString(existing, "id")]);
+    return false;
+  }
+  await execute("INSERT INTO bookmarks (id, profileId, taskId, createdAt) VALUES (?, ?, ?, ?)", [randomUUID(), profileId, taskId, new Date().toISOString()]);
+  return true;
+}
+
+export async function getBookmarkedTaskIds(profileId: string): Promise<string[]> {
+  const rows = await loadRows("SELECT taskId FROM bookmarks WHERE profileId = ? ORDER BY createdAt DESC", [profileId]);
+  return rows.map((row) => getString(row, "taskId"));
+}
+
+export async function getSearchData() {
+  const snapshot = await hydrate();
+  return {
+    kens: snapshot.tasks.map((t) => ({ slug: t.slug, title: t.title, summary: t.summary, categoryName: t.categoryName })),
+    profiles: snapshot.profiles.map((p) => ({ id: p.id, name: p.name, role: p.role, specialty: p.specialty })),
+    governance: snapshot.governance.map((g) => ({ id: g.id, title: g.title, decision: g.decision, house: g.house })),
+    categories: snapshot.categories.map((c) => ({ slug: c.slug, name: c.name, description: c.description })),
+  };
+}
+
+export async function getProfileBySlug(slug: string): Promise<ProfileSummary | null> {
+  const snapshot = await hydrate();
+  return snapshot.profiles.find((p) => p.id === slug || p.name.toLowerCase().replace(/\s+/g, "-") === slug) ?? null;
+}
+
+export async function getProfileActivity(profileId: string) {
+  const snapshot = await hydrate(profileId);
+  const proposedTasks = snapshot.tasks.filter((t) => t.proposerId === profileId);
+  const votes = snapshot.votes
+    .filter((v) => v.profileId === profileId)
+    .map((v) => {
+      const task = snapshot.tasks.find((t) => t.id === v.taskId);
+      return { ...v, taskTitle: task?.title ?? "Unknown Ken" };
+    });
+  return { proposedTasks, votes, profile: snapshot.profileMap.get(profileId) ?? null };
 }
 
 export async function createSession(accountId: string) {

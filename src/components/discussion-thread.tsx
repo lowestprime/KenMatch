@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useState } from "react";
 
 import { initialActionState } from "@/app/action-state";
@@ -96,23 +97,27 @@ function CommentNode({
   const [replying, setReplying] = useState(false);
   const [state, action, isPending] = useActionState(saveCommentVoteAction, initialActionState);
 
+  const voteFormId = `comment-vote-${comment.id}`;
+
   return (
     <article className="comment-card">
-      <form action={action} className="comment-shell">
+      <form action={action} id={voteFormId} className="hidden">
         <input type="hidden" name="commentId" value={comment.id} />
         <input type="hidden" name="slug" value={slug} />
+      </form>
+      <div className="comment-shell">
         <div className="comment-vote-rail">
-          <button type="submit" name="value" value={String(comment.userVote === 1 ? 0 : 1)} className={`comment-vote-button ${comment.userVote === 1 ? "is-active" : ""}`} disabled={disabled || isPending} aria-label="Upvote comment">
+          <button type="submit" form={voteFormId} name="value" value={String(comment.userVote === 1 ? 0 : 1)} className={`comment-vote-button ${comment.userVote === 1 ? "is-active" : ""}`} disabled={disabled || isPending} aria-label="Upvote comment">
             ▲
           </button>
           <span className="comment-score">{comment.score}</span>
-          <button type="submit" name="value" value={String(comment.userVote === -1 ? 0 : -1)} className={`comment-vote-button ${comment.userVote === -1 ? "is-active" : ""}`} disabled={disabled || isPending} aria-label="Downvote comment">
+          <button type="submit" form={voteFormId} name="value" value={String(comment.userVote === -1 ? 0 : -1)} className={`comment-vote-button ${comment.userVote === -1 ? "is-active" : ""}`} disabled={disabled || isPending} aria-label="Downvote comment">
             ▼
           </button>
         </div>
         <div className="comment-content">
           <div className="comment-topline">
-            <span className="comment-author">{comment.profileName}</span>
+            <Link href={`/profiles/${comment.profileId}`} className="comment-author comment-author-link">{comment.profileName}</Link>
             <span>{comment.profileRole}</span>
             <span>{describeRelativeTime(comment.createdAt)}</span>
             <span title={formatDateTime(comment.createdAt)}>{formatDateTime(comment.createdAt)}</span>
@@ -127,7 +132,7 @@ function CommentNode({
             </button>
           </div>
         </div>
-      </form>
+      </div>
       {disabled && !replying ? <p className="mt-2 text-sm text-muted">{disabledMessage ?? "Sign in to interact with comments."}</p> : null}
       {state.message ? <p className={`mt-2 text-sm ${state.status === "error" ? "text-red-500" : "text-teal"}`}>{state.message}</p> : null}
       {replying ? <div className="mt-4"><CommentComposer taskId={comment.taskId} slug={slug} parentId={comment.id} disabled={disabled} disabledMessage={disabledMessage} /></div> : null}

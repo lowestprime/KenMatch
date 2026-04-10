@@ -1,8 +1,17 @@
+import type { Metadata } from "next";
+import { Suspense } from "react";
+
+import { CheckoutBanner } from "@/components/checkout-banner";
 import { SponsorForm } from "@/components/sponsor-form";
 import { getEconomicsData, getMarketplaceData } from "@/lib/db";
 import { getViewerProfileId } from "@/lib/session";
 import { stripeEnabled } from "@/lib/stripe";
 import { formatCurrency, formatDateTime, formatNumber, formatPercent } from "@/lib/utils";
+
+export const metadata: Metadata = {
+  title: "Funding",
+  description: "See how KenMatch is funded. Treasury balance, revenue streams, sponsor commitments, and public ledger entries.",
+};
 
 function labelForRestrictionScope(value: "general" | "category" | "ken" | "safety-reserve") {
   switch (value) {
@@ -41,8 +50,16 @@ export default async function EconomicsPage() {
 
   return (
     <div className="page-stack">
+      <Suspense fallback={null}><CheckoutBanner /></Suspense>
       <section className="panel hero-panel card-sheen space-y-5">
-        <div className="eyebrow">Funding and treasury</div>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="eyebrow">Funding and treasury</div>
+          <span className={`governor-badge ${summary.governorActive ? "is-active" : "is-healthy"}`}>
+            {summary.governorActive
+              ? `Governor active — adjusted treasury share ${summary.adjustedTreasurySharePercent}%`
+              : `Coverage healthy — ${summary.adjustedTreasurySharePercent}% treasury share`}
+          </span>
+        </div>
         <h1 className="max-w-4xl font-display text-4xl font-semibold text-foreground sm:text-5xl">
           Back useful Kens with real money or clearly labeled sandbox funding, without selling influence.
         </h1>

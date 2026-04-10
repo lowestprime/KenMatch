@@ -62,6 +62,7 @@ export function ProposalForm({ categories, disabled }: { categories: Array<{ slu
         <Field name="enterprisePackaging" label="Optional service path" rows={4} placeholder="If this Ken succeeds, what hosted or institutional version could help fund the public board?" error={errorFor("enterprisePackaging")} disabled={disabled || isPending} />
         <Field name="dataValueNote" label="Corrections and audit data" rows={4} placeholder="What useful correction, provenance, or evaluation data would the Ken generate along the way?" error={errorFor("dataValueNote")} disabled={disabled || isPending} />
       </div>
+      <AbuseGuardFields action="submit-ken" siteKey={turnstileSiteKey} />
       <div className="flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">
         <p className="max-w-2xl text-sm leading-7 text-muted">
           New Kens start in public review with a locked bond, visible timestamps, public comments, and checkpoint-gated execution. Launch happens only after review and release conditions are in place.
@@ -70,7 +71,6 @@ export function ProposalForm({ categories, disabled }: { categories: Array<{ slu
           {isPending ? "Submitting Ken" : "Submit Ken for review"}
         </button>
       </div>
-      <AbuseGuardFields action="submit-ken" siteKey={turnstileSiteKey} />
       {state.message ? <p className={`text-sm ${state.status === "error" ? "text-red-500" : "text-teal"}`}>{state.message}</p> : null}
     </form>
   );

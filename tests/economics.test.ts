@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { summarizeEconomics, summarizeRevenueStream } from "../src/lib/economics.ts";
+import { computeGovernorSplit, summarizeEconomics, summarizeRevenueStream } from "../src/lib/economics.ts";
 
 const baseStream = {
   publicBenefitCovenant: "Treasury funding stays separate from rank.",
@@ -197,4 +197,39 @@ test("summarizeEconomics derives structured funding balances and coverage policy
   assert.equal(summary.sponsorCommitmentsUsd, 18_000);
   assert.equal(summary.safetyReserveUsd, 6_000);
   assert.equal(summary.verifiedFundingStreams, 2);
+  assert.equal(summary.governorActive, true);
+  assert.equal(summary.adjustedTreasurySharePercent, 90);
+});
+
+test("computeGovernorSplit leaves base split when coverage meets target", () => {
+  const split = computeGovernorSplit(6, 6, 80);
+  assert.deepEqual(split, { treasurySharePercent: 80, founderSharePercent: 20 });
+});
+
+test("computeGovernorSplit boosts treasury up to 10 points when below target, capped at 95", () => {
+  assert.deepEqual(computeGovernorSplit(1, 6, 80), { treasurySharePercent: 90, founderSharePercent: 10 });
+  assert.deepEqual(computeGovernorSplit(0, 6, 90), { treasurySharePercent: 95, founderSharePercent: 5 });
+  assert.deepEqual(computeGovernorSplit(2, 6, 92), { treasurySharePercent: 95, founderSharePercent: 5 });
+});
+
+test("summarizeEconomics clamps negative balance to zero coverage months", () => {
+  const summary = summarizeEconomics(
+    [{
+      id: "s1", slug: "e", name: "E", engine: "enterprise", description: "d",
+      pricingModel: "sub", status: "live", monthlyRevenueUsd: 10_000,
+      grossMargin: 0.8, treasurySharePercent: 80, founderSharePercent: 20,
+      publicBenefitCovenant: "c", openDeliverableBoundary: "b",
+      contributorDividendPercent: 0, requiresContributorConsent: false,
+    }],
+    [
+      { id: "e1", streamId: null, title: "In", description: "d", bucket: "compute-treasury", direction: "inflow", amountUsd: 10_000, fundingState: "committed", restrictionMode: "unrestricted", restrictionScope: "general", restrictionTargetId: null, restrictionTargetLabel: "t", createdAt: "2026-01-01T00:00:00.000Z" },
+      { id: "e2", streamId: null, title: "Out", description: "d", bucket: "compute-treasury", direction: "outflow", amountUsd: 50_000, fundingState: "committed", restrictionMode: "unrestricted", restrictionScope: "general", restrictionTargetId: null, restrictionTargetLabel: "t", createdAt: "2026-01-02T00:00:00.000Z" },
+    ],
+    [],
+    20_000,
+    0,
+    6,
+  );
+  assert.equal(summary.coverageMonths, 0, "negative balance should yield 0 coverage months");
+  assert.equal(summary.governorActive, true);
 });

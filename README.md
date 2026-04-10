@@ -147,20 +147,27 @@ KenMatch seeks to equalize the **long-horizon deployment of frontier AI toward t
 - Earned quadratic voice for scarce allocation, with separate up/down pulse voting for broad public curation.
 - Threaded comments with replies, voting, and small stakes for discussion quality.
 - Proposal quality bonds, checkpoint approval gates, run metadata, rollback plans, and visible blocked work.
-- Economics surface for supported service packaging, screened evaluation licensing, compute routing, sponsorship routing, treasury entries, and the 80/20 public reporting split.
+- Economics surface for supported service packaging, screened evaluation licensing, compute routing, private execution lanes, sponsorship routing, treasury entries, and the 80/20 public reporting split.
+- Treasury coverage governor that automatically signals a higher treasury share when reserve coverage dips below the target threshold.
 - Structured sponsor commitments with projected, simulated, and committed funding states plus optional Stripe Checkout for live sponsor intake.
 - Sandbox-backed demo Kens with simulated capital, model lineups, API spend, pilot-user counts, and sample outcomes shown directly in the UI.
 - Three theme modes (`Light`, `Dark`, and `OLED`), rich motion, strong visual hierarchy, and updated KenMatch icon/favicons.
-- Public board at `/kens` with search, category, lane, and status filters.
-- Real account creation and persistent signed-in accounts.
+- Public board at `/kens` with search, category, lane, status, and sort filters.
+- Real account creation and persistent signed-in accounts with full account management (edit profile, change password, licensing consent).
+- System roles (contributor, moderator, admin) and email verification readiness on account records.
+- Public contributor profile pages at `/profiles/[id]` showing activity history, proposed Kens, and voice allocations.
+- Generated SVG avatar identicons based on contributor name and hue.
+- Universal sitewide search (Ctrl+K / Cmd+K command palette) across Kens, profiles, governance events, and categories.
+- Bookmark and share buttons on Ken detail pages for engagement and sharing.
+- Responsive mobile navigation drawer with animated hamburger toggle.
 - libSQL-backed persistence with local-file or remote libSQL support.
 - Public upvote/downvote signal, separate quadratic voice allocation, and threaded comments with voting.
 - Ken timing metadata: created and updated timestamps, launch countdown, submission age, compute usage, remaining runtime window, and completion state.
 - Incremental run audit history for partial delivery, early completion, and checkpoint-by-checkpoint evidence notes.
 - Economics and treasury views with committed versus projected support, sponsor pools, restricted funding, simulated runway, safety reserve coverage, and sponsor covenant details.
 - Governance view with blocked Kens, attestation state, enforceable participation limits, review timing, and visible decision logs.
-- Security headers, host filtering, request-origin checks, structured rate limits, optional Turnstile verification, and public-safe health checks.
-- Standalone Next.js Docker build, non-root container runtime, loopback-only Synology deployment, and public-hosting guidance for Cloudflare Tunnel or equivalent origin shielding.
+- Security headers (CSP, HSTS, CORP, COOP, X-Frame-Options, Permissions-Policy), host filtering, request-origin checks, structured rate limits, security event logging, optional Turnstile verification, and public-safe health checks with deployment version reporting.
+- Standalone Next.js Docker build with OCI labels and container healthcheck, non-root container runtime, read-only filesystem with tmpfs, loopback-only Synology deployment, and public-hosting guidance for Cloudflare Tunnel or equivalent origin shielding.
 
 ## Stack
 
@@ -195,7 +202,7 @@ Copy `.env.example` and set values as needed.
 - `KENMATCH_TREASURY_TARGET_MONTHS`: reserve target used by the economics view.
 - `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `KENMATCH_TURNSTILE_SECRET_KEY`: optional Cloudflare Turnstile keys for public forms.
 - `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET`: optional Stripe Checkout and webhook settings for live sponsorships.
-- `DEPLOYMENT_VERSION`: optional deployment identifier passed into Next.js.
+- `DEPLOYMENT_VERSION`: optional deployment identifier exposed in the health endpoint and passed into Next.js.
 
 ## Scripts
 
@@ -231,6 +238,8 @@ KenMatch ships with a standalone Next.js build configuration and a Docker image 
 - `/governance` governance, attestation, and blocked Kens
 - `/economics` treasury and revenue logic
 - `/auth` sign-in and account creation
+- `/account` account settings, profile editing, password changes, and licensing consent
+- `/profiles/[id]` public contributor profiles with activity history
 
 Legacy `/tasks` routes now redirect to `/kens` routes.
 
@@ -240,6 +249,7 @@ Legacy `/tasks` routes now redirect to `/kens` routes.
 - `src/components` public UI, timing display, voting, comments, sponsor intake, auth, and shell
 - `src/lib/attestation.ts` participation policy derived from attestation state
 - `src/lib/db.ts` database schema, seeding, hydration, account persistence, funding ledger, rate limits, and write flows
+- `src/lib/economics.ts` revenue stream summaries, treasury coverage, and governor split logic
 - `src/lib/security.ts` form hardening, origin checks, rate-limit integration, and Turnstile verification
 - `src/lib/stripe.ts` optional hosted sponsor checkout wiring
 - `src/lib/seed.ts` and `src/lib/seed-plus.ts` realistic demo data

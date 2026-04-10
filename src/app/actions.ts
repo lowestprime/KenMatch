@@ -9,6 +9,7 @@ import { MAX_VOTES_PER_TASK } from "@/lib/allocation";
 import {
   authenticateAccount,
   bindSponsorshipCheckoutSession,
+  changePassword,
   createAccount,
   createComment,
   createProposal,
@@ -20,18 +21,21 @@ import {
   saveCommentVote,
   saveTaskPulse,
   saveVote,
+  toggleBookmark,
+  updateLicensingConsent,
+  updateProfile,
 } from "@/lib/db";
 import { env } from "@/lib/env";
 import { guardMutationRequest, turnstileConfigured } from "@/lib/security";
 import {
   clearViewerSessionCookie,
   getViewerProfileId,
-  getViewerToken,
   getViewerSession,
+  getViewerToken,
   setViewerSessionCookie,
 } from "@/lib/session";
 import { getStripeClient, stripeEnabled } from "@/lib/stripe";
-import type { SponsorType } from "@/lib/types";
+import type { AccountRecord, SponsorType } from "@/lib/types";
 
 const proposalSchema = z.object({
   title: z.string().min(8, "Give the Ken a specific title."),
@@ -102,6 +106,22 @@ const sponsorSchema = z.object({
   restrictionScope: z.enum(["general", "category", "ken", "safety-reserve"]),
   restrictionTargetId: z.string().optional(),
   mode: z.enum(["simulated", "pledged", "live"]),
+});
+
+const updateProfileSchema = z.object({
+  name: z.string().min(2, "Enter the name other contributors should see."),
+  role: z.string().min(2, "Describe your current role."),
+  specialty: z.string().min(2, "Describe your strongest area of practice."),
+  bio: z.string().min(24, "Write a short but useful contributor bio."),
+});
+
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(12, "Enter your current password."),
+  newPassword: z.string().min(12, "Passwords must be at least 12 characters."),
+  confirmNewPassword: z.string().min(12, "Confirm the new password."),
+}).refine((v) => v.newPassword === v.confirmNewPassword, {
+  path: ["confirmNewPassword"],
+  message: "Passwords must match.",
 });
 
 function splitLines(input: string) {
@@ -578,9 +598,89 @@ export async function createSponsorshipCommitmentAction(_: ActionState, formData
   };
 }
 
-export async function getAuthBannerState() {
-  const session = await getViewerSession();
-  return session
-    ? { signedIn: true, name: session.profile.name }
-    : { signedIn: false, signupsEnabled: env.KENMATCH_ALLOW_SIGNUPS };
+export async function updateProfileAction(_: ActionState, formData: FormData): Promise<ActionState> {
+  let profileId: string;
+  try {
+    profileId = await requireViewerProfileId();
+    await guardMutationRequest({ action: "update-profile", actorId: profileId, formData, rateLimit: { scope: "update-profile", limit: 6, windowSeconds: 10 * 60 } });
+  } catch (error) {
+    return { status: "error", message: actionErrorMessage(error, "Unable to update profile.") };
+  }
+
+  const parsed = updateProfileSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) {
+    return { status: "error", message: "Fix the highlighted fields.", fieldErrors: flattenFieldErrors(parsed.error) };
+  }
+
+  try {
+    await updateProfile(profileId, parsed.data);
+  } catch (error) {
+    return { status: "error", message: actionErrorMessage(error, "Unable to update profile.") };
+  }
+
+  revalidateCorePaths();
+  return { status: "success", message: "Profile updated." };
+}
+
+export async function changePasswordAction(_: ActionState, formData: FormData): Promise<ActionState> {
+  let profileId: string;
+  try {
+    profileId = await requireViewerProfileId();
+    await guardMutationRequest({ action: "change-password", actorId: profileId, formData, rateLimit: { scope: "change-password", limit: 4, windowSeconds: 15 * 60 } });
+  } catch (error) {
+    return { status: "error", message: actionErrorMessage(error, "Unable to change password.") };
+  }
+
+  const parsed = changePasswordSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) {
+    return { status: "error", message: "Fix the highlighted fields.", fieldErrors: flattenFieldErrors(parsed.error) };
+  }
+
+  try {
+    const session = await getViewerSession();
+    if (!session) throw new Error("Not signed in.");
+    const account = await authenticateAccount(session.account.email, parsed.data.currentPassword);
+    if (!account) return { status: "error", message: "Current password is incorrect." };
+    await changePassword(account.id, parsed.data.newPassword);
+  } catch (error) {
+    return { status: "error", message: actionErrorMessage(error, "Unable to change password.") };
+  }
+
+  return { status: "success", message: "Password changed." };
+}
+
+export async function updateLicensingConsentAction(_: ActionState, formData: FormData): Promise<ActionState> {
+  try {
+    await requireViewerProfileId();
+    const session = await getViewerSession();
+    if (!session) throw new Error("Not signed in.");
+    const consent = formData.get("licensingConsent") === "allow-screened-licensing" ? "allow-screened-licensing" : "audit-only";
+    await updateLicensingConsent(session.account.id, consent as AccountRecord["licensingConsent"]);
+  } catch (error) {
+    return { status: "error", message: actionErrorMessage(error, "Unable to update consent.") };
+  }
+
+  revalidateCorePaths();
+  return { status: "success", message: "Licensing consent updated." };
+}
+
+export async function toggleBookmarkAction(_: ActionState, formData: FormData): Promise<ActionState> {
+  let profileId: string;
+  try {
+    profileId = await requireViewerProfileId();
+    await guardMutationRequest({ action: "toggle-bookmark", actorId: profileId, formData, rateLimit: { scope: "toggle-bookmark", limit: 30, windowSeconds: 5 * 60 } });
+  } catch (error) {
+    return { status: "error", message: actionErrorMessage(error, "Unable to update bookmark.") };
+  }
+
+  const taskId = String(formData.get("taskId") ?? "").trim();
+  if (!taskId) return { status: "error", message: "Missing task ID." };
+
+  try {
+    const bookmarked = await toggleBookmark(profileId, taskId);
+    revalidateCorePaths();
+    return { status: "success", message: bookmarked ? "Bookmarked." : "Bookmark removed." };
+  } catch (error) {
+    return { status: "error", message: actionErrorMessage(error, "Unable to update bookmark.") };
+  }
 }

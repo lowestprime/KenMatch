@@ -3,7 +3,7 @@ import { Manrope, Space_Grotesk } from "next/font/google";
 import Script from "next/script";
 
 import { SiteShell } from "@/components/site-shell";
-import { listProfiles } from "@/lib/db";
+import { getSearchData, listProfiles } from "@/lib/db";
 import { env } from "@/lib/env";
 import { getViewerSession } from "@/lib/session";
 import "@/app/globals.css";
@@ -46,13 +46,13 @@ const themeBootScript = `
 `;
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const [profiles, viewer] = await Promise.all([listProfiles(), getViewerSession()]);
+  const [profiles, viewer, searchData] = await Promise.all([listProfiles(), getViewerSession(), getSearchData()]);
 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${bodyFont.variable} ${displayFont.variable} font-body antialiased`}>
         <Script id="theme-boot" strategy="beforeInteractive">{themeBootScript}</Script>
-        <SiteShell featuredProfiles={profiles} viewer={viewer}>
+        <SiteShell featuredProfiles={profiles} viewer={viewer} searchData={searchData}>
           {children}
         </SiteShell>
       </body>

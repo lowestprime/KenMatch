@@ -19,22 +19,27 @@ export function formatPercent(value: number) {
   }).format(value);
 }
 
+function safeDate(value: string): Date | null {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
 export function formatDate(value: string | null | undefined) {
-  if (!value) {
-    return "TBD";
-  }
+  if (!value) return "TBD";
+  const date = safeDate(value);
+  if (!date) return "TBD";
 
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
-  }).format(new Date(value));
+  }).format(date);
 }
 
 export function formatDateTime(value: string | null | undefined) {
-  if (!value) {
-    return "TBD";
-  }
+  if (!value) return "TBD";
+  const date = safeDate(value);
+  if (!date) return "TBD";
 
   return new Intl.DateTimeFormat("en-US", {
     month: "short",
@@ -42,7 +47,7 @@ export function formatDateTime(value: string | null | undefined) {
     year: "numeric",
     hour: "numeric",
     minute: "2-digit",
-  }).format(new Date(value));
+  }).format(date);
 }
 
 export function formatHoursToHuman(hours: number) {
@@ -75,59 +80,50 @@ function relativeParts(from: Date, to: Date) {
 }
 
 export function describeRelativeTime(value: string | null | undefined, reference = new Date()) {
-  if (!value) {
-    return "TBD";
-  }
+  if (!value) return "TBD";
+  const target = safeDate(value);
+  if (!target) return "TBD";
 
-  const target = new Date(value);
   const { value: amount, unit } = relativeParts(reference, target);
   const label = `${amount} ${unit}${amount === 1 ? "" : "s"}`;
   return target.getTime() >= reference.getTime() ? `in ${label}` : `${label} ago`;
 }
 
 export function describeCountdown(value: string | null | undefined, reference = new Date()) {
-  if (!value) {
-    return "Launch timing pending";
-  }
+  if (!value) return "Launch timing pending";
+  const target = safeDate(value);
+  if (!target) return "Launch timing pending";
 
-  const target = new Date(value);
   const { value: amount, unit } = relativeParts(reference, target);
   const label = `${amount} ${unit}${amount === 1 ? "" : "s"}`;
   return target.getTime() >= reference.getTime() ? `Launches in ${label}` : `Launched ${label} ago`;
 }
 
 export function describeElapsedSince(value: string | null | undefined, reference = new Date()) {
-  if (!value) {
-    return "Not started";
-  }
+  if (!value) return "Not started";
+  const target = safeDate(value);
+  if (!target) return "Not started";
 
-  const target = new Date(value);
   const { value: amount, unit } = relativeParts(target, reference);
   return `${amount} ${unit}${amount === 1 ? "" : "s"}`;
 }
 
 export function progressPercent(startAt: string | null | undefined, endAt: string | null | undefined, reference = new Date()) {
-  if (!startAt || !endAt) {
-    return 0;
-  }
+  if (!startAt || !endAt) return 0;
+  const start = safeDate(startAt);
+  const end = safeDate(endAt);
+  if (!start || !end || end.getTime() <= start.getTime()) return 0;
 
-  const start = new Date(startAt).getTime();
-  const end = new Date(endAt).getTime();
-  const current = reference.getTime();
-  if (end <= start) {
-    return 0;
-  }
-
-  const percent = ((current - start) / (end - start)) * 100;
+  const percent = ((reference.getTime() - start.getTime()) / (end.getTime() - start.getTime())) * 100;
   return Math.max(0, Math.min(100, Math.round(percent)));
 }
 
 export function remainingHours(endAt: string | null | undefined, reference = new Date()) {
-  if (!endAt) {
-    return null;
-  }
+  if (!endAt) return null;
+  const end = safeDate(endAt);
+  if (!end) return null;
 
-  const delta = new Date(endAt).getTime() - reference.getTime();
+  const delta = end.getTime() - reference.getTime();
   return Math.max(0, Math.round(delta / (1000 * 60 * 60)));
 }
 

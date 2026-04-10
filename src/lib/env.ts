@@ -30,7 +30,6 @@ const envSchema = z.object({
   KENMATCH_SESSION_COOKIE: z.string().default("kenmatch-session"),
   KENMATCH_SESSION_DAYS: z.coerce.number().int().min(1).default(14),
   KENMATCH_ALLOW_SIGNUPS: booleanish.default(true),
-  KENMATCH_ENABLE_DEMO_PROFILE_SWITCHER: booleanish.default(false),
   KENMATCH_PUBLIC_ORIGIN: z.string().url().optional(),
   KENMATCH_ALLOWED_HOSTS: z.string().optional(),
   KENMATCH_HEALTH_TOKEN: z.string().optional(),
