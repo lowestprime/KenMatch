@@ -44,13 +44,13 @@ export function TaskCard({ task }: { task: TaskSummary }) {
         <KenSandboxStrip ken={task} compact />
         <KenTimingStrip ken={task} compact />
         <div className="task-card-callout">
-          <div className="eyebrow">Service version</div>
+          <div className="eyebrow">Who else could use this</div>
           <p className="mt-2 line-clamp-3 text-sm leading-7 text-muted">{task.enterprisePackaging}</p>
         </div>
         <div className="task-card-footer">
           <span className="task-card-footer-meta line-clamp-3">{task.sampleOutcome}</span>
           <Link href={`/kens/${task.slug}`} className="cta-secondary cta-compact">
-            Open Ken
+            View thread
           </Link>
         </div>
       </div>

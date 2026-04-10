@@ -1,8 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { ProposalForm } from "@/components/proposal-form";
 import { getHomeData } from "@/lib/db";
 import { getViewerSession } from "@/lib/session";
+
+export const metadata: Metadata = {
+  title: "Propose a Ken",
+  description: "Submit a new AI project for public review, voting, and checkpointed launch on KenMatch.",
+};
 
 export default async function SubmitPage() {
   const viewer = await getViewerSession();

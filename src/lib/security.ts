@@ -52,29 +52,40 @@ export function turnstileConfigured() {
   return Boolean(env.KENMATCH_TURNSTILE_SECRET_KEY && env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
 }
 
-function assertAllowedHost(context: RequestSecurityContext) {
+export async function logAndRejectAbuse(context: RequestSecurityContext, reason: string): Promise<string> {
+  await logSecurityEvent({
+    eventType: "abuse-rejected",
+    detail: reason,
+    ipAddress: context.ipAddress,
+  });
+  return "Request rejected.";
+}
+
+async function assertAllowedHost(context: RequestSecurityContext) {
   if (!allowedHosts.length || !context.host) {
     return;
   }
 
   if (!allowedHosts.includes(context.host)) {
-    throw new Error("This host is not allowed for this deployment.");
+    throw new Error(await logAndRejectAbuse(context, "Host not in KENMATCH_ALLOWED_HOSTS allowlist."));
   }
 }
 
-function assertSameOrigin(context: RequestSecurityContext) {
-  assertAllowedHost(context);
+async function assertSameOrigin(context: RequestSecurityContext) {
+  await assertAllowedHost(context);
 
   if (context.origin) {
     const trustedOrigin = trustedOriginForHost(context.host, context.forwardedProto);
     if (context.origin.toLowerCase() !== trustedOrigin) {
-      throw new Error("Cross-site form submission was rejected.");
+      throw new Error(await logAndRejectAbuse(context, "Origin did not match trusted origin for host."));
     }
     return;
   }
 
   if (!trustedFetchSites.has(context.secFetchSite)) {
-    throw new Error("Cross-site request was rejected.");
+    throw new Error(
+      await logAndRejectAbuse(context, `Rejected mutation: Sec-Fetch-Site=${context.secFetchSite || "(missing)"}`),
+    );
   }
 }
 
@@ -123,7 +134,7 @@ export async function guardMutationRequest(input: {
   };
 }) {
   const context = await getRequestSecurityContext();
-  assertSameOrigin(context);
+  await assertSameOrigin(context);
 
   const honeypot = String(input.formData.get("website") ?? "").trim();
   if (honeypot) {

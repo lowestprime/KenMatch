@@ -25,11 +25,13 @@ export async function POST(request: Request) {
   }
 
   if (event.type === "checkout.session.completed") {
-    const sessionId = event.data.object.id;
-    await markSponsorshipCheckoutPaid(sessionId);
-    revalidatePath("/");
-    revalidatePath("/kens");
-    revalidatePath("/economics");
+    const session = event.data.object;
+    if (session.payment_status === "paid") {
+      await markSponsorshipCheckoutPaid(session.id);
+      revalidatePath("/");
+      revalidatePath("/kens");
+      revalidatePath("/economics");
+    }
   }
 
   return NextResponse.json({ ok: true });

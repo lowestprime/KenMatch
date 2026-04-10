@@ -22,7 +22,7 @@ export type ReleaseStatus = (typeof releaseStatuses)[number];
 export const pulseDirections = [-1, 1] as const;
 export type PulseDirection = (typeof pulseDirections)[number];
 
-export const revenueEngines = ["enterprise", "data-licensing", "compute-arbitrage", "sponsorship"] as const;
+export const revenueEngines = ["enterprise", "data-licensing", "compute-arbitrage", "sponsorship", "private-lane"] as const;
 export type RevenueEngine = (typeof revenueEngines)[number];
 
 export const revenueStatuses = ["live", "pilot", "planned"] as const;
@@ -39,6 +39,9 @@ export type RestrictionMode = (typeof restrictionModes)[number];
 
 export const restrictionScopes = ["general", "category", "ken", "safety-reserve"] as const;
 export type RestrictionScope = (typeof restrictionScopes)[number];
+
+export const systemRoles = ["contributor", "moderator", "admin"] as const;
+export type SystemRole = (typeof systemRoles)[number];
 
 export const sponsorshipStatuses = ["intake", "checkout", "paid", "released"] as const;
 export type SponsorshipStatus = (typeof sponsorshipStatuses)[number];
@@ -110,6 +113,15 @@ export interface AccountRecord {
   passwordHash: string;
   passwordSalt: string;
   licensingConsent: LicensingConsent;
+  systemRole: SystemRole;
+  emailVerified: boolean;
+  createdAt: string;
+}
+
+export interface BookmarkRecord {
+  id: string;
+  profileId: string;
+  taskId: string;
   createdAt: string;
 }
 
@@ -332,7 +344,7 @@ export interface ProfileSummary extends ProfileRecord {
 }
 
 export interface ViewerSession {
-  account: Pick<AccountRecord, "id" | "email" | "createdAt">;
+  account: Pick<AccountRecord, "id" | "email" | "createdAt" | "systemRole" | "emailVerified">;
   profile: ProfileSummary;
 }
 
@@ -429,11 +441,17 @@ export interface EconomicsSummary {
   sponsorCommitmentsUsd: number;
   safetyReserveUsd: number;
   verifiedFundingStreams: number;
+  governorActive: boolean;
+  adjustedTreasurySharePercent: number;
 }
+
+export const sortOptions = ["pulse", "voice", "recent", "newest"] as const;
+export type SortOption = (typeof sortOptions)[number];
 
 export interface MarketplaceFilters {
   query?: string;
   category?: string;
   tier?: AllocationTier | "all";
   stage?: TaskStage | "all";
+  sort?: SortOption;
 }

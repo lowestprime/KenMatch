@@ -9,10 +9,12 @@ export function AbuseGuardFields({
 }) {
   return (
     <>
-      <label className="sr-only" aria-hidden="true">
-        Leave this field empty
-        <input tabIndex={-1} autoComplete="off" name="website" className="hidden" />
-      </label>
+      <div aria-hidden="true" style={{ position: "absolute", left: "-9999px", opacity: 0, height: 0, overflow: "hidden" }}>
+        <label>
+          Leave this field empty
+          <input tabIndex={-1} autoComplete="off" name="website" />
+        </label>
+      </div>
       <TurnstileWidget siteKey={siteKey} action={action} />
     </>
   );

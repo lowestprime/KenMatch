@@ -1,6 +1,13 @@
+import type { Metadata } from "next";
+
 import { getGovernanceData } from "@/lib/db";
 import { getViewerProfileId } from "@/lib/session";
 import { formatDateTime, labelForTier } from "@/lib/utils";
+
+export const metadata: Metadata = {
+  title: "Governance",
+  description: "Visible review states, checkpoint gates, attestation levels, blocked work, and governance decisions on KenMatch.",
+};
 
 export default async function GovernancePage() {
   const viewerProfileId = await getViewerProfileId();
@@ -55,7 +62,7 @@ export default async function GovernancePage() {
       <section className="section-grid" data-columns="2">
         <div className="panel space-y-4">
           <div className="eyebrow">Recent governance log</div>
-          {governance.map((event) => (
+          {governance.length > 0 ? governance.map((event) => (
             <div key={event.id} className="rounded-[1.3rem] border border-border bg-background/55 p-5">
               <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-[0.22em] text-muted">
                 <span>{event.house.replace("-", " ")}</span>
@@ -65,11 +72,11 @@ export default async function GovernancePage() {
               <p className="mt-2 text-sm leading-7 text-muted">{event.decision}</p>
               <p className="mt-2 text-sm leading-7 text-muted">Outcome: {event.outcome}</p>
             </div>
-          ))}
+          )) : <p className="text-sm text-muted">No governance decisions have been recorded yet.</p>}
         </div>
         <div className="panel space-y-4">
           <div className="eyebrow">Visible blocked Kens</div>
-          {blockedTasks.map((task) => (
+          {blockedTasks.length > 0 ? blockedTasks.map((task) => (
             <div key={task.id} className="rounded-[1.3rem] border border-red-500/30 bg-red-500/10 p-5">
               <div className="flex items-center justify-between gap-3">
                 <div className="font-display text-xl font-semibold text-red-300">{task.title}</div>
@@ -77,7 +84,7 @@ export default async function GovernancePage() {
               </div>
               <p className="mt-2 text-sm leading-7 text-red-100/80">{task.problem}</p>
             </div>
-          ))}
+          )) : <p className="text-sm text-muted">No Kens are currently blocked. Blocked Kens appear here so the safety boundary is always visible.</p>}
         </div>
       </section>
 

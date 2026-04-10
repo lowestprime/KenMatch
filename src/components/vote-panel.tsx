@@ -40,6 +40,10 @@ export function VotePanel({
     syncRefresh();
   }, [state.status]);
 
+  useEffect(() => {
+    setVoteCount(initialVotes);
+  }, [initialVotes]);
+
   return (
     <div className="panel space-y-5">
       <div>

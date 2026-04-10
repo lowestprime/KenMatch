@@ -3,16 +3,17 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useDeferredValue, useEffect, useRef, useState, useTransition } from "react";
 
-function buildTarget(pathname: string, query: string, category: string, tier: string, stage: string) {
+function buildTarget(pathname: string, query: string, category: string, tier: string, stage: string, sort: string) {
   const params = new URLSearchParams();
   if (query) params.set("q", query);
   if (category && category !== "all") params.set("category", category);
   if (tier && tier !== "all") params.set("tier", tier);
   if (stage && stage !== "all") params.set("stage", stage);
+  if (sort && sort !== "pulse") params.set("sort", sort);
   return params.size > 0 ? `${pathname}?${params.toString()}` : pathname;
 }
 
-export function TaskBoardFilters({ initialQuery, initialCategory, initialTier, initialStage, categories }: { initialQuery: string; initialCategory: string; initialTier: string; initialStage: string; categories: Array<{ slug: string; name: string }> }) {
+export function TaskBoardFilters({ initialQuery, initialCategory, initialTier, initialStage, initialSort, categories }: { initialQuery: string; initialCategory: string; initialTier: string; initialStage: string; initialSort: string; categories: Array<{ slug: string; name: string }> }) {
   const router = useRouter();
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
@@ -20,6 +21,7 @@ export function TaskBoardFilters({ initialQuery, initialCategory, initialTier, i
   const [category, setCategory] = useState(initialCategory);
   const [tier, setTier] = useState(initialTier);
   const [stage, setStage] = useState(initialStage);
+  const [sort, setSort] = useState(initialSort);
   const deferredQuery = useDeferredValue(query);
   const skipFirstDeferredSync = useRef(true);
 
@@ -29,9 +31,9 @@ export function TaskBoardFilters({ initialQuery, initialCategory, initialTier, i
       return;
     }
 
-    const target = buildTarget(pathname, deferredQuery.trim(), category, tier, stage);
+    const target = buildTarget(pathname, deferredQuery.trim(), category, tier, stage, sort);
     startTransition(() => router.replace(target));
-  }, [category, deferredQuery, pathname, router, stage, tier]);
+  }, [category, deferredQuery, pathname, router, sort, stage, tier]);
 
   return (
     <section className="panel filters-panel">
@@ -39,11 +41,11 @@ export function TaskBoardFilters({ initialQuery, initialCategory, initialTier, i
         Search Kens
         <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by title, use case, model, sponsor fit, or category" className="field" />
       </label>
-      <FilterSelect label="Category" value={category} onChange={(next) => { setCategory(next); startTransition(() => router.replace(buildTarget(pathname, deferredQuery.trim(), next, tier, stage))); }}>
+      <FilterSelect label="Category" value={category} onChange={(next) => { setCategory(next); startTransition(() => router.replace(buildTarget(pathname, query.trim(), next, tier, stage, sort))); }}>
         <option value="all">All categories</option>
         {categories.map((categoryOption) => <option key={categoryOption.slug} value={categoryOption.slug}>{categoryOption.name}</option>)}
       </FilterSelect>
-      <FilterSelect label="Lane" value={tier} onChange={(next) => { setTier(next); startTransition(() => router.replace(buildTarget(pathname, deferredQuery.trim(), category, next, stage))); }}>
+      <FilterSelect label="Lane" value={tier} onChange={(next) => { setTier(next); startTransition(() => router.replace(buildTarget(pathname, query.trim(), category, next, stage, sort))); }}>
         <option value="all">All lanes</option>
         <option value="months">Months</option>
         <option value="weeks">Weeks</option>
@@ -51,7 +53,7 @@ export function TaskBoardFilters({ initialQuery, initialCategory, initialTier, i
         <option value="queued">Queued</option>
         <option value="blocked">Blocked</option>
       </FilterSelect>
-      <FilterSelect label="Status" value={stage} onChange={(next) => { setStage(next); startTransition(() => router.replace(buildTarget(pathname, deferredQuery.trim(), category, tier, next))); }}>
+      <FilterSelect label="Status" value={stage} onChange={(next) => { setStage(next); startTransition(() => router.replace(buildTarget(pathname, query.trim(), category, tier, next, sort))); }}>
         <option value="all">All statuses</option>
         <option value="review">Review</option>
         <option value="voting">Voting</option>
@@ -59,6 +61,12 @@ export function TaskBoardFilters({ initialQuery, initialCategory, initialTier, i
         <option value="running">Running</option>
         <option value="shipped">Shipped</option>
         <option value="blocked">Blocked</option>
+      </FilterSelect>
+      <FilterSelect label="Sort" value={sort} onChange={(next) => { setSort(next); startTransition(() => router.replace(buildTarget(pathname, query.trim(), category, tier, stage, next))); }}>
+        <option value="pulse">Pulse (default)</option>
+        <option value="voice">Voice</option>
+        <option value="recent">Recent activity</option>
+        <option value="newest">Newest first</option>
       </FilterSelect>
       <div className="pb-2 text-xs uppercase tracking-[0.22em] text-muted">{isPending ? "Refreshing" : "Live"}</div>
     </section>
