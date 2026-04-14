@@ -4,6 +4,8 @@
 
 KenMatch is a public board for proposing, ranking, funding, launching, and auditing long-running AI work. Each unit of work is called a ***Ken***. A Ken can be an open tool, a civic workflow, a scientific evidence map, a repair assistant, or a creative service that benefits from sustained compute, checkpoints, public feedback, and visible funding.
 
+## Simulation
+
 [kmat.ch](kmat.ch)
 
 ## Mission and Background
