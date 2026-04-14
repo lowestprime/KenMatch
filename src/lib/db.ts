@@ -9,6 +9,7 @@ import {
 import { existsSync,
   mkdirSync } from "node:fs";
 import { dirname,
+  isAbsolute,
   join } from "node:path";
 
 import { createClient,
@@ -83,7 +84,9 @@ import type {
 
 type DbRow = Record<string, Value>;
 
-const databaseFilePath = join(process.cwd(), env.KENMATCH_DB_FILE);
+const databaseFilePath = isAbsolute(env.KENMATCH_DB_FILE)
+  ? env.KENMATCH_DB_FILE
+  : join(process.cwd(), env.KENMATCH_DB_FILE);
 const databaseUrl = env.DATABASE_URL?.trim() || `file:${databaseFilePath.replace(/\\/g, "/")}`;
 
 const tierDefaults = {

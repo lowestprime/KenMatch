@@ -17,6 +17,7 @@ declare global {
           "error-callback"?: () => void;
         },
       ) => string;
+      reset?: (widgetId: string) => void;
       remove?: (widgetId: string) => void;
     };
   }
@@ -56,6 +57,9 @@ export function TurnstileWidget({
         "expired-callback": () => {
           if (inputRef.current) {
             inputRef.current.value = "";
+          }
+          if (widgetRef.current && window.turnstile?.reset) {
+            window.turnstile.reset(widgetRef.current);
           }
         },
         "error-callback": () => {

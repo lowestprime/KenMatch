@@ -15,6 +15,8 @@ export default async function AuthPage() {
     redirect("/");
   }
 
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       <section className="panel space-y-4">
@@ -24,7 +26,7 @@ export default async function AuthPage() {
           Create an account to vote on projects, join discussions, propose new ideas, and back the work you believe in.
         </p>
       </section>
-      <AuthPanels />
+      <AuthPanels turnstileSiteKey={turnstileSiteKey} />
     </div>
   );
 }
