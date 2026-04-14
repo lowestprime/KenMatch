@@ -269,9 +269,7 @@ Legacy `/tasks` routes now redirect to `/kens` routes.
 
 ## Learn More
 
-### 1. [KenMatch\_Conception.md](./KenMatch_Conception.md)
-
-### 2. [KenMatch\_DeepWiki.md](./KenMatch_DeepWiki.md)
+[KenMatch\_Conception.md](./KenMatch_Conception.md)
 
 ## References
 
