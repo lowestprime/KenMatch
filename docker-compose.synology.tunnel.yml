@@ -3,6 +3,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_TURNSTILE_SITE_KEY: ${NEXT_PUBLIC_TURNSTILE_SITE_KEY}
     container_name: kenmatch-demo
     init: true
     restart: unless-stopped
@@ -15,14 +17,14 @@ services:
       NODE_ENV: production
       HOSTNAME: 0.0.0.0
       PORT: 3000
+      TMPDIR: /tmp
     read_only: true
     tmpfs:
-      - /tmp:size=64m,noexec,nosuid
+      - /tmp:size=64m,noexec,nosuid,nodev
     security_opt:
       - no-new-privileges:true
     cap_drop:
       - ALL
-    pids_limit: 256
     volumes:
       - ./data:/app/data
     healthcheck:

@@ -6,12 +6,15 @@ import { initialActionState } from "@/app/action-state";
 import { signInAction, signUpAction } from "@/app/actions";
 import { AbuseGuardFields } from "@/components/abuse-guard-fields";
 
-export function AuthPanels() {
+export function AuthPanels({
+  turnstileSiteKey,
+}: {
+  turnstileSiteKey?: string;
+}) {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [signInState, signInFormAction, signInPending] = useActionState(signInAction, initialActionState);
   const [signUpState, signUpFormAction, signUpPending] = useActionState(signUpAction, initialActionState);
   const state = mode === "signin" ? signInState : signUpState;
-  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
   return (
     <div className="panel space-y-6">
@@ -100,4 +103,3 @@ function Field({
     </label>
   );
 }
-

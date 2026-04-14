@@ -67,7 +67,7 @@ Minimal public-ready example:
 ```env
 DATABASE_URL=
 DATABASE_AUTH_TOKEN=
-KENMATCH_DB_FILE=/app/data/kenmatch.sqlite
+KENMATCH_DB_FILE=data/kenmatch.sqlite
 KENMATCH_SESSION_COOKIE=kenmatch-session
 KENMATCH_SESSION_DAYS=30
 KENMATCH_ALLOW_SIGNUPS=true
