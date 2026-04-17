@@ -6,7 +6,7 @@ KenMatch is a public board for proposing, ranking, funding, launching, and audit
 
 ## Simulation
 
-[kmat.ch](kmat.ch)
+[kmat.ch](https://kmat.ch)
 
 ## Mission and Background
 
