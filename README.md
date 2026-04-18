@@ -6,7 +6,7 @@
 </div>
 
 <h1 align="center">
-  KenMatch
+  <a href="https://kmat.ch">KenMatch</a>
   <br />
   <a href="https://deepwiki.com/lowestprime/KenMatch">
     <img src="https://badgen.net/badge/KenMatch/DeepWiki/800000?labelColor=000000&icon=https://raw.githubusercontent.com/lowestprime/KenMatch/refs/heads/main/public/icon.svg" alt="KenMatch DeepWiki" />
