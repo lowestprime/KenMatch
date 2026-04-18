@@ -15,10 +15,6 @@
 
 KenMatch is a public board for proposing, ranking, funding, launching, and auditing long-running AI work. Each unit of work is called a ***Ken***. A Ken can be an open tool, a civic workflow, a scientific evidence map, a repair assistant, or a creative service that benefits from sustained compute, checkpoints, public feedback, and visible funding.
 
-## 🌐 Website
-
-[kmat.ch](https://kmat.ch)
-
 ## 🎯 Mission and Background
 
 KenMatch is built around a simple idea: everyone should have a public, legible opportunity to decide which long-horizon AI projects receive time, review, and funding, ***without*** relying on wealth as the allocator. ([1](https://deepmind.google/models/model-cards/gemini-3-1-pro/))([2](https://developers.openai.com/api/docs/models/gpt-5.4))([12](https://openai.com/index/introducing-gpt-5-4/))([5](https://platform.claude.com/docs/en/about-claude/models/overview))([3](https://www.anthropic.com/news/claude-opus-4-6))([4](https://x.ai/api))
