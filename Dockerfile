@@ -30,6 +30,10 @@ COPY --from=builder --chown=kenmatch:kenmatch /app/node_modules/libsql ./node_mo
 COPY --from=builder --chown=kenmatch:kenmatch /app/node_modules/@libsql ./node_modules/@libsql
 COPY --from=builder --chown=kenmatch:kenmatch /app/node_modules/@neon-rs ./node_modules/@neon-rs
 
+COPY --from=builder --chown=kenmatch:kenmatch /app/node_modules/libsql ./node_modules/libsql
+COPY --from=builder --chown=kenmatch:kenmatch /app/node_modules/@libsql ./node_modules/@libsql
+COPY --from=builder --chown=kenmatch:kenmatch /app/node_modules/@neon-rs ./node_modules/@neon-rs
+
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --retries=5 --start-period=30s \
   CMD node -e "fetch('http://127.0.0.1:3000/api/health').then(r=>{if(!r.ok)throw r.status}).catch(()=>process.exit(1))"
