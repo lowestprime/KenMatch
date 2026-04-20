@@ -1,0 +1,13 @@
+{
+  "name": "KenMatch",
+  "short_name": "KenMatch",
+  "description": "Transparent allocation of frontier AI compute via quadratic voting, proof-of-value credits, and open checkpoints.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#0d7d74",
+  "icons": [
+    { "src": "/icon.svg", "type": "image/svg+xml", "sizes": "any" },
+    { "src": "/apple-touch-icon.svg", "type": "image/svg+xml", "sizes": "180x180" }
+  ]
+}

@@ -1,37 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-const themes = [
-  { value: "light", label: "Light" },
-  { value: "dark", label: "Dark" },
-  { value: "oled", label: "OLED" },
-] as const;
+type ThemeValue = "light" | "oled";
 
-type ThemeValue = (typeof themes)[number]["value"];
-
-function isThemeValue(value: string | null): value is ThemeValue {
-  return value === "light" || value === "dark" || value === "oled";
+function normalize(value: string | null): ThemeValue {
+  if (value === "light") return "light";
+  return "oled";
 }
 
 function getInitialTheme(): ThemeValue {
   if (typeof document !== "undefined") {
     const current = document.documentElement.dataset.theme ?? null;
-    if (isThemeValue(current ?? null)) {
-      return current as ThemeValue;
-    }
+    if (current === "light") return "light";
+    if (current === "oled" || current === "dark") return "oled";
   }
-
   if (typeof window !== "undefined") {
     const stored = window.localStorage.getItem("kenmatch-theme");
-    if (isThemeValue(stored)) {
-      return stored;
-    }
-    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      return "dark";
-    }
+    if (stored) return normalize(stored);
+    if (window.matchMedia("(prefers-color-scheme: dark)").matches) return "oled";
   }
-
   return "light";
 }
 
@@ -43,26 +31,43 @@ function applyTheme(theme: ThemeValue) {
 
 export function ThemeToggle() {
   const [theme, setTheme] = useState<ThemeValue>(getInitialTheme);
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     applyTheme(theme);
+    if (buttonRef.current) {
+      buttonRef.current.dataset.theme = theme;
+    }
   }, [theme]);
 
+  const next: ThemeValue = theme === "light" ? "oled" : "light";
+  const label = theme === "light" ? "Switch to OLED theme" : "Switch to Light theme";
+
   return (
-    <div className="theme-toggle" role="group" aria-label="Theme toggle">
-      {themes.map((option) => (
-        <button
-          key={option.value}
-          type="button"
-          className={theme === option.value ? "is-active" : ""}
-          onClick={() => setTheme(option.value)}
-          aria-pressed={theme === option.value}
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
+    <button
+      type="button"
+      ref={buttonRef}
+      className="theme-toggle"
+      aria-label={label}
+      aria-pressed={theme === "oled"}
+      onClick={() => setTheme(next)}
+    >
+      <span className="theme-toggle-track-labels" aria-hidden="true">
+        <span>Light</span>
+        <span>OLED</span>
+      </span>
+      <span className="theme-toggle-thumb" aria-hidden="true">
+        {theme === "light" ? (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="4" fill="currentColor" stroke="none" />
+            <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.4 5.4l1.4 1.4M17.2 17.2l1.4 1.4M5.4 18.6l1.4-1.4M17.2 6.8l1.4-1.4" />
+          </svg>
+        ) : (
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M20 14.5A8 8 0 1 1 9.5 4 7 7 0 0 0 20 14.5z" />
+          </svg>
+        )}
+      </span>
+    </button>
   );
 }
-
-

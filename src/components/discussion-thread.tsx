@@ -1,12 +1,31 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { useActionState, useMemo, useState } from "react";
 
 import { initialActionState } from "@/app/action-state";
 import { createCommentAction, saveCommentVoteAction } from "@/app/actions";
+import { Avatar } from "@/components/avatar";
 import type { DiscussionComment } from "@/lib/types";
 import { describeRelativeTime, formatDateTime } from "@/lib/utils";
+
+type SortMode = "top" | "new" | "controversial";
+
+function sortComments(comments: DiscussionComment[], mode: SortMode): DiscussionComment[] {
+  const sorted = [...comments];
+  if (mode === "top") {
+    sorted.sort((a, b) => b.score - a.score || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  } else if (mode === "new") {
+    sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  } else {
+    sorted.sort((a, b) => b.upvotes + b.downvotes - (a.upvotes + a.downvotes));
+  }
+  return sorted.map((comment) => ({ ...comment, replies: sortComments(comment.replies, mode) }));
+}
+
+function countAllComments(comments: DiscussionComment[]): number {
+  return comments.reduce((total, comment) => total + 1 + countAllComments(comment.replies), 0);
+}
 
 export function DiscussionThread({
   taskId,
@@ -21,18 +40,51 @@ export function DiscussionThread({
   disabled?: boolean;
   disabledMessage?: string;
 }) {
+  const [sort, setSort] = useState<SortMode>("top");
+  const sorted = useMemo(() => sortComments(comments, sort), [comments, sort]);
+  const totalCount = useMemo(() => countAllComments(comments), [comments]);
+
   return (
-    <div className="panel space-y-6">
-      <div>
-        <div className="eyebrow">Discussion</div>
-        <h2 className="mt-2 font-display text-2xl font-semibold text-foreground">Community notes, critiques, and replies</h2>
-        <p className="mt-2 text-sm leading-7 text-muted">
-          Keep comments specific and plainspoken. The strongest posts add a correction, a real-world use case, a missing risk, or a better success bar.
-        </p>
+    <div className="panel grid gap-4">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <span className="eyebrow">Discussion</span>
+          <h2>{totalCount} comment{totalCount === 1 ? "" : "s"}</h2>
+          <p style={{ color: "var(--muted)", fontSize: "0.88rem", marginTop: "0.25rem" }}>
+            Keep comments specific and plainspoken. The strongest posts add a correction, use case, missing risk, or better success bar.
+          </p>
+        </div>
+        <div className="auth-switcher">
+          {(["top", "new", "controversial"] as SortMode[]).map((mode) => (
+            <button
+              key={mode}
+              type="button"
+              className={mode === sort ? "is-active" : ""}
+              onClick={() => setSort(mode)}
+            >
+              {mode[0].toUpperCase() + mode.slice(1)}
+            </button>
+          ))}
+        </div>
       </div>
       <CommentComposer taskId={taskId} slug={slug} disabled={disabled} disabledMessage={disabledMessage} />
-      <div className="space-y-4">
-        {comments.length > 0 ? comments.map((comment) => <CommentNode key={comment.id} comment={comment} slug={slug} disabled={disabled} disabledMessage={disabledMessage} />) : <p className="text-sm text-muted">No public comments yet.</p>}
+      <div className="comment-tree">
+        {sorted.length > 0 ? (
+          sorted.map((comment) => (
+            <CommentNode
+              key={comment.id}
+              comment={comment}
+              slug={slug}
+              disabled={disabled}
+              disabledMessage={disabledMessage}
+              depth={0}
+            />
+          ))
+        ) : (
+          <p className="text-sm" style={{ color: "var(--muted)" }}>
+            No public comments yet. Start the conversation.
+          </p>
+        )}
       </div>
     </div>
   );
@@ -44,16 +96,21 @@ function CommentComposer({
   parentId,
   disabled,
   disabledMessage,
+  onSuccess,
 }: {
   taskId: string;
   slug: string;
   parentId?: string;
   disabled?: boolean;
   disabledMessage?: string;
+  onSuccess?: () => void;
 }) {
   const [state, action, isPending] = useActionState(createCommentAction, initialActionState);
+  if (state.status === "success" && onSuccess) {
+    queueMicrotask(onSuccess);
+  }
   return (
-    <form action={action} className="grid gap-3 rounded-[1.35rem] border border-border bg-panel/80 p-4">
+    <form action={action} className="form-grid" style={{ background: "color-mix(in srgb, var(--panel-strong) 60%, transparent)", padding: "0.9rem", borderRadius: "1.1rem", border: "1px solid var(--line)" }}>
       <input type="hidden" name="taskId" value={taskId} />
       <input type="hidden" name="slug" value={slug} />
       {parentId ? <input type="hidden" name="parentId" value={parentId} /> : null}
@@ -61,24 +118,30 @@ function CommentComposer({
         name="body"
         rows={parentId ? 3 : 4}
         className="field"
-        placeholder={parentId ? "Add a reply with a concrete correction, concern, or improvement." : "Add a comment about what makes this useful, risky, confusing, or worth backing."}
+        placeholder={
+          parentId
+            ? "Add a reply with a concrete correction, concern, or improvement."
+            : "Add a comment about what makes this useful, risky, confusing, or worth backing."
+        }
         disabled={disabled || isPending}
       />
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <label className="text-xs uppercase tracking-[0.22em] text-muted">
-          Comment stake
-          <select name="stakeCredits" className="field mt-2 max-w-28" defaultValue="1" disabled={disabled || isPending}>
+        <label className="field-label" style={{ width: "auto", flexDirection: "row", alignItems: "center", gap: "0.5rem" }}>
+          <span>Stake</span>
+          <select name="stakeCredits" className="field" defaultValue="1" disabled={disabled || isPending} style={{ width: "auto" }}>
             <option value="1">1 credit</option>
             <option value="2">2 credits</option>
             <option value="3">3 credits</option>
           </select>
         </label>
-        <button type="submit" className="cta-secondary" disabled={disabled || isPending}>
-          {isPending ? "Posting" : parentId ? "Reply" : "Post comment"}
+        <button type="submit" className="cta-primary cta-compact" disabled={disabled || isPending}>
+          {isPending ? "Posting…" : parentId ? "Post reply" : "Post comment"}
         </button>
       </div>
-      {disabled ? <p className="text-sm text-muted">{disabledMessage ?? "Sign in to comment on this Ken."}</p> : null}
-      {state.message ? <p className={`text-sm ${state.status === "error" ? "text-red-500" : "text-teal"}`}>{state.message}</p> : null}
+      {disabled ? <p className="text-sm" style={{ color: "var(--muted)" }}>{disabledMessage ?? "Sign in to comment on this Ken."}</p> : null}
+      {state.message ? (
+        <p className={`alert ${state.status === "error" ? "alert-error" : "alert-success"}`}>{state.message}</p>
+      ) : null}
     </form>
   );
 }
@@ -88,62 +151,143 @@ function CommentNode({
   slug,
   disabled,
   disabledMessage,
+  depth,
 }: {
   comment: DiscussionComment;
   slug: string;
   disabled?: boolean;
   disabledMessage?: string;
+  depth: number;
 }) {
   const [replying, setReplying] = useState(false);
-  const [state, action, isPending] = useActionState(saveCommentVoteAction, initialActionState);
-
-  const voteFormId = `comment-vote-${comment.id}`;
+  const [collapsed, setCollapsed] = useState(false);
+  const [voteState, voteAction, votePending] = useActionState(saveCommentVoteAction, initialActionState);
+  const systemRole = comment.profileSystemRole ?? "contributor";
+  const badgeClass =
+    systemRole === "owner"
+      ? "comment-author-badge is-owner"
+      : systemRole === "admin"
+        ? "comment-author-badge is-admin"
+        : systemRole === "moderator"
+          ? "comment-author-badge is-moderator"
+          : null;
 
   return (
-    <article className="comment-card">
-      <form action={action} id={voteFormId} className="hidden">
+    <article className={`comment-card${collapsed ? " is-collapsed" : ""}`}>
+      <form action={voteAction} className="comment-shell">
         <input type="hidden" name="commentId" value={comment.id} />
         <input type="hidden" name="slug" value={slug} />
-      </form>
-      <div className="comment-shell">
         <div className="comment-vote-rail">
-          <button type="submit" form={voteFormId} name="value" value={String(comment.userVote === 1 ? 0 : 1)} className={`comment-vote-button ${comment.userVote === 1 ? "is-active" : ""}`} disabled={disabled || isPending} aria-label="Upvote comment">
+          <button
+            type="submit"
+            name="value"
+            value={String(comment.userVote === 1 ? 0 : 1)}
+            className={`comment-vote-button ${comment.userVote === 1 ? "is-active" : ""}`}
+            disabled={disabled || votePending}
+            aria-label={comment.userVote === 1 ? "Remove upvote" : "Upvote comment"}
+            title="Upvote"
+          >
             ▲
           </button>
           <span className="comment-score">{comment.score}</span>
-          <button type="submit" form={voteFormId} name="value" value={String(comment.userVote === -1 ? 0 : -1)} className={`comment-vote-button ${comment.userVote === -1 ? "is-active" : ""}`} disabled={disabled || isPending} aria-label="Downvote comment">
+          <button
+            type="submit"
+            name="value"
+            value={String(comment.userVote === -1 ? 0 : -1)}
+            className={`comment-vote-button ${comment.userVote === -1 ? "is-active" : ""}`}
+            disabled={disabled || votePending}
+            aria-label={comment.userVote === -1 ? "Remove downvote" : "Downvote comment"}
+            title="Downvote"
+          >
             ▼
           </button>
         </div>
         <div className="comment-content">
-          <div className="comment-topline">
-            <Link href={`/profiles/${comment.profileId}`} className="comment-author comment-author-link">{comment.profileName}</Link>
-            <span>{comment.profileRole}</span>
-            <span>{describeRelativeTime(comment.createdAt)}</span>
-            <span title={formatDateTime(comment.createdAt)}>{formatDateTime(comment.createdAt)}</span>
-          </div>
-          <p className="mt-3 text-sm leading-7 text-muted">{comment.body}</p>
-          <div className="comment-toolbar">
-            <span className="tag">Stake {comment.stakeCredits}</span>
-            <span className="text-muted">▲ {comment.upvotes}</span>
-            <span className="text-muted">▼ {comment.downvotes}</span>
-            <button type="button" className="comment-reply-link" onClick={() => setReplying((value) => !value)} disabled={disabled}>
-              {replying ? "Cancel" : "Reply"}
+          <header className="comment-topline">
+            <button
+              type="button"
+              onClick={(event) => {
+                event.preventDefault();
+                setCollapsed((value) => !value);
+              }}
+              className="comment-collapse-button"
+              aria-expanded={!collapsed}
+              title={collapsed ? "Expand thread" : "Collapse thread"}
+            >
+              {collapsed ? "[+]" : "[−]"}
             </button>
-          </div>
+            <Avatar
+              profile={{
+                name: comment.profileName,
+                hue: comment.avatarHue,
+                avatarImage: comment.avatarImage,
+              }}
+              size={26}
+            />
+            <Link href={`/people/${comment.profileId}`} className="comment-author">
+              {comment.profileName}
+            </Link>
+            {badgeClass ? <span className={badgeClass}>{systemRole}</span> : null}
+            <span>· {comment.profileRole}</span>
+            <span>· {describeRelativeTime(comment.createdAt)}</span>
+            <span title={formatDateTime(comment.createdAt)} className="text-xs">
+              · {formatDateTime(comment.createdAt)}
+            </span>
+          </header>
+          {!collapsed ? (
+            <>
+              <p className="mt-2" style={{ color: "var(--ink)", fontSize: "0.95rem", lineHeight: 1.6 }}>
+                {comment.body}
+              </p>
+              <div className="comment-toolbar">
+                <span className="tag">Stake {comment.stakeCredits}</span>
+                <span>▲ {comment.upvotes}</span>
+                <span>▼ {comment.downvotes}</span>
+                <button
+                  type="button"
+                  className="comment-reply-link"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    setReplying((value) => !value);
+                  }}
+                  disabled={disabled}
+                >
+                  {replying ? "Cancel" : "Reply"}
+                </button>
+              </div>
+            </>
+          ) : null}
         </div>
-      </div>
-      {disabled && !replying ? <p className="mt-2 text-sm text-muted">{disabledMessage ?? "Sign in to interact with comments."}</p> : null}
-      {state.message ? <p className={`mt-2 text-sm ${state.status === "error" ? "text-red-500" : "text-teal"}`}>{state.message}</p> : null}
-      {replying ? <div className="mt-4"><CommentComposer taskId={comment.taskId} slug={slug} parentId={comment.id} disabled={disabled} disabledMessage={disabledMessage} /></div> : null}
-      {comment.replies.length > 0 ? (
-        <div className="mt-4 space-y-4 border-l border-border pl-4">
+      </form>
+      {!collapsed && voteState.message ? (
+        <p className={`alert ${voteState.status === "error" ? "alert-error" : "alert-success"} mt-2`}>{voteState.message}</p>
+      ) : null}
+      {!collapsed && replying ? (
+        <div style={{ marginTop: "0.7rem" }}>
+          <CommentComposer
+            taskId={comment.taskId}
+            slug={slug}
+            parentId={comment.id}
+            disabled={disabled}
+            disabledMessage={disabledMessage}
+            onSuccess={() => setReplying(false)}
+          />
+        </div>
+      ) : null}
+      {!collapsed && comment.replies.length > 0 ? (
+        <div className={`comment-replies is-depth-${Math.min(4, depth + 1)}`}>
           {comment.replies.map((reply) => (
-            <CommentNode key={reply.id} comment={reply} slug={slug} disabled={disabled} disabledMessage={disabledMessage} />
+            <CommentNode
+              key={reply.id}
+              comment={reply}
+              slug={slug}
+              disabled={disabled}
+              disabledMessage={disabledMessage}
+              depth={depth + 1}
+            />
           ))}
         </div>
       ) : null}
     </article>
   );
 }
-

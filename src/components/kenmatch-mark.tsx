@@ -1,19 +1,40 @@
-export function KenMatchMark({ className = "" }: { className?: string }) {
+export function KenMatchMark({
+  className = "",
+  variant = "auto",
+}: {
+  className?: string;
+  variant?: "auto" | "light" | "dark" | "oled";
+}) {
+  const foregroundSelector = variant === "auto" ? "kenmatch-k-auto" : `kenmatch-k-${variant}`;
   return (
     <svg viewBox="0 0 72 72" aria-hidden="true" className={className}>
       <defs>
-        <linearGradient id="kenmatch-mark-gradient" x1="12" y1="10" x2="60" y2="62" gradientUnits="userSpaceOnUse">
+        <linearGradient id="kenmatch-mark-gradient" x1="8" y1="8" x2="64" y2="64" gradientUnits="userSpaceOnUse">
           <stop offset="0" stopColor="var(--accent-strong)" />
-          <stop offset="0.5" stopColor="var(--accent-glow)" />
+          <stop offset="0.55" stopColor="var(--accent-glow)" />
           <stop offset="1" stopColor="var(--accent-warm)" />
         </linearGradient>
+        <filter id="kenmatch-glow" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="1.2" />
+        </filter>
       </defs>
-      <rect x="6" y="6" width="60" height="60" rx="20" fill="url(#kenmatch-mark-gradient)" />
-      <path d="M22 17v38h8V41l12 14h10L39 39l13-22H42L30 35V17z" fill="white" />
-      <path d="M43 20l13 14-13 18" fill="none" stroke="rgba(255,255,255,0.82)" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="56" cy="17" r="5" fill="rgba(255,255,255,0.96)" />
-      <circle cx="56" cy="34" r="5" fill="rgba(255,255,255,0.88)" />
-      <circle cx="56" cy="52" r="5" fill="rgba(255,255,255,0.76)" />
+      <rect
+        x="4"
+        y="4"
+        width="64"
+        height="64"
+        rx="18"
+        fill="url(#kenmatch-mark-gradient)"
+      />
+      <g className={foregroundSelector}>
+        <path
+          d="M24 19v34h6.5V41.2l11.2 11.8H50L35.5 37.5 49 20h-8.5L30.5 33V19z"
+          fill="white"
+        />
+        <circle cx="54" cy="20" r="3.6" fill="white" fillOpacity="0.94" />
+        <circle cx="54" cy="36" r="3.6" fill="white" fillOpacity="0.8" />
+        <circle cx="54" cy="52" r="3.6" fill="white" fillOpacity="0.66" />
+      </g>
     </svg>
   );
 }

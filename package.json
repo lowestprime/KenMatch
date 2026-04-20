@@ -9,11 +9,12 @@
     "start": "node .next/standalone/server.js",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test --test-isolation=none tests/**/*.test.ts"
+    "test": "node --experimental-strip-types --test --experimental-test-isolation=none tests/**/*.test.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.17.0",
     "next": "^16.1.0",
+    "nodemailer": "^8.0.5",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "stripe": "^22.0.1",
@@ -22,6 +23,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.14",
     "@types/node": "^24.9.1",
+    "@types/nodemailer": "^8.0.0",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
     "eslint": "^9.39.1",

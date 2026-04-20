@@ -1,41 +1,148 @@
-import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { AccountSettingsPanels } from "@/components/account-settings-panels";
 import { Avatar } from "@/components/avatar";
+import { ProfileEditor } from "@/components/profile-editor";
+import { VerificationPanel } from "@/components/verification-panel";
+import { getProfilePageData } from "@/lib/db";
 import { getViewerSession } from "@/lib/session";
-import { formatDateTime } from "@/lib/utils";
 
-export const metadata: Metadata = {
-  title: "Account settings",
-  description: "Manage your KenMatch profile, password, and account preferences.",
-};
+export const metadata = { title: "Account" };
 
 export default async function AccountPage() {
   const viewer = await getViewerSession();
-  if (!viewer) {
-    redirect("/auth");
-  }
+  if (!viewer) redirect("/auth");
+  const data = await getProfilePageData(viewer.profile.id);
+  if (!data) redirect("/auth");
+
+  const { summary } = data;
+  if (!summary) redirect("/auth");
 
   return (
     <div className="page-stack">
-      <section className="panel hero-panel card-sheen space-y-6">
-        <div className="flex items-center gap-5">
-          <Avatar name={viewer.profile.name} hue={viewer.profile.avatarHue} size={64} />
+      <section className="panel hero-panel">
+        <div className="profile-hero">
+          <Avatar profile={summary} size={84} />
           <div>
-            <div className="eyebrow">Account settings</div>
-            <h1 className="font-display text-3xl font-semibold text-foreground">{viewer.profile.name}</h1>
-            <p className="text-sm text-muted">{viewer.profile.role} · {viewer.profile.specialty}</p>
+            <span className="eyebrow">Your account</span>
+            <h1>{summary.name}</h1>
+            <div className="profile-hero-meta">
+              <span className="role-badge is-{viewer.account.systemRole}">{viewer.account.systemRole}</span>
+              <span>· {summary.specialty}</span>
+              {summary.location ? <span>· {summary.location}</span> : null}
+              <span>· {viewer.account.emailVerified ? "Email verified" : "Email unverified"}</span>
+            </div>
+            <p style={{ color: "var(--ink-muted)", marginTop: "0.4rem" }}>{summary.bio}</p>
           </div>
         </div>
-        <div className="metric-grid">
-          <div className="metric-card"><div className="eyebrow">Email</div><div className="mt-2 text-sm font-semibold text-foreground break-all">{viewer.account.email}</div></div>
-          <div className="metric-card"><div className="eyebrow">Role</div><div className="mt-2 text-sm font-semibold text-foreground capitalize">{viewer.account.systemRole}</div></div>
-          <div className="metric-card"><div className="eyebrow">Status</div><div className="mt-2 text-sm font-semibold text-foreground">{viewer.account.emailVerified ? "Verified" : "Unverified"}</div></div>
-          <div className="metric-card"><div className="eyebrow">Member since</div><div className="mt-2 text-sm font-semibold text-foreground">{formatDateTime(viewer.account.createdAt)}</div></div>
+      </section>
+
+      <section className="section-grid" data-columns="2">
+        <div className="panel grid gap-3">
+          <span className="eyebrow">Profile</span>
+          <h2>Identity & presence</h2>
+          <p style={{ color: "var(--muted)" }}>
+            Update the profile other contributors see across KenMatch. Avatars default to a colored gradient from your brand mark, or you can upload a custom image.
+          </p>
+          <ProfileEditor
+            initial={{
+              name: summary.name,
+              role: summary.role,
+              specialty: summary.specialty,
+              bio: summary.bio,
+              location: summary.location,
+              pronouns: summary.pronouns,
+              avatarImage: summary.avatarImage,
+              avatarGradient: summary.avatarGradient,
+              links: summary.links,
+            }}
+          />
+        </div>
+        <div className="panel grid gap-3">
+          <span className="eyebrow">Security</span>
+          <h2>Email, password, sessions</h2>
+          <p style={{ color: "var(--muted)" }}>
+            Manage credentials and verification from here. All actions are written to the audit log.
+          </p>
+          <dl className="grid gap-2 text-sm">
+            <div className="stat-card">
+              <dt>Email</dt>
+              <dd>{viewer.account.email}</dd>
+            </div>
+            <div className="stat-card">
+              <dt>Email verified</dt>
+              <dd>{viewer.account.emailVerified ? "Yes" : "No"}</dd>
+            </div>
+            <div className="stat-card">
+              <dt>Licensing consent</dt>
+              <dd>{viewer.account.licensingConsent}</dd>
+            </div>
+            <div className="stat-card">
+              <dt>System role</dt>
+              <dd>{viewer.account.systemRole}</dd>
+            </div>
+          </dl>
+          <div className="hero-actions">
+            <Link className="cta-secondary cta-compact" href="/forgot-password">
+              Change password
+            </Link>
+            {!viewer.account.emailVerified ? (
+              <Link className="cta-secondary cta-compact" href="/auth">
+                Resend verification email
+              </Link>
+            ) : null}
+          </div>
         </div>
       </section>
-      <AccountSettingsPanels viewer={viewer} />
+
+      <section className="panel grid gap-3">
+        <VerificationPanel
+          status={summary.verificationStatus}
+          note={summary.verificationNote}
+          requestedAt={summary.verificationRequestedAt}
+        />
+      </section>
+
+      <section className="section-grid" data-columns="2">
+        <div className="panel grid gap-3">
+          <h2>My Kens</h2>
+          {data.ownTasks.length === 0 ? (
+            <p style={{ color: "var(--muted)" }}>
+              You haven&apos;t submitted a Ken yet. <Link href="/submit" className="underline">Submit one</Link>.
+            </p>
+          ) : (
+            <ul className="grid gap-2">
+              {data.ownTasks.map((task) => (
+                <li key={task.id} className="audit-card">
+                  <Link href={`/kens/${task.slug}`} className="font-display">
+                    <strong>{task.title}</strong>
+                  </Link>
+                  <p style={{ color: "var(--muted)" }}>{task.summary}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+        <div className="panel grid gap-3">
+          <h2>Bookmarks</h2>
+          {data.bookmarkedTasks.length === 0 ? (
+            <p style={{ color: "var(--muted)" }}>
+              Use the bookmark action on any Ken detail page to save it here.
+            </p>
+          ) : (
+            <ul className="grid gap-2">
+              {data.bookmarkedTasks.map((task) => (
+                <li key={task.id} className="audit-card">
+                  <Link href={`/kens/${task.slug}`} className="font-display">
+                    <strong>{task.title}</strong>
+                  </Link>
+                  <p style={{ color: "var(--muted)" }}>{task.summary}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </section>
     </div>
   );
 }

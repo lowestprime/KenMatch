@@ -22,7 +22,7 @@ export type ReleaseStatus = (typeof releaseStatuses)[number];
 export const pulseDirections = [-1, 1] as const;
 export type PulseDirection = (typeof pulseDirections)[number];
 
-export const revenueEngines = ["enterprise", "data-licensing", "compute-arbitrage", "sponsorship", "private-lane"] as const;
+export const revenueEngines = ["enterprise", "data-licensing", "compute-arbitrage", "sponsorship"] as const;
 export type RevenueEngine = (typeof revenueEngines)[number];
 
 export const revenueStatuses = ["live", "pilot", "planned"] as const;
@@ -39,9 +39,6 @@ export type RestrictionMode = (typeof restrictionModes)[number];
 
 export const restrictionScopes = ["general", "category", "ken", "safety-reserve"] as const;
 export type RestrictionScope = (typeof restrictionScopes)[number];
-
-export const systemRoles = ["contributor", "moderator", "admin"] as const;
-export type SystemRole = (typeof systemRoles)[number];
 
 export const sponsorshipStatuses = ["intake", "checkout", "paid", "released"] as const;
 export type SponsorshipStatus = (typeof sponsorshipStatuses)[number];
@@ -73,6 +70,15 @@ export type CompletionMode = (typeof completionModes)[number];
 export const updateStatuses = ["planned", "on-track", "at-risk", "partial", "shipped"] as const;
 export type UpdateStatus = (typeof updateStatuses)[number];
 
+export const systemRoles = ["owner", "admin", "moderator", "contributor"] as const;
+export type SystemRole = (typeof systemRoles)[number];
+
+export const emailTokenPurposes = ["email-verification", "password-reset"] as const;
+export type EmailTokenPurpose = (typeof emailTokenPurposes)[number];
+
+export const verificationStatuses = ["none", "pending", "approved", "rejected"] as const;
+export type VerificationStatus = (typeof verificationStatuses)[number];
+
 export interface CategoryRecord {
   id: string;
   slug: string;
@@ -93,7 +99,20 @@ export interface ProfileRecord {
   voiceCredits: number;
   credibility: number;
   avatarHue: number;
+  avatarImage?: string | null;
+  avatarGradient?: string | null;
+  links?: ProfileLink[];
+  location?: string | null;
+  pronouns?: string | null;
+  verificationStatus?: VerificationStatus;
+  verificationRequestedAt?: string | null;
+  verificationNote?: string | null;
   createdAt?: string;
+}
+
+export interface ProfileLink {
+  label: string;
+  url: string;
 }
 
 export interface ProfileAttestationRecord {
@@ -115,6 +134,27 @@ export interface AccountRecord {
   licensingConsent: LicensingConsent;
   systemRole: SystemRole;
   emailVerified: boolean;
+  emailVerifiedAt: string | null;
+  lastLoginAt: string | null;
+  createdAt: string;
+}
+
+export interface SessionRecord {
+  id: string;
+  accountId: string;
+  tokenHash: string;
+  expiresAt: string;
+  createdAt: string;
+}
+
+export interface EmailTokenRecord {
+  id: string;
+  accountId: string;
+  email: string;
+  purpose: EmailTokenPurpose;
+  tokenHash: string;
+  expiresAt: string;
+  consumedAt: string | null;
   createdAt: string;
 }
 
@@ -125,11 +165,74 @@ export interface BookmarkRecord {
   createdAt: string;
 }
 
-export interface SessionRecord {
+export interface VisitorRecord {
   id: string;
-  accountId: string;
-  tokenHash: string;
-  expiresAt: string;
+  visitorHash: string;
+  countryCode: string | null;
+  countryName: string | null;
+  region: string | null;
+  city: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  userAgent: string | null;
+  firstSeenAt: string;
+  lastSeenAt: string;
+  pageViews: number;
+  accountCreated: boolean;
+}
+
+export interface VisitorAggregate {
+  countryCode: string | null;
+  countryName: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  visitorCount: number;
+  lastSeenAt: string;
+}
+
+export interface AdminNotificationSettings {
+  recipientEmails: string[];
+  notifyOnSignup: boolean;
+  notifyOnFirstVisit: boolean;
+  notifyOnVerificationRequest: boolean;
+  notifyOnProposal: boolean;
+  dailyDigest: boolean;
+  updatedAt: string;
+}
+
+export interface SiteSettingRecord {
+  key: string;
+  value: string;
+  updatedAt: string;
+  updatedBy: string | null;
+}
+
+export interface AboutPageContent {
+  heroEyebrow: string;
+  heroTitle: string;
+  heroSubtitle: string;
+  missionTitle: string;
+  missionBody: string;
+  beliefsTitle: string;
+  beliefsBullets: string[];
+  backgroundTitle: string;
+  backgroundBody: string;
+  goalsTitle: string;
+  goalsBullets: string[];
+  contactTitle: string;
+  contactBody: string;
+  contactEmail: string;
+  links: ProfileLink[];
+  lastUpdated: string;
+}
+
+export interface AuditLogRecord {
+  id: string;
+  accountId: string | null;
+  action: string;
+  detail: string;
+  metadata: string | null;
+  ipAddress: string | null;
   createdAt: string;
 }
 
@@ -341,10 +444,18 @@ export interface ProfileSummary extends ProfileRecord {
   bondedCredits: number;
   spentCredits: number;
   availableCredits: number;
+  links: ProfileLink[];
+  location: string | null;
+  pronouns: string | null;
+  verificationStatus: VerificationStatus;
+  verificationRequestedAt: string | null;
+  verificationNote: string | null;
+  avatarImage: string | null;
+  avatarGradient: string | null;
 }
 
 export interface ViewerSession {
-  account: Pick<AccountRecord, "id" | "email" | "createdAt" | "systemRole" | "emailVerified">;
+  account: Pick<AccountRecord, "id" | "email" | "createdAt" | "systemRole" | "emailVerified" | "emailVerifiedAt" | "licensingConsent">;
   profile: ProfileSummary;
 }
 
@@ -374,6 +485,7 @@ export interface TaskSummary extends TaskRecord, TaskFinanceRecord {
   lastActivityAt: string;
   updateCount: number;
   latestUpdateLabel: string | null;
+  bookmarked: boolean;
 }
 
 export interface CheckpointDetail extends CheckpointRecord, CheckpointGateRecord {}
@@ -381,11 +493,15 @@ export interface CheckpointDetail extends CheckpointRecord, CheckpointGateRecord
 export interface DiscussionComment extends CommentRecord {
   profileName: string;
   profileRole: string;
+  profileSystemRole?: SystemRole;
   score: number;
   upvotes: number;
   downvotes: number;
   userVote: number;
   replies: DiscussionComment[];
+  avatarHue: number;
+  avatarImage: string | null;
+  depth: number;
 }
 
 export interface TaskDetail extends TaskSummary {
@@ -441,12 +557,7 @@ export interface EconomicsSummary {
   sponsorCommitmentsUsd: number;
   safetyReserveUsd: number;
   verifiedFundingStreams: number;
-  governorActive: boolean;
-  adjustedTreasurySharePercent: number;
 }
-
-export const sortOptions = ["pulse", "voice", "recent", "newest"] as const;
-export type SortOption = (typeof sortOptions)[number];
 
 export interface MarketplaceFilters {
   query?: string;
@@ -454,4 +565,16 @@ export interface MarketplaceFilters {
   tier?: AllocationTier | "all";
   stage?: TaskStage | "all";
   sort?: SortOption;
+}
+
+export const sortOptions = ["active", "pulse", "voice", "recent", "newest"] as const;
+export type SortOption = (typeof sortOptions)[number];
+
+export interface SearchResultItem {
+  id: string;
+  type: "ken" | "profile" | "governance" | "category" | "page";
+  title: string;
+  subtitle?: string;
+  url: string;
+  badge?: string;
 }

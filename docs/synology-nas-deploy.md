@@ -237,20 +237,65 @@ After each upgrade:
 4. test sign-in, voting, comments, and the economics page
 5. if you use the tunnel sidecar, confirm `cloudflared` is still healthy and the hostname resolves through Cloudflare
 
-## 10. Backup and recovery
+## 10. Persistence, backup, and recovery
 
-Back up at least:
+### 10.1 What persists across container rebuilds
 
-- `/volume1/docker/kenmatch/data`
-- `/volume1/docker/kenmatch/.env`
+Everything that gets written by users from the live site (new accounts, Kens, votes, pulse reactions, comments, sponsorship commitments, audit log entries, notifications settings, verification requests, visitor aggregates, profile pictures, About-page edits) lives in a single SQLite database file:
 
-To fully reset a local demo database:
+- `/volume1/docker/kenmatch/data/kenmatch.sqlite`
+
+That path is bind-mounted into the container as `/app/data/kenmatch.sqlite` via the `volumes:` section of both `docker-compose.synology.yml` and `docker-compose.synology.tunnel.yml`. Rebuilding or recreating the container does **not** touch the file, because the container only contains the application runtime; persistent state is stored exclusively under `data/` on the Synology host.
+
+### 10.2 Required hot backups
+
+Back up the following from the Synology host. Treat everything in `data/` as hot state that must be snapshotted regularly.
+
+- `/volume1/docker/kenmatch/data/kenmatch.sqlite` — primary database (required)
+- `/volume1/docker/kenmatch/data/kenmatch.sqlite-wal` and `-shm` — write-ahead log, if present (optional but recommended during live operation)
+- `/volume1/docker/kenmatch/.env` — credentials, Stripe keys, SMTP keys, tunnel config (required)
+- `/volume1/docker/kenmatch/cloudflared/` — tunnel credentials file(s) (required if you use the tunnel sidecar)
+
+### 10.3 Recommended redundancy
+
+For a public deployment you want at least two disjoint backup destinations:
+
+1. **Synology Hyper Backup** → encrypted off-box destination (Synology C2, S3, or a second NAS). Schedule a daily job that includes `/volume1/docker/kenmatch/data` and `/volume1/docker/kenmatch/.env`.
+2. **Git-tracked configuration** → keep only the non-secret config (docker-compose files, nginx/cloudflared examples, scripts) in the GitHub repository. Do **not** commit `.env` or the database.
+
+Optional third layer: for zero-downtime rebuilds, configure `DATABASE_URL` to point at a managed libSQL/Turso instance and set `KENMATCH_DB_FILE` to a stub path. The app picks up the remote database automatically and local disk becomes a cache only. Daily snapshots are still recommended on the managed service.
+
+### 10.4 Consistent snapshot command
+
+Taking a copy of a live SQLite file requires using the database's own snapshot command rather than `cp`, because the WAL file may contain in-flight transactions.
+
+```bash
+docker exec kenmatch-demo sh -c \
+  'sqlite3 /app/data/kenmatch.sqlite ".backup /app/data/backups/kenmatch-$(date -Iseconds).sqlite"'
+```
+
+Rotate the files in `data/backups/` with a Hyper Backup or cron job.
+
+### 10.5 Recovery drill
+
+To verify your backups actually restore:
+
+1. stop the container: `docker compose -f docker-compose.synology.yml down`
+2. move the live DB aside: `mv data/kenmatch.sqlite data/kenmatch.sqlite.live`
+3. copy the backup you want to verify into place: `cp data/backups/kenmatch-<timestamp>.sqlite data/kenmatch.sqlite`
+4. `chown 1001:1001 data/kenmatch.sqlite`
+5. bring the container back up and confirm accounts, Kens, votes, and comments match the backed-up state
+6. when satisfied, restore the live DB with `mv data/kenmatch.sqlite.live data/kenmatch.sqlite`
+
+### 10.6 Fully resetting local demo data
+
+To blank the local database without losing the container image:
 
 1. stop the container
-2. remove `data/kenmatch.sqlite`
+2. remove `data/kenmatch.sqlite` (and the `-wal` / `-shm` siblings if present)
 3. start the container again
 
-The app will recreate and reseed the local database.
+The app recreates the schema and reseeds demo data on first boot. Accounts created from the live site are **not** recoverable after this reset; run the recovery drill in 10.5 from a backup instead.
 
 ## 11. Troubleshooting
 

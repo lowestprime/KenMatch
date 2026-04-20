@@ -11,11 +11,14 @@ export function KenSandboxStrip({ ken, compact = false }: { ken: Pick<TaskSummar
     <section className={`sandbox-strip ${compact ? "is-compact" : ""}`}>
       <div className="sandbox-strip-head">
         <div>
-          <div className="eyebrow">Sandbox demo</div>
+          <div className="eyebrow">Sandbox demo · simulated data</div>
           <h3 className="sandbox-strip-title">{compact ? "What the simulated run looks like" : "What this Ken looks like in the public demo"}</h3>
         </div>
-        <span className="micro-pill">Clearly marked simulation</span>
+        <span className="micro-pill">No real capital · no real vendor bills</span>
       </div>
+      <p className="sandbox-disclosure" role="note">
+        All dollar values, pilot user counts, and backer interest shown below are hypothetical outputs from consumer-grade frontier AI deep research and are <strong>not</strong> real sponsorships, investments, or production outcomes.
+      </p>
       <div className="sandbox-metric-grid">
         <SandboxMetric label="Sandbox backing" value={formatCurrency(ken.sandboxCapitalUsd)} />
         <SandboxMetric label="API spend" value={formatCurrency(ken.sandboxApiSpendUsd)} />
