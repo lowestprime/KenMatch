@@ -66,6 +66,9 @@ export default async function EconomicsPage() {
         <p className="max-w-4xl text-lg leading-8 text-muted">
           KenMatch separates money from voice. Paid services, screened licensing, routing margin, and sponsorships can grow the treasury, but ranking stays on the public board and release still depends on checkpoints, safety review, and visible evidence.
         </p>
+        <p className="sandbox-disclosure" role="note">
+          <strong>Sandbox mode.</strong> All dollar values, backer totals, and sponsorship commitments on this page are hypothetical demonstration data generated from consumer-grade frontier AI deep research. They do <strong>not</strong> represent real investments, escrowed funds, or vendor commitments. Live checkout is only active if Stripe keys are configured and explicitly labeled.
+        </p>
         <div className="signal-bar">
           <div className="flow-card">
             <div className="eyebrow">Coverage</div>

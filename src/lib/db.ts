@@ -9,7 +9,6 @@ import {
 import { existsSync,
   mkdirSync } from "node:fs";
 import { dirname,
-  isAbsolute,
   join } from "node:path";
 
 import { createClient,
@@ -28,7 +27,7 @@ import {
   } from "@/lib/allocation";
 import { summarizeEconomics,
   summarizeRevenueStream } from "@/lib/economics";
-import { env } from "@/lib/env";
+import { env, isAdminEmail, isOwnerEmail, canonicalOrigin, notificationEmails } from "@/lib/env";
 import {
   seedCategories,
   seedCheckpoints,
@@ -52,7 +51,11 @@ import {
   seedTreasuryEntries,
 } from "@/lib/seed-plus";
 import type {
+  AboutPageContent,
   AccountRecord,
+  AdminNotificationSettings,
+  AuditLogRecord,
+  BookmarkRecord,
   CategorySummary,
   CheckpointDetail,
   CommentRecord,
@@ -60,17 +63,23 @@ import type {
   ComputeRunRecord,
   DiscussionComment,
   EconomicsSummary,
+  EmailTokenPurpose,
+  EmailTokenRecord,
   GovernanceEventRecord,
   HomepageMetrics,
   MarketplaceFilters,
   ProfileAttestationRecord,
+  ProfileLink,
   ProfileRecord,
   ProfileSummary,
   RevenueStreamRecord,
   RevenueStreamSummary,
   RunUpdateRecord,
+  SearchResultItem,
   SessionRecord,
+  SiteSettingRecord,
   SponsorshipCommitmentRecord,
+  SystemRole,
   TaskDetail,
   TaskFinanceRecord,
   TaskPulseVoteRecord,
@@ -78,15 +87,17 @@ import type {
   TaskSummary,
   TaskTimingRecord,
   TreasuryEntryRecord,
+  VerificationStatus,
   ViewerSession,
+  VisitorAggregate,
+  VisitorRecord,
   VoteRecord,
 } from "@/lib/types";
+import { DEFAULT_ABOUT_PAGE } from "@/lib/about-defaults";
 
 type DbRow = Record<string, Value>;
 
-const databaseFilePath = isAbsolute(env.KENMATCH_DB_FILE)
-  ? env.KENMATCH_DB_FILE
-  : join(process.cwd(), env.KENMATCH_DB_FILE);
+const databaseFilePath = join(process.cwd(), env.KENMATCH_DB_FILE);
 const databaseUrl = env.DATABASE_URL?.trim() || `file:${databaseFilePath.replace(/\\/g, "/")}`;
 
 const tierDefaults = {
@@ -140,12 +151,7 @@ function parseList(value: Value) {
     return [];
   }
 
-  try {
-    const parsed = JSON.parse(value);
-    return Array.isArray(parsed) ? (parsed as string[]) : [];
-  } catch {
-    return [];
-  }
+  return JSON.parse(value) as string[];
 }
 
 function getString(row: DbRow, key: string) {
@@ -228,6 +234,14 @@ async function initializeDatabase() {
         voiceCredits INTEGER NOT NULL,
         credibility REAL NOT NULL,
         avatarHue INTEGER NOT NULL,
+        avatarImage TEXT,
+        avatarGradient TEXT,
+        links TEXT NOT NULL DEFAULT '[]',
+        location TEXT,
+        pronouns TEXT,
+        verificationStatus TEXT NOT NULL DEFAULT 'none',
+        verificationRequestedAt TEXT,
+        verificationNote TEXT,
         createdAt TEXT NOT NULL
       )`,
       `CREATE TABLE IF NOT EXISTS accounts (
@@ -237,8 +251,62 @@ async function initializeDatabase() {
         passwordHash TEXT NOT NULL,
         passwordSalt TEXT NOT NULL,
         licensingConsent TEXT NOT NULL DEFAULT 'audit-only',
+        systemRole TEXT NOT NULL DEFAULT 'contributor',
+        emailVerified INTEGER NOT NULL DEFAULT 0,
+        emailVerifiedAt TEXT,
+        lastLoginAt TEXT,
         createdAt TEXT NOT NULL,
         FOREIGN KEY (profileId) REFERENCES profiles(id)
+      )`,
+      `CREATE TABLE IF NOT EXISTS email_tokens (
+        id TEXT PRIMARY KEY,
+        accountId TEXT NOT NULL,
+        email TEXT NOT NULL,
+        purpose TEXT NOT NULL,
+        tokenHash TEXT NOT NULL UNIQUE,
+        expiresAt TEXT NOT NULL,
+        consumedAt TEXT,
+        createdAt TEXT NOT NULL,
+        FOREIGN KEY (accountId) REFERENCES accounts(id)
+      )`,
+      `CREATE TABLE IF NOT EXISTS bookmarks (
+        id TEXT PRIMARY KEY,
+        profileId TEXT NOT NULL,
+        taskId TEXT NOT NULL,
+        createdAt TEXT NOT NULL,
+        UNIQUE(profileId, taskId),
+        FOREIGN KEY (profileId) REFERENCES profiles(id),
+        FOREIGN KEY (taskId) REFERENCES tasks(id)
+      )`,
+      `CREATE TABLE IF NOT EXISTS visitors (
+        id TEXT PRIMARY KEY,
+        visitorHash TEXT NOT NULL UNIQUE,
+        countryCode TEXT,
+        countryName TEXT,
+        region TEXT,
+        city TEXT,
+        latitude REAL,
+        longitude REAL,
+        userAgent TEXT,
+        firstSeenAt TEXT NOT NULL,
+        lastSeenAt TEXT NOT NULL,
+        pageViews INTEGER NOT NULL DEFAULT 1,
+        accountCreated INTEGER NOT NULL DEFAULT 0
+      )`,
+      `CREATE TABLE IF NOT EXISTS site_settings (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL,
+        updatedAt TEXT NOT NULL,
+        updatedBy TEXT
+      )`,
+      `CREATE TABLE IF NOT EXISTS audit_log (
+        id TEXT PRIMARY KEY,
+        accountId TEXT,
+        action TEXT NOT NULL,
+        detail TEXT NOT NULL,
+        metadata TEXT,
+        ipAddress TEXT,
+        createdAt TEXT NOT NULL
       )`,
       `CREATE TABLE IF NOT EXISTS profile_attestations (
         profileId TEXT PRIMARY KEY,
@@ -257,15 +325,6 @@ async function initializeDatabase() {
         expiresAt TEXT NOT NULL,
         createdAt TEXT NOT NULL,
         FOREIGN KEY (accountId) REFERENCES accounts(id)
-      )`,
-      `CREATE TABLE IF NOT EXISTS bookmarks (
-        id TEXT PRIMARY KEY,
-        profileId TEXT NOT NULL,
-        taskId TEXT NOT NULL,
-        createdAt TEXT NOT NULL,
-        FOREIGN KEY (profileId) REFERENCES profiles(id),
-        FOREIGN KEY (taskId) REFERENCES tasks(id),
-        UNIQUE(profileId, taskId)
       )`,
       `CREATE TABLE IF NOT EXISTS categories (
         id TEXT PRIMARY KEY,
@@ -495,11 +554,29 @@ async function initializeDatabase() {
       "CREATE INDEX IF NOT EXISTS idx_request_rate_limits_updatedAt ON request_rate_limits(updatedAt)",
       "CREATE INDEX IF NOT EXISTS idx_security_events_createdAt ON security_events(createdAt)",
       "CREATE INDEX IF NOT EXISTS idx_bookmarks_profileId ON bookmarks(profileId)",
+      "CREATE INDEX IF NOT EXISTS idx_email_tokens_accountId ON email_tokens(accountId)",
+      "CREATE INDEX IF NOT EXISTS idx_email_tokens_purpose ON email_tokens(purpose)",
+      "CREATE INDEX IF NOT EXISTS idx_visitors_firstSeenAt ON visitors(firstSeenAt)",
+      "CREATE INDEX IF NOT EXISTS idx_visitors_countryCode ON visitors(countryCode)",
+      "CREATE INDEX IF NOT EXISTS idx_audit_log_createdAt ON audit_log(createdAt)",
+      "CREATE INDEX IF NOT EXISTS idx_audit_log_accountId ON audit_log(accountId)",
     ],
     "write",
   );
 
   await ensureColumn(client, "accounts", "licensingConsent", "TEXT NOT NULL DEFAULT 'audit-only'");
+  await ensureColumn(client, "accounts", "systemRole", "TEXT NOT NULL DEFAULT 'contributor'");
+  await ensureColumn(client, "accounts", "emailVerified", "INTEGER NOT NULL DEFAULT 0");
+  await ensureColumn(client, "accounts", "emailVerifiedAt", "TEXT");
+  await ensureColumn(client, "accounts", "lastLoginAt", "TEXT");
+  await ensureColumn(client, "profiles", "avatarImage", "TEXT");
+  await ensureColumn(client, "profiles", "avatarGradient", "TEXT");
+  await ensureColumn(client, "profiles", "links", "TEXT NOT NULL DEFAULT '[]'");
+  await ensureColumn(client, "profiles", "location", "TEXT");
+  await ensureColumn(client, "profiles", "pronouns", "TEXT");
+  await ensureColumn(client, "profiles", "verificationStatus", "TEXT NOT NULL DEFAULT 'none'");
+  await ensureColumn(client, "profiles", "verificationRequestedAt", "TEXT");
+  await ensureColumn(client, "profiles", "verificationNote", "TEXT");
   await ensureColumn(client, "revenue_streams", "publicBenefitCovenant", "TEXT NOT NULL DEFAULT ''");
   await ensureColumn(client, "revenue_streams", "openDeliverableBoundary", "TEXT NOT NULL DEFAULT ''");
   await ensureColumn(client, "revenue_streams", "contributorDividendPercent", "INTEGER NOT NULL DEFAULT 0");
@@ -516,11 +593,10 @@ async function initializeDatabase() {
   await ensureColumn(client, "task_finance", "simulationSummary", "TEXT NOT NULL DEFAULT ''");
   await ensureColumn(client, "task_finance", "sampleOutcome", "TEXT NOT NULL DEFAULT ''");
   await ensureColumn(client, "task_finance", "sponsorAppeal", "TEXT NOT NULL DEFAULT ''");
-  await ensureColumn(client, "accounts", "systemRole", "TEXT NOT NULL DEFAULT 'contributor'");
-  await ensureColumn(client, "accounts", "emailVerified", "INTEGER NOT NULL DEFAULT 0");
-  await ensureColumn(client, "profiles", "slug", "TEXT");
 
   await seedDatabase();
+  await ensureOwnerSystemRole();
+  await ensureDefaultSiteSettings();
 }
 
 async function ensureColumn(client: Client, table: string, column: string, definition: string) {
@@ -927,6 +1003,19 @@ function avatarHueFor(seed: string) {
   return hash;
 }
 
+function parseLinks(value: Value): ProfileLink[] {
+  if (typeof value !== "string" || value.length === 0) return [];
+  try {
+    const parsed = JSON.parse(value);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((entry): entry is ProfileLink => Boolean(entry) && typeof entry === "object" && typeof entry.label === "string" && typeof entry.url === "string")
+      .slice(0, 8);
+  } catch {
+    return [];
+  }
+}
+
 function mapProfile(row: DbRow): ProfileRecord {
   return {
     id: getString(row, "id"),
@@ -940,6 +1029,14 @@ function mapProfile(row: DbRow): ProfileRecord {
     voiceCredits: getNumber(row, "voiceCredits"),
     credibility: getNumber(row, "credibility"),
     avatarHue: getNumber(row, "avatarHue"),
+    avatarImage: getNullableString(row, "avatarImage"),
+    avatarGradient: getNullableString(row, "avatarGradient"),
+    links: parseLinks(row.links),
+    location: getNullableString(row, "location"),
+    pronouns: getNullableString(row, "pronouns"),
+    verificationStatus: (getNullableString(row, "verificationStatus") as VerificationStatus | null) ?? "none",
+    verificationRequestedAt: getNullableString(row, "verificationRequestedAt"),
+    verificationNote: getNullableString(row, "verificationNote"),
     createdAt: getString(row, "createdAt"),
   };
 }
@@ -1180,8 +1277,10 @@ function mapAccount(row: DbRow): AccountRecord {
     passwordHash: getString(row, "passwordHash"),
     passwordSalt: getString(row, "passwordSalt"),
     licensingConsent: getString(row, "licensingConsent") as AccountRecord["licensingConsent"],
-    systemRole: (getString(row, "systemRole") || "contributor") as AccountRecord["systemRole"],
-    emailVerified: Boolean(getNumber(row, "emailVerified")),
+    systemRole: (getNullableString(row, "systemRole") as SystemRole | null) ?? "contributor",
+    emailVerified: getNumber(row, "emailVerified") > 0,
+    emailVerifiedAt: getNullableString(row, "emailVerifiedAt"),
+    lastLoginAt: getNullableString(row, "lastLoginAt"),
     createdAt: getString(row, "createdAt"),
   };
 }
@@ -1275,6 +1374,7 @@ function buildDiscussionTree(
   comments: CommentRecord[],
   commentVotes: CommentVoteRecord[],
   profileMap: Map<string, ProfileSummary>,
+  accountByProfile: Map<string, AccountRecord>,
   viewerProfileId?: string | null,
 ): DiscussionComment[] {
   const votesByComment = new Map<string, CommentVoteRecord[]>();
@@ -1288,17 +1388,22 @@ function buildDiscussionTree(
   for (const comment of comments) {
     const votes = votesByComment.get(comment.id) ?? [];
     const profile = profileMap.get(comment.profileId);
+    const account = accountByProfile.get(comment.profileId);
     const upvotes = votes.filter((vote) => vote.value > 0).length;
     const downvotes = votes.filter((vote) => vote.value < 0).length;
     mapped.set(comment.id, {
       ...comment,
       profileName: profile?.name ?? "Unknown contributor",
       profileRole: profile?.role ?? "Unverified contributor",
+      profileSystemRole: account?.systemRole,
       score: upvotes - downvotes,
       upvotes,
       downvotes,
       userVote: votes.find((vote) => vote.profileId === viewerProfileId)?.value ?? 0,
       replies: [],
+      avatarHue: profile?.avatarHue ?? 210,
+      avatarImage: profile?.avatarImage ?? null,
+      depth: 0,
     });
   }
 
@@ -1312,6 +1417,7 @@ function buildDiscussionTree(
     if (comment.parentId) {
       const parent = mapped.get(comment.parentId);
       if (parent) {
+        mappedComment.depth = parent.depth + 1;
         parent.replies.push(mappedComment);
         continue;
       }
@@ -1372,7 +1478,7 @@ function sortTasks(tasks: TaskSummary[]) {
 }
 
 async function hydrate(viewerProfileId?: string | null) {
-  const [profiles, profileAttestations, categories, tasks, finances, votes, pulseVotes, comments, commentVotes, runs, taskTimings, runUpdates, checkpoints, checkpointGates, governance, revenueStreams, treasuryEntries, sponsorshipCommitments] =
+  const [profiles, profileAttestations, categories, tasks, finances, votes, pulseVotes, comments, commentVotes, runs, taskTimings, runUpdates, checkpoints, checkpointGates, governance, revenueStreams, treasuryEntries, sponsorshipCommitments, bookmarks, accounts] =
     await Promise.all([
       loadProfiles(),
       loadProfileAttestations(),
@@ -1392,7 +1498,12 @@ async function hydrate(viewerProfileId?: string | null) {
       loadRevenueStreams(),
       loadTreasuryEntries(),
       loadSponsorshipCommitments(),
+      viewerProfileId ? loadBookmarksForProfile(viewerProfileId) : Promise.resolve<BookmarkRecord[]>([]),
+      loadAccounts(),
     ]);
+
+  const bookmarkSet = new Set(bookmarks.map((bookmark) => bookmark.taskId));
+  const accountByProfile = new Map(accounts.map((account) => [account.profileId, account]));
 
   const voteByTask = new Map<string, VoteRecord[]>();
   const voteByProfile = new Map<string, VoteRecord[]>();
@@ -1441,6 +1552,14 @@ async function hydrate(viewerProfileId?: string | null) {
       bondedCredits,
       spentCredits: spent,
       availableCredits: Math.max(policy.effectiveVoiceCredits - spent, 0),
+      links: profile.links ?? [],
+      location: profile.location ?? null,
+      pronouns: profile.pronouns ?? null,
+      verificationStatus: profile.verificationStatus ?? "none",
+      verificationRequestedAt: profile.verificationRequestedAt ?? null,
+      verificationNote: profile.verificationNote ?? null,
+      avatarImage: profile.avatarImage ?? null,
+      avatarGradient: profile.avatarGradient ?? null,
     };
   });
 
@@ -1583,6 +1702,7 @@ async function hydrate(viewerProfileId?: string | null) {
       lastActivityAt,
       updateCount: updates.length,
       latestUpdateLabel: updates[0]?.label ?? null,
+      bookmarked: bookmarkSet.has(task.id),
     };
   });
 
@@ -1629,8 +1749,9 @@ async function hydrate(viewerProfileId?: string | null) {
     runUpdatesByTask,
     viewer: viewerProfileId ? profileMap.get(viewerProfileId) ?? null : null,
     discussionFor(taskId: string) {
-      return buildDiscussionTree(commentByTask.get(taskId) ?? [], commentVotes, profileMap, viewerProfileId);
+      return buildDiscussionTree(commentByTask.get(taskId) ?? [], commentVotes, profileMap, accountByProfile, viewerProfileId);
     },
+    accountByProfile,
   };
 }
 
@@ -1664,7 +1785,15 @@ export async function getViewerSessionByToken(token: string): Promise<ViewerSess
   }
 
   return {
-    account: { id: account.id, email: account.email, createdAt: account.createdAt, systemRole: account.systemRole ?? "contributor", emailVerified: Boolean(account.emailVerified) },
+    account: {
+      id: account.id,
+      email: account.email,
+      createdAt: account.createdAt,
+      systemRole: account.systemRole,
+      emailVerified: account.emailVerified,
+      emailVerifiedAt: account.emailVerifiedAt,
+      licensingConsent: account.licensingConsent,
+    },
     profile: snapshot.viewer,
   };
 }
@@ -1687,7 +1816,7 @@ export async function getHomeData(viewerProfileId?: string | null) {
     viewer: snapshot.viewer,
     metrics,
     categories: snapshot.categories,
-    featuredTasks: snapshot.tasks.slice(0, 4),
+    featuredTasks: snapshot.tasks.slice(0, 6),
     contributors: [...snapshot.profiles].sort((left, right) => right.credibility - left.credibility).slice(0, 6),
     governance: snapshot.governance.slice(0, 6),
     economics: snapshot.economics,
@@ -1697,55 +1826,39 @@ export async function getHomeData(viewerProfileId?: string | null) {
 
 export async function getMarketplaceData(viewerProfileId: string | null | undefined, filters: MarketplaceFilters) {
   const snapshot = await hydrate(viewerProfileId);
-  const queryTokens = (filters.query?.trim().toLowerCase() ?? "").split(/\s+/).filter(Boolean);
-  const filtered = snapshot.tasks.filter((task) => {
-    if (queryTokens.length > 0) {
-      const haystack = [
-        task.title,
-        task.summary,
-        task.problem,
-        task.categoryName,
-        task.enterprisePackaging,
-        task.dataValueNote,
-        task.simulationSummary,
-        task.sampleOutcome,
-        task.sponsorAppeal,
-        ...task.modelLineup,
-      ].join(" ").toLowerCase();
-      if (!queryTokens.every((token) => haystack.includes(token))) {
-        return false;
-      }
-    }
-    if (filters.category && filters.category !== "all" && task.categorySlug !== filters.category) {
-      return false;
-    }
-    if (filters.tier && filters.tier !== "all" && task.allocatedTier !== filters.tier) {
-      return false;
-    }
-    if (filters.stage && filters.stage !== "all" && task.stage !== filters.stage) {
-      return false;
-    }
-    return true;
-  });
-
-  const sort = filters.sort ?? "pulse";
-  filtered.sort((a, b) => {
-    switch (sort) {
-      case "voice":
-        return b.totalVotes - a.totalVotes;
-      case "recent":
-        return new Date(b.lastActivityAt).getTime() - new Date(a.lastActivityAt).getTime();
-      case "newest":
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      default:
-        return b.taskPulseScore - a.taskPulseScore;
-    }
-  });
-
+  const query = filters.query?.trim().toLowerCase() ?? "";
   return {
     viewer: snapshot.viewer,
     categories: snapshot.categories,
-    tasks: filtered,
+    tasks: snapshot.tasks.filter((task) => {
+      if (query) {
+        const haystack = [
+          task.title,
+          task.summary,
+          task.problem,
+          task.categoryName,
+          task.enterprisePackaging,
+          task.dataValueNote,
+          task.simulationSummary,
+          task.sampleOutcome,
+          task.sponsorAppeal,
+          ...task.modelLineup,
+        ].join(" ").toLowerCase();
+        if (!haystack.includes(query)) {
+          return false;
+        }
+      }
+      if (filters.category && filters.category !== "all" && task.categorySlug !== filters.category) {
+        return false;
+      }
+      if (filters.tier && filters.tier !== "all" && task.allocatedTier !== filters.tier) {
+        return false;
+      }
+      if (filters.stage && filters.stage !== "all" && task.stage !== filters.stage) {
+        return false;
+      }
+      return true;
+    }),
   };
 }
 
@@ -1820,113 +1933,96 @@ export async function createAccount(input: {
   const profileId = await uniqueSlug("profiles", input.name);
   const accountId = randomUUID();
   const { passwordHash, passwordSalt } = createPasswordHash(input.password);
+  const normalizedEmail = input.email.toLowerCase();
+
+  const systemRole: SystemRole = isOwnerEmail(normalizedEmail)
+    ? "owner"
+    : isAdminEmail(normalizedEmail)
+      ? "admin"
+      : "contributor";
+  const emailVerified = systemRole === "owner" || !env.KENMATCH_REQUIRE_EMAIL_VERIFICATION;
+  const emailVerifiedAt = emailVerified ? now : null;
+  const voiceCredits = systemRole === "owner" ? 120 : systemRole === "admin" ? 48 : 12;
+  const credibility = systemRole === "owner" ? 0.98 : systemRole === "admin" ? 0.9 : 0.62;
+  const attestationLevel = systemRole === "owner" ? "expert" : systemRole === "admin" ? "verified" : "provisional";
+  const verificationStatus: VerificationStatus = systemRole === "owner" ? "approved" : "none";
 
   await batch(
     [
       {
         sql: `INSERT INTO profiles (
           id, name, role, bio, specialty, attestation, attestationLevel, moderationStatus,
-          voiceCredits, credibility, avatarHue, createdAt
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          voiceCredits, credibility, avatarHue, avatarImage, avatarGradient, links, location, pronouns,
+          verificationStatus, verificationRequestedAt, verificationNote, createdAt
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         args: [
           profileId,
           input.name,
           input.role,
           input.bio,
           input.specialty,
-          "Self-attested contributor profile pending verification.",
-          "provisional",
+          systemRole === "owner"
+            ? "Founder and administrator account."
+            : "Self-attested contributor profile pending verification.",
+          attestationLevel,
           "active",
-          12,
-          0.62,
+          voiceCredits,
+          credibility,
           avatarHueFor(input.email),
+          null,
+          null,
+          "[]",
+          null,
+          null,
+          verificationStatus,
+          null,
+          null,
           now,
         ],
       },
       {
         sql: "INSERT INTO profile_attestations (profileId, provider, status, sybilRisk, reviewedAt, signals, note) VALUES (?, ?, ?, ?, ?, ?, ?)",
-        args: [profileId, "Email + profile review", "review", "medium", now, serializeList(["Verified email", "Fresh profile", "Rate limits"]), "New accounts can read immediately and participate with provisional standing while review is pending."],
+        args: [
+          profileId,
+          systemRole === "owner" ? "Owner attestation" : "Email + profile review",
+          systemRole === "owner" ? "verified" : "review",
+          systemRole === "owner" ? "low" : "medium",
+          now,
+          serializeList(systemRole === "owner" ? ["Verified email", "Owner attestation"] : ["Verified email", "Fresh profile", "Rate limits"]),
+          systemRole === "owner"
+            ? "Founder account with full platform privileges."
+            : "New accounts can read immediately and participate with provisional standing while review is pending.",
+        ],
       },
       {
-        sql: "INSERT INTO accounts (id, profileId, email, passwordHash, passwordSalt, licensingConsent, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)",
-        args: [accountId, profileId, input.email.toLowerCase(), passwordHash, passwordSalt, input.licensingConsent, now],
+        sql: `INSERT INTO accounts (
+          id, profileId, email, passwordHash, passwordSalt, licensingConsent, systemRole,
+          emailVerified, emailVerifiedAt, lastLoginAt, createdAt
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        args: [
+          accountId,
+          profileId,
+          normalizedEmail,
+          passwordHash,
+          passwordSalt,
+          input.licensingConsent,
+          systemRole,
+          emailVerified ? 1 : 0,
+          emailVerifiedAt,
+          null,
+          now,
+        ],
       },
     ],
     "write",
   );
 
-  return { accountId, profileId };
+  return { accountId, profileId, systemRole, emailVerified };
 }
 
 export async function authenticateAccount(email: string, password: string) {
   const account = await findAccountByEmail(email.toLowerCase());
   return account && verifyPassword(password, account.passwordHash, account.passwordSalt) ? account : null;
-}
-
-export async function updateProfile(profileId: string, input: {
-  name: string;
-  role: string;
-  specialty: string;
-  bio: string;
-}) {
-  await execute(
-    "UPDATE profiles SET name = ?, role = ?, specialty = ?, bio = ? WHERE id = ?",
-    [input.name, input.role, input.specialty, input.bio, profileId],
-  );
-}
-
-export async function changePassword(accountId: string, newPassword: string) {
-  const { passwordHash, passwordSalt } = createPasswordHash(newPassword);
-  await execute(
-    "UPDATE accounts SET passwordHash = ?, passwordSalt = ? WHERE id = ?",
-    [passwordHash, passwordSalt, accountId],
-  );
-}
-
-export async function updateLicensingConsent(accountId: string, consent: AccountRecord["licensingConsent"]) {
-  await execute("UPDATE accounts SET licensingConsent = ? WHERE id = ?", [consent, accountId]);
-}
-
-export async function toggleBookmark(profileId: string, taskId: string): Promise<boolean> {
-  const existing = await loadOne("SELECT id FROM bookmarks WHERE profileId = ? AND taskId = ?", [profileId, taskId]);
-  if (existing) {
-    await execute("DELETE FROM bookmarks WHERE id = ?", [getString(existing, "id")]);
-    return false;
-  }
-  await execute("INSERT INTO bookmarks (id, profileId, taskId, createdAt) VALUES (?, ?, ?, ?)", [randomUUID(), profileId, taskId, new Date().toISOString()]);
-  return true;
-}
-
-export async function getBookmarkedTaskIds(profileId: string): Promise<string[]> {
-  const rows = await loadRows("SELECT taskId FROM bookmarks WHERE profileId = ? ORDER BY createdAt DESC", [profileId]);
-  return rows.map((row) => getString(row, "taskId"));
-}
-
-export async function getSearchData() {
-  const snapshot = await hydrate();
-  return {
-    kens: snapshot.tasks.map((t) => ({ slug: t.slug, title: t.title, summary: t.summary, categoryName: t.categoryName })),
-    profiles: snapshot.profiles.map((p) => ({ id: p.id, name: p.name, role: p.role, specialty: p.specialty })),
-    governance: snapshot.governance.map((g) => ({ id: g.id, title: g.title, decision: g.decision, house: g.house })),
-    categories: snapshot.categories.map((c) => ({ slug: c.slug, name: c.name, description: c.description })),
-  };
-}
-
-export async function getProfileBySlug(slug: string): Promise<ProfileSummary | null> {
-  const snapshot = await hydrate();
-  return snapshot.profiles.find((p) => p.id === slug || p.name.toLowerCase().replace(/\s+/g, "-") === slug) ?? null;
-}
-
-export async function getProfileActivity(profileId: string) {
-  const snapshot = await hydrate(profileId);
-  const proposedTasks = snapshot.tasks.filter((t) => t.proposerId === profileId);
-  const votes = snapshot.votes
-    .filter((v) => v.profileId === profileId)
-    .map((v) => {
-      const task = snapshot.tasks.find((t) => t.id === v.taskId);
-      return { ...v, taskTitle: task?.title ?? "Unknown Ken" };
-    });
-  return { proposedTasks, votes, profile: snapshot.profileMap.get(profileId) ?? null };
 }
 
 export async function createSession(accountId: string) {
@@ -2451,6 +2547,8 @@ export async function getHealthSummary() {
     loadRows("SELECT COUNT(*) AS count FROM tasks"),
     loadRows("SELECT COUNT(*) AS count FROM votes"),
     loadRows("SELECT COUNT(*) AS count FROM comments"),
+    loadRows("SELECT COUNT(*) AS count FROM visitors"),
+    loadRows("SELECT COUNT(*) AS count FROM accounts"),
   ]);
 
   return {
@@ -2460,10 +2558,507 @@ export async function getHealthSummary() {
     taskCount: getCount(counts[1]),
     voteCount: getCount(counts[2]),
     commentCount: getCount(counts[3]),
+    visitorCount: getCount(counts[4]),
+    accountCount: getCount(counts[5]),
     checkedAt: new Date().toISOString(),
   };
 }
 
+function loadAccounts() {
+  return loadRows("SELECT * FROM accounts").then((rows) => rows.map(mapAccount));
+}
 
+function mapBookmark(row: DbRow): BookmarkRecord {
+  return {
+    id: getString(row, "id"),
+    profileId: getString(row, "profileId"),
+    taskId: getString(row, "taskId"),
+    createdAt: getString(row, "createdAt"),
+  };
+}
 
+function mapEmailToken(row: DbRow): EmailTokenRecord {
+  return {
+    id: getString(row, "id"),
+    accountId: getString(row, "accountId"),
+    email: getString(row, "email"),
+    purpose: getString(row, "purpose") as EmailTokenPurpose,
+    tokenHash: getString(row, "tokenHash"),
+    expiresAt: getString(row, "expiresAt"),
+    consumedAt: getNullableString(row, "consumedAt"),
+    createdAt: getString(row, "createdAt"),
+  };
+}
+
+function mapVisitor(row: DbRow): VisitorRecord {
+  return {
+    id: getString(row, "id"),
+    visitorHash: getString(row, "visitorHash"),
+    countryCode: getNullableString(row, "countryCode"),
+    countryName: getNullableString(row, "countryName"),
+    region: getNullableString(row, "region"),
+    city: getNullableString(row, "city"),
+    latitude: typeof row.latitude === "number" ? row.latitude : null,
+    longitude: typeof row.longitude === "number" ? row.longitude : null,
+    userAgent: getNullableString(row, "userAgent"),
+    firstSeenAt: getString(row, "firstSeenAt"),
+    lastSeenAt: getString(row, "lastSeenAt"),
+    pageViews: getNumber(row, "pageViews"),
+    accountCreated: getNumber(row, "accountCreated") > 0,
+  };
+}
+
+function loadBookmarksForProfile(profileId: string) {
+  return loadRows("SELECT * FROM bookmarks WHERE profileId = ?", [profileId]).then((rows) =>
+    rows.map(mapBookmark),
+  );
+}
+
+export async function createBookmark(profileId: string, taskId: string) {
+  const existing = await loadOne("SELECT id FROM bookmarks WHERE profileId = ? AND taskId = ? LIMIT 1", [profileId, taskId]);
+  if (existing) {
+    await execute("DELETE FROM bookmarks WHERE profileId = ? AND taskId = ?", [profileId, taskId]);
+    return { bookmarked: false };
+  }
+  await execute("INSERT INTO bookmarks (id, profileId, taskId, createdAt) VALUES (?, ?, ?, ?)", [
+    randomUUID(),
+    profileId,
+    taskId,
+    new Date().toISOString(),
+  ]);
+  return { bookmarked: true };
+}
+
+export async function listBookmarks(profileId: string) {
+  const bookmarks = await loadBookmarksForProfile(profileId);
+  if (bookmarks.length === 0) return [];
+  const snapshot = await hydrate(profileId);
+  const set = new Set(bookmarks.map((bookmark) => bookmark.taskId));
+  return snapshot.tasks.filter((task) => set.has(task.id));
+}
+
+export async function createEmailToken(input: {
+  accountId: string;
+  email: string;
+  purpose: EmailTokenPurpose;
+  ttlMinutes?: number;
+}) {
+  const token = randomBytes(24).toString("hex");
+  const now = new Date();
+  const ttl = input.ttlMinutes ?? (input.purpose === "email-verification" ? 60 * 48 : 30);
+  const expiresAt = new Date(now.getTime() + ttl * 60 * 1000).toISOString();
+
+  await execute(
+    `INSERT INTO email_tokens (id, accountId, email, purpose, tokenHash, expiresAt, consumedAt, createdAt)
+     VALUES (?, ?, ?, ?, ?, ?, NULL, ?)`,
+    [randomUUID(), input.accountId, input.email.toLowerCase(), input.purpose, hashToken(token), expiresAt, now.toISOString()],
+  );
+
+  return { token, expiresAt };
+}
+
+export async function consumeEmailToken(purpose: EmailTokenPurpose, token: string) {
+  if (!token) return null;
+  const tokenHash = hashToken(token);
+  const row = await loadOne(
+    "SELECT * FROM email_tokens WHERE tokenHash = ? AND purpose = ? LIMIT 1",
+    [tokenHash, purpose],
+  );
+  if (!row) return null;
+  const record = mapEmailToken(row);
+  if (record.consumedAt) return null;
+  if (new Date(record.expiresAt) <= new Date()) return null;
+  await execute("UPDATE email_tokens SET consumedAt = ? WHERE id = ?", [new Date().toISOString(), record.id]);
+  return record;
+}
+
+export async function markEmailVerified(accountId: string) {
+  const now = new Date().toISOString();
+  await execute("UPDATE accounts SET emailVerified = 1, emailVerifiedAt = ? WHERE id = ?", [now, accountId]);
+}
+
+export async function updateAccountPassword(accountId: string, newPassword: string) {
+  const { passwordHash, passwordSalt } = createPasswordHash(newPassword);
+  await execute("UPDATE accounts SET passwordHash = ?, passwordSalt = ? WHERE id = ?", [passwordHash, passwordSalt, accountId]);
+  await execute("DELETE FROM sessions WHERE accountId = ?", [accountId]);
+}
+
+export async function updateAccountLastLogin(accountId: string) {
+  await execute("UPDATE accounts SET lastLoginAt = ? WHERE id = ?", [new Date().toISOString(), accountId]);
+}
+
+export async function findAccountByEmailExported(email: string) {
+  return findAccountByEmail(email);
+}
+
+export async function findAccountByIdExported(accountId: string) {
+  return findAccountById(accountId);
+}
+
+export async function updateProfileDetails(
+  profileId: string,
+  input: {
+    name?: string;
+    role?: string;
+    bio?: string;
+    specialty?: string;
+    location?: string | null;
+    pronouns?: string | null;
+    links?: ProfileLink[];
+    avatarImage?: string | null;
+    avatarGradient?: string | null;
+  },
+) {
+  const profile = await findProfileById(profileId);
+  if (!profile) throw new Error("Profile not found.");
+  const next = {
+    name: (input.name ?? profile.name).slice(0, 80),
+    role: (input.role ?? profile.role).slice(0, 120),
+    bio: (input.bio ?? profile.bio).slice(0, 2000),
+    specialty: (input.specialty ?? profile.specialty).slice(0, 120),
+    location: input.location === undefined ? profile.location ?? null : (input.location ? input.location.slice(0, 120) : null),
+    pronouns: input.pronouns === undefined ? profile.pronouns ?? null : (input.pronouns ? input.pronouns.slice(0, 40) : null),
+    links: input.links === undefined ? profile.links ?? [] : input.links.slice(0, 8),
+    avatarImage: input.avatarImage === undefined ? profile.avatarImage ?? null : input.avatarImage,
+    avatarGradient: input.avatarGradient === undefined ? profile.avatarGradient ?? null : input.avatarGradient,
+  };
+  await execute(
+    `UPDATE profiles SET name = ?, role = ?, bio = ?, specialty = ?, location = ?, pronouns = ?, links = ?, avatarImage = ?, avatarGradient = ? WHERE id = ?`,
+    [
+      next.name,
+      next.role,
+      next.bio,
+      next.specialty,
+      next.location,
+      next.pronouns,
+      JSON.stringify(next.links),
+      next.avatarImage,
+      next.avatarGradient,
+      profileId,
+    ],
+  );
+}
+
+export async function requestVerification(profileId: string, note: string) {
+  const now = new Date().toISOString();
+  const clean = note.trim().slice(0, 1000);
+  await execute(
+    "UPDATE profiles SET verificationStatus = 'pending', verificationRequestedAt = ?, verificationNote = ? WHERE id = ?",
+    [now, clean, profileId],
+  );
+}
+
+export async function decideVerification(profileId: string, status: VerificationStatus, note: string | null) {
+  await execute(
+    "UPDATE profiles SET verificationStatus = ?, verificationNote = ? WHERE id = ?",
+    [status, note, profileId],
+  );
+  if (status === "approved") {
+    await execute("UPDATE profiles SET attestationLevel = 'verified' WHERE id = ?", [profileId]);
+    await execute("UPDATE profile_attestations SET status = 'verified', reviewedAt = ? WHERE profileId = ?", [new Date().toISOString(), profileId]);
+  }
+}
+
+export async function setAccountRole(accountId: string, role: SystemRole) {
+  await execute("UPDATE accounts SET systemRole = ? WHERE id = ?", [role, accountId]);
+}
+
+export async function suspendProfile(profileId: string, status: "active" | "restricted" | "suspended") {
+  await execute("UPDATE profiles SET moderationStatus = ? WHERE id = ?", [status, profileId]);
+}
+
+export async function recordVisitor(input: {
+  visitorHash: string;
+  countryCode: string | null;
+  countryName: string | null;
+  region: string | null;
+  city: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  userAgent: string | null;
+}) {
+  const existing = await loadOne("SELECT * FROM visitors WHERE visitorHash = ? LIMIT 1", [input.visitorHash]);
+  const now = new Date().toISOString();
+  if (existing) {
+    await execute(
+      "UPDATE visitors SET lastSeenAt = ?, pageViews = pageViews + 1 WHERE visitorHash = ?",
+      [now, input.visitorHash],
+    );
+    return { isNew: false, record: mapVisitor(existing) };
+  }
+  const record: VisitorRecord = {
+    id: randomUUID(),
+    visitorHash: input.visitorHash,
+    countryCode: input.countryCode,
+    countryName: input.countryName,
+    region: input.region,
+    city: input.city,
+    latitude: input.latitude,
+    longitude: input.longitude,
+    userAgent: input.userAgent,
+    firstSeenAt: now,
+    lastSeenAt: now,
+    pageViews: 1,
+    accountCreated: false,
+  };
+  await execute(
+    `INSERT INTO visitors (
+      id, visitorHash, countryCode, countryName, region, city, latitude, longitude, userAgent,
+      firstSeenAt, lastSeenAt, pageViews, accountCreated
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0)`,
+    [
+      record.id,
+      record.visitorHash,
+      record.countryCode,
+      record.countryName,
+      record.region,
+      record.city,
+      record.latitude,
+      record.longitude,
+      record.userAgent,
+      record.firstSeenAt,
+      record.lastSeenAt,
+    ],
+  );
+  return { isNew: true, record };
+}
+
+export async function markVisitorAccountCreated(visitorHash: string) {
+  await execute("UPDATE visitors SET accountCreated = 1 WHERE visitorHash = ?", [visitorHash]);
+}
+
+export async function listVisitors(limit = 1000) {
+  const rows = await loadRows("SELECT * FROM visitors ORDER BY lastSeenAt DESC LIMIT ?", [limit]);
+  return rows.map(mapVisitor);
+}
+
+export async function aggregateVisitorsByCountry(): Promise<VisitorAggregate[]> {
+  const rows = await loadRows(
+    `SELECT countryCode, countryName, AVG(latitude) AS latitude, AVG(longitude) AS longitude,
+            COUNT(*) AS visitorCount, MAX(lastSeenAt) AS lastSeenAt
+     FROM visitors
+     WHERE countryCode IS NOT NULL
+     GROUP BY countryCode, countryName
+     ORDER BY visitorCount DESC`,
+  );
+  return rows.map((row) => ({
+    countryCode: getNullableString(row, "countryCode"),
+    countryName: getNullableString(row, "countryName"),
+    latitude: typeof row.latitude === "number" ? row.latitude : null,
+    longitude: typeof row.longitude === "number" ? row.longitude : null,
+    visitorCount: getNumber(row, "visitorCount"),
+    lastSeenAt: getString(row, "lastSeenAt"),
+  }));
+}
+
+export async function getSiteSetting(key: string): Promise<SiteSettingRecord | null> {
+  const row = await loadOne("SELECT * FROM site_settings WHERE key = ? LIMIT 1", [key]);
+  if (!row) return null;
+  return {
+    key: getString(row, "key"),
+    value: getString(row, "value"),
+    updatedAt: getString(row, "updatedAt"),
+    updatedBy: getNullableString(row, "updatedBy"),
+  };
+}
+
+export async function setSiteSetting(key: string, value: string, updatedBy: string | null) {
+  const now = new Date().toISOString();
+  const existing = await getSiteSetting(key);
+  if (existing) {
+    await execute("UPDATE site_settings SET value = ?, updatedAt = ?, updatedBy = ? WHERE key = ?", [value, now, updatedBy, key]);
+  } else {
+    await execute("INSERT INTO site_settings (key, value, updatedAt, updatedBy) VALUES (?, ?, ?, ?)", [key, value, now, updatedBy]);
+  }
+}
+
+const DEFAULT_NOTIFICATION_SETTINGS: AdminNotificationSettings = {
+  recipientEmails: notificationEmails,
+  notifyOnSignup: true,
+  notifyOnFirstVisit: true,
+  notifyOnVerificationRequest: true,
+  notifyOnProposal: true,
+  dailyDigest: false,
+  updatedAt: new Date(0).toISOString(),
+};
+
+export async function getAdminNotificationSettings(): Promise<AdminNotificationSettings> {
+  const record = await getSiteSetting("admin.notifications");
+  if (!record) return DEFAULT_NOTIFICATION_SETTINGS;
+  try {
+    const parsed = JSON.parse(record.value) as Partial<AdminNotificationSettings>;
+    return {
+      recipientEmails: Array.isArray(parsed.recipientEmails) && parsed.recipientEmails.length > 0
+        ? parsed.recipientEmails
+        : DEFAULT_NOTIFICATION_SETTINGS.recipientEmails,
+      notifyOnSignup: parsed.notifyOnSignup ?? true,
+      notifyOnFirstVisit: parsed.notifyOnFirstVisit ?? true,
+      notifyOnVerificationRequest: parsed.notifyOnVerificationRequest ?? true,
+      notifyOnProposal: parsed.notifyOnProposal ?? true,
+      dailyDigest: parsed.dailyDigest ?? false,
+      updatedAt: record.updatedAt,
+    };
+  } catch {
+    return DEFAULT_NOTIFICATION_SETTINGS;
+  }
+}
+
+export async function setAdminNotificationSettings(settings: AdminNotificationSettings, updatedBy: string | null) {
+  await setSiteSetting("admin.notifications", JSON.stringify(settings), updatedBy);
+}
+
+export async function getAboutPageContent(): Promise<AboutPageContent> {
+  const record = await getSiteSetting("about.page");
+  if (!record) return DEFAULT_ABOUT_PAGE;
+  try {
+    const parsed = JSON.parse(record.value) as AboutPageContent;
+    return { ...DEFAULT_ABOUT_PAGE, ...parsed, lastUpdated: record.updatedAt };
+  } catch {
+    return DEFAULT_ABOUT_PAGE;
+  }
+}
+
+export async function setAboutPageContent(content: AboutPageContent, updatedBy: string | null) {
+  const payload = { ...content, lastUpdated: new Date().toISOString() };
+  await setSiteSetting("about.page", JSON.stringify(payload), updatedBy);
+}
+
+export async function recordAudit(input: {
+  accountId: string | null;
+  action: string;
+  detail: string;
+  metadata?: Record<string, unknown> | null;
+  ipAddress?: string | null;
+}) {
+  await execute(
+    "INSERT INTO audit_log (id, accountId, action, detail, metadata, ipAddress, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    [
+      randomUUID(),
+      input.accountId,
+      input.action.slice(0, 80),
+      input.detail.slice(0, 1000),
+      input.metadata ? JSON.stringify(input.metadata).slice(0, 4000) : null,
+      input.ipAddress ?? null,
+      new Date().toISOString(),
+    ],
+  );
+}
+
+export async function listAuditLog(limit = 200): Promise<AuditLogRecord[]> {
+  const rows = await loadRows("SELECT * FROM audit_log ORDER BY createdAt DESC LIMIT ?", [limit]);
+  return rows.map((row) => ({
+    id: getString(row, "id"),
+    accountId: getNullableString(row, "accountId"),
+    action: getString(row, "action"),
+    detail: getString(row, "detail"),
+    metadata: getNullableString(row, "metadata"),
+    ipAddress: getNullableString(row, "ipAddress"),
+    createdAt: getString(row, "createdAt"),
+  }));
+}
+
+export async function getAdminDashboard() {
+  const [accounts, profiles, pendingVerifications, recentAudit, visitors, countryAggregates] = await Promise.all([
+    loadAccounts(),
+    loadProfiles(),
+    loadRows("SELECT * FROM profiles WHERE verificationStatus = 'pending' ORDER BY verificationRequestedAt ASC").then((rows) => rows.map(mapProfile)),
+    listAuditLog(50),
+    listVisitors(500),
+    aggregateVisitorsByCountry(),
+  ]);
+  return {
+    accounts,
+    profiles,
+    pendingVerifications,
+    recentAudit,
+    visitors,
+    countryAggregates,
+  };
+}
+
+export async function getProfilePageData(profileId: string) {
+  const [profile, snapshot] = await Promise.all([findProfileById(profileId), hydrate(profileId)]);
+  if (!profile) return null;
+  const summary = snapshot.profiles.find((candidate) => candidate.id === profileId) ?? null;
+  const ownTasks = snapshot.tasks.filter((task) => task.proposerId === profileId);
+  const account = snapshot.accountByProfile.get(profileId);
+  const bookmarkedTasks = await listBookmarks(profileId);
+  return {
+    profile,
+    summary,
+    ownTasks,
+    bookmarkedTasks,
+    accountSystemRole: account?.systemRole ?? "contributor",
+  };
+}
+
+export async function searchIndex(viewerProfileId?: string | null): Promise<SearchResultItem[]> {
+  const snapshot = await hydrate(viewerProfileId);
+  const items: SearchResultItem[] = [];
+  for (const task of snapshot.tasks) {
+    items.push({
+      id: task.id,
+      type: "ken",
+      title: task.title,
+      subtitle: task.summary,
+      url: `/kens/${task.slug}`,
+      badge: task.categoryName,
+    });
+  }
+  for (const profile of snapshot.profiles) {
+    items.push({
+      id: profile.id,
+      type: "profile",
+      title: profile.name,
+      subtitle: `${profile.role} · ${profile.specialty}`,
+      url: `/people/${profile.id}`,
+      badge: profile.attestationLevel,
+    });
+  }
+  for (const category of snapshot.categories) {
+    items.push({
+      id: category.id,
+      type: "category",
+      title: category.name,
+      subtitle: category.description,
+      url: `/kens?category=${category.slug}`,
+    });
+  }
+  for (const event of snapshot.governance.slice(0, 20)) {
+    items.push({
+      id: event.id,
+      type: "governance",
+      title: event.title,
+      subtitle: event.outcome,
+      url: event.taskId ? `/kens/${event.taskId}` : "/governance",
+      badge: event.house,
+    });
+  }
+  items.push(
+    { id: "home", type: "page", title: "Home", subtitle: "Why, how, and today's proposals.", url: "/" },
+    { id: "kens", type: "page", title: "Kens board", subtitle: "Browse and filter public Kens.", url: "/kens" },
+    { id: "governance", type: "page", title: "Governance", subtitle: "Safety council and allocation chamber decisions.", url: "/governance" },
+    { id: "economics", type: "page", title: "Economics", subtitle: "Treasury, revenue engines, sponsorship pools.", url: "/economics" },
+    { id: "about", type: "page", title: "About / Contact", subtitle: "Creator, mission, and contact info.", url: "/about" },
+  );
+  return items;
+}
+
+async function ensureOwnerSystemRole() {
+  const result = await execute("UPDATE accounts SET systemRole = 'owner' WHERE lower(email) = ? AND systemRole != 'owner'", [
+    env.KENMATCH_OWNER_EMAIL.toLowerCase(),
+  ]);
+  return result;
+}
+
+async function ensureDefaultSiteSettings() {
+  const existing = await getSiteSetting("about.page");
+  if (!existing) {
+    await setSiteSetting("about.page", JSON.stringify(DEFAULT_ABOUT_PAGE), null);
+  }
+}
+
+export function getCanonicalOrigin() {
+  return canonicalOrigin;
+}
 

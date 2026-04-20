@@ -19,6 +19,12 @@ export default async function HomePage() {
 
   return (
     <div className="page-stack">
+      <aside className="panel sandbox-banner" role="note" aria-label="Sandbox demo disclosure">
+        <span className="eyebrow">Public sandbox</span>
+        <p>
+          <strong>This is a public demonstration of KenMatch.</strong> All dollar figures, sponsorship totals, pilot-user counts, and frontier AI result samples are <strong>simulated</strong> hypothetical outputs from consumer-grade deep research — not real investments, vendor commitments, or delivered production work.
+        </p>
+      </aside>
       <section className="hero-layout">
         <div className="panel hero-panel fade-up">
           <div className="eyebrow">Community board for helpful AI work</div>
