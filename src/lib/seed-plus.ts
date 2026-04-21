@@ -34,9 +34,6 @@ export const seedTaskFinance: TaskFinanceRecord[] = [
   { taskId: "museum-oral-history-indexer", qualityBondCredits: 2, sponsorPoolUsd: 6500, checkpointApprovalTarget: 12, enterprisePackaging: "Archive indexing service for museums, schools, libraries, and local history projects with limited staff.", dataValueNote: "Metadata corrections, rights notes, and topic labeling improve cultural archive tooling.", sandboxCapitalUsd: 940, sandboxApiSpendUsd: 190, sandboxPilotUsers: 11, modelLineup: ["GPT-4o mini", "Claude Sonnet 4", "Gemini 2.5 Flash"], simulationSummary: "The demo turns long interviews into searchable clips, timestamped quotes, and rights-aware exhibit notes.", sampleOutcome: "A 26-hour oral-history batch was converted into a searchable archive with 214 topic tags and 37 cleaned quote cards.", sponsorAppeal: "Good fit for library systems, regional arts funds, and local donors because the output is immediately legible and shareable." },
   { taskId: "public-domain-performance-studio", qualityBondCredits: 1, sponsorPoolUsd: 2600, checkpointApprovalTarget: 8, enterprisePackaging: "Rights-safe rehearsal workflow for schools, libraries, youth programs, and community theater groups.", dataValueNote: "Rights validation and rehearsal edits improve creative planning tools and public-domain source maps.", sandboxCapitalUsd: 300, sandboxApiSpendUsd: 58, sandboxPilotUsers: 17, modelLineup: ["GPT-4o mini", "Claude Sonnet 4", "Gemini 2.5 Flash"], simulationSummary: "The sandbox run creates rehearsal packets, scene breakdowns, and prop notes from clearly licensed or public-domain material.", sampleOutcome: "Two simulated theater groups produced a full rehearsal packet in under 20 minutes instead of spending an afternoon assembling one.", sponsorAppeal: "Appealing to schools and arts councils because a small grant produces a visible, joyful public demo rather than abstract research." },
   { taskId: "autonomous-phishing-lure-optimizer", qualityBondCredits: 5, sponsorPoolUsd: 0, checkpointApprovalTarget: 0, enterprisePackaging: "No commercial path because the Ken is blocked as prohibited offensive work.", dataValueNote: "No data collection or commercialization is allowed for blocked abuse-oriented Kens.", sandboxCapitalUsd: 0, sandboxApiSpendUsd: 0, sandboxPilotUsers: 0, modelLineup: [], simulationSummary: "No sandbox run is allowed because the proposed outcome increases real-world abuse capacity.", sampleOutcome: "No public demo output is generated for blocked offensive Kens.", sponsorAppeal: "Sponsors cannot fund or revive blocked offensive work." },
-  { taskId: "school-lunch-menu-translator", qualityBondCredits: 1, sponsorPoolUsd: 1800, checkpointApprovalTarget: 8, enterprisePackaging: "District-level menu translation service for school systems serving multilingual communities.", dataValueNote: "Translation corrections and allergen match feedback improve multilingual food-safety tooling.", sandboxCapitalUsd: 340, sandboxApiSpendUsd: 62, sandboxPilotUsers: 85, modelLineup: ["GPT-5.4", "Claude Sonnet 4", "Gemini 2.5 Flash"], simulationSummary: "A one-week sandbox run translated sample menus into Spanish, Vietnamese, and Somali with allergen flags.", sampleOutcome: "85 families in the sandbox got readable menus and 12 previously unknown allergen conflicts were flagged.", sponsorAppeal: "Easy pitch for school foundations and food equity nonprofits — the output is immediately useful and shareable." },
-  { taskId: "neighborhood-pothole-tracker", qualityBondCredits: 2, sponsorPoolUsd: 4200, checkpointApprovalTarget: 12, enterprisePackaging: "Municipal road condition dashboard for public works departments and neighborhood associations.", dataValueNote: "Deduplication patterns and resolution timelines improve civic infrastructure tracking tools.", sandboxCapitalUsd: 780, sandboxApiSpendUsd: 142, sandboxPilotUsers: 320, modelLineup: ["GPT-5.4", "GPT-4o mini", "Claude Sonnet 4"], simulationSummary: "The sandbox ingested six months of 311 data from two mid-size cities and built a deduplicated street-fix timeline.", sampleOutcome: "The demo identified 47% of reports as duplicates and showed average fix times by neighborhood for the first time.", sponsorAppeal: "Civic tech funders and neighborhood associations can see results in their own zip codes immediately." },
-  { taskId: "freelancer-invoice-checker", qualityBondCredits: 1, sponsorPoolUsd: 1500, checkpointApprovalTarget: 8, enterprisePackaging: "Invoice review service for freelancer platforms, coworking spaces, and small business incubators.", dataValueNote: "Common mistake patterns and payment-term traps improve financial literacy tooling.", sandboxCapitalUsd: 280, sandboxApiSpendUsd: 48, sandboxPilotUsers: 156, modelLineup: ["GPT-5.4", "GPT-4o mini"], simulationSummary: "The sandbox checked 200 sample invoices and flagged missing fields, unfavorable terms, and tax compliance gaps.", sampleOutcome: "156 freelancers caught at least one fixable mistake before sending, with an average potential savings of $340 per invoice.", sponsorAppeal: "Freelancer unions, coworking spaces, and small business programs can offer this as a member benefit." },
 ];
 
 export const seedTaskPulseVotes: TaskPulseVoteRecord[] = [
@@ -59,11 +56,6 @@ export const seedTaskPulseVotes: TaskPulseVoteRecord[] = [
   { id: "pulse-17", taskId: "public-domain-performance-studio", profileId: "noor-haddad", value: -1, updatedAt: "2026-03-15T10:44:00.000Z" },
   { id: "pulse-18", taskId: "autonomous-phishing-lure-optimizer", profileId: "maya-chen", value: -1, updatedAt: "2026-03-15T10:47:00.000Z" },
   { id: "pulse-19", taskId: "autonomous-phishing-lure-optimizer", profileId: "elena-petrov", value: -1, updatedAt: "2026-03-15T10:49:00.000Z" },
-  { id: "pulse-20", taskId: "school-lunch-menu-translator", profileId: "priya-singh", value: 1 as const, updatedAt: "2026-03-15T10:52:00.000Z" },
-  { id: "pulse-21", taskId: "school-lunch-menu-translator", profileId: "jordan-miles", value: 1 as const, updatedAt: "2026-03-15T10:54:00.000Z" },
-  { id: "pulse-22", taskId: "neighborhood-pothole-tracker", profileId: "rafael-ortiz", value: 1 as const, updatedAt: "2026-03-15T10:56:00.000Z" },
-  { id: "pulse-23", taskId: "freelancer-invoice-checker", profileId: "maya-chen", value: 1 as const, updatedAt: "2026-03-15T10:58:00.000Z" },
-  { id: "pulse-24", taskId: "freelancer-invoice-checker", profileId: "jordan-miles", value: 1 as const, updatedAt: "2026-03-15T11:00:00.000Z" },
 ];
 
 export const seedTaskTimings: TaskTimingRecord[] = [
@@ -78,9 +70,6 @@ export const seedTaskTimings: TaskTimingRecord[] = [
   { taskId: "museum-oral-history-indexer", launchAt: "2026-03-25T11:00:00.000Z", startedAt: null, expectedMaxEndAt: "2026-03-31T11:00:00.000Z", computeHoursUsed: 0, completionMode: "planned", completionSummary: "Waiting on archive rights review before ingestion begins.", updatedAt: "2026-03-16T10:50:00.000Z" },
   { taskId: "public-domain-performance-studio", launchAt: "2026-03-29T09:30:00.000Z", startedAt: null, expectedMaxEndAt: "2026-03-31T15:30:00.000Z", computeHoursUsed: 0, completionMode: "planned", completionSummary: "Still gathering public signal and community-theater pilot partners.", updatedAt: "2026-03-16T09:10:00.000Z" },
   { taskId: "autonomous-phishing-lure-optimizer", launchAt: null, startedAt: null, expectedMaxEndAt: null, computeHoursUsed: 0, completionMode: "blocked", completionSummary: "Blocked before launch because the Ken improves offensive abuse capability.", updatedAt: "2026-03-03T11:00:00.000Z" },
-  { taskId: "school-lunch-menu-translator", launchAt: "2026-03-23T08:00:00.000Z", startedAt: null, expectedMaxEndAt: "2026-03-25T08:00:00.000Z", computeHoursUsed: 0, completionMode: "planned" as const, completionSummary: "Waiting on translation accuracy review and district partner confirmation.", updatedAt: "2026-03-16T09:00:00.000Z" },
-  { taskId: "neighborhood-pothole-tracker", launchAt: null, startedAt: null, expectedMaxEndAt: null, computeHoursUsed: 0, completionMode: "planned" as const, completionSummary: "In review — data freshness and accuracy checks are underway.", updatedAt: "2026-03-13T14:30:00.000Z" },
-  { taskId: "freelancer-invoice-checker", launchAt: "2026-03-27T09:00:00.000Z", startedAt: null, expectedMaxEndAt: "2026-03-28T21:00:00.000Z", computeHoursUsed: 0, completionMode: "planned" as const, completionSummary: "Building public signal before the days-lane window opens.", updatedAt: "2026-03-16T10:00:00.000Z" },
 ];
 
 export const seedRunUpdates: RunUpdateRecord[] = [
@@ -94,7 +83,6 @@ export const seedRunUpdates: RunUpdateRecord[] = [
   { id: "update-8", taskId: "clinic-follow-up-question-drafter", label: "Pilot shipped with limited scope", status: "partial", summary: "Clinicians found the drafting useful for note triage, but broader automation was intentionally deferred after the compute window ended.", artifact: "Pilot retrospective", evidenceNote: "Accepted and rejected outputs remain available for audit.", createdAt: "2026-03-05T17:30:00.000Z" },
   { id: "update-9", taskId: "museum-oral-history-indexer", label: "Archive rights review underway", status: "planned", summary: "Consent forms and speaker restrictions are being normalized before ingestion begins.", artifact: "Rights review workbook", evidenceNote: "Archive staff comments are preserved in the staging packet.", createdAt: "2026-03-16T10:30:00.000Z" },
   { id: "update-10", taskId: "public-domain-performance-studio", label: "Community theater pilot recruited", status: "planned", summary: "Two school and theater groups volunteered to test the rehearsal packet flow if the Ken reaches the days lane.", artifact: "Pilot interest log", evidenceNote: "Interested groups are listed in the partner note set.", createdAt: "2026-03-16T09:00:00.000Z" },
-  { id: "update-11", taskId: "school-lunch-menu-translator", label: "District partner onboarded", status: "planned" as const, summary: "Two pilot school districts agreed to provide sample menus and native-speaker reviewers.", artifact: "Partner agreement", evidenceNote: "District contacts and menu samples are staged for the translation run.", createdAt: "2026-03-16T11:00:00.000Z" },
 ];
 
 export const seedCheckpointGates: CheckpointGateRecord[] = [
@@ -110,7 +98,6 @@ export const seedCheckpointGates: CheckpointGateRecord[] = [
   { checkpointId: "checkpoint-10", approvalScore: 14, requiredApprovals: 24, releaseStatus: "pending" },
   { checkpointId: "checkpoint-11", approvalScore: 0, requiredApprovals: 12, releaseStatus: "pending" },
   { checkpointId: "checkpoint-12", approvalScore: 10, requiredApprovals: 8, releaseStatus: "approved" },
-  { checkpointId: "checkpoint-13", approvalScore: 0, requiredApprovals: 8, releaseStatus: "pending" as const },
 ];
 
 export const seedComments: CommentRecord[] = [
@@ -124,9 +111,6 @@ export const seedComments: CommentRecord[] = [
   { id: "comment-8", taskId: "clinic-follow-up-question-drafter", profileId: "priya-singh", parentId: null, body: "The partial result is still valuable. The pilot proved there is time-saving utility, but the current guardrails are not yet strong enough for anything broader.", stakeCredits: 2, createdAt: "2026-03-15T11:56:00.000Z" },
   { id: "comment-9", taskId: "museum-oral-history-indexer", profileId: "aiko-tanaka", parentId: null, body: "Small archives should not need a custom software budget just to make local history searchable and teachable.", stakeCredits: 2, createdAt: "2026-03-15T12:05:00.000Z" },
   { id: "comment-10", taskId: "autonomous-phishing-lure-optimizer", profileId: "elena-petrov", parentId: null, body: "Keeping blocked Kens visible matters because it shows the safety boundary in public instead of quietly pretending harmful demand does not exist.", stakeCredits: 1, createdAt: "2026-03-15T12:12:00.000Z" },
-  { id: "comment-11", taskId: "school-lunch-menu-translator", profileId: "priya-singh", parentId: null, body: "My kids' school sends home a dense PDF every month that half the parents cannot read. This is the most practical Ken on the board.", stakeCredits: 3, createdAt: "2026-03-15T12:20:00.000Z" },
-  { id: "comment-12", taskId: "freelancer-invoice-checker", profileId: "maya-chen", parentId: null, body: "I lost $2,400 last year because I missed a net-60 clause buried in paragraph nine. A five-minute check would have caught it.", stakeCredits: 2, createdAt: "2026-03-15T12:28:00.000Z" },
-  { id: "comment-13", taskId: "neighborhood-pothole-tracker", profileId: "rafael-ortiz", parentId: null, body: "The duplicate reporting problem wastes everyone's time — residents, city workers, and council members. This could actually fix it.", stakeCredits: 3, createdAt: "2026-03-15T12:35:00.000Z" },
 ];
 
 export const seedCommentVotes: CommentVoteRecord[] = [
@@ -144,9 +128,6 @@ export const seedCommentVotes: CommentVoteRecord[] = [
   { id: "comment-vote-12", commentId: "comment-8", profileId: "noor-haddad", value: 1, updatedAt: "2026-03-15T12:51:00.000Z" },
   { id: "comment-vote-13", commentId: "comment-9", profileId: "rafael-ortiz", value: 1, updatedAt: "2026-03-15T12:54:00.000Z" },
   { id: "comment-vote-14", commentId: "comment-10", profileId: "maya-chen", value: 1, updatedAt: "2026-03-15T12:57:00.000Z" },
-  { id: "comment-vote-15", commentId: "comment-11", profileId: "jordan-miles", value: 1 as const, updatedAt: "2026-03-15T13:00:00.000Z" },
-  { id: "comment-vote-16", commentId: "comment-12", profileId: "jordan-miles", value: 1 as const, updatedAt: "2026-03-15T13:02:00.000Z" },
-  { id: "comment-vote-17", commentId: "comment-13", profileId: "priya-singh", value: 1 as const, updatedAt: "2026-03-15T13:04:00.000Z" },
 ];
 
 export const seedRevenueStreams: RevenueStreamRecord[] = [
@@ -215,26 +196,6 @@ export const seedRevenueStreams: RevenueStreamRecord[] = [
     founderSharePercent: 10,
     publicBenefitCovenant: "Sponsors can fund a lane, category, or Ken but cannot buy ranking, voice, or release approval.",
     openDeliverableBoundary: "Sponsored work keeps the same public checkpoints, blocked-work visibility, and open audit expectations as every other Ken.",
-    contributorDividendPercent: 0,
-    requiresContributorConsent: false,
-  },
-  {
-    id: "revenue-5",
-    slug: "private-execution-lane",
-    name: "Private execution lane",
-    engine: "private-lane",
-    description:
-      "Paying customers can run private long-horizon jobs in a separate lane that never appears on the public board and never affects public ranking.",
-    pricingModel: "Usage-based with reserved capacity tiers",
-    status: "pilot",
-    monthlyRevenueUsd: 18000,
-    grossMargin: 0.82,
-    treasurySharePercent: 80,
-    founderSharePercent: 20,
-    publicBenefitCovenant:
-      "Private lane capacity is provisioned separately. Revenue flows into the shared treasury under the standard split without granting any governance influence.",
-    openDeliverableBoundary:
-      "Private runs do not generate public deliverables. The treasury contribution is the only public artifact.",
     contributorDividendPercent: 0,
     requiresContributorConsent: false,
   },
@@ -391,22 +352,6 @@ export const seedTreasuryEntries: TreasuryEntryRecord[] = [
     restrictionTargetLabel: "Founder operations",
     createdAt: "2026-03-11T09:00:00.000Z",
   },
-  {
-    id: "treasury-9",
-    streamId: "revenue-5",
-    title: "Private lane routing surplus",
-    description:
-      "Margin captured from private execution lane usage, routed to the shared treasury under the standard 80/20 split.",
-    bucket: "compute-treasury",
-    direction: "inflow",
-    amountUsd: 14400,
-    fundingState: "committed",
-    restrictionMode: "unrestricted",
-    restrictionScope: "general",
-    restrictionTargetId: null,
-    restrictionTargetLabel: "Shared compute treasury",
-    createdAt: "2026-03-12T09:00:00.000Z",
-  },
 ];
 
 export const seedSponsorshipCommitments: SponsorshipCommitmentRecord[] = [
@@ -443,22 +388,5 @@ export const seedSponsorshipCommitments: SponsorshipCommitmentRecord[] = [
     createdAt: "2026-03-13T11:45:00.000Z",
     updatedAt: "2026-03-13T11:45:00.000Z",
     paidAt: "2026-03-13T11:45:00.000Z",
-  },
-  {
-    id: "sponsorship-3",
-    sponsorName: "Metro Schools Innovation Fund",
-    sponsorType: "public-agency",
-    sponsorContact: "grants@metroschools.example",
-    note: "Supporting the Smoke Day Planner Ken so school districts get daily air-quality briefings before the morning bell.",
-    amountUsd: 8500,
-    fundingState: "committed",
-    status: "paid",
-    restrictionScope: "ken",
-    restrictionTargetId: "local-air-quality-briefing",
-    restrictionTargetLabel: "Smoke Day Planner",
-    checkoutSessionId: null,
-    createdAt: "2026-03-14T08:30:00.000Z",
-    updatedAt: "2026-03-14T08:30:00.000Z",
-    paidAt: "2026-03-14T08:30:00.000Z",
   },
 ];

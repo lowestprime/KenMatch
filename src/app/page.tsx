@@ -1,17 +1,9 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 
-import { Avatar } from "@/components/avatar";
 import { TaskCard } from "@/components/task-card";
 import { getHomeData } from "@/lib/db";
 import { getViewerProfileId } from "@/lib/session";
 import { formatCurrency, formatNumber } from "@/lib/utils";
-
-export const metadata: Metadata = {
-  title: "KenMatch — Community board for long-running AI projects",
-  description: "Propose, vote on, and fund long-running AI projects with visible checkpoints, public discussion, and transparent economics. Browse Kens, back useful work, and join the community.",
-  openGraph: { title: "KenMatch", description: "A public board where people decide which AI projects run longer." },
-};
 
 export default async function HomePage() {
   const viewerProfileId = await getViewerProfileId();
@@ -29,15 +21,15 @@ export default async function HomePage() {
         <div className="panel hero-panel fade-up">
           <div className="eyebrow">Community board for helpful AI work</div>
           <h1 className="max-w-4xl font-display text-4xl font-semibold leading-tight text-foreground sm:text-5xl lg:text-6xl">
-            Decide which AI projects are worth running for weeks, not just seconds.
+            Vote on the Kens worth running longer than one quick prompt.
           </h1>
           <p className="max-w-3xl text-lg leading-8 text-muted">
-            KenMatch is a public board where people propose, vote on, and fund long-running AI projects. Lower your power bill, get smoke-day alerts, speed up benefit appeals, keep open-source tools safe, or give your local theater a boost — all with visible checkpoints and public discussion.
+            KenMatch is a public board for work that needs more than one shot: lowering power bills, making smoke days easier to navigate, helping people appeal denied benefits, keeping open tools safer, and giving schools or archives better starter tools.
           </p>
           <div className="hero-actions">
-            <Link href="/kens" className="cta-primary">Browse projects</Link>
-            <Link href="/submit" className="cta-secondary">Propose a project</Link>
-            <Link href="/economics" className="cta-secondary">{"See how it's funded"}</Link>
+            <Link href="/kens" className="cta-primary">Browse Kens</Link>
+            <Link href="/submit" className="cta-secondary">Submit a Ken</Link>
+            <Link href="/economics" className="cta-secondary">See backing</Link>
           </div>
           <div className="hero-note">
             {viewer ? (
@@ -45,7 +37,7 @@ export default async function HomePage() {
                 Signed in as <span className="font-semibold text-foreground">{viewer.name}</span> with <span className="font-semibold text-foreground">{viewer.availableCredits}</span> free priority credits.
               </p>
             ) : (
-              <p>Everything is readable without an account. Sign in to vote, comment, back a project, or propose one.</p>
+              <p>Reading is open. Accounts are only required for voting, comments, and submitting a Ken.</p>
             )}
           </div>
         </div>
@@ -71,34 +63,34 @@ export default async function HomePage() {
       <section className="space-y-5">
         <div className="section-heading">
           <div>
-            <div className="eyebrow">Trending now</div>
-            <h2 className="font-display text-3xl font-semibold text-foreground">Projects people are backing right now</h2>
+            <div className="eyebrow">Trending Kens</div>
+            <h2 className="font-display text-3xl font-semibold text-foreground">What people are backing right now</h2>
           </div>
-          <Link href="/kens" className="text-sm font-semibold text-teal">See all projects</Link>
+          <Link href="/kens" className="text-sm font-semibold text-teal">Open the full feed</Link>
         </div>
         <div className="feed-list">
-          {featuredTasks.map((task) => <TaskCard key={task.id} task={task} />)}
+          {featuredTasks.slice(0, 4).map((task) => <TaskCard key={task.id} task={task} />)}
         </div>
       </section>
 
       <section className="section-grid" data-columns="2">
         <div className="panel space-y-5">
-          <div className="eyebrow">Categories</div>
+          <div className="eyebrow">Where Kens show up</div>
           <div className="grid gap-4">
             {categories.map((category) => (
-              <Link key={category.id} href={`/kens?category=${category.slug}`} className="block rounded-[1.3rem] border border-border bg-background/55 p-5 transition hover:border-teal/30">
+              <div key={category.id} className="rounded-[1.3rem] border border-border bg-background/55 p-5">
                 <div className="flex items-center justify-between gap-3">
                   <div className="font-display text-xl font-semibold text-foreground">{category.name}</div>
                   <span className="tag">{category.proposalCount} Kens</span>
                 </div>
                 <p className="mt-2 text-sm leading-7 text-muted">{category.thesis}</p>
-              </Link>
+              </div>
             ))}
           </div>
         </div>
         <div className="panel space-y-5">
-          <div className="eyebrow">{"How it's funded"}</div>
-          <h2 className="font-display text-3xl font-semibold text-foreground">Money funds compute, not influence</h2>
+          <div className="eyebrow">Funding snapshot</div>
+          <h2 className="font-display text-3xl font-semibold text-foreground">Backers can add supply, but they cannot buy rank</h2>
           <p className="text-sm leading-7 text-muted">
             A Ken can attract backing, sandbox demonstrations, and hosted service revenue without turning rank into a purchasable privilege. Treasury reporting stays visible so people can see where support comes from and where compute is going.
           </p>
@@ -106,12 +98,6 @@ export default async function HomePage() {
             <div className="flow-card"><div className="eyebrow">Coverage</div><div className="metric-value">{economics.coverageMonths.toFixed(1)} mo</div></div>
             <div className="flow-card"><div className="eyebrow">Sponsor pools</div><div className="metric-value">{formatCurrency(economics.sponsorPoolsUsd)}</div></div>
             <div className="flow-card"><div className="eyebrow">Verified streams</div><div className="metric-value">{formatNumber(economics.verifiedFundingStreams)}</div></div>
-            <div className="flow-card">
-              <div className="eyebrow">Treasury policy</div>
-              <span className={`governor-badge ${economics.governorActive ? "is-active" : "is-healthy"}`}>
-                {economics.governorActive ? "Governor active" : "Coverage healthy"}
-              </span>
-            </div>
           </div>
           <div className="grid gap-4">
             {revenueStreams.map((stream) => (
@@ -129,7 +115,7 @@ export default async function HomePage() {
 
       <section className="section-grid" data-columns="2">
         <div className="panel space-y-4">
-          <div className="eyebrow">Recent decisions</div>
+          <div className="eyebrow">Recent governance</div>
           {governance.map((event) => (
             <div key={event.id} className="rounded-[1.3rem] border border-border bg-background/55 p-4">
               <div className="text-xs uppercase tracking-[0.22em] text-muted">{event.house.replace("-", " ")}</div>
@@ -139,21 +125,18 @@ export default async function HomePage() {
           ))}
         </div>
         <div className="panel space-y-4">
-          <div className="eyebrow">Active contributors</div>
+          <div className="eyebrow">People on the board</div>
           {contributors.map((profile) => (
-            <Link key={profile.id} href={`/profiles/${profile.id}`} className="block rounded-[1.3rem] border border-border bg-background/55 p-4 transition hover:border-teal/30">
-              <div className="flex items-center gap-3">
-                <Avatar name={profile.name} hue={profile.avatarHue} size={36} />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="font-display text-xl font-semibold text-foreground">{profile.name}</div>
-                    <span className="tag">{profile.attestationLevel}</span>
-                  </div>
+            <div key={profile.id} className="rounded-[1.3rem] border border-border bg-background/55 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="font-display text-xl font-semibold text-foreground">{profile.name}</div>
                   <div className="text-sm text-muted">{profile.role} · {profile.specialty}</div>
                 </div>
+                <span className="tag">{profile.attestationLevel}</span>
               </div>
-              <p className="mt-2 text-sm leading-7 text-muted line-clamp-3">{profile.attestationNote}</p>
-            </Link>
+              <p className="mt-2 text-sm leading-7 text-muted">{profile.attestationNote}</p>
+            </div>
           ))}
         </div>
       </section>
