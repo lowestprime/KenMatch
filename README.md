@@ -221,7 +221,7 @@ npm run build
 KenMatch ships with a standalone Next.js build configuration and a Docker image intended for self-hosting.
 
 - `next.config.ts` sets `output: "standalone"`.
-- `npm run build` runs Next's compile build mode followed by generate-env mode, producing the finalized standalone server artifact used by the Docker and Synology deployment flow in this repository.
+- `npm run build` runs Next's compile build mode followed by generate-env mode, then verifies that every app-route chunk referenced by the standalone server exists under `.next/static` before Docker copies the artifact.
 - `Dockerfile` runs the generated standalone server as a non-root user.
 - `docker-compose.synology.yml` mounts persistent local data, keeps the container read-only except for `/app/data`, and binds the app to `127.0.0.1:3000`.
 - `docker-compose.synology.tunnel.yml` adds a `cloudflared` sidecar for a direct Cloudflare Tunnel deployment from Synology.

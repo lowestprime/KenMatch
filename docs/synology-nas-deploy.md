@@ -242,6 +242,15 @@ git pull
 docker compose -f docker-compose.synology.yml up -d --build
 ```
 
+If you deploy from a copied working tree rather than a fresh Git pull, prefer an explicit rebuild after large UI changes:
+
+```bash
+docker compose -f docker-compose.synology.yml build --pull kenmatch
+docker compose -f docker-compose.synology.yml up -d --force-recreate kenmatch
+```
+
+The production build includes a Next route-chunk verification step, so a rebuilt image fails or repairs itself before launch if a server manifest references a missing `.next/static` app-route chunk.
+
 After each upgrade:
 
 1. check container status
