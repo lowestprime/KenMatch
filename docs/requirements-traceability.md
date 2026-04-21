@@ -53,8 +53,19 @@ This file maps the stable product requirements from `KenMatch_Conception.md` to 
 
 ### Modern public-facing interface and theming
 - Responsive shell, compact sticky header, and visual system live in `src/components/site-shell.tsx` and `src/app/globals.css`.
-- Light, dark, and OLED themes are implemented in `src/components/theme-toggle.tsx` and `src/app/layout.tsx`.
-- Product icon and favicon support are implemented through `src/components/kenmatch-mark.tsx` and `src/app/icon.svg`.
+- Light and true-black OLED themes are implemented in `src/components/theme-toggle.tsx`, `src/app/layout.tsx`, and `src/app/globals.css`.
+- Product icon and favicon support are implemented through `src/components/kenmatch-mark.tsx`, `src/lib/brand-assets.ts`, and the route-backed icon/manifest handlers under `src/app/*/route.ts`.
+
+### Account recovery, email verification, notifications, and admin operations
+- Email verification and forgot-password flows are implemented in `src/app/actions.ts`, `src/lib/db.ts`, `src/lib/mail.ts`, `src/app/forgot-password/page.tsx`, `src/app/reset/page.tsx`, and `src/app/verify/page.tsx`.
+- Owner/admin notifications for signup, first visitor, verification requests, and Ken submissions are configurable from `src/app/admin/page.tsx` and persisted in `site_settings`.
+- The owner-editable About / Contact page is implemented on `src/app/about/page.tsx`, `src/components/about-editor.tsx`, and `site_settings`.
+- User profile management, avatar customization, verification requests, and bookmarks are implemented in `src/app/account/page.tsx`, `src/components/profile-editor.tsx`, and `profiles` / `bookmarks`.
+
+### Visitor telemetry and persistence resilience
+- Unique visitors are anonymized with a salted hash and persisted in `visitors` through `src/lib/visitor.ts`.
+- The admin visitor map is rendered by `src/components/visitor-map.tsx` and uses Cloudflare geolocation request headers when present.
+- Synology persistence and recovery steps are documented in `docs/synology-nas-deploy.md`; live writes are stored outside the container image in the mounted `data/` directory.
 
 ### Public deployment and self-hosting readiness
 - Standalone Next.js output is configured in `next.config.ts`.

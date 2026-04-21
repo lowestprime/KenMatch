@@ -5,15 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "next build --experimental-build-mode compile --webpack",
+    "build": "next build --experimental-build-mode compile --webpack && next build --experimental-build-mode generate-env --webpack",
     "start": "node .next/standalone/server.js",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "node -e \"const fs=require('node:fs'); for (const p of ['.next/types','.next/dev/types']) fs.rmSync(p,{recursive:true,force:true});\" && next typegen && tsc --noEmit",
     "test": "node --experimental-strip-types --test --experimental-test-isolation=none tests/**/*.test.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.17.0",
-    "next": "^16.1.0",
+    "next": "^16.2.4",
     "nodemailer": "^8.0.5",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

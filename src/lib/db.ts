@@ -595,8 +595,8 @@ async function initializeDatabase() {
   await ensureColumn(client, "task_finance", "sponsorAppeal", "TEXT NOT NULL DEFAULT ''");
 
   await seedDatabase();
-  await ensureOwnerSystemRole();
-  await ensureDefaultSiteSettings();
+  await ensureOwnerSystemRole(client);
+  await ensureDefaultSiteSettings(client);
 }
 
 async function ensureColumn(client: Client, table: string, column: string, definition: string) {
@@ -3044,17 +3044,23 @@ export async function searchIndex(viewerProfileId?: string | null): Promise<Sear
   return items;
 }
 
-async function ensureOwnerSystemRole() {
-  const result = await execute("UPDATE accounts SET systemRole = 'owner' WHERE lower(email) = ? AND systemRole != 'owner'", [
-    env.KENMATCH_OWNER_EMAIL.toLowerCase(),
-  ]);
-  return result;
+async function ensureOwnerSystemRole(client: Client) {
+  return client.execute({
+    sql: "UPDATE accounts SET systemRole = 'owner' WHERE lower(email) = ? AND systemRole != 'owner'",
+    args: [env.KENMATCH_OWNER_EMAIL.toLowerCase()],
+  });
 }
 
-async function ensureDefaultSiteSettings() {
-  const existing = await getSiteSetting("about.page");
-  if (!existing) {
-    await setSiteSetting("about.page", JSON.stringify(DEFAULT_ABOUT_PAGE), null);
+async function ensureDefaultSiteSettings(client: Client) {
+  const existing = await client.execute({
+    sql: "SELECT key FROM site_settings WHERE key = ? LIMIT 1",
+    args: ["about.page"],
+  });
+  if (existing.rows.length === 0) {
+    await client.execute({
+      sql: "INSERT INTO site_settings (key, value, updatedAt, updatedBy) VALUES (?, ?, ?, ?)",
+      args: ["about.page", JSON.stringify(DEFAULT_ABOUT_PAGE), new Date().toISOString(), null],
+    });
   }
 }
 

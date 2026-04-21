@@ -7,6 +7,8 @@ KenMatch now includes meaningful app-layer hardening, but a public home-network 
 - strict response headers in `middleware.ts`
 - host filtering and cross-site request blocking in `middleware.ts`
 - secure cookie-backed sessions in `src/lib/session.ts`
+- email verification and forgot-password token expiry in `src/lib/db.ts` and `src/app/actions.ts`
+- SMTP-backed owner/admin notification dispatch in `src/lib/mail.ts`
 - detailed-vs-public health response split in `src/app/api/health/route.ts`
 - structured request rate limiting in `request_rate_limits`
 - security event logging in `security_events`
@@ -21,8 +23,9 @@ KenMatch now includes meaningful app-layer hardening, but a public home-network 
 4. Use HTTPS only for the public origin.
 5. Set `KENMATCH_PUBLIC_ORIGIN` and `KENMATCH_ALLOWED_HOSTS` exactly.
 6. Set `KENMATCH_HEALTH_TOKEN`.
-7. Run the container as non-root.
-8. Back up the local database and `.env`.
+7. Set `KENMATCH_VISITOR_HASH_SALT` and SMTP secrets before accepting public signups.
+8. Run the container as non-root.
+9. Back up the local database and `.env`.
 
 ## DDoS and abuse posture
 
@@ -69,7 +72,8 @@ If Stripe is enabled:
 5. a comment posts successfully
 6. sponsor pledge flow works
 7. if enabled, live sponsor checkout completes and the webhook updates the economics page
-8. if using Cloudflare Tunnel, the tunnel connector is healthy and the NAS app remains loopback-only
+8. `/icon.svg`, `/icon-dark.svg`, `/apple-touch-icon.svg`, and `/manifest.webmanifest` return 200
+9. if using Cloudflare Tunnel, the tunnel connector is healthy and the NAS app remains loopback-only
 
 ## Honest boundary
 
