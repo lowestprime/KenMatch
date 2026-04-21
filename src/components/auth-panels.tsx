@@ -30,17 +30,19 @@ export function AuthPanels({
       </div>
 
       <div className="rounded-[1.3rem] border border-border bg-background/55 p-4 text-sm leading-7 text-muted">
-        Your account makes your participation visible and accountable. Reading is always open — accounts are needed for voting, commenting, and proposing projects.
+        Your account makes your participation visible and accountable. Reading is always open; accounts are needed for voting, commenting, and proposing Kens.
       </div>
 
       {mode === "signin" ? (
-        <form action={signInFormAction} className="grid gap-4">
-          <Field label="Email" name="email" type="email" autoComplete="email" required error={state.fieldErrors?.email} />
+        <div className="grid gap-4">
+          <form action={signInFormAction} className="grid gap-4">
+          <Field label="Email or username" name="identifier" autoComplete="username" required error={state.fieldErrors?.identifier} />
           <Field label="Password" name="password" type="password" autoComplete="current-password" required error={state.fieldErrors?.password} />
           <AbuseGuardFields action="sign-in" siteKey={turnstileSiteKey} />
           <button className="cta-primary" type="submit" disabled={signInPending}>
             {signInPending ? "Signing in" : "Sign in"}
           </button>
+          </form>
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
             <Link href="/forgot-password" className="underline">
               Forgot your password?
@@ -65,11 +67,12 @@ export function AuthPanels({
               ) : null}
             </details>
           </div>
-        </form>
+        </div>
       ) : (
         <form action={signUpFormAction} className="grid gap-4">
           <div className="grid gap-4 md:grid-cols-2">
             <Field label="Name" name="name" autoComplete="name" required error={state.fieldErrors?.name} />
+            <Field label="Username" name="username" autoComplete="username" required error={state.fieldErrors?.username} />
             <Field label="Role" name="role" autoComplete="organization-title" required error={state.fieldErrors?.role} />
             <Field label="Specialty" name="specialty" required error={state.fieldErrors?.specialty} />
             <Field label="Email" name="email" type="email" autoComplete="email" required error={state.fieldErrors?.email} />

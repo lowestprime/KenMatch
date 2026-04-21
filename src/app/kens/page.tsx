@@ -9,9 +9,9 @@ import type { MarketplaceFilters, SortOption } from "@/lib/types";
 import { labelForStage } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "Projects",
-  description: "Browse, filter, and vote on AI projects that help people. Search by category, lane, and status.",
-  openGraph: { title: "Projects | KenMatch", description: "Browse the public board of AI projects people are proposing, backing, and running." },
+  title: "Kens",
+  description: "Browse, filter, and vote on Kens that help people. Search by category, lane, and status.",
+  openGraph: { title: "Kens | KenMatch", description: "Browse the public board of Kens people are proposing, backing, and running." },
 };
 
 interface KensPageProps {
@@ -39,9 +39,9 @@ export default async function KensPage({ searchParams }: KensPageProps) {
     <div className="page-stack">
       <section className="panel hero-panel card-sheen space-y-4">
         <div className="eyebrow">Community feed</div>
-        <h1 className="font-display text-4xl font-semibold text-foreground">Projects people want to use, fund, and talk about</h1>
+        <h1 className="font-display text-4xl font-semibold text-foreground">Kens people want to use, fund, and talk about</h1>
         <p className="max-w-4xl text-lg leading-8 text-muted">
-          A public feed of AI projects that actually help people: saving money at home, making smoke days easier to handle, helping clinics and advocates move faster, protecting open tools, and giving creative groups better starter kits. Every Ken stays visible with timestamps, funding context, run progress, and public discussion.
+          A public feed of Kens that actually help people: saving money at home, making smoke days easier to handle, helping clinics and advocates move faster, protecting open tools, and giving creative groups better starter kits. Every Ken stays visible with timestamps, funding context, run progress, and public discussion.
         </p>
         <div className="metric-grid">
           <div className="metric-card"><div className="eyebrow">Active</div><div className="metric-value">{activeCount}</div></div>
@@ -67,7 +67,7 @@ export default async function KensPage({ searchParams }: KensPageProps) {
           <div className="feed-list">
             {tasks.length > 0 ? tasks.map((task) => <TaskCard key={task.id} task={task} />) : (
               <div className="panel space-y-3 text-center">
-                <p className="font-display text-xl font-semibold text-foreground">No projects match these filters</p>
+                <p className="font-display text-xl font-semibold text-foreground">No Kens match these filters</p>
                 <p className="text-sm text-muted">Try broadening your search, choosing a different category, or clearing filters.</p>
               </div>
             )}
@@ -80,7 +80,7 @@ export default async function KensPage({ searchParams }: KensPageProps) {
             <div className="space-y-3 text-sm leading-7 text-muted">
               <p>Upvote/downvote is the quick public signal. Priority voice is the slower, limited credit system used for real allocation decisions.</p>
               <p>Sandbox demos are clearly labeled as simulations. Real funding is tracked separately on the funding page.</p>
-              <p>Projects can ship early, pause at their compute limit, or deliver partially — the honest outcome is always shown.</p>
+              <p>Kens can ship early, pause at their compute limit, or deliver partially. The honest outcome is always shown.</p>
             </div>
           </div>
 

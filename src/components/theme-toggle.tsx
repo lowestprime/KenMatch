@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 
 type ThemeValue = "light" | "oled";
 
@@ -29,8 +29,22 @@ function applyTheme(theme: ThemeValue) {
   window.localStorage.setItem("kenmatch-theme", theme);
 }
 
+function subscribeTheme(callback: () => void) {
+  const notify = () => callback();
+  window.addEventListener("storage", notify);
+  window.addEventListener("kenmatch-theme-change", notify);
+  return () => {
+    window.removeEventListener("storage", notify);
+    window.removeEventListener("kenmatch-theme-change", notify);
+  };
+}
+
+function getServerTheme(): ThemeValue {
+  return "light";
+}
+
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<ThemeValue>(getInitialTheme);
+  const theme = useSyncExternalStore(subscribeTheme, getInitialTheme, getServerTheme);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
@@ -50,12 +64,11 @@ export function ThemeToggle() {
       className="theme-toggle"
       aria-label={label}
       aria-pressed={theme === "oled"}
-      onClick={() => setTheme(next)}
+      onClick={() => {
+        applyTheme(next);
+        window.dispatchEvent(new Event("kenmatch-theme-change"));
+      }}
     >
-      <span className="theme-toggle-track-labels" aria-hidden="true">
-        <span>Light</span>
-        <span>OLED</span>
-      </span>
       <span className="theme-toggle-thumb" aria-hidden="true">
         {theme === "light" ? (
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">

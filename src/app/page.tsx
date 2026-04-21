@@ -21,7 +21,7 @@ export default async function HomePage() {
         <div className="panel hero-panel fade-up">
           <div className="eyebrow">Community board for helpful AI work</div>
           <h1 className="max-w-4xl font-display text-4xl font-semibold leading-tight text-foreground sm:text-5xl lg:text-6xl">
-            Vote on the Kens worth running longer than one quick prompt.
+            Vote on the Kens worth sustained compute, checkpoints, and public review.
           </h1>
           <p className="max-w-3xl text-lg leading-8 text-muted">
             KenMatch is a public board for work that needs more than one shot: lowering power bills, making smoke days easier to navigate, helping people appeal denied benefits, keeping open tools safer, and giving schools or archives better starter tools.

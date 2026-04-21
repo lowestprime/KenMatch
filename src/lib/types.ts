@@ -79,6 +79,9 @@ export type EmailTokenPurpose = (typeof emailTokenPurposes)[number];
 export const verificationStatuses = ["none", "pending", "approved", "rejected"] as const;
 export type VerificationStatus = (typeof verificationStatuses)[number];
 
+export const categoryProposalStatuses = ["pending", "approved", "rejected"] as const;
+export type CategoryProposalStatus = (typeof categoryProposalStatuses)[number];
+
 export interface CategoryRecord {
   id: string;
   slug: string;
@@ -87,8 +90,26 @@ export interface CategoryRecord {
   thesis: string;
 }
 
+export interface CategoryProposalRecord {
+  id: string;
+  proposerProfileId: string;
+  proposerName: string | null;
+  name: string;
+  slug: string;
+  description: string;
+  publicBenefit: string;
+  exampleKens: string[];
+  reviewStatus: CategoryProposalStatus;
+  reviewNote: string | null;
+  reviewedBy: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ProfileRecord {
   id: string;
+  username?: string | null;
+  showRealName?: boolean;
   name: string;
   role: string;
   bio: string;
@@ -101,6 +122,9 @@ export interface ProfileRecord {
   avatarHue: number;
   avatarImage?: string | null;
   avatarGradient?: string | null;
+  avatarImageScale?: number;
+  avatarImageX?: number;
+  avatarImageY?: number;
   links?: ProfileLink[];
   location?: string | null;
   pronouns?: string | null;
@@ -129,6 +153,7 @@ export interface AccountRecord {
   id: string;
   profileId: string;
   email: string;
+  username: string | null;
   passwordHash: string;
   passwordSalt: string;
   licensingConsent: LicensingConsent;
@@ -423,6 +448,8 @@ export interface SponsorshipCommitmentRecord {
 }
 
 export interface ProfileSummary extends ProfileRecord {
+  username: string;
+  showRealName: boolean;
   attestationLevel: AttestationLevel;
   moderationStatus: ModerationStatus;
   createdAt: string;
@@ -452,10 +479,13 @@ export interface ProfileSummary extends ProfileRecord {
   verificationNote: string | null;
   avatarImage: string | null;
   avatarGradient: string | null;
+  avatarImageScale: number;
+  avatarImageX: number;
+  avatarImageY: number;
 }
 
 export interface ViewerSession {
-  account: Pick<AccountRecord, "id" | "email" | "createdAt" | "systemRole" | "emailVerified" | "emailVerifiedAt" | "licensingConsent">;
+  account: Pick<AccountRecord, "id" | "email" | "username" | "createdAt" | "systemRole" | "emailVerified" | "emailVerifiedAt" | "licensingConsent">;
   profile: ProfileSummary;
 }
 
@@ -492,6 +522,7 @@ export interface CheckpointDetail extends CheckpointRecord, CheckpointGateRecord
 
 export interface DiscussionComment extends CommentRecord {
   profileName: string;
+  profileUsername: string | null;
   profileRole: string;
   profileSystemRole?: SystemRole;
   score: number;
@@ -501,6 +532,10 @@ export interface DiscussionComment extends CommentRecord {
   replies: DiscussionComment[];
   avatarHue: number;
   avatarImage: string | null;
+  avatarGradient: string | null;
+  avatarImageScale: number;
+  avatarImageX: number;
+  avatarImageY: number;
   depth: number;
 }
 

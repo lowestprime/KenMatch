@@ -6,7 +6,7 @@ import { getViewerSession } from "@/lib/session";
 
 export const metadata: Metadata = {
   title: "Sign in",
-  description: "Sign in or create an account to vote, comment, propose projects, and back work on KenMatch.",
+  description: "Sign in or create an account to vote, comment, propose Kens, and back work on KenMatch.",
 };
 
 export default async function AuthPage() {
@@ -23,7 +23,7 @@ export default async function AuthPage() {
         <div className="eyebrow">Contributor access</div>
         <h1 className="font-display text-4xl font-semibold text-foreground">Join the community</h1>
         <p className="text-lg leading-8 text-muted">
-          Create an account to vote on projects, join discussions, propose new ideas, and back the work you believe in.
+          Create an account to vote on Kens, join discussions, propose new ideas, and back the work you believe in.
         </p>
       </section>
       <AuthPanels turnstileSiteKey={turnstileSiteKey} />

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { createPortal } from "react-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 
@@ -33,18 +34,26 @@ export function SearchCommand() {
   const [results, setResults] = useState<SearchResultItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [mounted, setMounted] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   useCommandKey(() => setOpen(true));
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!open) {
       setQuery("");
       setResults([]);
       setActiveIndex(0);
+      document.body.classList.remove("search-open");
     } else {
+      document.body.classList.add("search-open");
       window.requestAnimationFrame(() => inputRef.current?.focus());
     }
+    return () => document.body.classList.remove("search-open");
   }, [open]);
 
   useEffect(() => {
@@ -86,6 +95,65 @@ export function SearchCommand() {
 
   const items = useMemo(() => results.slice(0, 20), [results]);
 
+  const overlay = open ? (
+    <div className="search-overlay" role="dialog" aria-modal="true" aria-label="Sitewide search">
+      <button
+        type="button"
+        className="search-backdrop"
+        onClick={() => setOpen(false)}
+        aria-label="Close search"
+      />
+      <div className="search-shell">
+        <div className="search-input-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.5-3.5" />
+          </svg>
+          <input
+            ref={inputRef}
+            className="search-input"
+            placeholder="Search Kens, people, and governance..."
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            onKeyDown={handleKey}
+            autoComplete="off"
+            spellCheck={false}
+          />
+          <kbd className="search-kbd" aria-hidden="true">Esc</kbd>
+        </div>
+        <div className="search-results" role="listbox" aria-label="Search results">
+          {loading ? (
+            <div className="search-empty">Searching...</div>
+          ) : items.length === 0 ? (
+            <div className="search-empty">
+              {query.trim() ? "No matches. Try a different keyword." : "Search Kens, contributors, rules, and backing."}
+            </div>
+          ) : (
+            items.map((item, idx) => (
+              <Link
+                key={`${item.type}-${item.id}`}
+                href={item.url}
+                className={`search-result${idx === activeIndex ? " is-active" : ""}`}
+                onClick={() => setOpen(false)}
+                role="option"
+                aria-selected={idx === activeIndex}
+              >
+                <span className="search-result-kind">{item.type}</span>
+                <span className="search-result-title">{item.title}</span>
+                {item.subtitle ? <span className="search-result-subtitle">{item.subtitle}</span> : null}
+              </Link>
+            ))
+          )}
+        </div>
+        <div className="search-footer">
+          <span>up/down to move</span>
+          <span>enter to open</span>
+          <span>esc to close</span>
+        </div>
+      </div>
+    </div>
+  ) : null;
+
   function handleKey(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === "ArrowDown") {
       event.preventDefault();
@@ -116,66 +184,8 @@ export function SearchCommand() {
           <path d="m20 20-3.5-3.5" />
         </svg>
         <span>Search</span>
-        <kbd className="search-kbd" aria-hidden="true">⌘K</kbd>
       </button>
-      {open ? (
-        <div className="search-overlay" role="dialog" aria-modal="true" aria-label="Sitewide search">
-          <button
-            type="button"
-            className="search-backdrop"
-            onClick={() => setOpen(false)}
-            aria-label="Close search"
-          />
-          <div className="search-shell">
-            <div className="search-input-row">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18" aria-hidden="true">
-                <circle cx="11" cy="11" r="7" />
-                <path d="m20 20-3.5-3.5" />
-              </svg>
-              <input
-                ref={inputRef}
-                className="search-input"
-                placeholder="Search Kens, people, and governance…"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                onKeyDown={handleKey}
-                autoComplete="off"
-                spellCheck={false}
-              />
-              <kbd className="search-kbd" aria-hidden="true">Esc</kbd>
-            </div>
-            <div className="search-results" role="listbox" aria-label="Search results">
-              {loading ? (
-                <div className="search-empty">Searching…</div>
-              ) : items.length === 0 ? (
-                <div className="search-empty">
-                  {query.trim() ? "No matches. Try a different keyword." : "Search Kens, contributors, rules, and backing."}
-                </div>
-              ) : (
-                items.map((item, idx) => (
-                  <Link
-                    key={`${item.type}-${item.id}`}
-                    href={item.url}
-                    className={`search-result${idx === activeIndex ? " is-active" : ""}`}
-                    onClick={() => setOpen(false)}
-                    role="option"
-                    aria-selected={idx === activeIndex}
-                  >
-                    <span className="search-result-kind">{item.type}</span>
-                    <span className="search-result-title">{item.title}</span>
-                    {item.subtitle ? <span className="search-result-subtitle">{item.subtitle}</span> : null}
-                  </Link>
-                ))
-              )}
-            </div>
-            <div className="search-footer">
-              <span>↑ ↓ to move</span>
-              <span>↵ to open</span>
-              <span>esc to close</span>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      {mounted && overlay ? createPortal(overlay, document.body) : null}
     </>
   );
 }

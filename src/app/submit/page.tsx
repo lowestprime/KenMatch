@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { CategoryProposalForm } from "@/components/category-proposal-form";
 import { ProposalForm } from "@/components/proposal-form";
 import { getHomeData } from "@/lib/db";
 import { getViewerSession } from "@/lib/session";
 
 export const metadata: Metadata = {
   title: "Propose a Ken",
-  description: "Submit a new AI project for public review, voting, and checkpointed launch on KenMatch.",
+  description: "Submit a new Ken for public review, voting, and checkpointed launch on KenMatch.",
 };
 
 export default async function SubmitPage() {
@@ -24,7 +25,10 @@ export default async function SubmitPage() {
         </p>
       </section>
       {viewer ? (
-        <ProposalForm categories={categories} />
+        <>
+          <ProposalForm categories={categories} />
+          <CategoryProposalForm />
+        </>
       ) : (
         <div className="panel space-y-4">
           <div className="font-display text-2xl font-semibold text-foreground">Sign in required</div>

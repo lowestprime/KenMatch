@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 
 import { AdminAccounts } from "@/components/admin/accounts";
 import { AdminAuditFeed } from "@/components/admin/audit-feed";
+import { AdminCategoryProposals } from "@/components/admin/category-proposals";
 import { AdminNotifications } from "@/components/admin/notifications";
 import { AdminVerifications } from "@/components/admin/verifications";
 import { AdminVisitors } from "@/components/admin/visitors";
@@ -41,6 +42,7 @@ export default async function AdminPage() {
           <span>· {dashboard.accounts.length} accounts</span>
           <span>· {dashboard.profiles.length} profiles</span>
           <span>· {dashboard.pendingVerifications.length} pending verifications</span>
+          <span>· {dashboard.categoryProposals.filter((item) => item.reviewStatus === "pending").length} category proposals</span>
           <span>· {dashboard.visitors.length} unique visitors (last 500)</span>
         </div>
       </section>
@@ -83,6 +85,16 @@ export default async function AdminPage() {
             profiles={dashboard.profiles}
             currentAccountId={viewer.account.id}
           />
+        </section>
+      ) : null}
+
+      {canModerate ? (
+        <section className="panel grid gap-3">
+          <h2>Category proposals</h2>
+          <p style={{ color: "var(--muted)" }}>
+            Review user-proposed lanes. Approval creates a public category that appears in filters and new Ken submission.
+          </p>
+          <AdminCategoryProposals items={dashboard.categoryProposals} />
         </section>
       ) : null}
 

@@ -33,7 +33,7 @@ export const DEFAULT_ABOUT_PAGE: AboutPageContent = {
   contactEmail: "cooperbeaman@proton.me",
   links: [
     { label: "GitHub", url: "https://github.com/lowestprime/KenMatch" },
-    { label: "Personal", url: "https://cooperbeaman.com" },
+    { label: "GitHub", url: "https://github.com/lowestprime" },
     { label: "Protonmail", url: "mailto:cooperbeaman@proton.me" },
   ],
   lastUpdated: new Date(0).toISOString(),

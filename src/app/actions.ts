@@ -13,11 +13,13 @@ import {
   createAccount,
   createBookmark,
   createComment,
+  createCategoryProposal,
   createEmailToken,
   createProposal,
   createSponsorshipCommitment,
   createSession,
   decideVerification,
+  decideCategoryProposal,
   deleteSessionByToken,
   findAccountByEmailExported,
   findAccountByIdExported,
@@ -40,6 +42,7 @@ import {
   updateAccountLastLogin,
   updateAccountPassword,
   updateProfileDetails,
+  normalizeUsername,
 } from "@/lib/db";
 import { canonicalOrigin, env, notificationEmails } from "@/lib/env";
 import {
@@ -105,11 +108,15 @@ const commentVoteSchema = z.object({
 });
 
 const signInSchema = z.object({
-  email: z.string().email("Enter a valid email address."),
+  identifier: z.string().min(3, "Enter your email or username."),
   password: z.string().min(12, "Passwords must be at least 12 characters."),
 });
 
-const signUpSchema = signInSchema.extend({
+const signUpSchema = z.object({
+  email: z.string().email("Enter a valid email address."),
+  username: z.string().min(3, "Choose a username.").max(24, "Username must be 24 characters or fewer.")
+    .regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]{2,23}$/, "Use letters, numbers, underscores, or hyphens."),
+  password: z.string().min(12, "Passwords must be at least 12 characters."),
   name: z.string().min(2, "Enter the name other contributors should see."),
   role: z.string().min(2, "Describe your current role."),
   specialty: z.string().min(2, "Describe your strongest area of practice."),
@@ -137,6 +144,9 @@ const resetPasswordSchema = z
   });
 
 const profileUpdateSchema = z.object({
+  username: z.string().min(3, "Choose a username.").max(24, "Username must be 24 characters or fewer.")
+    .regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]{2,23}$/, "Use letters, numbers, underscores, or hyphens."),
+  showRealName: z.string().optional(),
   name: z.string().min(2, "Enter the name other contributors should see."),
   role: z.string().min(2, "Describe your current role."),
   specialty: z.string().min(2, "Describe your strongest area of practice."),
@@ -146,6 +156,16 @@ const profileUpdateSchema = z.object({
   links: z.string().max(2000).optional(),
   avatarGradient: z.string().max(200).optional(),
   avatarImage: z.string().max(200_000).optional(),
+  avatarImageScale: z.coerce.number().min(1).max(2.5).optional(),
+  avatarImageX: z.coerce.number().min(0).max(100).optional(),
+  avatarImageY: z.coerce.number().min(0).max(100).optional(),
+});
+
+const categoryProposalSchema = z.object({
+  name: z.string().min(4, "Give the category a clear name.").max(80, "Keep the category name short."),
+  description: z.string().min(60, "Describe the category clearly enough for public review.").max(800),
+  publicBenefit: z.string().min(60, "Explain the public or community value.").max(800),
+  exampleKens: z.string().min(20, "List at least two example Kens this category would contain.").max(1200),
 });
 
 const bookmarkSchema = z.object({
@@ -252,7 +272,7 @@ function parseLinksFromText(raw: string | undefined): ProfileLink[] {
 }
 
 export async function signInAction(_: ActionState, formData: FormData): Promise<ActionState> {
-  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const identifier = String(formData.get("identifier") ?? "").trim().toLowerCase();
   try {
     await guardMutationRequest({
       action: "sign-in",
@@ -260,7 +280,7 @@ export async function signInAction(_: ActionState, formData: FormData): Promise<
       requireTurnstile: turnstileConfigured(),
       rateLimit: {
         scope: "sign-in",
-        identifierParts: [email],
+        identifierParts: [identifier],
         limit: 8,
         windowSeconds: 15 * 60,
       },
@@ -278,15 +298,15 @@ export async function signInAction(_: ActionState, formData: FormData): Promise<
     };
   }
 
-  const account = await authenticateAccount(parsed.data.email, parsed.data.password);
+  const account = await authenticateAccount(parsed.data.identifier, parsed.data.password);
   if (!account) {
     await logSecurityEvent({
       eventType: "auth-failed",
-      detail: `Rejected sign-in for ${parsed.data.email.toLowerCase()}`,
+      detail: `Rejected sign-in for ${parsed.data.identifier.toLowerCase()}`,
     });
     return {
       status: "error",
-      message: "Email or password was incorrect.",
+      message: "Email, username, or password was incorrect.",
     };
   }
 
@@ -349,6 +369,7 @@ export async function signUpAction(_: ActionState, formData: FormData): Promise<
     visitorContext = await extractVisitorContext();
     const accountInput = {
       email: parsed.data.email,
+      username: normalizeUsername(parsed.data.username),
       password: parsed.data.password,
       name: parsed.data.name,
       role: parsed.data.role,
@@ -559,6 +580,8 @@ export async function updateProfileAction(_: ActionState, formData: FormData): P
 
   try {
     await updateProfileDetails(profileId, {
+      username: normalizeUsername(parsed.data.username),
+      showRealName: parsed.data.showRealName === "on",
       name: parsed.data.name,
       role: parsed.data.role,
       bio: parsed.data.bio,
@@ -568,6 +591,9 @@ export async function updateProfileAction(_: ActionState, formData: FormData): P
       links: parseLinksFromText(parsed.data.links),
       avatarGradient: parsed.data.avatarGradient?.trim() || null,
       avatarImage: parsed.data.avatarImage?.trim() || null,
+      avatarImageScale: parsed.data.avatarImageScale,
+      avatarImageX: parsed.data.avatarImageX,
+      avatarImageY: parsed.data.avatarImageY,
     });
     await recordAudit({
       accountId: null,
@@ -712,6 +738,50 @@ export async function createProposalAction(_: ActionState, formData: FormData): 
   } catch (error) {
     return { status: "error", message: actionErrorMessage(error, "Unable to submit the Ken.") };
   }
+}
+
+export async function createCategoryProposalAction(_: ActionState, formData: FormData): Promise<ActionState> {
+  let profileId: string;
+  try {
+    profileId = await requireViewerProfileId();
+    await guardMutationRequest({
+      action: "create-category-proposal",
+      actorId: profileId,
+      formData,
+      requireTurnstile: turnstileConfigured(),
+      rateLimit: { scope: "create-category-proposal", limit: 3, windowSeconds: 60 * 60 },
+    });
+  } catch (error) {
+    return { status: "error", message: actionErrorMessage(error, "Unable to propose the category.") };
+  }
+
+  const parsed = categoryProposalSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: "This category proposal needs a few fixes.",
+      fieldErrors: flattenFieldErrors(parsed.error),
+    };
+  }
+
+  try {
+    const slug = await createCategoryProposal({
+      name: parsed.data.name,
+      description: parsed.data.description,
+      publicBenefit: parsed.data.publicBenefit,
+      exampleKens: splitLines(parsed.data.exampleKens),
+    }, profileId);
+    await recordAudit({
+      accountId: null,
+      action: "category.proposed",
+      detail: `New category proposed: ${parsed.data.name} (${slug})`,
+    });
+  } catch (error) {
+    return { status: "error", message: actionErrorMessage(error, "Unable to propose the category.") };
+  }
+
+  revalidateCorePaths();
+  return { status: "success", message: "Category proposal submitted for admin review." };
 }
 
 export async function saveVoteAction(_: ActionState, formData: FormData): Promise<ActionState> {
@@ -1142,6 +1212,41 @@ export async function updateAccountRoleAction(_: ActionState, formData: FormData
   }
   revalidateCorePaths();
   return { status: "success", message: `Role updated to ${role}.` };
+}
+
+export async function decideCategoryProposalAction(_: ActionState, formData: FormData): Promise<ActionState> {
+  let session: Awaited<ReturnType<typeof requireAdminSession>>;
+  try {
+    session = await requireAdminSession();
+  } catch (error) {
+    return { status: "error", message: actionErrorMessage(error, "Unable to review category proposal.") };
+  }
+
+  const proposalId = String(formData.get("proposalId") ?? "").trim();
+  const reviewStatus = String(formData.get("reviewStatus") ?? "").trim();
+  const reviewNote = String(formData.get("reviewNote") ?? "").trim().slice(0, 1000);
+  if (!proposalId || !["pending", "approved", "rejected"].includes(reviewStatus)) {
+    return { status: "error", message: "Invalid category review decision." };
+  }
+
+  try {
+    await decideCategoryProposal(
+      proposalId,
+      reviewStatus as "pending" | "approved" | "rejected",
+      reviewNote || null,
+      session.account.id,
+    );
+    await recordAudit({
+      accountId: session.account.id,
+      action: "admin.category-review",
+      detail: `Category proposal ${proposalId} -> ${reviewStatus}`,
+    });
+  } catch (error) {
+    return { status: "error", message: actionErrorMessage(error, "Unable to review category proposal.") };
+  }
+
+  revalidateCorePaths();
+  return { status: "success", message: `Category proposal ${reviewStatus}.` };
 }
 
 export async function getAuthBannerState() {

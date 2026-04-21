@@ -6,7 +6,7 @@ KenMatch is a public board for proposing, ranking, funding, launching, and audit
 
 ## Mission and Background
 
-KenMatch is built around a simple idea: everyone should have a public, legible opportunity to decide which long-horizon AI projects receive time, review, and funding, ***without*** relying on wealth as the allocator. ([1](https://deepmind.google/models/model-cards/gemini-3-1-pro/))([2](https://developers.openai.com/api/docs/models/gpt-5.4))([12](https://openai.com/index/introducing-gpt-5-4/))([5](https://platform.claude.com/docs/en/about-claude/models/overview))([3](https://www.anthropic.com/news/claude-opus-4-6))([4](https://x.ai/api))
+KenMatch is built around a simple idea: everyone should have a public, legible opportunity to decide which long-horizon Kens receive time, review, and funding, ***without*** relying on wealth as the allocator. ([1](https://deepmind.google/models/model-cards/gemini-3-1-pro/))([2](https://developers.openai.com/api/docs/models/gpt-5.4))([12](https://openai.com/index/introducing-gpt-5-4/))([5](https://platform.claude.com/docs/en/about-claude/models/overview))([3](https://www.anthropic.com/news/claude-opus-4-6))([4](https://x.ai/api))
 
 As frontier models evolve from short, single-turn assistants into long-context, tool-using agents, the “few queries” standard is rapidly becoming obsolete. The opportunity to participate in the alignment of long-horizon AI effort toward public challenges, services, research, and creative endeavors, however, is likely to remain capital and access constrained. KenMatch interrupts this trend. Major AI providers now document advanced reasoning, long context, and agentic capabilities as first-class features, underscoring a growing demand for solutions democratizing access, participation, and governance, independent of capital. ([1](https://deepmind.google/models/model-cards/gemini-3-1-pro/))([2](https://developers.openai.com/api/docs/models/gpt-5.4))([3](https://www.anthropic.com/news/claude-opus-4-6))([4](https://x.ai/api))
 
@@ -96,11 +96,11 @@ KenMatch organizes long-horizon computational tasks into explicit duration tiers
 
 KenMatch&rsquo;s baseline tiering is:
 
-1. **Months**: top **3** projects per category
+1. **Months**: top **3** Kens per category
 
-2. **Weeks**: top **10** projects per category
+2. **Weeks**: top **10** Kens per category
 
-3. **Days**: top **100** projects per category
+3. **Days**: top **100** Kens per category
 
 Modern accelerator systems are power-dense (e.g., DGX-class systems are in the tens of kilowatts), and at national and global scale data center electricity demand is now a material planning variable. Long-horizon allocations must therefore be explicit about duration, checkpointing, and rollback, as well as about evaluation and stopping conditions. ([6](https://www.energy.gov/articles/doe-releases-new-report-evaluating-increase-electricity-demand-data-centers))([7](https://www.iea.org/reports/energy-and-ai/energy-demand-from-ai))([10](https://www.nvidia.com/en-us/data-center/dgx-b200/))
 
