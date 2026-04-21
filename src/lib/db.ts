@@ -143,6 +143,15 @@ async function ensureDatabase() {
   await globalThis.__kenmatchDbReady;
 }
 
+export async function ensureDatabaseReady() {
+  await ensureDatabase();
+}
+
+function logPhase(label: string, start: number) {
+  const elapsed = Date.now() - start;
+  console.log(`[db] ${label} done in ${elapsed}ms`);
+}
+
 function serializeList(value: string[]) {
   return JSON.stringify(value);
 }
@@ -219,7 +228,10 @@ async function loadOne(sql: string, args: Value[] = []) {
 }
 
 async function initializeDatabase() {
+  const overallStart = Date.now();
+  console.log(`[db] initializeDatabase start (url=${databaseUrl})`);
   const client = getClient();
+  const tablesStart = Date.now();
   await client.batch(
     [
       "PRAGMA foreign_keys = ON",
@@ -564,7 +576,9 @@ async function initializeDatabase() {
     ],
     "write",
   );
+  logPhase("tables+indexes", tablesStart);
 
+  const columnsStart = Date.now();
   await ensureColumn(client, "accounts", "licensingConsent", "TEXT NOT NULL DEFAULT 'audit-only'");
   await ensureColumn(client, "accounts", "systemRole", "TEXT NOT NULL DEFAULT 'contributor'");
   await ensureColumn(client, "accounts", "emailVerified", "INTEGER NOT NULL DEFAULT 0");
@@ -594,16 +608,28 @@ async function initializeDatabase() {
   await ensureColumn(client, "task_finance", "simulationSummary", "TEXT NOT NULL DEFAULT ''");
   await ensureColumn(client, "task_finance", "sampleOutcome", "TEXT NOT NULL DEFAULT ''");
   await ensureColumn(client, "task_finance", "sponsorAppeal", "TEXT NOT NULL DEFAULT ''");
+  logPhase("column migrations", columnsStart);
 
+  const seedStart = Date.now();
   await seedDatabase();
+  logPhase("seedDatabase", seedStart);
+
+  const ownerStart = Date.now();
   await ensureOwnerSystemRole();
+  logPhase("ensureOwnerSystemRole", ownerStart);
+
+  const settingsStart = Date.now();
   await ensureDefaultSiteSettings();
+  logPhase("ensureDefaultSiteSettings", settingsStart);
+
+  logPhase("initializeDatabase total", overallStart);
 }
 
 async function ensureColumn(client: Client, table: string, column: string, definition: string) {
   const info = await client.execute(`PRAGMA table_info(${table})`);
   const hasColumn = info.rows.some((row) => getString(row as DbRow, "name") === column);
   if (!hasColumn) {
+    console.log(`[db] ensureColumn: adding ${table}.${column}`);
     await client.execute(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
   }
 }
@@ -927,28 +953,27 @@ async function seedDatabase() {
   } satisfies InStatement));
 
   const client = getClient();
-  await client.batch(
-    [
-      ...profileStatements,
-      ...attestationStatements,
-      ...categoryStatements,
-      ...taskStatements,
-      ...voteStatements,
-      ...pulseStatements,
-      ...commentStatements,
-      ...commentVoteStatements,
-      ...runStatements,
-      ...timingStatements,
-      ...runUpdateStatements,
-      ...checkpointStatements,
-      ...checkpointGateStatements,
-      ...governanceStatements,
-      ...revenueStatements,
-      ...treasuryStatements,
-      ...sponsorshipStatements,
-    ],
-    "write",
-  );
+  const allStatements = [
+    ...profileStatements,
+    ...attestationStatements,
+    ...categoryStatements,
+    ...taskStatements,
+    ...voteStatements,
+    ...pulseStatements,
+    ...commentStatements,
+    ...commentVoteStatements,
+    ...runStatements,
+    ...timingStatements,
+    ...runUpdateStatements,
+    ...checkpointStatements,
+    ...checkpointGateStatements,
+    ...governanceStatements,
+    ...revenueStatements,
+    ...treasuryStatements,
+    ...sponsorshipStatements,
+  ];
+  console.log(`[db] seedDatabase: dispatching ${allStatements.length} statements`);
+  await client.batch(allStatements, "write");
 }
 
 function hashToken(token: string) {
