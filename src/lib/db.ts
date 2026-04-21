@@ -3071,16 +3071,25 @@ export async function searchIndex(viewerProfileId?: string | null): Promise<Sear
 }
 
 async function ensureOwnerSystemRole() {
-  const result = await execute("UPDATE accounts SET systemRole = 'owner' WHERE lower(email) = ? AND systemRole != 'owner'", [
-    env.KENMATCH_OWNER_EMAIL.toLowerCase(),
-  ]);
-  return result;
+  const client = getClient();
+  await client.execute({
+    sql: "UPDATE accounts SET systemRole = 'owner' WHERE lower(email) = ? AND systemRole != 'owner'",
+    args: [env.KENMATCH_OWNER_EMAIL.toLowerCase()],
+  });
 }
 
 async function ensureDefaultSiteSettings() {
-  const existing = await getSiteSetting("about.page");
-  if (!existing) {
-    await setSiteSetting("about.page", JSON.stringify(DEFAULT_ABOUT_PAGE), null);
+  const client = getClient();
+  const existing = await client.execute({
+    sql: "SELECT value FROM site_settings WHERE key = ? LIMIT 1",
+    args: ["about.page"],
+  });
+  if (existing.rows.length === 0) {
+    const now = new Date().toISOString();
+    await client.execute({
+      sql: "INSERT INTO site_settings (key, value, updatedAt, updatedBy) VALUES (?, ?, ?, ?)",
+      args: ["about.page", JSON.stringify(DEFAULT_ABOUT_PAGE), now, null],
+    });
   }
 }
 
