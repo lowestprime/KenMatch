@@ -12,6 +12,7 @@ build/
 coverage/
 .npm-cache/
 .volta/
+deploy-backups/
 
 # Python
 __pycache__/
