@@ -71,10 +71,21 @@ KENMATCH_DB_FILE=data/kenmatch.sqlite
 KENMATCH_SESSION_COOKIE=kenmatch-session
 KENMATCH_SESSION_DAYS=30
 KENMATCH_ALLOW_SIGNUPS=true
-KENMATCH_PUBLIC_ORIGIN=https://kenmatch.your-domain.tld
-KENMATCH_ALLOWED_HOSTS=kenmatch.your-domain.tld
+KENMATCH_PUBLIC_ORIGIN=https://kmat.ch
+KENMATCH_CANONICAL_ORIGIN=https://kmat.ch
+KENMATCH_ALLOWED_HOSTS=kmat.ch,www.kmat.ch
 KENMATCH_HEALTH_TOKEN=<long-random-secret>
 KENMATCH_TREASURY_TARGET_MONTHS=6
+KENMATCH_REQUIRE_EMAIL_VERIFICATION=true
+KENMATCH_OWNER_EMAIL=cooperbeaman@gmail.com
+KENMATCH_NOTIFICATION_EMAILS=cooperbeaman@proton.me
+KENMATCH_SMTP_HOST=<smtp-host>
+KENMATCH_SMTP_PORT=587
+KENMATCH_SMTP_USER=<smtp-user>
+KENMATCH_SMTP_PASS=<smtp-password-or-app-token>
+KENMATCH_SMTP_SECURE=false
+KENMATCH_SMTP_FROM=KenMatch <no-reply@kmat.ch>
+KENMATCH_VISITOR_HASH_SALT=<long-random-secret>
 NEXT_PUBLIC_TURNSTILE_SITE_KEY=<optional>
 KENMATCH_TURNSTILE_SECRET_KEY=<optional>
 STRIPE_SECRET_KEY=<optional>
@@ -88,6 +99,8 @@ Guidance:
 - Set `KENMATCH_PUBLIC_ORIGIN` to the final public HTTPS origin.
 - Set `KENMATCH_ALLOWED_HOSTS` to the exact hostname users should reach.
 - Set `KENMATCH_HEALTH_TOKEN` before public deployment, even if your container health check only uses the public-safe response.
+- Set SMTP variables before enabling required email verification or forgot-password flows in production.
+- Set `KENMATCH_VISITOR_HASH_SALT` to a long random value before first public launch; rotating it later resets unique-visitor deduplication.
 - Add Turnstile keys for public signups and sponsor intake.
 - Add Stripe keys only if you want live sponsor checkout.
 
@@ -121,7 +134,7 @@ Use a Cloudflare Tunnel so your NAS origin does not require direct inbound route
 
 Recommended target:
 
-- public hostname: `kenmatch.your-domain.tld`
+- public hostname: `kmat.ch`
 - tunnel destination: `http://127.0.0.1:3000`
 
 You can run the tunnel with `cloudflared` on the NAS, either as another container or as a host service.
@@ -135,7 +148,7 @@ Minimal containerized flow:
 
 1. Copy `cloudflared/config.yml.example` to `cloudflared/config.yml`.
 2. Put your tunnel credentials JSON in the same `cloudflared/` folder.
-3. Replace the placeholder tunnel ID and hostname.
+3. Replace the placeholder tunnel ID and hostname with the Cloudflare Tunnel and `kmat.ch` hostname for the production deployment.
 4. Launch:
 
 ```bash
@@ -188,7 +201,7 @@ If you set:
 ```env
 STRIPE_SECRET_KEY=...
 STRIPE_WEBHOOK_SECRET=...
-KENMATCH_PUBLIC_ORIGIN=https://kenmatch.your-domain.tld
+KENMATCH_PUBLIC_ORIGIN=https://kmat.ch
 ```
 
 KenMatch can redirect sponsor intake through Stripe Checkout.
@@ -196,7 +209,7 @@ KenMatch can redirect sponsor intake through Stripe Checkout.
 You must also configure a Stripe webhook endpoint:
 
 ```text
-https://kenmatch.your-domain.tld/api/stripe/webhook
+https://kmat.ch/api/stripe/webhook
 ```
 
 Listen for at least:
@@ -218,7 +231,7 @@ X-KenMatch-Health-Token: <KENMATCH_HEALTH_TOKEN>
 Example:
 
 ```bash
-curl -H "X-KenMatch-Health-Token: <token>" https://kenmatch.your-domain.tld/api/health
+curl -H "X-KenMatch-Health-Token: <token>" https://kmat.ch/api/health
 ```
 
 ## 9. Upgrade workflow

@@ -1,7 +1,5 @@
 # KenMatch
 
-[![KenMatch DeepWiki](https://badgen.net/badge/KenMatch/DeepWiki/800000?labelColor=000000&icon=https://raw.githubusercontent.com/lowestprime/KenMatch/refs/heads/main/public/icon.svg)](https://deepwiki.com/lowestprime/KenMatch) [![GitHub](https://img.shields.io/badge/GitHub-lowestprime%2FKenMatch-181717?logo=github)](https://github.com/lowestprime/KenMatch) [![Live](https://img.shields.io/badge/live-kmat.ch-0a7ea4)](https://kmat.ch)
-
 KenMatch is a public board for proposing, ranking, funding, launching, and auditing long-running AI work. Each unit of work is called a ***Ken***. A Ken can be an open tool, a civic workflow, a scientific evidence map, a repair assistant, or a creative service that benefits from sustained compute, checkpoints, public feedback, and visible funding.
 
 [Live platform](https://kmat.ch) · [GitHub](https://github.com/lowestprime/KenMatch)
@@ -145,31 +143,27 @@ KenMatch seeks to equalize the **long-horizon deployment of frontier AI toward t
 ## Features
 
 - Public proposal feed with search, categories, stage/tier filters, and realistic community-facing examples.
-- Demonstration contributor accounts and server-side sessions.
+- Seeded contributor profiles plus real account creation, email verification, password reset, and cookie-backed sessions.
 - Earned quadratic voice for scarce allocation, with separate up/down pulse voting for broad public curation.
 - Threaded comments with replies, voting, and small stakes for discussion quality.
 - Proposal quality bonds, checkpoint approval gates, run metadata, rollback plans, and visible blocked work.
 - Economics surface for supported service packaging, screened evaluation licensing, compute routing, private execution lanes, sponsorship routing, treasury entries, and the 80/20 public reporting split.
 - Treasury coverage governor that automatically signals a higher treasury share when reserve coverage dips below the target threshold.
 - Structured sponsor commitments with projected, simulated, and committed funding states plus optional Stripe Checkout for live sponsor intake.
-- Sandbox-backed demo Kens with simulated capital, model lineups, API spend, pilot-user counts, and sample outcomes shown directly in the UI.
-- Three theme modes (`Light`, `Dark`, and `OLED`), rich motion, strong visual hierarchy, and updated KenMatch icon/favicons.
-- Public board at `/kens` with search, category, lane, status, and sort filters.
-- Real account creation and persistent signed-in accounts with full account management (edit profile, change password, licensing consent).
-- System roles (contributor, moderator, admin) and email verification readiness on account records.
-- Public contributor profile pages at `/profiles/[id]` showing activity history, proposed Kens, and voice allocations.
-- Generated SVG avatar identicons based on contributor name and hue.
-- Universal sitewide search (Ctrl+K / Cmd+K command palette) across Kens, profiles, governance events, and categories.
-- Bookmark and share buttons on Ken detail pages for engagement and sharing.
-- Responsive mobile navigation drawer with animated hamburger toggle.
+- Sandbox-backed demo Kens with clearly disclosed simulated capital, current API-accessible model lineups, API spend, pilot-user counts, and sample outcomes shown directly in the UI.
+- Two theme modes (`Light` and true-black `OLED`), rich motion, compact responsive navigation, strong visual hierarchy, and route-backed KenMatch icon/favicons.
+- Public board at `/kens` with search, category, lane, and status filters.
+- Real account creation and persistent signed-in accounts.
 - libSQL-backed persistence with local-file or remote libSQL support.
 - Public upvote/downvote signal, separate quadratic voice allocation, and threaded comments with voting.
+- Forgot-password, email-verification, owner/admin notification, profile editing, profile-picture customization, About/Contact editing, visitor telemetry, and audit logging.
+- Universal sitewide search, mobile navigation drawer, bookmark/share affordances, and public profile surfaces.
 - Ken timing metadata: created and updated timestamps, launch countdown, submission age, compute usage, remaining runtime window, and completion state.
 - Incremental run audit history for partial delivery, early completion, and checkpoint-by-checkpoint evidence notes.
 - Economics and treasury views with committed versus projected support, sponsor pools, restricted funding, simulated runway, safety reserve coverage, and sponsor covenant details.
 - Governance view with blocked Kens, attestation state, enforceable participation limits, review timing, and visible decision logs.
-- Security headers (CSP, HSTS, CORP, COOP, X-Frame-Options, Permissions-Policy), host filtering, request-origin checks, structured rate limits, security event logging, optional Turnstile verification, and public-safe health checks with deployment version reporting.
-- Standalone Next.js Docker build with OCI labels and container healthcheck, non-root container runtime, read-only filesystem with tmpfs, loopback-only Synology deployment, and public-hosting guidance for Cloudflare Tunnel or equivalent origin shielding.
+- Security headers, host filtering, request-origin checks, structured rate limits, optional Turnstile verification, and public-safe health checks.
+- Standalone Next.js Docker build, non-root container runtime, loopback-only Synology deployment, and public-hosting guidance for Cloudflare Tunnel or equivalent origin shielding.
 
 ## Stack
 
@@ -198,13 +192,19 @@ Copy `.env.example` and set values as needed.
 - `KENMATCH_SESSION_COOKIE`: cookie name for the signed-in account cookie.
 - `KENMATCH_SESSION_DAYS`: sign-in lifetime in days.
 - `KENMATCH_ALLOW_SIGNUPS`: set to `false` to disable public account creation.
+- `KENMATCH_REQUIRE_EMAIL_VERIFICATION`: when true, signups must confirm the emailed verification link before participating.
 - `KENMATCH_PUBLIC_ORIGIN`: exact public HTTPS origin for redirects, Stripe success URLs, and host validation.
 - `KENMATCH_ALLOWED_HOSTS`: comma-separated list of allowed public hostnames.
+- `KENMATCH_OWNER_EMAIL`: owner account email that receives owner-only permissions.
+- `KENMATCH_ADMIN_EMAILS`: comma-separated admin account emails.
+- `KENMATCH_NOTIFICATION_EMAILS`: comma-separated alert recipients for signup, visitor, verification, and Ken events.
+- `KENMATCH_SMTP_HOST` / `KENMATCH_SMTP_PORT` / `KENMATCH_SMTP_USER` / `KENMATCH_SMTP_PASS` / `KENMATCH_SMTP_SECURE` / `KENMATCH_SMTP_FROM`: SMTP settings for verification, reset, and admin notification email dispatch.
+- `KENMATCH_VISITOR_HASH_SALT`: server-only salt for unique visitor deduplication.
 - `KENMATCH_HEALTH_TOKEN`: token for detailed health responses.
 - `KENMATCH_TREASURY_TARGET_MONTHS`: reserve target used by the economics view.
 - `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `KENMATCH_TURNSTILE_SECRET_KEY`: optional Cloudflare Turnstile keys for public forms.
 - `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET`: optional Stripe Checkout and webhook settings for live sponsorships.
-- `DEPLOYMENT_VERSION`: optional deployment identifier exposed in the health endpoint and passed into Next.js.
+- `DEPLOYMENT_VERSION`: optional deployment identifier passed into Next.js.
 
 ## Scripts
 
@@ -221,7 +221,7 @@ npm run build
 KenMatch ships with a standalone Next.js build configuration and a Docker image intended for self-hosting.
 
 - `next.config.ts` sets `output: "standalone"`.
-- `npm run build` uses `next build --experimental-build-mode compile --webpack`, which produces the standalone server artifact used by the Docker and Synology deployment flow in this repository.
+- `npm run build` runs Next's compile build mode followed by generate-env mode, producing the finalized standalone server artifact used by the Docker and Synology deployment flow in this repository.
 - `Dockerfile` runs the generated standalone server as a non-root user.
 - `docker-compose.synology.yml` mounts persistent local data, keeps the container read-only except for `/app/data`, and binds the app to `127.0.0.1:3000`.
 - `docker-compose.synology.tunnel.yml` adds a `cloudflared` sidecar for a direct Cloudflare Tunnel deployment from Synology.
@@ -240,8 +240,11 @@ KenMatch ships with a standalone Next.js build configuration and a Docker image 
 - `/governance` governance, attestation, and blocked Kens
 - `/economics` treasury and revenue logic
 - `/auth` sign-in and account creation
-- `/account` account settings, profile editing, password changes, and licensing consent
-- `/profiles/[id]` public contributor profiles with activity history
+- `/forgot-password`, `/reset`, `/verify` email-backed account recovery and verification
+- `/account` profile, avatar, links, verification request, and bookmarks
+- `/verification` public identity and participation guidance
+- `/about` owner-editable About / Contact page
+- `/admin` owner/admin/moderator operations portal
 
 Legacy `/tasks` routes now redirect to `/kens` routes.
 
@@ -251,7 +254,6 @@ Legacy `/tasks` routes now redirect to `/kens` routes.
 - `src/components` public UI, timing display, voting, comments, sponsor intake, auth, and shell
 - `src/lib/attestation.ts` participation policy derived from attestation state
 - `src/lib/db.ts` database schema, seeding, hydration, account persistence, funding ledger, rate limits, and write flows
-- `src/lib/economics.ts` revenue stream summaries, treasury coverage, and governor split logic
 - `src/lib/security.ts` form hardening, origin checks, rate-limit integration, and Turnstile verification
 - `src/lib/stripe.ts` optional hosted sponsor checkout wiring
 - `src/lib/seed.ts` and `src/lib/seed-plus.ts` realistic demo data
@@ -265,18 +267,20 @@ Legacy `/tasks` routes now redirect to `/kens` routes.
 
 - The default local deployment uses a file-backed libSQL database. For public internet deployment, use a managed remote libSQL instance when possible.
 - The included Synology compose file is intentionally loopback-only. Put Cloudflare Tunnel or another reverse proxy in front of it instead of exposing the container directly.
-- The deployment artifact in this repository is currently produced through Next.js compile mode. The generated standalone server was validated locally in this session, but the underlying build mode is still marked experimental by Next.js.
+- The deployment artifact in this repository is currently produced through Next.js experimental compile/generate-env build modes because this project has been validated around that standalone output path.
 
 ## Learn More
 
-[KenMatch\_Conception.md](./KenMatch_Conception.md)
+### 1. [KenMatch\_Conception.md](./KenMatch_Conception.md)
+
+### 2. [KenMatch\_DeepWiki.md](./KenMatch_DeepWiki.md)
 
 ## References
 
 1. Data center energy demand and projections: U.S. Department of Energy summary of LBNL report (U.S. share, 176 TWh, 2028 projections). ([6](https://www.energy.gov/articles/doe-releases-new-report-evaluating-increase-electricity-demand-data-centers))([7](https://www.iea.org/reports/energy-and-ai/energy-demand-from-ai))([8](https://www.iea.org/reports/energy-and-ai/executive-summary%C2%A0))  
 2. Global data center electricity demand: International Energy Agency Energy and AI report pages (415 TWh in 2024; 945 TWh by 2030; sensitivity cases). ([7](https://www.iea.org/reports/energy-and-ai/energy-demand-from-ai))([8](https://www.iea.org/reports/energy-and-ai/executive-summary%C2%A0))  
 3. Hardware power density: NVIDIA specs for H100 TDP and DGX B200 system power usage. ([9](https://www.nvidia.com/en-in/data-center/h100/))([10](https://www.nvidia.com/en-us/data-center/dgx-b200/))  
-4. Frontier model capabilities and access gating: OpenAI GPT-5.4 release \+ model docs; Google DeepMind Gemini 3.1 Pro model card; Anthropic Opus 4.6 release \+ model overview; xAI API models. ([1](https://deepmind.google/models/model-cards/gemini-3-1-pro/))([2](https://developers.openai.com/api/docs/models/gpt-5.4))([12](https://openai.com/index/introducing-gpt-5-4/))([5](https://platform.claude.com/docs/en/about-claude/models/overview))([3](https://www.anthropic.com/news/claude-opus-4-6))([4](https://x.ai/api))  
+4. Frontier model capabilities and access gating: OpenAI GPT-5.4 release \+ model docs; Google DeepMind Gemini 3.1 Pro model card; Anthropic Claude model overview; xAI API models. ([1](https://deepmind.google/models/model-cards/gemini-3-1-pro/))([2](https://developers.openai.com/api/docs/models/gpt-5.4))([12](https://openai.com/index/introducing-gpt-5-4/))([5](https://platform.claude.com/docs/en/about-claude/models/overview))([4](https://x.ai/api))
 5. Governance mechanisms: Quadratic voting paper summary; secure QV implementation concerns. ([15](https://vote.caltech.edu/working-papers/128))([16](https://www.microsoft.com/en-us/research/publication/quadratic-voting-how-mechanism-design-can-radicalize-democracy/))  
 6. Token governance and DAO voting risks: Philadelphia Fed token governance research; DAO voting mechanism centralization risks. ([13](https://www.philadelphiafed.org/the-economy/banking-and-financial-markets/token-based-platform-governance))([14](https://www.sciencedirect.com/science/article/pii/S2405896325031519))  
 7. Risk and stewardship frameworks: NIST AI RMF and GenAI profile; OECD AI principles; DeepMind Frontier Safety Framework. ([24](https://deepmind.google/discover/blog/introducing-the-frontier-safety-framework/))([25](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-ai-rmf-10))([26](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-generative-artificial-intelligence))([27](https://www.oecd.org/en/topics/ai-principles.html))  

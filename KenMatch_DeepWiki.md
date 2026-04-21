@@ -2237,7 +2237,7 @@ The global application frame is managed by the `SiteShell` component, which wrap
 
 Key features include:
 *   **Branding**: The `KenMatchMark` component [src/components/kenmatch-mark.tsx](src/components/kenmatch-mark.tsx) provides the SVG identity.
-*   **Theme System**: A robust CSS variable system in `globals.css` supports **Light**, **Dark**, and **OLED** modes [src/app/globals.css:15-74](src/app/globals.css#L15-L74), toggled via `ThemeToggle` [src/components/theme-toggle.tsx](src/components/theme-toggle.tsx).
+*   **Theme System**: A robust CSS variable system in `globals.css` supports **Light** and true-black **OLED** modes [src/app/globals.css:15-74](src/app/globals.css#L15-L74), toggled via `ThemeToggle` [src/components/theme-toggle.tsx](src/components/theme-toggle.tsx).
 *   **Session State**: The `viewer-inline-card` displays the current user's available Voice Credits and participation state [src/components/site-shell.tsx:34-44](src/components/site-shell.tsx#L34-L44).
 
 For details, see [Layout and Navigation Components](#5.1).
@@ -2325,7 +2325,7 @@ The following files were used as context for generating this wiki page:
 
 
 
-This section covers the structural and aesthetic foundations of the KenMatch interface. The layout is managed through a centralized shell that handles navigation, authentication state, and brand identity, while the theming system provides a highly customizable visual experience across light, dark, and OLED modes.
+This section covers the structural and aesthetic foundations of the KenMatch interface. The layout is managed through a centralized shell that handles navigation, authentication state, and brand identity, while the theming system provides a streamlined visual experience across light and OLED modes.
 
 ## Site Shell and Global Layout
 
@@ -2373,24 +2373,24 @@ Sources: [src/components/site-shell.tsx:16-77](src/components/site-shell.tsx#L16
 ### KenMatchMark
 The `KenMatchMark` component provides the SVG-based visual identity for the platform. It utilizes a complex linear gradient (`#kenmatch-mark-gradient`) that maps to CSS variables: `--accent-strong`, `--accent-glow`, and `--accent-warm` [src/components/kenmatch-mark.tsx:5-9](src/components/kenmatch-mark.tsx#L5-L9). This ensures the logo's colors shift dynamically with the active theme.
 
-### ProfileSwitcher
-The `ProfileSwitcher` is a placeholder component intended for future multi-profile management [src/components/profile-switcher.tsx:1-4](src/components/profile-switcher.tsx#L1-L4). Currently, profile switching is handled via the `viewer-inline-card` in the `SiteShell` [src/components/site-shell.tsx:34-44](src/components/site-shell.tsx#L34-L44).
+### Account Identity
+Demo profile switching has been replaced by real account identity. The `viewer-inline-card` in the `SiteShell` renders the signed-in account and links to profile/account management [src/components/site-shell.tsx:34-44](src/components/site-shell.tsx#L34-L44).
 
-Sources: [src/components/kenmatch-mark.tsx:1-19](src/components/kenmatch-mark.tsx#L1-L19), [src/components/profile-switcher.tsx:1-4](src/components/profile-switcher.tsx#L1-L4)
+Sources: [src/components/kenmatch-mark.tsx:1-19](src/components/kenmatch-mark.tsx#L1-L19), [src/components/site-shell.tsx](src/components/site-shell.tsx)
 
 ## Theming and Design System
 
-KenMatch uses a CSS variable-driven theming system defined in `globals.css`. It supports three distinct modes: **Light**, **Dark**, and **OLED** (True Black).
+KenMatch uses a CSS variable-driven theming system defined in `globals.css`. It supports two distinct modes: **Light** and **OLED** (true black). Stored legacy `dark` values are migrated to `oled` by the layout boot script.
 
 ### Theme Configuration
 The system is built on Tailwind CSS `@theme` variables and standard CSS custom properties.
 
-| Variable | Light (Default) | Dark | OLED |
-| :--- | :--- | :--- | :--- |
-| `--page` | `#f3efe7` | `#091118` | `#000000` |
-| `--panel` | `rgba(255, 250, 243, 0.8)` | `rgba(17, 29, 38, 0.84)` | `rgba(7, 9, 13, 0.96)` |
-| `--ink` | `#112131` | `#edf4f6` | `#f7fbff` |
-| `--accent-strong` | `#0f766e` (Teal) | `#63e0cf` | `#62ffe4` |
+| Variable | Light (Default) | OLED |
+| :--- | :--- | :--- |
+| `--page` | `#f6f3ec` | `#000000` |
+| `--panel` | `rgba(255, 250, 243, 0.82)` | `rgba(7, 10, 16, 0.92)` |
+| `--ink` | `#0d1a27` | `#f4f8ff` |
+| `--accent-strong` | `#0d7d74` | `#5ff5dc` |
 
 ### Ambient Animations and Glassmorphism
 The interface utilizes "ambient" background elements (`.ambient-a`, `.ambient-b`) defined in the `SiteShell` [src/components/site-shell.tsx:19-20](src/components/site-shell.tsx#L19-L20). These interact with `backdrop-filter: blur()` applied to headers and panels to create a layered, depth-heavy UI [src/app/globals.css:109-110](src/app/globals.css#L109-L110).
@@ -2410,6 +2410,7 @@ graph TD
     START --> ATTR
     ATTR -- "null" --> LOCAL
     LOCAL -- "null" --> PREF
+    PREF -- "dark match" --> OLED["Default: 'oled'"]
     PREF -- "no match" --> DEFAULT
 
     SET["applyTheme(ThemeValue)"]
@@ -2428,10 +2429,10 @@ The codebase uses a "Stack and Grid" philosophy for layouts, minimizing custom m
 - **`.site-main`**: Central container with a `max-width` of `76rem` and auto-margins [src/app/globals.css:100-100](src/app/globals.css#L100-L100).
 - **`.page-stack`**: A CSS Grid utility with a `1.5rem` gap for vertical spacing between major sections [src/app/globals.css:101-101](src/app/globals.css#L101-L101).
 - **`.panel` & `.task-card`**: Shared visual styles including `border: 1px solid var(--line)`, `backdrop-filter: blur(18px)`, and `box-shadow: var(--shadow-soft)` [src/app/globals.css:206-211](src/app/globals.css#L206-L211).
-- **Typography**: The system defines three font stacks:
-    - `.font-display`: Serif stack (Iowan Old Style, Georgia) [src/app/globals.css:95-95](src/app/globals.css#L95-L95).
-    - `.font-body`: Sans-serif stack (Aptos, system-ui) [src/app/globals.css:96-96](src/app/globals.css#L96-L96).
-    - `.font-mono`: Monospace stack (Cascadia Code, JetBrains Mono) [src/app/globals.css:97-97](src/app/globals.css#L97-L97).
+- **Typography**: The system defines three loaded font variables:
+    - `.font-display`: Space Grotesk for brand and display text.
+    - `.font-body`: Manrope for readable public UI copy.
+    - `.font-mono`: JetBrains Mono for timestamps, IDs, and metrics.
 
 Sources: [src/app/globals.css:76-251](src/app/globals.css#L76-L251)
 

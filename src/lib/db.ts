@@ -615,11 +615,11 @@ async function initializeDatabase() {
   logPhase("seedDatabase", seedStart);
 
   const ownerStart = Date.now();
-  await ensureOwnerSystemRole();
+  await ensureOwnerSystemRole(client);
   logPhase("ensureOwnerSystemRole", ownerStart);
 
   const settingsStart = Date.now();
-  await ensureDefaultSiteSettings();
+  await ensureDefaultSiteSettings(client);
   logPhase("ensureDefaultSiteSettings", settingsStart);
 
   logPhase("initializeDatabase total", overallStart);
@@ -3070,25 +3070,22 @@ export async function searchIndex(viewerProfileId?: string | null): Promise<Sear
   return items;
 }
 
-async function ensureOwnerSystemRole() {
-  const client = getClient();
-  await client.execute({
+async function ensureOwnerSystemRole(client: Client) {
+  return client.execute({
     sql: "UPDATE accounts SET systemRole = 'owner' WHERE lower(email) = ? AND systemRole != 'owner'",
     args: [env.KENMATCH_OWNER_EMAIL.toLowerCase()],
   });
 }
 
-async function ensureDefaultSiteSettings() {
-  const client = getClient();
+async function ensureDefaultSiteSettings(client: Client) {
   const existing = await client.execute({
-    sql: "SELECT value FROM site_settings WHERE key = ? LIMIT 1",
+    sql: "SELECT key FROM site_settings WHERE key = ? LIMIT 1",
     args: ["about.page"],
   });
   if (existing.rows.length === 0) {
-    const now = new Date().toISOString();
     await client.execute({
       sql: "INSERT INTO site_settings (key, value, updatedAt, updatedBy) VALUES (?, ?, ?, ?)",
-      args: ["about.page", JSON.stringify(DEFAULT_ABOUT_PAGE), now, null],
+      args: ["about.page", JSON.stringify(DEFAULT_ABOUT_PAGE), new Date().toISOString(), null],
     });
   }
 }

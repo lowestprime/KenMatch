@@ -7,7 +7,7 @@
 - Tailwind CSS v4 plus custom CSS variables and theme classes
 - libSQL TypeScript client for local-file or remote persistence
 - Account-backed signed-in cookies
-- Server Actions for sign-in, sign-up, voting, comments, Ken submission, sponsor intake, profile editing, password changes, licensing consent, and bookmarks
+- Server Actions for sign-in, sign-up, voting, comments, Ken submission, and sponsor intake
 - Optional Cloudflare Turnstile and Stripe Checkout integrations for public abuse control and live sponsorship checkout
 
 ## Route structure
@@ -26,10 +26,18 @@
   - Treasury summary, revenue streams, sponsor commitments, sponsor intake, reserve coverage, and ledger entries.
 - `src/app/auth/page.tsx`
   - Account creation and sign-in.
+- `src/app/forgot-password/page.tsx`, `src/app/reset/page.tsx`, and `src/app/verify/page.tsx`
+  - Email-backed password reset and account verification flows.
 - `src/app/account/page.tsx`
-  - Full account settings page with profile editing, password changes, and licensing consent management.
-- `src/app/profiles/[id]/page.tsx`
-  - Public contributor profile pages with avatar, activity history, proposed Kens, and voice allocations.
+  - Profile editing, avatar customization, verification request, bookmarks, and account state.
+- `src/app/about/page.tsx`
+  - Public About / Contact page with owner-only online editing.
+- `src/app/verification/page.tsx`
+  - Public identity-verification criteria and participation guidance.
+- `src/app/admin/page.tsx`
+  - Role-gated operations portal for visitors, notifications, verifications, roles, moderation, and audit log review.
+- `src/app/icon.svg/route.ts`, `src/app/icon-dark.svg/route.ts`, `src/app/apple-touch-icon.svg/route.ts`, and `src/app/manifest.webmanifest/route.ts`
+  - Route-backed browser icons and web manifest so favicons do not depend on public static-file serving.
 - `src/app/tasks/*`
   - Redirect layer for legacy URLs.
 - `src/app/api/health/route.ts`
@@ -43,10 +51,9 @@ The main data logic lives in `src/lib/db.ts`.
 
 ### Core records
 
-- profiles (with generated SVG avatars)
-- accounts (with systemRole and emailVerified columns)
+- profiles
+- accounts
 - sessions
-- bookmarks (per-profile Ken bookmarks)
 - categories
 - tasks (internal compatibility name for Kens)
 - task_finance
@@ -64,6 +71,11 @@ The main data logic lives in `src/lib/db.ts`.
 - treasury_entries
 - sponsorship_commitments
 - profile_attestations
+- email_tokens
+- bookmarks
+- visitors
+- site_settings
+- audit_log
 - request_rate_limits
 - security_events
 
@@ -74,6 +86,8 @@ The main data logic lives in `src/lib/db.ts`.
 - `task_finance`, `revenue_streams`, and `treasury_entries` keep funding logic visible without turning governance into a pricing layer, and economics summaries separate committed support from projected support.
 - `sponsorship_commitments` tracks projected, simulated, checkout-pending, and paid funding states separately from the immutable treasury ledger.
 - `profile_attestations` separates standing, review status, and sybil-risk signals from profile copy, while `src/lib/attestation.ts` converts that state into participation limits and voice caps.
+- `email_tokens` powers email verification and password reset links.
+- `visitors`, `site_settings`, and `audit_log` support owner/admin operations, visitor mapping, notification settings, online About-page editing, and durable audit trails.
 - `request_rate_limits` and `security_events` keep public-host abuse controls durable across restarts and deploys.
 
 ## UI system
@@ -83,17 +97,16 @@ The visual system is centered in `src/app/globals.css`.
 ### Themes
 
 - `light`
-- `dark`
 - `oled`
 
-The theme toggle writes to `localStorage`, and the layout boot script applies the stored theme before hydration.
+The theme toggle writes only `light` or `oled` to `localStorage`. The layout boot script migrates any old `dark` value to `oled` before hydration.
 
 ### Core UI pieces
 
 - `src/components/site-shell.tsx`
   - Compact sticky header, brand, navigation, participation state display, and footer.
 - `src/components/kenmatch-mark.tsx`
-  - Product mark used in the header.
+  - Product mark used in the header, footer, and generated icon family.
 - `src/components/ken-timing-strip.tsx`
   - Countdown, submission age, compute usage, and progression display.
 - `src/components/task-card.tsx`
@@ -108,48 +121,48 @@ The theme toggle writes to `localStorage`, and the layout boot script applies th
   - Ken intake form.
 - `src/components/auth-panels.tsx`
   - Sign-in and sign-up UI.
+- `src/components/forgot-password-form.tsx` and `src/components/reset-password-form.tsx`
+  - Account recovery UI.
+- `src/components/profile-editor.tsx`
+  - Account profile, avatar, external link, and verification-request UI.
+- `src/components/about-editor.tsx`
+  - Owner-only online About / Contact editor.
+- `src/components/admin/*`
+  - Admin and owner management surfaces.
+- `src/components/visitor-map.tsx`
+  - Anonymized visitor geography display based on persisted Cloudflare request headers.
 - `src/components/sponsor-form.tsx`
   - Public sponsorship intake with general, category, Ken, or safety-reserve restriction options.
 - `src/components/turnstile-widget.tsx`
   - Optional Cloudflare Turnstile widget for higher-risk forms.
-- `src/components/avatar.tsx`
-  - Generated SVG avatar identicons from contributor name and hue.
-- `src/components/account-settings-panels.tsx`
-  - Client-side forms for profile editing, password changes, and licensing consent.
-- `src/components/bookmark-button.tsx`
-  - Bookmark toggle button for Ken detail pages.
-- `src/components/share-button.tsx`
-  - Web Share API / clipboard share button for Ken detail pages.
-- `src/components/search-palette.tsx`
-  - Universal sitewide search with Ctrl+K / Cmd+K command palette across Kens, profiles, governance, and categories.
-- `src/components/mobile-nav.tsx`
-  - Responsive mobile navigation drawer with animated hamburger toggle.
 
 ## Accounts and sign-in
 
 - `src/lib/session.ts` reads and writes the signed-in account cookie.
-- `src/app/actions.ts` creates accounts, opens sign-ins, enforces rate limits, and clears sign-ins.
-- `src/lib/db.ts` stores accounts, hashed sign-in tokens, and licensing-consent state.
+- `src/app/actions.ts` creates accounts, opens sign-ins, sends verification/reset email, enforces rate limits, and clears sign-ins.
+- `src/lib/db.ts` stores accounts, hashed session tokens, email tokens, profile state, and licensing-consent state.
+- `src/lib/mail.ts` dispatches SMTP-backed verification, password reset, and admin notification messages when SMTP is configured.
 
 ## Deployment model
 
 - `next.config.ts` enables standalone output and the deployment build settings used by this repo.
-- `middleware.ts` enforces host filtering, cross-site request blocking, and security headers (CSP, HSTS, X-Content-Type-Options, X-Frame-Options, CORP, COOP, Permissions-Policy) for public deployments.
+- `npm run build` runs Next's experimental compile mode and then generate-env mode so the standalone artifact has its static environment inlined before Docker copies it.
+- `middleware.ts` enforces host filtering, cross-site request blocking, and security headers for public deployments.
 - `Dockerfile` runs the standalone server generated by `npm run build` as a non-root user, with OCI source labels and a container healthcheck.
 - `docker-compose.synology.yml` mounts persistent app data, uses a read-only root filesystem, tmpfs for `/tmp`, and binds only to loopback.
 - `docker-compose.synology.tunnel.yml` adds a `cloudflared` sidecar option for Synology-hosted public deployments.
-- `public/.gitkeep` keeps the `public` directory present so the standalone Docker copy step is valid even when assets are sparse.
+- `public/.gitkeep` keeps the `public` directory present so the standalone Docker copy step is valid; favicons and the manifest are generated through route handlers.
 
 ## Economics engine
 
 - `src/lib/economics.ts` computes revenue stream summaries, treasury coverage, and the treasury governor split.
-- `computeGovernorSplit` adjusts the treasury share percentage upward (capped at 95%) when coverage dips below the target, providing an automatic policy signal.
-- `summarizeEconomics` aggregates all revenue streams, treasury entries, and sponsorship commitments into an `EconomicsSummary` used by the economics page and homepage metrics.
-- Revenue engines: `enterprise`, `data-licensing`, `compute-arbitrage`, `sponsorship`, `private-lane`.
+- `computeGovernorSplit` adjusts the treasury share percentage upward when reserve coverage dips below the target, providing an automatic policy signal.
+- `summarizeEconomics` aggregates revenue streams, treasury entries, and sponsorship commitments into the `EconomicsSummary` used by public economics surfaces.
+- Revenue engines include `enterprise`, `data-licensing`, `compute-arbitrage`, `sponsorship`, and `private-lane`.
 
 ## Seed data
 
 - `src/lib/seed.ts` holds realistic demo Kens and categories.
-- `src/lib/seed-plus.ts` adds attestation state, timing, audit updates, structured treasury entries, sponsor commitments, and the private-lane revenue stream.
+- `src/lib/seed-plus.ts` adds attestation state, timing, audit updates, structured treasury entries, sponsor commitments, the private-lane revenue stream, and simulated model-outcome data.
 
 The current demo intentionally includes both desirable Kens and a blocked offensive example so the visible governance boundary can be inspected in the public UI.
