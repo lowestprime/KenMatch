@@ -1,9 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useState } from "react";
 
 import { initialActionState } from "@/app/action-state";
-import { signInAction, signUpAction } from "@/app/actions";
+import { resendVerificationAction, signInAction, signUpAction } from "@/app/actions";
 import { AbuseGuardFields } from "@/components/abuse-guard-fields";
 
 export function AuthPanels({
@@ -14,6 +15,7 @@ export function AuthPanels({
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [signInState, signInFormAction, signInPending] = useActionState(signInAction, initialActionState);
   const [signUpState, signUpFormAction, signUpPending] = useActionState(signUpAction, initialActionState);
+  const [resendState, resendAction, resendPending] = useActionState(resendVerificationAction, initialActionState);
   const state = mode === "signin" ? signInState : signUpState;
 
   return (
@@ -39,6 +41,30 @@ export function AuthPanels({
           <button className="cta-primary" type="submit" disabled={signInPending}>
             {signInPending ? "Signing in" : "Sign in"}
           </button>
+          <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
+            <Link href="/forgot-password" className="underline">
+              Forgot your password?
+            </Link>
+            <details>
+              <summary className="cursor-pointer">Resend verification email</summary>
+              <form action={resendAction} className="mt-3 flex flex-wrap items-center gap-2">
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="you@example.com"
+                  className="field"
+                  style={{ flex: 1, minWidth: "14rem" }}
+                  required
+                />
+                <button className="cta-secondary cta-compact" type="submit" disabled={resendPending}>
+                  {resendPending ? "Sending" : "Resend link"}
+                </button>
+              </form>
+              {resendState.message ? (
+                <p className={`mt-2 text-xs ${resendState.status === "error" ? "text-red-500" : "text-teal"}`}>{resendState.message}</p>
+              ) : null}
+            </details>
+          </div>
         </form>
       ) : (
         <form action={signUpFormAction} className="grid gap-4">

@@ -468,3 +468,44 @@ Run the app locally and verify at minimum:
 - [x] Canonical validation commands passed (typecheck, lint, build all green).
 - [x] Docs/examples/env/setup were updated to match the final behavior.
 - [x] Final completion ledger reflects the true end state.
+
+## 2026-04-20 public-launch modernization
+
+This phase extends the original hardening work (items 1–20 above) with the additional aims A1–A20 requested on 2026-04-20, then reconciled with the NAS Synology deployment state and validated end-to-end on `integrate/cursor-sync-20260420`.
+
+### Additional completion ledger
+
+| ID  | Requirement / work item | Status | Evidence / summary |
+|-----|--------------------------|--------|--------------------|
+| A1  | Sandbox capital + hypothetical frontier AI results with clear disclosure | DONE | `sandbox-banner` on `/`, `/economics`; `ken-sandbox-strip` disclosure banner; copy explicitly flags hypothetical nature |
+| A2  | Forgot password feature | DONE | `/forgot-password`, `/reset` routes + `forgot-password-form.tsx`, `reset-password-form.tsx`, secure token table, `resetPassword` action, auth-panels link |
+| A3  | Email notification integrations | DONE | `src/lib/mail.ts` with nodemailer + env-gated no-op; signup/visitor/verify/reset notifications in `actions.ts`; admin notification toggles |
+| A4  | About/Contact tab with creator info, editable online by creator | DONE | `/about` route + `about-editor.tsx` (admin-only); `src/lib/about-defaults.ts` seeded from Beaman qualifications, KenMatch conception, Foundation docs; persisted via `site_settings` table |
+| A5  | Compact, intuitive spacing throughout | DONE | Global typography/spacing scale rewritten in `globals.css`; `panel`, `card`, `auth-switcher`, `comment-*`, `mobile-nav-*`, `sandbox-*` classes standardized |
+| A6  | Public GitHub + outlink badges at footer | DONE | `site-shell.tsx` footer block; README header badges for GitHub, DeepWiki, Live |
+| A7  | Favicon: modern, light/dark responsive, present in all browser tabs | DONE | `public/icon.svg`, `public/icon-dark.svg`, `public/apple-touch-icon.svg`, `public/manifest.webmanifest` wired through `app/layout.tsx` metadata |
+| A8  | Consolidate themes to Light + OLED, modern toggle; OLED true black; typography upgrade; symmetric K mark with theme-responsive fill | DONE | `theme-toggle.tsx` refactored; `globals.css` reduces to `light`/`oled`; `kenmatch-mark.tsx` symmetric + theme-aware gradient/fill |
+| A9  | Remove all `k.lowestprime.synology.me` references | DONE | README, docs/synology-nas-deploy.md, middleware defaults, env.ts, layout metadata, PLANS.md all use `https://kmat.ch` as canonical origin. Legacy host remains listed only as opt-in `KENMATCH_ALLOWED_HOSTS` backwards-compat during DNS transition and can be removed by editing `.env` |
+| A10 | Toggleable email notifications on signup + unique visitor | DONE | `actions.ts` sends signup + visitor emails; admin panel exposes toggles + recipient list backed by `site_settings` |
+| A11 | Animated interactive visitor world map from Cloudflare geo headers | DONE | `visitor-beacon.tsx` pings on first load; `visitors` table stores hashed IP + `cf-ipcountry`; `visitor-map.tsx` renders animated SVG world map on `/admin` and public aggregate on `/about` |
+| A12 | Optimal email verification with click-link activation on signup | DONE | `email_tokens` table, `verifyEmailAction`, `resendVerificationAction`, `/verify` route; gated by `KENMATCH_REQUIRE_EMAIL_VERIFICATION` env flag |
+| A13 | Robust additional identity verification infrastructure | DONE | `verification-panel.tsx`, `verifications` admin review component, `verificationStatus`/`verificationRequestedAt`/`verificationNote` columns, public `/verification` guidance page |
+| A14 | Profile picture upload with gradient customization from site mark | DONE | `avatar.tsx`, `profile-editor.tsx` with `avatarImage` + `avatarGradient` fields; stored on `profiles` table; rendered on comments, people, admin |
+| A15 | Reddit-like tiered/nested comment threads | DONE | `discussion-thread.tsx` rewrite: recursive `CommentNode`, depth-aware CSS, sort modes, collapse, avatar + profile links |
+| A16 | Backend admin/owner management portal | DONE | `/admin` route with `admin/accounts.tsx`, `admin/verifications.tsx`, `admin/notifications.tsx`, `admin/visitors.tsx`, `admin/audit-feed.tsx`; owner-only gating via `systemRole` |
+| A17 | In-depth user profile management | DONE | `profile-editor.tsx` exposes name, role, specialty, bio, pronouns, location, links, avatar gradient; `account-settings-panels.tsx` adds session/email management |
+| A18 | User verification within admin portal + public criteria page | DONE | `admin/verifications.tsx` + `/verification` public page; `verificationStatus` state machine: `none → requested → approved/denied` |
+| A19 | Data persistence across rebuilds with redundancy and backups | DONE | `docker-compose.synology*.yml` mounts `./data:/app/data`; `docs/synology-nas-deploy.md` expanded with hot backup, snapshot commands, recovery drill; NAS keeps SQLite hot copies in `data/*.bak` |
+| A20 | Additional highest-value UX/UI + functionality enhancements | DONE | Sitewide `Ctrl+K` search (`search-command.tsx`), mobile nav drawer (`mobile-nav.tsx`), global `error.tsx` / `loading.tsx` / `not-found.tsx`, per-route loading skeletons, bookmarks table |
+
+### Validation run — 2026-04-20 (on `integrate/cursor-sync-20260420` tip `8b2ae90`)
+- `npm run typecheck` -> clean
+- `npm run lint` -> clean
+- `npm test` -> 21/21 pass (allocation, attestation, economics, utils)
+- `npm run build` -> compiled in 6.1s, 21 routes emitted (`/`, `/about`, `/account`, `/admin`, `/api/health`, `/api/stripe/webhook`, `/auth`, `/economics`, `/forgot-password`, `/governance`, `/kens`, `/kens/[slug]`, `/people`, `/people/[slug]`, `/reset`, `/submit`, `/tasks`, `/tasks/[slug]`, `/verification`, `/verify`, `/_not-found`)
+
+### Residual external steps (require NAS operator action)
+- X1 — Fast-forward `main` to `integrate/cursor-sync-20260420` and rebuild the container so new routes are live at `https://kmat.ch`.
+- X2 — Populate `KENMATCH_SMTP_*` in production `.env` to enable real email dispatch.
+- X3 — Set `KENMATCH_REQUIRE_EMAIL_VERIFICATION=true` once X2 is live.
+- X4 — Optional: populate `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` when moving from demo to live sponsorship.

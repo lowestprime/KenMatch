@@ -1,10 +1,10 @@
 # KenMatch
 
-[![KenMatch DeepWiki](https://badgen.net/badge/KenMatch/DeepWiki/800000?labelColor=000000&icon=https://raw.githubusercontent.com/lowestprime/KenMatch/refs/heads/main/public/icon.svg)](https://deepwiki.com/lowestprime/KenMatch)
+[![KenMatch DeepWiki](https://badgen.net/badge/KenMatch/DeepWiki/800000?labelColor=000000&icon=https://raw.githubusercontent.com/lowestprime/KenMatch/refs/heads/main/public/icon.svg)](https://deepwiki.com/lowestprime/KenMatch) [![GitHub](https://img.shields.io/badge/GitHub-lowestprime%2FKenMatch-181717?logo=github)](https://github.com/lowestprime/KenMatch) [![Live](https://img.shields.io/badge/live-kmat.ch-0a7ea4)](https://kmat.ch)
 
 KenMatch is a public board for proposing, ranking, funding, launching, and auditing long-running AI work. Each unit of work is called a ***Ken***. A Ken can be an open tool, a civic workflow, a scientific evidence map, a repair assistant, or a creative service that benefits from sustained compute, checkpoints, public feedback, and visible funding.
 
-[kmat.ch](kmat.ch)
+[Live platform](https://kmat.ch) · [GitHub](https://github.com/lowestprime/KenMatch)
 
 ## Mission and Background
 
