@@ -26,7 +26,7 @@ import {
   } from "@/lib/allocation";
 import { summarizeEconomics,
   summarizeRevenueStream } from "@/lib/economics";
-import { env, isAdminEmail, isOwnerEmail, canonicalOrigin, notificationEmails } from "@/lib/env";
+import { env, isAdminEmail, isOwnerEmail, canonicalOrigin, notificationEmails, ownerEmail } from "@/lib/env";
 import {
   seedCategories,
   seedCheckpoints,
@@ -3393,7 +3393,7 @@ export async function searchIndex(viewerProfileId?: string | null): Promise<Sear
 async function ensureOwnerSystemRole(client: Client) {
   return client.execute({
     sql: "UPDATE accounts SET systemRole = 'owner' WHERE lower(email) = ? AND systemRole != 'owner'",
-    args: [env.KENMATCH_OWNER_EMAIL.toLowerCase()],
+    args: [ownerEmail],
   });
 }
 
