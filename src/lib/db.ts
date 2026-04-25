@@ -8,8 +8,7 @@ import {
   timingSafeEqual } from "node:crypto";
 import { existsSync,
   mkdirSync } from "node:fs";
-import { dirname,
-  join } from "node:path";
+import { dirname, isAbsolute, join } from "node:path";
 
 import { createClient,
   type Client,
@@ -56,6 +55,7 @@ import type {
   AdminNotificationSettings,
   AuditLogRecord,
   BookmarkRecord,
+  CategoryProposalRecord,
   CategorySummary,
   CheckpointDetail,
   CommentRecord,
@@ -97,7 +97,9 @@ import { DEFAULT_ABOUT_PAGE } from "@/lib/about-defaults";
 
 type DbRow = Record<string, Value>;
 
-const databaseFilePath = join(process.cwd(), env.KENMATCH_DB_FILE);
+const databaseFilePath = isAbsolute(env.KENMATCH_DB_FILE)
+  ? env.KENMATCH_DB_FILE
+  : join(process.cwd(), env.KENMATCH_DB_FILE);
 const databaseUrl = env.DATABASE_URL?.trim() || `file:${databaseFilePath.replace(/\\/g, "/")}`;
 
 const tierDefaults = {
@@ -140,6 +142,15 @@ async function ensureDatabase() {
   }
 
   await globalThis.__kenmatchDbReady;
+}
+
+export async function ensureDatabaseReady() {
+  await ensureDatabase();
+}
+
+function logPhase(label: string, start: number) {
+  const elapsed = Date.now() - start;
+  console.log(`[db] ${label} done in ${elapsed}ms`);
 }
 
 function serializeList(value: string[]) {
@@ -218,12 +229,17 @@ async function loadOne(sql: string, args: Value[] = []) {
 }
 
 async function initializeDatabase() {
+  const overallStart = Date.now();
+  console.log(`[db] initializeDatabase start (url=${databaseUrl})`);
   const client = getClient();
+  const tablesStart = Date.now();
   await client.batch(
     [
       "PRAGMA foreign_keys = ON",
       `CREATE TABLE IF NOT EXISTS profiles (
         id TEXT PRIMARY KEY,
+        username TEXT,
+        showRealName INTEGER NOT NULL DEFAULT 1,
         name TEXT NOT NULL,
         role TEXT NOT NULL,
         bio TEXT NOT NULL,
@@ -236,6 +252,9 @@ async function initializeDatabase() {
         avatarHue INTEGER NOT NULL,
         avatarImage TEXT,
         avatarGradient TEXT,
+        avatarImageScale REAL NOT NULL DEFAULT 1,
+        avatarImageX REAL NOT NULL DEFAULT 50,
+        avatarImageY REAL NOT NULL DEFAULT 50,
         links TEXT NOT NULL DEFAULT '[]',
         location TEXT,
         pronouns TEXT,
@@ -248,6 +267,7 @@ async function initializeDatabase() {
         id TEXT PRIMARY KEY,
         profileId TEXT NOT NULL UNIQUE,
         email TEXT NOT NULL UNIQUE,
+        username TEXT,
         passwordHash TEXT NOT NULL,
         passwordSalt TEXT NOT NULL,
         licensingConsent TEXT NOT NULL DEFAULT 'audit-only',
@@ -332,6 +352,21 @@ async function initializeDatabase() {
         name TEXT NOT NULL,
         description TEXT NOT NULL,
         thesis TEXT NOT NULL
+      )`,
+      `CREATE TABLE IF NOT EXISTS category_proposals (
+        id TEXT PRIMARY KEY,
+        proposerProfileId TEXT NOT NULL,
+        name TEXT NOT NULL,
+        slug TEXT NOT NULL,
+        description TEXT NOT NULL,
+        publicBenefit TEXT NOT NULL,
+        exampleKens TEXT NOT NULL,
+        reviewStatus TEXT NOT NULL DEFAULT 'pending',
+        reviewNote TEXT,
+        reviewedBy TEXT,
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL,
+        FOREIGN KEY (proposerProfileId) REFERENCES profiles(id)
       )`,
       `CREATE TABLE IF NOT EXISTS tasks (
         id TEXT PRIMARY KEY,
@@ -545,6 +580,8 @@ async function initializeDatabase() {
       "CREATE INDEX IF NOT EXISTS idx_votes_profileId ON votes(profileId)",
       "CREATE INDEX IF NOT EXISTS idx_votes_taskId ON votes(taskId)",
       "CREATE INDEX IF NOT EXISTS idx_tasks_categoryId ON tasks(categoryId)",
+      "CREATE INDEX IF NOT EXISTS idx_category_proposals_status ON category_proposals(reviewStatus)",
+      "CREATE INDEX IF NOT EXISTS idx_category_proposals_proposer ON category_proposals(proposerProfileId)",
       "CREATE INDEX IF NOT EXISTS idx_comments_taskId ON comments(taskId)",
       "CREATE INDEX IF NOT EXISTS idx_comment_votes_commentId ON comment_votes(commentId)",
       "CREATE INDEX IF NOT EXISTS idx_run_updates_taskId ON run_updates(taskId)",
@@ -563,14 +600,22 @@ async function initializeDatabase() {
     ],
     "write",
   );
+  logPhase("tables+indexes", tablesStart);
 
+  const columnsStart = Date.now();
   await ensureColumn(client, "accounts", "licensingConsent", "TEXT NOT NULL DEFAULT 'audit-only'");
   await ensureColumn(client, "accounts", "systemRole", "TEXT NOT NULL DEFAULT 'contributor'");
   await ensureColumn(client, "accounts", "emailVerified", "INTEGER NOT NULL DEFAULT 0");
   await ensureColumn(client, "accounts", "emailVerifiedAt", "TEXT");
   await ensureColumn(client, "accounts", "lastLoginAt", "TEXT");
+  await ensureColumn(client, "accounts", "username", "TEXT");
+  await ensureColumn(client, "profiles", "username", "TEXT");
+  await ensureColumn(client, "profiles", "showRealName", "INTEGER NOT NULL DEFAULT 1");
   await ensureColumn(client, "profiles", "avatarImage", "TEXT");
   await ensureColumn(client, "profiles", "avatarGradient", "TEXT");
+  await ensureColumn(client, "profiles", "avatarImageScale", "REAL NOT NULL DEFAULT 1");
+  await ensureColumn(client, "profiles", "avatarImageX", "REAL NOT NULL DEFAULT 50");
+  await ensureColumn(client, "profiles", "avatarImageY", "REAL NOT NULL DEFAULT 50");
   await ensureColumn(client, "profiles", "links", "TEXT NOT NULL DEFAULT '[]'");
   await ensureColumn(client, "profiles", "location", "TEXT");
   await ensureColumn(client, "profiles", "pronouns", "TEXT");
@@ -593,16 +638,32 @@ async function initializeDatabase() {
   await ensureColumn(client, "task_finance", "simulationSummary", "TEXT NOT NULL DEFAULT ''");
   await ensureColumn(client, "task_finance", "sampleOutcome", "TEXT NOT NULL DEFAULT ''");
   await ensureColumn(client, "task_finance", "sponsorAppeal", "TEXT NOT NULL DEFAULT ''");
+  await client.execute("UPDATE profiles SET username = id WHERE username IS NULL OR trim(username) = ''");
+  await client.execute("UPDATE accounts SET username = profileId WHERE username IS NULL OR trim(username) = ''");
+  await client.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_accounts_username ON accounts(username) WHERE username IS NOT NULL");
+  await client.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_profiles_username ON profiles(username) WHERE username IS NOT NULL");
+  logPhase("column migrations", columnsStart);
 
+  const seedStart = Date.now();
   await seedDatabase();
+  logPhase("seedDatabase", seedStart);
+
+  const ownerStart = Date.now();
   await ensureOwnerSystemRole(client);
+  logPhase("ensureOwnerSystemRole", ownerStart);
+
+  const settingsStart = Date.now();
   await ensureDefaultSiteSettings(client);
+  logPhase("ensureDefaultSiteSettings", settingsStart);
+
+  logPhase("initializeDatabase total", overallStart);
 }
 
 async function ensureColumn(client: Client, table: string, column: string, definition: string) {
   const info = await client.execute(`PRAGMA table_info(${table})`);
   const hasColumn = info.rows.some((row) => getString(row as DbRow, "name") === column);
   if (!hasColumn) {
+    console.log(`[db] ensureColumn: adding ${table}.${column}`);
     await client.execute(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
   }
 }
@@ -628,10 +689,12 @@ async function seedDatabase() {
     const normalized = normalizeSeedProfile(profile, index);
     return {
       sql: `INSERT INTO profiles (
-        id, name, role, bio, specialty, attestation, attestationLevel, moderationStatus,
+        id, username, showRealName, name, role, bio, specialty, attestation, attestationLevel, moderationStatus,
         voiceCredits, credibility, avatarHue, createdAt
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
+        username = COALESCE(profiles.username, excluded.username),
+        showRealName = excluded.showRealName,
         name = excluded.name,
         role = excluded.role,
         bio = excluded.bio,
@@ -645,6 +708,8 @@ async function seedDatabase() {
         createdAt = excluded.createdAt`,
       args: [
         normalized.id,
+        normalized.username ?? normalized.id,
+        normalized.showRealName === false ? 0 : 1,
         normalized.name,
         normalized.role,
         normalized.bio,
@@ -661,7 +726,14 @@ async function seedDatabase() {
   });
 
   const attestationStatements = seedProfileAttestations.map((entry) => ({
-    sql: "INSERT OR IGNORE INTO profile_attestations (profileId, provider, status, sybilRisk, reviewedAt, signals, note) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    sql: `INSERT INTO profile_attestations (profileId, provider, status, sybilRisk, reviewedAt, signals, note) VALUES (?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(profileId) DO UPDATE SET
+        provider = excluded.provider,
+        status = excluded.status,
+        sybilRisk = excluded.sybilRisk,
+        reviewedAt = excluded.reviewedAt,
+        signals = excluded.signals,
+        note = excluded.note`,
     args: [entry.profileId, entry.provider, entry.status, entry.sybilRisk, entry.reviewedAt, serializeList(entry.signals), entry.note],
   } satisfies InStatement));
 
@@ -765,27 +837,59 @@ async function seedDatabase() {
   });
 
   const voteStatements = seedVotes.map((vote) => ({
-    sql: "INSERT OR IGNORE INTO votes (id, taskId, profileId, voteCount, rationale, updatedAt) VALUES (?, ?, ?, ?, ?, ?)",
+    sql: `INSERT INTO votes (id, taskId, profileId, voteCount, rationale, updatedAt) VALUES (?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        taskId = excluded.taskId,
+        profileId = excluded.profileId,
+        voteCount = excluded.voteCount,
+        rationale = excluded.rationale,
+        updatedAt = excluded.updatedAt`,
     args: [vote.id, vote.taskId, vote.profileId, vote.voteCount, vote.rationale, vote.updatedAt],
   } satisfies InStatement));
 
   const pulseStatements = seedTaskPulseVotes.map((vote) => ({
-    sql: "INSERT OR IGNORE INTO task_pulse_votes (id, taskId, profileId, value, updatedAt) VALUES (?, ?, ?, ?, ?)",
+    sql: `INSERT INTO task_pulse_votes (id, taskId, profileId, value, updatedAt) VALUES (?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        taskId = excluded.taskId,
+        profileId = excluded.profileId,
+        value = excluded.value,
+        updatedAt = excluded.updatedAt`,
     args: [vote.id, vote.taskId, vote.profileId, vote.value, vote.updatedAt],
   } satisfies InStatement));
 
   const commentStatements = seedComments.map((comment) => ({
-    sql: "INSERT OR IGNORE INTO comments (id, taskId, profileId, parentId, body, stakeCredits, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    sql: `INSERT INTO comments (id, taskId, profileId, parentId, body, stakeCredits, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        taskId = excluded.taskId,
+        profileId = excluded.profileId,
+        parentId = excluded.parentId,
+        body = excluded.body,
+        stakeCredits = excluded.stakeCredits,
+        createdAt = excluded.createdAt`,
     args: [comment.id, comment.taskId, comment.profileId, comment.parentId, comment.body, comment.stakeCredits, comment.createdAt],
   } satisfies InStatement));
 
   const commentVoteStatements = seedCommentVotes.map((vote) => ({
-    sql: "INSERT OR IGNORE INTO comment_votes (id, commentId, profileId, value, updatedAt) VALUES (?, ?, ?, ?, ?)",
+    sql: `INSERT INTO comment_votes (id, commentId, profileId, value, updatedAt) VALUES (?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        commentId = excluded.commentId,
+        profileId = excluded.profileId,
+        value = excluded.value,
+        updatedAt = excluded.updatedAt`,
     args: [vote.id, vote.commentId, vote.profileId, vote.value, vote.updatedAt],
   } satisfies InStatement));
 
   const runStatements = seedRuns.map((run) => ({
-    sql: "INSERT OR IGNORE INTO runs (id, taskId, status, backend, budgetUsd, runtimeHours, checkpointCadenceHours, reproducibilityNotes, rollbackPlan) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    sql: `INSERT INTO runs (id, taskId, status, backend, budgetUsd, runtimeHours, checkpointCadenceHours, reproducibilityNotes, rollbackPlan) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        taskId = excluded.taskId,
+        status = excluded.status,
+        backend = excluded.backend,
+        budgetUsd = excluded.budgetUsd,
+        runtimeHours = excluded.runtimeHours,
+        checkpointCadenceHours = excluded.checkpointCadenceHours,
+        reproducibilityNotes = excluded.reproducibilityNotes,
+        rollbackPlan = excluded.rollbackPlan`,
     args: [
       run.id,
       run.taskId,
@@ -800,27 +904,60 @@ async function seedDatabase() {
   } satisfies InStatement));
 
   const timingStatements = seedTaskTimings.map((timing) => ({
-    sql: "INSERT OR IGNORE INTO task_timings (taskId, launchAt, startedAt, expectedMaxEndAt, computeHoursUsed, completionMode, completionSummary, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    sql: `INSERT INTO task_timings (taskId, launchAt, startedAt, expectedMaxEndAt, computeHoursUsed, completionMode, completionSummary, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(taskId) DO UPDATE SET
+        launchAt = excluded.launchAt,
+        startedAt = excluded.startedAt,
+        expectedMaxEndAt = excluded.expectedMaxEndAt,
+        computeHoursUsed = excluded.computeHoursUsed,
+        completionMode = excluded.completionMode,
+        completionSummary = excluded.completionSummary,
+        updatedAt = excluded.updatedAt`,
     args: [timing.taskId, timing.launchAt, timing.startedAt, timing.expectedMaxEndAt, timing.computeHoursUsed, timing.completionMode, timing.completionSummary, timing.updatedAt],
   } satisfies InStatement));
 
   const runUpdateStatements = seedRunUpdates.map((update) => ({
-    sql: "INSERT OR IGNORE INTO run_updates (id, taskId, label, status, summary, artifact, evidenceNote, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    sql: `INSERT INTO run_updates (id, taskId, label, status, summary, artifact, evidenceNote, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        taskId = excluded.taskId,
+        label = excluded.label,
+        status = excluded.status,
+        summary = excluded.summary,
+        artifact = excluded.artifact,
+        evidenceNote = excluded.evidenceNote,
+        createdAt = excluded.createdAt`,
     args: [update.id, update.taskId, update.label, update.status, update.summary, update.artifact, update.evidenceNote, update.createdAt],
   } satisfies InStatement));
 
   const checkpointStatements = seedCheckpoints.map((checkpoint) => ({
-    sql: "INSERT OR IGNORE INTO checkpoints (id, taskId, label, status, detail, dueAt) VALUES (?, ?, ?, ?, ?, ?)",
+    sql: `INSERT INTO checkpoints (id, taskId, label, status, detail, dueAt) VALUES (?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        taskId = excluded.taskId,
+        label = excluded.label,
+        status = excluded.status,
+        detail = excluded.detail,
+        dueAt = excluded.dueAt`,
     args: [checkpoint.id, checkpoint.taskId, checkpoint.label, checkpoint.status, checkpoint.detail, checkpoint.dueAt],
   } satisfies InStatement));
 
   const checkpointGateStatements = seedCheckpointGates.map((gate) => ({
-    sql: "INSERT OR IGNORE INTO checkpoint_gates (checkpointId, approvalScore, requiredApprovals, releaseStatus) VALUES (?, ?, ?, ?)",
+    sql: `INSERT INTO checkpoint_gates (checkpointId, approvalScore, requiredApprovals, releaseStatus) VALUES (?, ?, ?, ?)
+      ON CONFLICT(checkpointId) DO UPDATE SET
+        approvalScore = excluded.approvalScore,
+        requiredApprovals = excluded.requiredApprovals,
+        releaseStatus = excluded.releaseStatus`,
     args: [gate.checkpointId, gate.approvalScore, gate.requiredApprovals, gate.releaseStatus],
   } satisfies InStatement));
 
   const governanceStatements = seedGovernanceEvents.map((event) => ({
-    sql: "INSERT OR IGNORE INTO governance_events (id, taskId, house, title, decision, outcome, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    sql: `INSERT INTO governance_events (id, taskId, house, title, decision, outcome, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        taskId = excluded.taskId,
+        house = excluded.house,
+        title = excluded.title,
+        decision = excluded.decision,
+        outcome = excluded.outcome,
+        createdAt = excluded.createdAt`,
     args: [event.id, event.taskId, event.house, event.title, event.decision, event.outcome, event.createdAt],
   } satisfies InStatement));
 
@@ -865,10 +1002,23 @@ async function seedDatabase() {
   } satisfies InStatement));
 
   const treasuryStatements = seedTreasuryEntries.map((entry) => ({
-    sql: `INSERT OR IGNORE INTO treasury_entries (
+    sql: `INSERT INTO treasury_entries (
       id, streamId, title, description, bucket, direction, amountUsd, fundingState,
       restrictionMode, restrictionScope, restrictionTargetId, restrictionTargetLabel, createdAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      streamId = excluded.streamId,
+      title = excluded.title,
+      description = excluded.description,
+      bucket = excluded.bucket,
+      direction = excluded.direction,
+      amountUsd = excluded.amountUsd,
+      fundingState = excluded.fundingState,
+      restrictionMode = excluded.restrictionMode,
+      restrictionScope = excluded.restrictionScope,
+      restrictionTargetId = excluded.restrictionTargetId,
+      restrictionTargetLabel = excluded.restrictionTargetLabel,
+      createdAt = excluded.createdAt`,
     args: [
       entry.id,
       entry.streamId,
@@ -926,28 +1076,27 @@ async function seedDatabase() {
   } satisfies InStatement));
 
   const client = getClient();
-  await client.batch(
-    [
-      ...profileStatements,
-      ...attestationStatements,
-      ...categoryStatements,
-      ...taskStatements,
-      ...voteStatements,
-      ...pulseStatements,
-      ...commentStatements,
-      ...commentVoteStatements,
-      ...runStatements,
-      ...timingStatements,
-      ...runUpdateStatements,
-      ...checkpointStatements,
-      ...checkpointGateStatements,
-      ...governanceStatements,
-      ...revenueStatements,
-      ...treasuryStatements,
-      ...sponsorshipStatements,
-    ],
-    "write",
-  );
+  const allStatements = [
+    ...profileStatements,
+    ...attestationStatements,
+    ...categoryStatements,
+    ...taskStatements,
+    ...voteStatements,
+    ...pulseStatements,
+    ...commentStatements,
+    ...commentVoteStatements,
+    ...runStatements,
+    ...timingStatements,
+    ...runUpdateStatements,
+    ...checkpointStatements,
+    ...checkpointGateStatements,
+    ...governanceStatements,
+    ...revenueStatements,
+    ...treasuryStatements,
+    ...sponsorshipStatements,
+  ];
+  console.log(`[db] seedDatabase: dispatching ${allStatements.length} statements`);
+  await client.batch(allStatements, "write");
 }
 
 function hashToken(token: string) {
@@ -978,6 +1127,16 @@ function slugify(input: string) {
     .slice(0, 80);
 }
 
+export function normalizeUsername(input: string) {
+  return input.trim().toLowerCase().replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 24);
+}
+
+function assertValidUsername(username: string) {
+  if (!/^[a-z0-9][a-z0-9_-]{2,23}$/.test(username)) {
+    throw new Error("Username must be 3-24 characters using letters, numbers, underscores, or hyphens.");
+  }
+}
+
 async function uniqueSlug(table: "tasks" | "profiles", value: string) {
   const base = slugify(value) || randomUUID().slice(0, 8);
   let candidate = base;
@@ -1003,6 +1162,13 @@ function avatarHueFor(seed: string) {
   return hash;
 }
 
+function publicProfileName(profile: Pick<ProfileRecord, "name" | "username" | "showRealName">) {
+  if (profile.showRealName === false && profile.username) {
+    return `@${profile.username}`;
+  }
+  return profile.name;
+}
+
 function parseLinks(value: Value): ProfileLink[] {
   if (typeof value !== "string" || value.length === 0) return [];
   try {
@@ -1019,6 +1185,8 @@ function parseLinks(value: Value): ProfileLink[] {
 function mapProfile(row: DbRow): ProfileRecord {
   return {
     id: getString(row, "id"),
+    username: getNullableString(row, "username"),
+    showRealName: getNumber(row, "showRealName") !== 0,
     name: getString(row, "name"),
     role: getString(row, "role"),
     bio: getString(row, "bio"),
@@ -1031,6 +1199,9 @@ function mapProfile(row: DbRow): ProfileRecord {
     avatarHue: getNumber(row, "avatarHue"),
     avatarImage: getNullableString(row, "avatarImage"),
     avatarGradient: getNullableString(row, "avatarGradient"),
+    avatarImageScale: getNumber(row, "avatarImageScale") || 1,
+    avatarImageX: getNumber(row, "avatarImageX") || 50,
+    avatarImageY: getNumber(row, "avatarImageY") || 50,
     links: parseLinks(row.links),
     location: getNullableString(row, "location"),
     pronouns: getNullableString(row, "pronouns"),
@@ -1274,6 +1445,7 @@ function mapAccount(row: DbRow): AccountRecord {
     id: getString(row, "id"),
     profileId: getString(row, "profileId"),
     email: getString(row, "email"),
+    username: getNullableString(row, "username"),
     passwordHash: getString(row, "passwordHash"),
     passwordSalt: getString(row, "passwordSalt"),
     licensingConsent: getString(row, "licensingConsent") as AccountRecord["licensingConsent"],
@@ -1307,6 +1479,23 @@ const loadCategories = () =>
       thesis: getString(row, "thesis"),
     })),
   );
+function mapCategoryProposal(row: DbRow): CategoryProposalRecord {
+  return {
+    id: getString(row, "id"),
+    proposerProfileId: getString(row, "proposerProfileId"),
+    proposerName: getNullableString(row, "proposerName"),
+    name: getString(row, "name"),
+    slug: getString(row, "slug"),
+    description: getString(row, "description"),
+    publicBenefit: getString(row, "publicBenefit"),
+    exampleKens: parseList(row.exampleKens),
+    reviewStatus: getString(row, "reviewStatus") as CategoryProposalRecord["reviewStatus"],
+    reviewNote: getNullableString(row, "reviewNote"),
+    reviewedBy: getNullableString(row, "reviewedBy"),
+    createdAt: getString(row, "createdAt"),
+    updatedAt: getString(row, "updatedAt"),
+  };
+}
 const loadTasks = () => loadRows("SELECT * FROM tasks ORDER BY createdAt DESC").then((rows) => rows.map(mapTask));
 const loadTaskFinance = () => loadRows("SELECT * FROM task_finance").then((rows) => rows.map(mapTaskFinance));
 const loadVotes = () => loadRows("SELECT * FROM votes ORDER BY updatedAt DESC").then((rows) => rows.map(mapVote));
@@ -1323,6 +1512,13 @@ const loadRevenueStreams = () => loadRows("SELECT * FROM revenue_streams ORDER B
 const loadTreasuryEntries = () => loadRows("SELECT * FROM treasury_entries ORDER BY createdAt DESC").then((rows) => rows.map(mapTreasuryEntry));
 const loadSponsorshipCommitments = () =>
   loadRows("SELECT * FROM sponsorship_commitments ORDER BY updatedAt DESC, createdAt DESC").then((rows) => rows.map(mapSponsorshipCommitment));
+const loadCategoryProposals = () =>
+  loadRows(
+    `SELECT category_proposals.*, profiles.name AS proposerName
+     FROM category_proposals
+     LEFT JOIN profiles ON profiles.id = category_proposals.proposerProfileId
+     ORDER BY category_proposals.updatedAt DESC, category_proposals.createdAt DESC`,
+  ).then((rows) => rows.map(mapCategoryProposal));
 
 async function findProfileById(profileId: string) {
   const row = await loadOne("SELECT * FROM profiles WHERE id = ? LIMIT 1", [profileId]);
@@ -1350,6 +1546,11 @@ async function findCategoryBySlug(slug: string) {
 
 async function findAccountByEmail(email: string) {
   const row = await loadOne("SELECT * FROM accounts WHERE lower(email) = lower(?) LIMIT 1", [email]);
+  return row ? mapAccount(row) : null;
+}
+
+async function findAccountByUsername(username: string) {
+  const row = await loadOne("SELECT * FROM accounts WHERE lower(username) = lower(?) LIMIT 1", [username]);
   return row ? mapAccount(row) : null;
 }
 
@@ -1393,7 +1594,8 @@ function buildDiscussionTree(
     const downvotes = votes.filter((vote) => vote.value < 0).length;
     mapped.set(comment.id, {
       ...comment,
-      profileName: profile?.name ?? "Unknown contributor",
+      profileName: profile ? publicProfileName(profile) : "Unknown contributor",
+      profileUsername: profile?.username ?? null,
       profileRole: profile?.role ?? "Unverified contributor",
       profileSystemRole: account?.systemRole,
       score: upvotes - downvotes,
@@ -1403,6 +1605,10 @@ function buildDiscussionTree(
       replies: [],
       avatarHue: profile?.avatarHue ?? 210,
       avatarImage: profile?.avatarImage ?? null,
+      avatarGradient: profile?.avatarGradient ?? null,
+      avatarImageScale: profile?.avatarImageScale ?? 1,
+      avatarImageX: profile?.avatarImageX ?? 50,
+      avatarImageY: profile?.avatarImageY ?? 50,
       depth: 0,
     });
   }
@@ -1531,6 +1737,8 @@ async function hydrate(viewerProfileId?: string | null) {
     const policy = resolveParticipationPolicy(attestationStatus, sybilRisk, profile.voiceCredits);
     return {
       ...profile,
+      username: profile.username ?? profile.id,
+      showRealName: profile.showRealName !== false,
       attestationLevel: profile.attestationLevel ?? "provisional",
       moderationStatus: profile.moderationStatus ?? "active",
       createdAt,
@@ -1560,6 +1768,9 @@ async function hydrate(viewerProfileId?: string | null) {
       verificationNote: profile.verificationNote ?? null,
       avatarImage: profile.avatarImage ?? null,
       avatarGradient: profile.avatarGradient ?? null,
+      avatarImageScale: profile.avatarImageScale ?? 1,
+      avatarImageX: profile.avatarImageX ?? 50,
+      avatarImageY: profile.avatarImageY ?? 50,
     };
   });
 
@@ -1679,7 +1890,7 @@ async function hydrate(viewerProfileId?: string | null) {
       ...finance,
       categoryName: category?.name ?? "Unknown category",
       categorySlug: category?.slug ?? "unknown",
-      proposerName: proposer?.name ?? "Unknown proposer",
+      proposerName: proposer ? publicProfileName(proposer) : "Unknown proposer",
       totalVotes: taskVotes.reduce((total, vote) => total + vote.voteCount, 0),
       supporterCount: taskVotes.length,
       categoryRank: ranking?.rank ?? null,
@@ -1788,6 +1999,7 @@ export async function getViewerSessionByToken(token: string): Promise<ViewerSess
     account: {
       id: account.id,
       email: account.email,
+      username: account.username,
       createdAt: account.createdAt,
       systemRole: account.systemRole,
       emailVerified: account.emailVerified,
@@ -1917,6 +2129,7 @@ export async function getEconomicsData(viewerProfileId?: string | null): Promise
 
 export async function createAccount(input: {
   email: string;
+  username: string;
   password: string;
   name: string;
   role: string;
@@ -1928,9 +2141,14 @@ export async function createAccount(input: {
   if (existing) {
     throw new Error("An account with that email already exists.");
   }
+  const username = normalizeUsername(input.username);
+  assertValidUsername(username);
+  if (await findAccountByUsername(username)) {
+    throw new Error("That username is already taken.");
+  }
 
   const now = new Date().toISOString();
-  const profileId = await uniqueSlug("profiles", input.name);
+  const profileId = await uniqueSlug("profiles", username || input.name);
   const accountId = randomUUID();
   const { passwordHash, passwordSalt } = createPasswordHash(input.password);
   const normalizedEmail = input.email.toLowerCase();
@@ -1951,12 +2169,14 @@ export async function createAccount(input: {
     [
       {
         sql: `INSERT INTO profiles (
-          id, name, role, bio, specialty, attestation, attestationLevel, moderationStatus,
-          voiceCredits, credibility, avatarHue, avatarImage, avatarGradient, links, location, pronouns,
+          id, username, showRealName, name, role, bio, specialty, attestation, attestationLevel, moderationStatus,
+          voiceCredits, credibility, avatarHue, avatarImage, avatarGradient, avatarImageScale, avatarImageX, avatarImageY, links, location, pronouns,
           verificationStatus, verificationRequestedAt, verificationNote, createdAt
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         args: [
           profileId,
+          username,
+          1,
           input.name,
           input.role,
           input.bio,
@@ -1971,6 +2191,9 @@ export async function createAccount(input: {
           avatarHueFor(input.email),
           null,
           null,
+          1,
+          50,
+          50,
           "[]",
           null,
           null,
@@ -1996,13 +2219,14 @@ export async function createAccount(input: {
       },
       {
         sql: `INSERT INTO accounts (
-          id, profileId, email, passwordHash, passwordSalt, licensingConsent, systemRole,
+          id, profileId, email, username, passwordHash, passwordSalt, licensingConsent, systemRole,
           emailVerified, emailVerifiedAt, lastLoginAt, createdAt
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         args: [
           accountId,
           profileId,
           normalizedEmail,
+          username,
           passwordHash,
           passwordSalt,
           input.licensingConsent,
@@ -2020,8 +2244,11 @@ export async function createAccount(input: {
   return { accountId, profileId, systemRole, emailVerified };
 }
 
-export async function authenticateAccount(email: string, password: string) {
-  const account = await findAccountByEmail(email.toLowerCase());
+export async function authenticateAccount(identifier: string, password: string) {
+  const value = identifier.trim().toLowerCase();
+  const account = value.includes("@")
+    ? await findAccountByEmail(value)
+    : await findAccountByUsername(normalizeUsername(value));
   return account && verifyPassword(password, account.passwordHash, account.passwordSalt) ? account : null;
 }
 
@@ -2063,6 +2290,87 @@ export interface CreateProposalInput {
   evidence: string[];
   enterprisePackaging: string;
   dataValueNote: string;
+}
+
+export async function createCategoryProposal(input: {
+  name: string;
+  description: string;
+  publicBenefit: string;
+  exampleKens: string[];
+}, proposerId: string) {
+  const profile = await findProfileById(proposerId);
+  if (!profile) {
+    throw new Error("Contributor profile not found.");
+  }
+
+  const now = new Date().toISOString();
+  const base = slugify(input.name) || randomUUID().slice(0, 8);
+  let slug = base;
+  let iteration = 2;
+  while (await loadOne("SELECT id FROM categories WHERE slug = ? UNION SELECT id FROM category_proposals WHERE slug = ? LIMIT 1", [slug, slug])) {
+    slug = `${base}-${iteration}`;
+    iteration += 1;
+  }
+
+  await execute(
+    `INSERT INTO category_proposals (
+      id, proposerProfileId, name, slug, description, publicBenefit, exampleKens,
+      reviewStatus, reviewNote, reviewedBy, createdAt, updatedAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', NULL, NULL, ?, ?)`,
+    [
+      randomUUID(),
+      proposerId,
+      input.name.trim().slice(0, 80),
+      slug,
+      input.description.trim().slice(0, 800),
+      input.publicBenefit.trim().slice(0, 800),
+      serializeList(input.exampleKens.slice(0, 8)),
+      now,
+      now,
+    ],
+  );
+
+  return slug;
+}
+
+export async function decideCategoryProposal(
+  proposalId: string,
+  reviewStatus: CategoryProposalRecord["reviewStatus"],
+  reviewNote: string | null,
+  reviewedBy: string,
+) {
+  const row = await loadOne("SELECT * FROM category_proposals WHERE id = ? LIMIT 1", [proposalId]);
+  if (!row) throw new Error("Category proposal not found.");
+  const proposal = mapCategoryProposal(row);
+  const now = new Date().toISOString();
+
+  if (reviewStatus === "approved") {
+    await batch(
+      [
+        {
+          sql: `INSERT INTO categories (id, slug, name, description, thesis)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+              slug = excluded.slug,
+              name = excluded.name,
+              description = excluded.description,
+              thesis = excluded.thesis`,
+          args: [proposal.slug, proposal.slug, proposal.name, proposal.description, proposal.publicBenefit],
+        },
+        {
+          sql: "UPDATE category_proposals SET reviewStatus = ?, reviewNote = ?, reviewedBy = ?, updatedAt = ? WHERE id = ?",
+          args: [reviewStatus, reviewNote, reviewedBy, now, proposalId],
+        },
+      ],
+      "write",
+    );
+    return;
+  }
+
+  await execute(
+    "UPDATE category_proposals SET reviewStatus = ?, reviewNote = ?, reviewedBy = ?, updatedAt = ? WHERE id = ?",
+    [reviewStatus, reviewNote, reviewedBy, now, proposalId],
+  );
 }
 
 export async function createProposal(input: CreateProposalInput, proposerId: string) {
@@ -2698,6 +3006,8 @@ export async function findAccountByIdExported(accountId: string) {
 export async function updateProfileDetails(
   profileId: string,
   input: {
+    username?: string | null;
+    showRealName?: boolean;
     name?: string;
     role?: string;
     bio?: string;
@@ -2707,11 +3017,23 @@ export async function updateProfileDetails(
     links?: ProfileLink[];
     avatarImage?: string | null;
     avatarGradient?: string | null;
+    avatarImageScale?: number;
+    avatarImageX?: number;
+    avatarImageY?: number;
   },
 ) {
   const profile = await findProfileById(profileId);
   if (!profile) throw new Error("Profile not found.");
+  const currentAccount = await loadOne("SELECT id FROM accounts WHERE profileId = ? LIMIT 1", [profileId]);
+  const nextUsername = input.username === undefined ? profile.username ?? profile.id : normalizeUsername(input.username ?? "");
+  assertValidUsername(nextUsername);
+  const existingUsername = await loadOne("SELECT profileId FROM accounts WHERE lower(username) = lower(?) AND profileId != ? LIMIT 1", [nextUsername, profileId]);
+  if (existingUsername) {
+    throw new Error("That username is already taken.");
+  }
   const next = {
+    username: nextUsername,
+    showRealName: input.showRealName ?? profile.showRealName ?? true,
     name: (input.name ?? profile.name).slice(0, 80),
     role: (input.role ?? profile.role).slice(0, 120),
     bio: (input.bio ?? profile.bio).slice(0, 2000),
@@ -2721,21 +3043,43 @@ export async function updateProfileDetails(
     links: input.links === undefined ? profile.links ?? [] : input.links.slice(0, 8),
     avatarImage: input.avatarImage === undefined ? profile.avatarImage ?? null : input.avatarImage,
     avatarGradient: input.avatarGradient === undefined ? profile.avatarGradient ?? null : input.avatarGradient,
+    avatarImageScale: Math.max(1, Math.min(input.avatarImageScale ?? profile.avatarImageScale ?? 1, 2.5)),
+    avatarImageX: Math.max(0, Math.min(input.avatarImageX ?? profile.avatarImageX ?? 50, 100)),
+    avatarImageY: Math.max(0, Math.min(input.avatarImageY ?? profile.avatarImageY ?? 50, 100)),
   };
-  await execute(
-    `UPDATE profiles SET name = ?, role = ?, bio = ?, specialty = ?, location = ?, pronouns = ?, links = ?, avatarImage = ?, avatarGradient = ? WHERE id = ?`,
+  await batch(
     [
-      next.name,
-      next.role,
-      next.bio,
-      next.specialty,
-      next.location,
-      next.pronouns,
-      JSON.stringify(next.links),
-      next.avatarImage,
-      next.avatarGradient,
-      profileId,
+      {
+        sql: `UPDATE profiles SET
+          username = ?, showRealName = ?, name = ?, role = ?, bio = ?, specialty = ?, location = ?, pronouns = ?,
+          links = ?, avatarImage = ?, avatarGradient = ?, avatarImageScale = ?, avatarImageX = ?, avatarImageY = ?
+          WHERE id = ?`,
+        args: [
+          next.username,
+          next.showRealName ? 1 : 0,
+          next.name,
+          next.role,
+          next.bio,
+          next.specialty,
+          next.location,
+          next.pronouns,
+          JSON.stringify(next.links),
+          next.avatarImage,
+          next.avatarGradient,
+          next.avatarImageScale,
+          next.avatarImageX,
+          next.avatarImageY,
+          profileId,
+        ],
+      },
+      ...(currentAccount
+        ? [{
+            sql: "UPDATE accounts SET username = ? WHERE profileId = ?",
+            args: [next.username, profileId],
+          } satisfies InStatement]
+        : []),
     ],
+    "write",
   );
 }
 
@@ -2958,13 +3302,14 @@ export async function listAuditLog(limit = 200): Promise<AuditLogRecord[]> {
 }
 
 export async function getAdminDashboard() {
-  const [accounts, profiles, pendingVerifications, recentAudit, visitors, countryAggregates] = await Promise.all([
+  const [accounts, profiles, pendingVerifications, recentAudit, visitors, countryAggregates, categoryProposals] = await Promise.all([
     loadAccounts(),
     loadProfiles(),
     loadRows("SELECT * FROM profiles WHERE verificationStatus = 'pending' ORDER BY verificationRequestedAt ASC").then((rows) => rows.map(mapProfile)),
     listAuditLog(50),
     listVisitors(500),
     aggregateVisitorsByCountry(),
+    loadCategoryProposals(),
   ]);
   return {
     accounts,
@@ -2973,6 +3318,7 @@ export async function getAdminDashboard() {
     recentAudit,
     visitors,
     countryAggregates,
+    categoryProposals,
   };
 }
 
@@ -3009,8 +3355,8 @@ export async function searchIndex(viewerProfileId?: string | null): Promise<Sear
     items.push({
       id: profile.id,
       type: "profile",
-      title: profile.name,
-      subtitle: `${profile.role} · ${profile.specialty}`,
+      title: publicProfileName(profile),
+      subtitle: `@${profile.username} · ${profile.role} · ${profile.specialty}`,
       url: `/people/${profile.id}`,
       badge: profile.attestationLevel,
     });

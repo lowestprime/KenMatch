@@ -30,11 +30,11 @@ export const DEFAULT_ABOUT_PAGE: AboutPageContent = {
   contactTitle: "Contact",
   contactBody:
     "For partnership inquiries, verification questions, research collaboration, or anything else related to the platform, reach out directly. Press, funders, and builders are all welcome.",
-  contactEmail: "cooperbeaman@proton.me",
+  contactEmail: "",
   links: [
-    { label: "GitHub", url: "https://github.com/lowestprime/KenMatch" },
-    { label: "Personal", url: "https://cooperbeaman.com" },
-    { label: "Protonmail", url: "mailto:cooperbeaman@proton.me" },
+    { label: "Repository", url: "https://github.com/lowestprime/KenMatch" },
+    { label: "GitHub profile", url: "https://github.com/lowestprime" },
+    { label: "Contact", url: "https://github.com/lowestprime/KenMatch" },
   ],
   lastUpdated: new Date(0).toISOString(),
 };

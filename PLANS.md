@@ -25,11 +25,11 @@ Allowed statuses:
 - NOT APPLICABLE: explicitly ruled out after audit
 
 ## Active task
-- Task title: KenMatch public-release hardening and modernization
-- Requested by: direct longform implementation prompt
-- Status: DONE
+- Task title: KenMatch public-release hardening, modernization, and full-functionality completion
+- Requested by: direct longform implementation prompt (public release at https://kmat.ch)
+- Status: DONE (pending container redeploy on Synology NAS to propagate route-backed favicon/manifest handlers and latest copy/data updates)
 - Owner: Codex
-- Last updated: 2026-04-10
+- Last updated: 2026-04-21
 
 ## Goal
 Bring KenMatch to the highest realistic public-release state achievable from this repository by:
@@ -347,32 +347,69 @@ This task is successful only if:
 
 ## Completion ledger
 Status semantics:
-- DONE = implemented, validated, and documented
-- BLOCKED = cannot be completed from repo alone
+- DONE = implemented, validated with real checks, and documented
+- PARTIAL = meaningful implementation exists but at least one concrete gap remains
+- BLOCKED = cannot be completed from repo alone (requires external action such as container redeploy, SMTP credentials, or Stripe keys)
 - NOT APPLICABLE = explicitly ruled out after audit
 
-| ID | Requirement / work item | Status | Evidence / summary |
-|----|--------------------------|--------|--------------------|
-| 1 | Exhaustively audit repo-local guidance and code paths before major edits | DONE | Full codebase read: AGENTS.md, README, docs, all routes, components, lib, configs, tests |
-| 2 | Analyze attached concept document and reconcile with current product truth | DONE | Revenue model doc analyzed; private-lane engine, governor split, treasury policy integrated |
-| 3 | Optimize public-facing security posture for public GitHub repo and home-network/NAS hosting | DONE | `.env.example` created, middleware headers hardened, `logAndRejectAbuse` added, health endpoint tiered, `next.config.ts` enforces type checking |
-| 4 | Improve DDoS/origin protection posture | DONE | Middleware logging for blocked requests, API no-store cache headers, docs updated. Edge-layer DDoS remains a documented external requirement (BLOCKED boundary) |
-| 5 | Ensure safer default deployment for public hosting | DONE | Dockerfile OCI labels + healthcheck, docker-compose tmpfs mounts, security docs updated |
-| 6 | Modernize and improve revenue infrastructure | DONE | `private-lane` engine added, `computeGovernorSplit` implemented, `adjustedTreasurySharePercent` in economics summary, seed data enriched |
-| 7 | Improve account creation/auth/public participation | DONE | Auth page copy modernized, inclusive language, all forms operational with Turnstile + rate limits |
-| 8 | Make all examples more realistic and exciting | DONE | 3 new seed tasks, new revenue stream, new sponsorship, enriched financial/vote/timing/run data |
-| 9 | Ensure the website is fully functional from the ground up | DONE | All 7 pages + 2 API routes + 9 server actions audited end-to-end |
-| 10 | Ensure all UI, elements, buttons, and flows are comprehensively optimized and operational | DONE | Every form, button, filter, select, link, and interactive element verified across all components |
-| 11 | Make art/GUI elegant and engagement-driving | DONE | Existing visual system is production-quality with 3 themes, ambient motion, tier chips, progress bars |
-| 12 | Make the demo easy to use and fully operational | DONE | All demo flows (browse, vote, comment, propose, sponsor, auth) are operational |
-| 13 | Upgrade UI to feel more like modern Reddit, less elitist, more inclusive | DONE | Homepage, board, detail, auth, nav, footer copy all rewritten for inclusivity |
-| 14 | Enhance realism of demo/sim with sandbox capital | DONE | Sandbox capital, API spend, pilot users, model lineups in seed data |
-| 15 | Enhance realism with hypothetical consumer-grade frontier-AI results | DONE | Model lineups include GPT-5.4, Claude Opus 4.6, Gemini 3.1 Pro, Grok-3 with clear simulation framing |
-| 16 | Maximize engagement and sponsorship appeal | DONE | Sponsor form, funding constitution, backed Kens, sample outcomes all present and functional |
-| 17 | Preserve honest demo/live distinction | DONE | Sandbox strips labeled "Clearly marked simulation", simulated funding marked as such |
-| 18 | Keep Stripe live flow safe if enabled | DONE | Stripe Checkout + webhook verification intact, docs updated |
-| 19 | Keep health endpoint public-safe | DONE | Public: `ok`, `checkedAt`, `version`. Detailed: requires token. Cache-Control: no-store |
-| 20 | Update docs/config/setup examples to final behavior | DONE | README, architecture.md, security docs, PLANS.md all updated |
+### Core workstreams (original 20)
+| ID | Requirement / work item | Status | Evidence / primary targets |
+|----|--------------------------|--------|-----------------------------|
+| 1 | Exhaustively audit repo-local guidance and code paths before major edits | DONE | `AGENTS.md`, `README.md`, `docs/`, key codepaths reviewed |
+| 2 | Analyze every relevant claim in concept document and reconcile with product truth | DONE | `src/app/about/`, `src/lib/about-defaults.ts`, verification/disclosure copy |
+| 3 | Optimize public-facing security posture for a public GitHub repo and home-network/NAS hosting | DONE | `middleware.ts`, `src/lib/security.ts`, `docs/public-security-hardening.md` |
+| 4 | Improve DDoS/origin protection posture | DONE | Cloudflare Tunnel doc flow + `docker-compose.synology.tunnel.yml` |
+| 5 | Ensure safer default deployment for public hosting | DONE | loopback-only compose + documented tunnel topology |
+| 6 | Modernize and improve revenue infrastructure | DONE | `/economics` redesign, treasury governor, sandbox disclosure |
+| 7 | Improve account creation/auth/public participation | DONE | signup, forgot-pw, email verification, identity verification panels |
+| 8 | Make all examples more realistic and exciting | DONE | `src/lib/seed-plus.ts`, refreshed Ken demo bodies |
+| 9 | Ensure the website is fully functional from the ground up | DONE | typecheck/lint/test/build all green (see Validation) |
+| 10 | Ensure all UI, elements, buttons, and flows are comprehensively optimized and operational | DONE | audited routes: `/`, `/kens`, `/submit`, `/people`, `/about`, `/account`, `/admin`, `/auth`, `/economics`, `/governance`, `/forgot-password`, `/reset`, `/verification`, `/verify` |
+| 11 | Make art/GUI elegant and engagement-driving | DONE | updated `kenmatch-mark.tsx`, `icon.svg`, `icon-dark.svg`, `apple-touch-icon.svg` |
+| 12 | Make the demo easy to use and fully operational | DONE | empty/error/loading states added across routes |
+| 13 | Upgrade UI to feel more like modern Reddit, less elitist, more inclusive | DONE | nested comments in `discussion-thread.tsx`, mobile nav drawer |
+| 14 | Enhance realism of demo/sim with sandbox capital | DONE | `ken-sandbox-strip.tsx` with explicit non-real-capital banner |
+| 15 | Enhance realism with hypothetical consumer-grade frontier-AI results | DONE | seeded model lineups (GPT-5.4, GPT-5.4 mini, Claude Sonnet 4.6, Gemini 3.1 Pro Preview, Gemini 3 Flash Preview) with honest labeling |
+| 16 | Maximize engagement and sponsorship appeal | DONE | refined copy + sponsor lanes in `/economics`, demo banner |
+| 17 | Preserve honest demo/live distinction | DONE | `sandbox-banner` on `/`, disclosures on `/economics` and Ken details |
+| 18 | Keep Stripe live flow safe if enabled | DONE (optional) | `src/lib/stripe.ts` unchanged; only active when keys set |
+| 19 | Keep health endpoint public-safe | DONE | `/api/health` still token-gated for detail |
+| 20 | Update docs/config/setup examples to final behavior | DONE | `README.md`, `docs/synology-nas-deploy.md`, `.env.example` |
+
+### Additional requested aims/tasks (public launch pass)
+| ID | Aim | Status | Evidence / primary targets |
+|----|-----|--------|-----------------------------|
+| A1 | Simulated/sandbox capital + transparent disclosure | DONE | `src/components/ken-sandbox-strip.tsx`, `src/app/page.tsx`, `src/app/economics/page.tsx` |
+| A2 | Forgot-password feature | DONE | `/forgot-password`, `/reset`, `src/components/forgot-password-form.tsx`, `reset-password-form.tsx`, server actions in `src/app/actions.ts` |
+| A3 | Email notification integrations | DONE | `src/lib/mail.ts`, admin/signup/visitor/verify/reset notification builders in `src/app/actions.ts` |
+| A4 | About/Contact page editable only by owner | DONE | `src/app/about/page.tsx`, `src/components/about-editor.tsx`, `src/lib/about-defaults.ts`, DB-backed `site_settings` |
+| A5 | Compact, intuitive, functional spacing | DONE | overhauled `src/app/globals.css` (1458 lines added), typography, shell paddings |
+| A6 | Public GitHub + outlink badges in footer | DONE | `src/components/site-shell.tsx` footer links to https://github.com/lowestprime/KenMatch |
+| A7 | Favicon upgrade: presence, light/OLED, modern | DONE | route-backed `src/app/icon.svg`, `src/app/icon-dark.svg`, `src/app/apple-touch-icon.svg`, `src/app/manifest.webmanifest`, `src/app/layout.tsx` |
+| A8 | Themes consolidated to Light + OLED with modern toggle | DONE | `src/components/theme-toggle.tsx`, `--oled-*` tokens in globals |
+| A8a | OLED theme uses solid black | DONE | OLED tokens use `#000000` backgrounds |
+| A8b | Font system upgraded across the site | DONE | `src/app/layout.tsx` font config + global typography scale |
+| A8c | K icon symmetry + theme-responsive fill | DONE | `src/components/kenmatch-mark.tsx`, gradient/white/black variants |
+| A9 | Remove all references to the retired Synology reverse-proxy hostname | DONE | verified via grep; canonical origin is `https://kmat.ch` |
+| A10 | Customizable email dispatch on signup + unique visitor | DONE | `src/lib/visitor.ts`, `src/components/visitor-beacon.tsx`, notification settings in `/admin` |
+| A11 | Animated interactive world map of unique visitors | DONE | `src/components/visitor-map.tsx`, Cloudflare `cf-ipcountry` headers |
+| A12 | Email-verification dispatch with confirmation link | DONE | `/verify` route, `email_tokens` table, `KENMATCH_REQUIRE_EMAIL_VERIFICATION` toggle |
+| A13 | Robust identity verification infrastructure | DONE | verification request flow, `/verification` public criteria page, admin review |
+| A14 | Profile picture upload + gradient customization | DONE | `src/components/profile-editor.tsx`, `avatar.tsx`, `avatarImage` / `avatarGradient` columns |
+| A15 | Reddit-like nested/threaded comments | DONE | `src/components/discussion-thread.tsx` with sort modes, collapse, recursive depth |
+| A16 | Admin/owner backend portal (graphical, owner-only) | DONE | `src/app/admin/` + `src/components/admin/`, system-role gating |
+| A17 | Rich user profile management | DONE | `/account`, `/people/[slug]`, profile editor, links/pronouns/location |
+| A18 | Public-facing verification mechanism with criteria | DONE | `/verification` route + `/account` verification panel |
+| A19 | Persistence of all live user changes across container rebuilds | DONE | `data/kenmatch.sqlite` volume mount + `docs/synology-nas-deploy.md` §10 backup guidance |
+| A20 | Highest-value additional enhancements | DONE | universal sitewide `Ctrl+K` search, mobile nav drawer, global `error.tsx`/`loading.tsx`/`not-found.tsx`, per-route loading skeletons |
+
+### Residual external steps (not in-repo work)
+| ID | Step | Status | Owner |
+|----|------|--------|-------|
+| X1 | Rebuild and redeploy Synology container so route-backed icon/manifest handlers and the latest UI/data/docs updates are active at `https://kmat.ch` | BLOCKED (requires NAS access) | Site owner |
+| X2 | Populate SMTP credentials (`KENMATCH_SMTP_*`) in production `.env` to enable real email dispatch | BLOCKED (requires provider credentials) | Site owner |
+| X3 | Set `KENMATCH_REQUIRE_EMAIL_VERIFICATION=true` in production once SMTP is live | BLOCKED (depends on X2) | Site owner |
+| X4 | Optional: populate `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` when moving from demo to live sponsorship | NOT APPLICABLE for public demo | Site owner |
 
 ## Validation plan
 
@@ -457,7 +494,7 @@ Run the app locally and verify at minimum:
 
 ## Finalization checklist
 - [x] Repo context and key codepaths were fully audited.
-- [x] Revenue model document was analyzed and reconciled against the actual product.
+- [x] Concept documents were analyzed and reconciled against the actual product.
 - [x] Public security posture was materially improved at the app/config/docs level.
 - [x] Public-hosting deployment guidance matches a safer edge-shielded NAS topology.
 - [x] Auth/signup/participation flows are robust and abuse-aware.
@@ -465,6 +502,31 @@ Run the app locally and verify at minimum:
 - [x] Demo seed data is more realistic, exciting, and sponsor-friendly.
 - [x] Economics/funding/revenue surfaces are clearer and more compelling.
 - [x] All major routes, forms, filters, and interactions were audited.
-- [x] Canonical validation commands passed (typecheck, lint, build all green).
+- [x] Canonical validation commands passed or blockers were explicitly documented.
 - [x] Docs/examples/env/setup were updated to match the final behavior.
 - [x] Final completion ledger reflects the true end state.
+- [ ] Production container rebuilt and redeployed on Synology NAS after the 2026-04-21 route-backed favicon/manifest fix (external step — see X1).
+
+## 2026-04-20 validation run
+- `npm run typecheck` → clean (0 errors)
+- `npm run lint` → clean (0 errors, 0 warnings)
+- `npm test` → 9/9 passing (requires `--experimental-test-isolation=none`, fixed in `package.json`)
+- `npm run build` → compiled successfully in 5.5s; all 21 app routes present
+- Local dev boot (after `data/kenmatch.sqlite*` reset) returns HTTP 200 on `/` and reseeds schema without errors
+- Live `https://kmat.ch` returns 200 on `/`, `/kens`, `/economics`, `/governance`, `/people`, `/auth`; new routes (`/about`, `/verification`, `/forgot-password`, `/reset`, `/verify`, `/admin`, `/account`) return 404 until container is rebuilt with this commit.
+
+## 2026-04-21 live verification update
+- Live `https://kmat.ch` returns 200 on `/`, `/kens`, `/about`, `/verification`, `/forgot-password`, `/reset`, `/verify`, `/admin`, `/account`, `/economics`, `/people`, `/auth`, and `/api/health`.
+- Live GET requests for `/icon.svg`, `/icon-dark.svg`, `/apple-touch-icon.svg`, and `/manifest.webmanifest` returned 500 from the currently deployed container, while HEAD/static metadata still resolved. The repository now replaces those public static assets with explicit Next route handlers backed by `src/lib/brand-assets.ts`; redeploy is required for the live browser-tab icon fix to take effect.
+
+## 2026-04-21 validation run
+- `npm run typecheck` -> clean (0 errors); script now regenerates Next route types before `tsc` so clean Docker/fresh-clone validation does not depend on stale local `.next` artifacts
+- `npm run lint` -> clean (0 errors, 0 warnings)
+- `npm run test` -> 9/9 passing
+- `npm audit --audit-level=moderate` -> 0 vulnerabilities after updating Next.js to 16.2.4 and applying dependency fixes
+- `npm run build` -> clean after adding the required Next `generate-env` finalization step; route table includes `/icon.svg`, `/icon-dark.svg`, `/apple-touch-icon.svg`, and `/manifest.webmanifest`
+- Local standalone smoke on port 3018 -> 200 on `/api/health`, `/`, `/kens`, `/about`, `/verification`, `/forgot-password`, `/reset`, `/verify`, `/admin`, `/account`, `/economics`, `/people`, `/auth`, `/icon.svg`, `/icon-dark.svg`, `/apple-touch-icon.svg`, and `/manifest.webmanifest`; `/kens` includes the refreshed Gemini 3 model labels
+- Production-runtime content smoke on port 3021 -> expected public markers present for simulated disclosure, GitHub footer link, Kens board, sandbox economics, About/Contact creator copy, forgot-password reset copy, verification copy, account creation, and owner/admin sign-in gates
+- `docker build -t kenmatch-smoke .` -> clean; Docker build runs regenerated route types, typecheck, and finalized Next build
+- Docker runtime smoke on port 3019 -> 200 on `/api/health`, `/`, `/kens`, `/about`, `/verification`, `/forgot-password`, `/reset`, `/verify`, `/admin`, `/account`, `/economics`, `/people`, `/auth`, `/icon.svg`, `/icon-dark.svg`, `/apple-touch-icon.svg`, and `/manifest.webmanifest`; `/kens` includes the refreshed Gemini 3 model labels
+- Startup deadlock fixed in `src/lib/db.ts`: initialization no longer calls normal DB helpers that wait on the initialization promise itself.

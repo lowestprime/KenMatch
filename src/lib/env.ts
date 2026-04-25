@@ -41,16 +41,16 @@ const envSchema = z.object({
   KENMATCH_TREASURY_TARGET_MONTHS: z.coerce.number().min(1).max(24).default(6),
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
-  KENMATCH_OWNER_EMAIL: z.string().default("cooperbeaman@gmail.com"),
+  KENMATCH_OWNER_EMAIL: z.string().email().optional(),
   KENMATCH_ADMIN_EMAILS: z.string().optional(),
-  KENMATCH_NOTIFICATION_EMAILS: z.string().default("cooperbeaman@proton.me"),
+  KENMATCH_NOTIFICATION_EMAILS: z.string().default(""),
   KENMATCH_SMTP_HOST: z.string().optional(),
   KENMATCH_SMTP_PORT: z.coerce.number().int().min(1).max(65535).optional(),
   KENMATCH_SMTP_USER: z.string().optional(),
   KENMATCH_SMTP_PASS: z.string().optional(),
   KENMATCH_SMTP_SECURE: booleanish.default(true),
   KENMATCH_SMTP_FROM: z.string().default("KenMatch <no-reply@kmat.ch>"),
-  KENMATCH_VISITOR_HASH_SALT: z.string().default("kenmatch-visitor-salt"),
+  KENMATCH_VISITOR_HASH_SALT: z.string().optional(),
 });
 
 export const env = envSchema.parse(process.env);
@@ -65,12 +65,23 @@ export const adminEmails = (env.KENMATCH_ADMIN_EMAILS ?? "")
   .map((value) => value.trim().toLowerCase())
   .filter(Boolean);
 
-export const notificationEmails = env.KENMATCH_NOTIFICATION_EMAILS
+function requireProductionValue(name: string, value: string | undefined) {
+  const normalized = value?.trim() ?? "";
+  if (env.NODE_ENV === "production" && !normalized) {
+    throw new Error(`${name} must be set in production.`);
+  }
+  return normalized;
+}
+
+export const notificationEmails = (env.KENMATCH_NOTIFICATION_EMAILS ?? "")
   .split(",")
   .map((value) => value.trim().toLowerCase())
   .filter(Boolean);
 
-export const ownerEmail = env.KENMATCH_OWNER_EMAIL.toLowerCase();
+export const ownerEmail = requireProductionValue("KENMATCH_OWNER_EMAIL", env.KENMATCH_OWNER_EMAIL).toLowerCase();
+
+export const visitorHashSalt =
+  requireProductionValue("KENMATCH_VISITOR_HASH_SALT", env.KENMATCH_VISITOR_HASH_SALT) || "dev-only-visitor-salt";
 
 export const canonicalOrigin = env.KENMATCH_CANONICAL_ORIGIN.replace(/\/$/, "");
 
@@ -79,7 +90,7 @@ export const smtpConfigured = Boolean(
 );
 
 export function isOwnerEmail(email: string | null | undefined): boolean {
-  if (!email) return false;
+  if (!email || !ownerEmail) return false;
   return email.toLowerCase() === ownerEmail;
 }
 

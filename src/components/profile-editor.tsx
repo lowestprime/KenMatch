@@ -8,6 +8,8 @@ import { Avatar } from "@/components/avatar";
 import type { ProfileLink } from "@/lib/types";
 
 type ProfileEditorInitial = {
+  username: string;
+  showRealName: boolean;
   name: string;
   role: string;
   specialty: string;
@@ -16,6 +18,9 @@ type ProfileEditorInitial = {
   pronouns: string | null;
   avatarImage: string | null;
   avatarGradient: string | null;
+  avatarImageScale: number;
+  avatarImageX: number;
+  avatarImageY: number;
   links: ProfileLink[];
 };
 
@@ -44,6 +49,11 @@ export function ProfileEditor({ initial }: { initial: ProfileEditorInitial }) {
   const [state, formAction, pending] = useActionState(updateProfileAction, initialActionState);
   const [avatarImage, setAvatarImage] = useState<string | null>(initial.avatarImage);
   const [avatarGradient, setAvatarGradient] = useState<string | null>(initial.avatarGradient);
+  const [colorA, setColorA] = useState("#0d7d74");
+  const [colorB, setColorB] = useState("#4f8dff");
+  const [avatarImageScale, setAvatarImageScale] = useState(initial.avatarImageScale);
+  const [avatarImageX, setAvatarImageX] = useState(initial.avatarImageX);
+  const [avatarImageY, setAvatarImageY] = useState(initial.avatarImageY);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
   const linksValue = useMemo(
@@ -59,6 +69,9 @@ export function ProfileEditor({ initial }: { initial: ProfileEditorInitial }) {
             name: initial.name,
             avatarImage,
             avatarGradient,
+            avatarImageScale,
+            avatarImageX,
+            avatarImageY,
             hue: null,
           }}
           size={78}
@@ -76,7 +89,7 @@ export function ProfileEditor({ initial }: { initial: ProfileEditorInitial }) {
                 if (!file) return;
                 parseImage(file, (dataUrl) => {
                   if (!dataUrl) {
-                    setImageError("Image must be under 150 KB.");
+                    setImageError("Image must be under 180 KB.");
                     return;
                   }
                   setImageError(null);
@@ -90,6 +103,9 @@ export function ProfileEditor({ initial }: { initial: ProfileEditorInitial }) {
             className="cta-secondary cta-compact"
             onClick={() => {
               setAvatarImage(null);
+              setAvatarImageScale(1);
+              setAvatarImageX(50);
+              setAvatarImageY(50);
               if (fileInputRef.current) fileInputRef.current.value = "";
             }}
           >
@@ -119,17 +135,59 @@ export function ProfileEditor({ initial }: { initial: ProfileEditorInitial }) {
               Auto hue
             </button>
           </div>
+          <div className="color-wheel-row">
+            <label className="color-field">
+              <span>Start</span>
+              <input
+                type="color"
+                value={colorA}
+                onChange={(event) => {
+                  const next = event.target.value;
+                  setColorA(next);
+                  setAvatarGradient(`linear-gradient(135deg, ${next}, ${colorB})`);
+                }}
+              />
+            </label>
+            <label className="color-field">
+              <span>End</span>
+              <input
+                type="color"
+                value={colorB}
+                onChange={(event) => {
+                  const next = event.target.value;
+                  setColorB(next);
+                  setAvatarGradient(`linear-gradient(135deg, ${colorA}, ${next})`);
+                }}
+              />
+            </label>
+          </div>
         </div>
+        {avatarImage ? (
+          <div className="avatar-crop-controls">
+            <span className="field-label"><span>Image crop and position</span></span>
+            <Range label="Zoom" min={1} max={2.5} step={0.05} value={avatarImageScale} onChange={setAvatarImageScale} />
+            <Range label="Horizontal" min={0} max={100} step={1} value={avatarImageX} onChange={setAvatarImageX} />
+            <Range label="Vertical" min={0} max={100} step={1} value={avatarImageY} onChange={setAvatarImageY} />
+          </div>
+        ) : null}
       </div>
       <input type="hidden" name="avatarImage" value={avatarImage ?? ""} />
       <input type="hidden" name="avatarGradient" value={avatarGradient ?? ""} />
+      <input type="hidden" name="avatarImageScale" value={String(avatarImageScale)} />
+      <input type="hidden" name="avatarImageX" value={String(avatarImageX)} />
+      <input type="hidden" name="avatarImageY" value={String(avatarImageY)} />
       <div className="form-grid form-grid-two">
+        <Field label="Username" name="username" defaultValue={initial.username} error={state.fieldErrors?.username} />
         <Field label="Display name" name="name" defaultValue={initial.name} error={state.fieldErrors?.name} />
         <Field label="Role" name="role" defaultValue={initial.role} error={state.fieldErrors?.role} />
         <Field label="Specialty" name="specialty" defaultValue={initial.specialty} error={state.fieldErrors?.specialty} />
         <Field label="Location" name="location" defaultValue={initial.location ?? ""} error={state.fieldErrors?.location} />
         <Field label="Pronouns" name="pronouns" defaultValue={initial.pronouns ?? ""} error={state.fieldErrors?.pronouns} />
       </div>
+      <label className="profile-visibility-toggle">
+        <input type="checkbox" name="showRealName" defaultChecked={initial.showRealName} />
+        <span>Show my display name publicly. If off, KenMatch shows my username instead.</span>
+      </label>
       <label className="field-label">
         <span>Bio</span>
         <textarea className="field" rows={4} name="bio" defaultValue={initial.bio} />
@@ -170,6 +228,37 @@ function Field({
       <span>{label}</span>
       <input className="field" name={name} defaultValue={defaultValue} />
       {error ? <span className="text-xs text-red-500">{error}</span> : null}
+    </label>
+  );
+}
+
+function Range({
+  label,
+  min,
+  max,
+  step,
+  value,
+  onChange,
+}: {
+  label: string;
+  min: number;
+  max: number;
+  step: number;
+  value: number;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <label className="range-field">
+      <span>{label}</span>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(event) => onChange(Number(event.target.value))}
+      />
+      <strong>{label === "Zoom" ? `${value.toFixed(2)}x` : `${Math.round(value)}%`}</strong>
     </label>
   );
 }

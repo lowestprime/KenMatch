@@ -221,6 +221,10 @@ function CommentNode({
                 name: comment.profileName,
                 hue: comment.avatarHue,
                 avatarImage: comment.avatarImage,
+                avatarGradient: comment.avatarGradient,
+                avatarImageScale: comment.avatarImageScale,
+                avatarImageX: comment.avatarImageX,
+                avatarImageY: comment.avatarImageY,
               }}
               size={26}
             />

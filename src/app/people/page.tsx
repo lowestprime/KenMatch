@@ -20,7 +20,9 @@ export default async function PeoplePage() {
         </p>
       </section>
       <section className="section-grid" data-columns="2">
-        {profiles.map((profile) => (
+        {profiles.map((profile) => {
+          const publicName = profile.showRealName === false && profile.username ? `@${profile.username}` : profile.name;
+          return (
           <Link
             key={profile.id}
             href={`/people/${profile.id}`}
@@ -30,9 +32,9 @@ export default async function PeoplePage() {
             <div className="flex items-center gap-3">
               <Avatar profile={profile} size={58} />
               <div>
-                <h3 style={{ marginBottom: "0.15rem" }}>{profile.name}</h3>
+                <h3 style={{ marginBottom: "0.15rem" }}>{publicName}</h3>
                 <p style={{ color: "var(--muted)", fontSize: "0.86rem" }}>
-                  {profile.role} · {profile.specialty}
+                  @{profile.username} · {profile.role} · {profile.specialty}
                 </p>
               </div>
             </div>
@@ -51,7 +53,8 @@ export default async function PeoplePage() {
               {profile.location ? <span className="micro-pill">{profile.location}</span> : null}
             </div>
           </Link>
-        ))}
+          );
+        })}
       </section>
     </div>
   );

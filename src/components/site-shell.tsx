@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { signOutAction } from "@/app/actions";
 import { KenMatchMark } from "@/components/kenmatch-mark";
+import { HeaderScrollController } from "@/components/header-scroll-controller";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SearchCommand } from "@/components/search-command";
 import { VisitorBeacon } from "@/components/visitor-beacon";
@@ -30,7 +31,7 @@ const FOOTER_LINKS = [
     ),
   },
   {
-    href: "https://cooperbeaman.com",
+    href: "https://github.com/lowestprime",
     label: "Creator",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14" aria-hidden="true">
@@ -40,7 +41,7 @@ const FOOTER_LINKS = [
     ),
   },
   {
-    href: "mailto:cooperbeaman@proton.me",
+    href: "/about",
     label: "Contact",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14" aria-hidden="true">
@@ -53,7 +54,6 @@ const FOOTER_LINKS = [
 
 export function SiteShell({
   viewer,
-  featuredProfiles,
   children,
 }: {
   viewer: ViewerSession | null;
@@ -64,7 +64,9 @@ export function SiteShell({
 
   return (
     <div className="site-frame">
+      <a href="#main-content" className="skip-link">Skip to content</a>
       <VisitorBeacon />
+      <HeaderScrollController />
       <div className="ambient ambient-a" />
       <div className="ambient ambient-b" />
       <header className="site-header">
@@ -90,9 +92,9 @@ export function SiteShell({
                   >
                     <Avatar profile={viewer.profile} size={34} />
                     <div>
-                      <div className="viewer-inline-name">{viewer.profile.name}</div>
+                      <div className="viewer-inline-name">{viewer.profile.showRealName ? viewer.profile.name : `@${viewer.profile.username}`}</div>
                       <div className="viewer-inline-meta">
-                        {labelForParticipationState(viewer.profile.participationState)} · {viewer.profile.availableCredits}/{viewer.profile.effectiveVoiceCredits} voice
+                        @{viewer.profile.username} · {labelForParticipationState(viewer.profile.participationState)} · {viewer.profile.availableCredits}/{viewer.profile.effectiveVoiceCredits} voice
                       </div>
                     </div>
                   </Link>
@@ -124,17 +126,10 @@ export function SiteShell({
                 </Link>
               ) : null}
             </nav>
-            <div className="site-profile-strip" aria-label="Featured contributors">
-              {featuredProfiles.slice(0, 5).map((profile) => (
-                <Link key={profile.id} href={`/people/${profile.id}`} className="tag">
-                  {profile.name} · {profile.specialty}
-                </Link>
-              ))}
-            </div>
           </div>
         </div>
       </header>
-      <main className="site-main">{children}</main>
+      <main id="main-content" className="site-main">{children}</main>
       <footer className="site-footer">
         <div className="site-footer-inner">
           <div className="site-footer-top">

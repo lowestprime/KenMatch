@@ -12,9 +12,10 @@ export async function generateMetadata({
 }) {
   const { slug } = await params;
   const profiles = await listProfiles();
-  const profile = profiles.find((p) => p.id === slug || p.name === slug);
+  const profile = profiles.find((p) => p.id === slug || p.username === slug || p.name === slug);
   if (!profile) return { title: "Contributor" };
-  return { title: `${profile.name} · KenMatch`, description: profile.bio };
+  const publicName = profile.showRealName === false && profile.username ? `@${profile.username}` : profile.name;
+  return { title: publicName, description: profile.bio };
 }
 
 export default async function ProfilePage({
@@ -24,13 +25,14 @@ export default async function ProfilePage({
 }) {
   const { slug } = await params;
   const profiles = await listProfiles();
-  const profile = profiles.find((p) => p.id === slug) ?? profiles.find((p) => p.name.toLowerCase().replace(/\s+/g, "-") === slug);
+  const profile = profiles.find((p) => p.id === slug || p.username === slug) ?? profiles.find((p) => p.name.toLowerCase().replace(/\s+/g, "-") === slug);
   if (!profile) notFound();
   const [data, viewer] = await Promise.all([getProfilePageData(profile.id), getViewerSession()]);
   if (!data) notFound();
   const summary = data.summary;
   if (!summary) notFound();
   const isSelf = viewer?.profile.id === summary.id;
+  const publicName = summary.showRealName ? summary.name : `@${summary.username}`;
 
   return (
     <div className="page-stack">
@@ -39,9 +41,10 @@ export default async function ProfilePage({
           <Avatar profile={summary} size={96} />
           <div>
             <span className="eyebrow">Contributor</span>
-            <h1>{summary.name}</h1>
+            <h1>{publicName}</h1>
             <p style={{ color: "var(--ink-muted)", marginTop: "0.3rem", maxWidth: "42rem" }}>{summary.bio}</p>
             <div className="profile-hero-meta">
+              <span className="micro-pill">@{summary.username}</span>
               <span className={`verification-badge is-${summary.verificationStatus}`}>
                 {summary.verificationStatus === "approved"
                   ? "Verified"

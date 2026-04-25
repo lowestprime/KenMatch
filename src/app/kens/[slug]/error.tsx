@@ -19,7 +19,7 @@ export default function KenDetailError({
       <section className="panel space-y-6 mx-auto mt-12 max-w-2xl">
         <div className="eyebrow">Error loading Ken</div>
         <h1 className="font-display text-3xl font-semibold text-foreground">
-          Could not load this project
+          Could not load this Ken
         </h1>
         <p className="text-sm leading-7 text-muted">
           The Ken may not exist, or it may be temporarily unavailable.
@@ -29,7 +29,7 @@ export default function KenDetailError({
         ) : null}
         <div className="hero-actions">
           <button onClick={reset} className="cta-primary">Retry</button>
-          <Link href="/kens" className="cta-secondary">Browse projects</Link>
+          <Link href="/kens" className="cta-secondary">Browse Kens</Link>
         </div>
       </section>
     </div>

@@ -4,13 +4,16 @@ type AvatarInput = {
   name: string;
   avatarImage?: string | null;
   avatarGradient?: string | null;
+  avatarImageScale?: number | null;
+  avatarImageX?: number | null;
+  avatarImageY?: number | null;
   hue?: number | null;
 };
 
 type AvatarProfileLike =
   | AvatarInput
-  | Pick<ProfileSummary, "name" | "avatarHue" | "avatarImage" | "avatarGradient">
-  | Pick<ProfileRecord, "name" | "avatarHue" | "avatarImage" | "avatarGradient">;
+  | Pick<ProfileSummary, "name" | "avatarHue" | "avatarImage" | "avatarGradient" | "avatarImageScale" | "avatarImageX" | "avatarImageY">
+  | Pick<ProfileRecord, "name" | "avatarHue" | "avatarImage" | "avatarGradient" | "avatarImageScale" | "avatarImageX" | "avatarImageY">;
 
 function getInitials(name: string): string {
   if (!name) return "K";
@@ -31,6 +34,9 @@ function normalizeInput(profile: AvatarProfileLike): AvatarInput {
       name: profile.name,
       avatarImage: profile.avatarImage ?? null,
       avatarGradient: profile.avatarGradient ?? null,
+      avatarImageScale: profile.avatarImageScale ?? 1,
+      avatarImageX: profile.avatarImageX ?? 50,
+      avatarImageY: profile.avatarImageY ?? 50,
       hue: profile.avatarHue ?? null,
     };
   }
@@ -38,6 +44,9 @@ function normalizeInput(profile: AvatarProfileLike): AvatarInput {
     name: profile.name,
     avatarImage: profile.avatarImage ?? null,
     avatarGradient: profile.avatarGradient ?? null,
+    avatarImageScale: profile.avatarImageScale ?? null,
+    avatarImageX: profile.avatarImageX ?? null,
+    avatarImageY: profile.avatarImageY ?? null,
     hue: profile.hue ?? null,
   };
 }
@@ -63,6 +72,10 @@ export function Avatar({
   if (!data.avatarImage) {
     style.background = background;
   }
+  const imageStyle: React.CSSProperties = {
+    objectPosition: `${data.avatarImageX ?? 50}% ${data.avatarImageY ?? 50}%`,
+    transform: `scale(${Math.max(1, Math.min(data.avatarImageScale ?? 1, 2.5))})`,
+  };
   return (
     <span
       className={`avatar ${className}`.trim()}
@@ -72,7 +85,7 @@ export function Avatar({
     >
       {data.avatarImage ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={data.avatarImage} alt="" />
+        <img src={data.avatarImage} alt="" style={imageStyle} />
       ) : (
         <span className="avatar-initials" aria-hidden="true">
           {initials}

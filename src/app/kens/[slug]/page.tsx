@@ -1,39 +1,20 @@
-import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import Link from "next/link";
-
-import { BookmarkButton } from "@/components/bookmark-button";
 import { DiscussionThread } from "@/components/discussion-thread";
 import { KenSandboxStrip } from "@/components/ken-sandbox-strip";
 import { KenTimingStrip } from "@/components/ken-timing-strip";
-import { ShareButton } from "@/components/share-button";
 import { TaskPulsePanel } from "@/components/task-pulse-panel";
 import { VotePanel } from "@/components/vote-panel";
-import { getBookmarkedTaskIds, getTaskDetail } from "@/lib/db";
+import { getTaskDetail } from "@/lib/db";
 import { getViewerSession } from "@/lib/session";
 import { formatCurrency, formatDateTime, formatHoursToHuman, labelForStage, labelForTier } from "@/lib/utils";
-
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const { slug } = await params;
-  const task = await getTaskDetail(slug, null);
-  if (!task) return { title: "Ken not found" };
-  return {
-    title: task.title,
-    description: task.summary,
-    openGraph: { title: task.title, description: task.summary },
-  };
-}
 
 export default async function KenDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const viewer = await getViewerSession();
   const viewerProfile = viewer?.profile ?? null;
   const publicParticipationMessage = viewerProfile?.participationNote ?? "Sign in to take part in public voting and discussion.";
-  const [task, bookmarkedIds] = await Promise.all([
-    getTaskDetail(slug, viewerProfile?.id),
-    viewerProfile ? getBookmarkedTaskIds(viewerProfile.id) : Promise.resolve([]),
-  ]);
+  const task = await getTaskDetail(slug, viewerProfile?.id);
   if (!task) {
     notFound();
   }
@@ -55,9 +36,7 @@ export default async function KenDetailPage({ params }: { params: Promise<{ slug
         <div className="detail-meta-row">
           <span className="micro-pill">Created {formatDateTime(task.createdAt)}</span>
           <span className="micro-pill">Last activity {formatDateTime(task.lastActivityAt)}</span>
-          <Link href={`/profiles/${task.proposerId}`} className="micro-pill micro-pill-link">Proposed by {task.proposerName}</Link>
-          <ShareButton title={task.title} slug={task.slug} />
-          <BookmarkButton taskId={task.id} bookmarked={bookmarkedIds.includes(task.id)} disabled={!viewerProfile} />
+          <span className="micro-pill">Proposed by {task.proposerName}</span>
         </div>
         <KenTimingStrip ken={task} />
         <div className="metric-grid">
@@ -242,8 +221,8 @@ function ListBlock({ title, items }: { title: string; items: string[] }) {
     <div className="rounded-[1.3rem] border border-border bg-background/55 p-5">
       <div className="font-display text-xl font-semibold text-foreground">{title}</div>
       <ul className="mt-3 space-y-2 text-sm leading-7 text-muted">
-        {items.map((item, index) => (
-          <li key={`${index}-${item}`} className="flex gap-3"><span className="mt-2 size-2 rounded-full bg-teal" /><span>{item}</span></li>
+        {items.map((item) => (
+          <li key={item} className="flex gap-3"><span className="mt-2 size-2 rounded-full bg-teal" /><span>{item}</span></li>
         ))}
       </ul>
     </div>

@@ -19,7 +19,7 @@ export default function KensError({
       <section className="panel space-y-6 mx-auto mt-12 max-w-2xl">
         <div className="eyebrow">Board error</div>
         <h1 className="font-display text-3xl font-semibold text-foreground">
-          Could not load the project board
+          Could not load the Ken board
         </h1>
         <p className="text-sm leading-7 text-muted">
           This is usually temporary. The database may be restarting or a network

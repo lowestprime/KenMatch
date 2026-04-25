@@ -113,9 +113,9 @@ export function MobileNav({
                   <Link href={`/people/${viewer.profile.id}`} className="mobile-nav-viewer" onClick={close}>
                     <Avatar profile={viewer.profile} size={38} />
                     <span>
-                      <strong>{viewer.profile.name}</strong>
+                      <strong>{viewer.profile.showRealName ? viewer.profile.name : `@${viewer.profile.username}`}</strong>
                       <span className="mobile-nav-viewer-meta">
-                        {viewer.profile.availableCredits}/{viewer.profile.effectiveVoiceCredits} voice
+                        @{viewer.profile.username} · {viewer.profile.availableCredits}/{viewer.profile.effectiveVoiceCredits} voice
                       </span>
                     </span>
                   </Link>

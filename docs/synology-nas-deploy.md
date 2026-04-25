@@ -77,8 +77,8 @@ KENMATCH_ALLOWED_HOSTS=kmat.ch,www.kmat.ch
 KENMATCH_HEALTH_TOKEN=<long-random-secret>
 KENMATCH_TREASURY_TARGET_MONTHS=6
 KENMATCH_REQUIRE_EMAIL_VERIFICATION=true
-KENMATCH_OWNER_EMAIL=cooperbeaman@gmail.com
-KENMATCH_NOTIFICATION_EMAILS=cooperbeaman@proton.me
+KENMATCH_OWNER_EMAIL=<owner-email@example.com>
+KENMATCH_NOTIFICATION_EMAILS=<admin-notifications@example.com>
 KENMATCH_SMTP_HOST=<smtp-host>
 KENMATCH_SMTP_PORT=587
 KENMATCH_SMTP_USER=<smtp-user>
@@ -241,6 +241,15 @@ cd /volume1/docker/kenmatch
 git pull
 docker compose -f docker-compose.synology.yml up -d --build
 ```
+
+If you deploy from a copied working tree rather than a fresh Git pull, prefer an explicit rebuild after large UI changes:
+
+```bash
+docker compose -f docker-compose.synology.yml build --pull kenmatch
+docker compose -f docker-compose.synology.yml up -d --force-recreate kenmatch
+```
+
+The production build includes a Next route-chunk verification step, so a rebuilt image fails or repairs itself before launch if a server manifest references a missing `.next/static` app-route chunk.
 
 After each upgrade:
 

@@ -37,7 +37,7 @@ export default function GlobalError({
             Return to overview
           </Link>
           <a
-            href="mailto:cooperbeaman@proton.me?subject=KenMatch%20error%20report"
+            href="/about"
             className="cta-secondary cta-compact"
           >
             Email the maintainer

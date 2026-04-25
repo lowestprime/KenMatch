@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Manrope, Space_Grotesk, JetBrains_Mono } from "next/font/google";
-import Script from "next/script";
 
 import { SiteShell } from "@/components/site-shell";
 import { listProfiles } from "@/lib/db";
@@ -90,24 +89,12 @@ export const viewport: Viewport = {
 
 export const dynamic = "force-dynamic";
 
-const themeBootScript = `
-  try {
-    var stored = window.localStorage.getItem("kenmatch-theme");
-    var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-    var theme = stored === "oled" || stored === "light" ? stored : (stored === "dark" ? "oled" : (prefersDark ? "oled" : "light"));
-    document.documentElement.dataset.theme = theme;
-    document.documentElement.style.colorScheme = theme === "light" ? "light" : "dark";
-    if (stored === "dark") { window.localStorage.setItem("kenmatch-theme", "oled"); }
-  } catch (error) {}
-`;
-
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const [profiles, viewer] = await Promise.all([listProfiles(), getViewerSession()]);
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body className={`${bodyFont.variable} ${displayFont.variable} ${monoFont.variable} font-body antialiased`}>
-        <Script id="theme-boot" strategy="beforeInteractive">{themeBootScript}</Script>
         <SiteShell featuredProfiles={profiles} viewer={viewer}>
           {children}
         </SiteShell>

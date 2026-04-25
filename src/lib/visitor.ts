@@ -8,7 +8,7 @@ import {
   recordAudit,
   recordVisitor,
 } from "@/lib/db";
-import { env } from "@/lib/env";
+import { visitorHashSalt } from "@/lib/env";
 import { buildVisitorNotificationEmail, sendMail } from "@/lib/mail";
 
 export interface VisitorContext {
@@ -97,7 +97,7 @@ export async function extractVisitorContext(): Promise<VisitorContext> {
   const userAgent = headerList.get("user-agent");
   const hashSource = `${ipAddress ?? "unknown"}|${userAgent ?? "unknown"}`;
   const visitorHash = createHash("sha256")
-    .update(`${env.KENMATCH_VISITOR_HASH_SALT}|${hashSource}`)
+    .update(`${visitorHashSalt}|${hashSource}`)
     .digest("hex");
   return {
     visitorHash,

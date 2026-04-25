@@ -27,7 +27,8 @@ export default async function AccountPage() {
             <span className="eyebrow">Your account</span>
             <h1>{summary.name}</h1>
             <div className="profile-hero-meta">
-              <span className="role-badge is-{viewer.account.systemRole}">{viewer.account.systemRole}</span>
+              <span className={`role-badge is-${viewer.account.systemRole}`}>{viewer.account.systemRole}</span>
+              <span>· @{summary.username}</span>
               <span>· {summary.specialty}</span>
               {summary.location ? <span>· {summary.location}</span> : null}
               <span>· {viewer.account.emailVerified ? "Email verified" : "Email unverified"}</span>
@@ -46,6 +47,8 @@ export default async function AccountPage() {
           </p>
           <ProfileEditor
             initial={{
+              username: summary.username ?? summary.id,
+              showRealName: summary.showRealName,
               name: summary.name,
               role: summary.role,
               specialty: summary.specialty,
@@ -54,6 +57,9 @@ export default async function AccountPage() {
               pronouns: summary.pronouns,
               avatarImage: summary.avatarImage,
               avatarGradient: summary.avatarGradient,
+              avatarImageScale: summary.avatarImageScale,
+              avatarImageX: summary.avatarImageX,
+              avatarImageY: summary.avatarImageY,
               links: summary.links,
             }}
           />
@@ -68,6 +74,10 @@ export default async function AccountPage() {
             <div className="stat-card">
               <dt>Email</dt>
               <dd>{viewer.account.email}</dd>
+            </div>
+            <div className="stat-card">
+              <dt>Username</dt>
+              <dd>@{viewer.account.username ?? summary.username}</dd>
             </div>
             <div className="stat-card">
               <dt>Email verified</dt>
