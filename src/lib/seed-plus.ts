@@ -14,7 +14,7 @@ import type {
 
 const frontierModelLineup = [
   "OpenAI o3-deep-research",
-  "OpenAI GPT-5.1",
+  "OpenAI GPT-5.5",
   "Claude Opus 4.7",
   "Gemini 3.1 Pro Preview",
   "sandbox evaluator ensemble",
