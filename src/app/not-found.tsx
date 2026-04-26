@@ -16,9 +16,6 @@ export default function NotFound() {
           <Link href="/" className="cta-secondary cta-compact">
             Return to overview
           </Link>
-          <Link href="/people" className="cta-secondary cta-compact">
-            Contributors
-          </Link>
         </div>
       </section>
     </div>

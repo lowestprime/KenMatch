@@ -46,6 +46,9 @@ export function kenmatchManifest() {
     background_color: "#000000",
     theme_color: "#0d7d74",
     icons: [
+      { src: "/icon-192.png", type: "image/png", sizes: "192x192", purpose: "any maskable" },
+      { src: "/icon-512.png", type: "image/png", sizes: "512x512", purpose: "any maskable" },
+      { src: "/apple-icon.png", type: "image/png", sizes: "180x180", purpose: "any maskable" },
       { src: "/icon.svg", type: "image/svg+xml", sizes: "any", purpose: "any" },
       { src: "/icon-dark.svg", type: "image/svg+xml", sizes: "any", purpose: "any" },
       { src: "/apple-touch-icon.svg", type: "image/svg+xml", sizes: "180x180", purpose: "any maskable" },

@@ -10,6 +10,9 @@ export function AdminNotifications({ settings }: { settings: AdminNotificationSe
   const [state, formAction, pending] = useActionState(updateNotificationSettingsAction, initialActionState);
   return (
     <form action={formAction} className="form-grid">
+      <div className="admin-hint">
+        <strong>Dispatch scope.</strong> These settings control server-side email alerts. First-visit alerts fire once per salted visitor hash, while signups, verification requests, and Ken submissions are always audit logged even if email is disabled.
+      </div>
       <label className="field-label">
         <span>Recipient emails (comma or newline separated)</span>
         <textarea
@@ -49,6 +52,9 @@ export function AdminNotifications({ settings }: { settings: AdminNotificationSe
       <button type="submit" className="cta-primary cta-compact" disabled={pending}>
         {pending ? "Saving…" : "Save notification preferences"}
       </button>
+      <p className="text-xs" style={{ color: "var(--muted)" }}>
+        Last updated {new Date(settings.updatedAt).toLocaleString()}.
+      </p>
       {state.message ? (
         <p className={`alert ${state.status === "error" ? "alert-error" : "alert-success"}`}>{state.message}</p>
       ) : null}
@@ -66,7 +72,7 @@ function ToggleRow({
   defaultChecked: boolean;
 }) {
   return (
-    <label className="flex items-center justify-between gap-3 text-sm" style={{ color: "var(--ink-muted)" }}>
+    <label className="toggle-row">
       <span>{label}</span>
       <input type="checkbox" name={name} defaultChecked={defaultChecked} />
     </label>

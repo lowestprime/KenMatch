@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
 
 import { signOutAction } from "@/app/actions";
@@ -71,7 +72,7 @@ export function MobileNav({
           )}
         </svg>
       </button>
-      {open ? (
+      {open && typeof document !== "undefined" ? createPortal(
         <div id="mobile-nav-drawer" className="mobile-nav-drawer" role="dialog" aria-modal="true" aria-label="Site navigation">
           <button
             type="button"
@@ -137,7 +138,8 @@ export function MobileNav({
               )}
             </div>
           </aside>
-        </div>
+        </div>,
+        document.body,
       ) : null}
     </>
   );

@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Manrope, Space_Grotesk, JetBrains_Mono } from "next/font/google";
 
 import { SiteShell } from "@/components/site-shell";
-import { listProfiles } from "@/lib/db";
 import { canonicalOrigin, env } from "@/lib/env";
 import { getViewerSession } from "@/lib/session";
 import "@/app/globals.css";
@@ -50,12 +49,16 @@ export const metadata: Metadata = {
   creator: "Cooper Beaman",
   icons: {
     icon: [
+      { url: "/favicon.ico", type: "image/x-icon", sizes: "32x32" },
+      { url: "/favicon-32.png", type: "image/png", sizes: "32x32" },
+      { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
       { url: "/icon.svg", type: "image/svg+xml", media: "(prefers-color-scheme: light)" },
       { url: "/icon-dark.svg", type: "image/svg+xml", media: "(prefers-color-scheme: dark)" },
     ],
     shortcut: "/icon.svg",
-    apple: [{ url: "/apple-touch-icon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/apple-icon.png", type: "image/png", sizes: "180x180" }],
   },
+  alternates: { canonical: canonicalOrigin },
   manifest: "/manifest.webmanifest",
   openGraph: {
     title: "KenMatch — Transparent allocation of frontier AI compute",
@@ -64,14 +67,14 @@ export const metadata: Metadata = {
     siteName: "KenMatch",
     type: "website",
     url: canonicalOrigin,
-    images: ["/apple-touch-icon.svg"],
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "KenMatch public board preview" }],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "KenMatch",
     description:
       "Transparent allocation of frontier AI compute. Propose, vote, fund, and ship Kens with public accountability.",
-    images: ["/apple-touch-icon.svg"],
+    images: ["/og-image.png"],
   },
   robots: { index: true, follow: true },
 };
@@ -90,12 +93,19 @@ export const viewport: Viewport = {
 export const dynamic = "force-dynamic";
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const [profiles, viewer] = await Promise.all([listProfiles(), getViewerSession()]);
+  const viewer = await getViewerSession();
 
   return (
-    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
+    <html lang="en" data-scroll-behavior="smooth" data-theme="oled" style={{ colorScheme: "dark" }} suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(() => { try { const key = "kenmatch-theme"; const stored = localStorage.getItem(key); const theme = stored === "light" ? "light" : "oled"; document.documentElement.dataset.theme = theme; document.documentElement.style.colorScheme = theme === "light" ? "light" : "dark"; if (!stored || stored === "dark") localStorage.setItem(key, theme); } catch (_) { document.documentElement.dataset.theme = "oled"; document.documentElement.style.colorScheme = "dark"; } })();`,
+          }}
+        />
+      </head>
       <body className={`${bodyFont.variable} ${displayFont.variable} ${monoFont.variable} font-body antialiased`}>
-        <SiteShell featuredProfiles={profiles} viewer={viewer}>
+        <SiteShell viewer={viewer}>
           {children}
         </SiteShell>
       </body>

@@ -112,7 +112,7 @@ export function SearchCommand() {
           <input
             ref={inputRef}
             className="search-input"
-            placeholder="Search Kens, people, and governance..."
+            placeholder="Search Kens, profiles, rules, and backing..."
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={handleKey}
@@ -126,7 +126,7 @@ export function SearchCommand() {
             <div className="search-empty">Searching...</div>
           ) : items.length === 0 ? (
             <div className="search-empty">
-              {query.trim() ? "No matches. Try a different keyword." : "Search Kens, contributors, rules, and backing."}
+              {query.trim() ? "No matches. Try a different keyword." : "Search Kens, linked profiles, rules, and backing."}
             </div>
           ) : (
             items.map((item, idx) => (

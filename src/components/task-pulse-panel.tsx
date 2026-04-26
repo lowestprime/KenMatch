@@ -27,28 +27,19 @@ export function TaskPulsePanel({
   return (
     <div className="panel space-y-4">
       <div>
-        <div className="eyebrow">Quick pulse</div>
-        <h2 className="mt-2 font-display text-2xl font-semibold text-foreground">Fast upvotes and downvotes for the public feed</h2>
+        <div className="eyebrow">Pulse vote</div>
+        <h2 className="mt-2 font-display text-2xl font-semibold text-foreground">Forum-style signal</h2>
         <p className="mt-2 text-sm leading-7 text-muted">
-          Anyone with an approved participation state can leave an upvote or downvote. It is the fast community signal and stays separate from the slower priority-credit system.
+          Pulse is the fast Reddit-like signal. Allocation credits stay separate and cost more as one account concentrates voice on one Ken.
         </p>
       </div>
       <form action={formAction} className="grid gap-3">
         <input type="hidden" name="taskId" value={taskId} />
         <input type="hidden" name="slug" value={slug} />
-        <div className="grid gap-3 sm:grid-cols-2">
-          <PulseButton label="Upvote" current={userPulse === 1} value={userPulse === 1 ? 0 : 1} disabled={disabled || isPending} />
-          <PulseButton label="Downvote" current={userPulse === -1} value={userPulse === -1 ? 0 : -1} disabled={disabled || isPending} />
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2 text-sm text-muted">
-          <div className="stat-card">
-            <span>Upvotes</span>
-            <strong>{positivePulseCount}</strong>
-          </div>
-          <div className="stat-card">
-            <span>Downvotes</span>
-            <strong>{negativePulseCount}</strong>
-          </div>
+        <div className="pulse-compact-row">
+          <PulseButton label={`▲ ${positivePulseCount}`} current={userPulse === 1} value={userPulse === 1 ? 0 : 1} disabled={disabled || isPending} />
+          <strong>{positivePulseCount - negativePulseCount > 0 ? `+${positivePulseCount - negativePulseCount}` : positivePulseCount - negativePulseCount}</strong>
+          <PulseButton label={`▼ ${negativePulseCount}`} current={userPulse === -1} value={userPulse === -1 ? 0 : -1} disabled={disabled || isPending} />
         </div>
         {disabled ? <p className="text-sm text-muted">{disabledMessage ?? "Sign in to vote publicly on this Ken."}</p> : null}
         {state.message ? <p className={`text-sm ${state.status === "error" ? "text-red-500" : "text-teal"}`}>{state.message}</p> : null}

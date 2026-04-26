@@ -8,13 +8,12 @@ import { SearchCommand } from "@/components/search-command";
 import { VisitorBeacon } from "@/components/visitor-beacon";
 import { Avatar } from "@/components/avatar";
 import { MobileNav } from "@/components/mobile-nav";
-import type { ParticipationState, ProfileSummary, ViewerSession } from "@/lib/types";
+import type { ParticipationState, ViewerSession } from "@/lib/types";
 
 const primaryNav = [
   { href: "/", label: "Overview" },
   { href: "/kens", label: "Feed" },
   { href: "/submit", label: "Submit" },
-  { href: "/people", label: "People" },
   { href: "/governance", label: "Rules" },
   { href: "/economics", label: "Backing" },
   { href: "/about", label: "About" },
@@ -57,7 +56,6 @@ export function SiteShell({
   children,
 }: {
   viewer: ViewerSession | null;
-  featuredProfiles: ProfileSummary[];
   children: React.ReactNode;
 }) {
   const showAdminLink = viewer && (viewer.account.systemRole === "admin" || viewer.account.systemRole === "owner" || viewer.account.systemRole === "moderator");
@@ -133,7 +131,7 @@ export function SiteShell({
       <footer className="site-footer">
         <div className="site-footer-inner">
           <div className="site-footer-top">
-            <Link href="/" className="site-brand site-brand-footer" aria-label="KenMatch home">
+          <Link href="/" className="site-brand site-brand-footer" aria-label="KenMatch home">
               <KenMatchMark className="brand-mark brand-mark-footer" />
               <span className="site-brand-text">
                 <strong>KenMatch</strong>

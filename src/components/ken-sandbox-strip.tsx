@@ -17,7 +17,7 @@ export function KenSandboxStrip({ ken, compact = false }: { ken: Pick<TaskSummar
         <span className="micro-pill">No real capital · no real vendor bills</span>
       </div>
       <p className="sandbox-disclosure" role="note">
-        All dollar values, pilot user counts, and backer interest shown below are hypothetical outputs from consumer-grade frontier AI deep research and are <strong>not</strong> real sponsorships, investments, or production outcomes.
+        All dollar values, pilot user counts, and backer interest shown below are simulated outputs from current API-accessible frontier-model workflows and are <strong>not</strong> real sponsorships, investments, or production outcomes.
       </p>
       <div className="sandbox-metric-grid">
         <SandboxMetric label="Sandbox backing" value={formatCurrency(ken.sandboxCapitalUsd)} />

@@ -74,6 +74,9 @@ export function VisitorMap({ aggregates }: { aggregates: VisitorAggregate[] }) {
       return { ...aggregate, x, y };
     })
     .filter((value): value is NonNullable<typeof value> => value !== null);
+  const topCountries = [...mapped]
+    .sort((a, b) => b.visitorCount - a.visitorCount)
+    .slice(0, 6);
 
   return (
     <div className="visitor-map-shell" role="region" aria-label="Visitor geography">
@@ -97,17 +100,9 @@ export function VisitorMap({ aggregates }: { aggregates: VisitorAggregate[] }) {
           const radius = Math.min(22, 4 + Math.sqrt(point.visitorCount) * 3);
           return (
             <g key={point.countryCode ?? `${point.x}-${point.y}`} transform={`translate(${point.x}, ${point.y})`}>
+              <title>{`${point.countryName ?? point.countryCode ?? "Unknown"}: ${point.visitorCount} visitor${point.visitorCount === 1 ? "" : "s"}`}</title>
               <circle className="visitor-pulse-ring" r={radius + 6} />
               <circle className="visitor-pulse" r={radius} />
-              <text
-                y={radius + 14}
-                textAnchor="middle"
-                fill="currentColor"
-                fontSize={11}
-                opacity={0.7}
-              >
-                {point.countryName ?? point.countryCode ?? "Unknown"}
-              </text>
             </g>
           );
         })}
@@ -116,6 +111,15 @@ export function VisitorMap({ aggregates }: { aggregates: VisitorAggregate[] }) {
         <span>{total} unique visitors across {aggregates.length} countries</span>
         <span className="micro-pill">Data anonymized via salted hash</span>
       </div>
+      {topCountries.length > 0 ? (
+        <div className="visitor-country-list" aria-label="Top visitor countries">
+          {topCountries.map((country) => (
+            <span key={country.countryCode ?? country.countryName ?? "unknown"}>
+              <strong>{country.countryName ?? country.countryCode ?? "Unknown"}</strong> {country.visitorCount}
+            </span>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

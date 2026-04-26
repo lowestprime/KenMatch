@@ -35,7 +35,7 @@ export default async function AdminPage() {
         <span className="eyebrow">Admin portal</span>
         <h1>KenMatch operations</h1>
         <p style={{ color: "var(--ink-muted)", maxWidth: "42rem" }}>
-          Manage accounts, verifications, visitors, notifications, and the public site from a single maximally secure surface. All actions below are audit-logged and persisted to the database.
+          Manage accounts, verifications, visitors, notifications, category proposals, and public content from one audited surface. Changes are written to the database and reflected in the public site after revalidation.
         </p>
         <div className="profile-hero-meta">
           <span className={`role-badge is-${viewer.account.systemRole}`}>{viewer.account.systemRole}</span>
@@ -51,7 +51,7 @@ export default async function AdminPage() {
         <div className="panel grid gap-3">
           <h2>Visitor map</h2>
           <p style={{ color: "var(--muted)" }}>
-            Unique visitors observed from Cloudflare geolocation headers. Dots pulse for recent traffic.
+            Approximate country-level traffic from Cloudflare geolocation headers. Visitor IDs are salted hashes; the map is for operating awareness, not personal tracking.
           </p>
           <VisitorMap aggregates={dashboard.countryAggregates} />
         </div>
@@ -114,9 +114,6 @@ export default async function AdminPage() {
         <div className="hero-actions">
           <Link className="cta-secondary cta-compact" href="/about">
             Edit About / Contact
-          </Link>
-          <Link className="cta-secondary cta-compact" href="/people">
-            People directory
           </Link>
           <Link className="cta-secondary cta-compact" href="/submit">
             Submit a Ken

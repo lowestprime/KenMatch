@@ -44,13 +44,13 @@ export default async function EconomicsPage() {
       <section className="panel hero-panel card-sheen space-y-5">
         <div className="eyebrow">Funding and treasury</div>
         <h1 className="max-w-4xl font-display text-4xl font-semibold text-foreground sm:text-5xl">
-          Back useful Kens with real money or clearly labeled sandbox funding, without selling influence.
+          Back compute, review, and delivery without buying rank.
         </h1>
         <p className="max-w-4xl text-lg leading-8 text-muted">
-          KenMatch separates money from voice. Paid services, screened licensing, routing margin, and sponsorships can grow the treasury, but ranking stays on the public board and release still depends on checkpoints, safety review, and visible evidence.
+          The funding model is deliberately split from the allocation model. Revenue and sponsorship expand the compute treasury; public pulse, allocation credits, checkpoint approvals, and safety review decide what advances.
         </p>
         <p className="sandbox-disclosure" role="note">
-          <strong>Sandbox mode.</strong> All dollar values, backer totals, and sponsorship commitments on this page are hypothetical demonstration data generated from consumer-grade frontier AI deep research. They do <strong>not</strong> represent real investments, escrowed funds, or vendor commitments. Live checkout is only active if Stripe keys are configured and explicitly labeled.
+          <strong>Sandbox mode.</strong> All dollar values, backer totals, and sponsorship commitments on this page are hypothetical demonstration data based on current API-accessible frontier-model workflows. They do <strong>not</strong> represent real investments, escrowed funds, or vendor commitments. Live checkout is only active if Stripe keys are configured and explicitly labeled.
         </p>
         <div className="signal-bar">
           <div className="flow-card">
@@ -100,10 +100,10 @@ export default async function EconomicsPage() {
           <h2 className="font-display text-3xl font-semibold text-foreground">What money can and cannot do here</h2>
           <div className="grid gap-4">
             {[
-              ["Money can add supply", "Funds can support compute, safety review, moderation, and delivery support."],
-              ["Money cannot buy voice", "Backers do not receive vote credits, ranking boosts, or release vetoes."],
-              ["Restrictions stay visible", "Category, Ken, and safety-reserve restrictions stay visible in the public ledger."],
-              ["Contributors keep consent", "Licensing flows require screened data and explicit contributor consent."],
+              ["Money adds capacity", "Funds can pay for API spend, safety review, moderation, evaluation, hosting, and support."],
+              ["Money cannot buy allocation", "Backers do not receive voice credits, ranking boosts, release vetoes, or hidden fast lanes."],
+              ["Restrictions stay legible", "Category, Ken, and safety-reserve restrictions remain visible in the public ledger."],
+              ["Useful traces can recycle value", "Screened correction and evaluation records can support licensing only when contributors consent and public boundaries remain clear."],
             ].map(([title, copy]) => (
               <div key={title} className="rounded-[1.3rem] border border-border bg-background/55 p-5">
                 <div className="font-display text-xl font-semibold text-foreground">{title}</div>
@@ -114,8 +114,7 @@ export default async function EconomicsPage() {
           <div className="rounded-[1.3rem] border border-border bg-background/55 p-5">
             <div className="font-display text-xl font-semibold text-foreground">Treasury policy</div>
             <p className="mt-2 text-sm leading-7 text-muted">
-              The board is healthiest once it keeps roughly {summary.coverageTargetMonths.toFixed(0)} months of public burn in reserve.
-              When coverage dips, the economics view makes that shortfall visible instead of hiding it behind optimistic projections or vague sponsor promises.
+              The board is healthiest once it keeps roughly {summary.coverageTargetMonths.toFixed(0)} months of public burn in reserve. When coverage dips, the shortfall stays visible instead of being hidden behind optimistic projections or vague sponsor promises.
             </p>
           </div>
         </div>
