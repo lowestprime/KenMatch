@@ -160,7 +160,7 @@ The allocation problem is practical: compute, review time, and operational atten
 - Economics surface for supported service packaging, screened evaluation licensing, compute routing, private execution lanes, sponsorship routing, treasury entries, and the 80/20 public reporting split.
 - Structured sponsor commitments with projected, simulated, and committed funding states plus optional Stripe Checkout for live sponsor intake.
 - Sandbox-backed demo Kens with clearly disclosed simulated capital, current API-accessible model lineups, API spend, pilot-user counts, and sample outcomes shown directly in the UI.
-- Two theme modes (`Light` and true-black `OLED`), rich motion, compact responsive navigation, strong visual hierarchy, and route-backed KenMatch icon/favicons.
+- Two theme modes (`Light` and true-black `OLED`), rich motion, compact responsive navigation, strong visual hierarchy, and preview-safe KenMatch favicon/social-image assets.
 - Public board at `/kens` with search, category, lane, and status filters.
 - Real account creation and persistent signed-in accounts.
 - libSQL-backed persistence with local-file or remote libSQL support.
@@ -231,6 +231,7 @@ KenMatch ships with a standalone Next.js build configuration and a Docker image 
 
 - `next.config.ts` sets `output: "standalone"`.
 - `npm run build` runs Next's compile build mode followed by generate-env mode, then verifies that every app-route chunk referenced by the standalone server exists under `.next/static` before Docker copies the artifact.
+- `npm run start` copies `.next/static` and `public` assets into `.next/standalone` before starting the standalone server so local and container previews use the same icon and CSS paths.
 - `Dockerfile` runs the generated standalone server as a non-root user.
 - `docker-compose.synology.yml` mounts persistent local data, keeps the container read-only except for `/app/data`, and binds the app to `127.0.0.1:3000`.
 - `docker-compose.synology.tunnel.yml` adds a `cloudflared` sidecar for a direct Cloudflare Tunnel deployment from Synology.
@@ -251,7 +252,7 @@ KenMatch ships with a standalone Next.js build configuration and a Docker image 
 - `/auth` sign-in and account creation
 - `/forgot-password`, `/reset`, `/verify` email-backed account recovery and verification
 - `/account` profile, avatar, links, verification request, and bookmarks
-- `/people/[id]` linked public profile surface for contributors referenced from Kens, comments, and account cards
+- `/people/[slug]` linked public profile surface for contributors referenced from Kens, comments, and account cards
 - `/verification` public identity and participation guidance
 - `/about` owner-editable About / Contact page
 - `/admin` owner/admin/moderator operations portal
