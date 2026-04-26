@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="116" viewBox="0 0 760 116" role="img" aria-label="KenMatch">
   <defs>
-    <linearGradient id="kenmatchTitleGradient" x1="118" y1="24" x2="642" y2="92" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#170b2a"/>
-      <stop offset="0.24" stop-color="#23113f"/>
-      <stop offset="0.50" stop-color="#3b1678"/>
-      <stop offset="0.76" stop-color="#5b21b6"/>
-      <stop offset="1" stop-color="#8b5cf6"/>
+    <linearGradient id="kenmatchTitleGradient" x1="120" y1="24" x2="640" y2="92" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5b21b6"/>
+      <stop offset="0.28" stop-color="#6d28d9"/>
+      <stop offset="0.58" stop-color="#7c3aed"/>
+      <stop offset="0.82" stop-color="#8b5cf6"/>
+      <stop offset="1" stop-color="#a78bfa"/>
     </linearGradient>
   </defs>
 
