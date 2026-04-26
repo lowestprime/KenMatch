@@ -146,14 +146,14 @@ This stance reflects widely adopted principles for AI alignment, including risk 
 
 ## 🌌 Vision
 
-KenMatch seeks to equalize the **long-horizon deployment of frontier AI toward the realization of collective value.** This necessitates broad participation to identify the most brilliant and innovative ideas across humanity&rsquo;s collective creativity, taste, and imagination. As equal stakeholders in a society increasingly permeated by unprecedented computational intelligence, we have a right to curate the most promising ideas of collective value for frontier autonomous AI deployment. **Capital constraints should never computationally constrain our best ideas.**
+KenMatch is a public queue for work that benefits from sustained frontier-compute runs, visible checkpoints, and human review. A Ken can be a scientific evidence map, a reproducibility scout, a defensive software regression watch, a public-records review workflow, an archive tool, or another bounded project where one quick prompt is not enough.
 
-**Our creativity, taste and imagination trained frontier LLMs&rsquo; capability as knowledge creation and complex development engines; it is our right to govern their alignment in service of our flourishing.** KenMatch enables democratic, transparent, and merit-sensitive joint operation of long-horizon frontier computation, allocating access proportional to demonstrated contribution and value rather than capital.
+The allocation problem is practical: compute, review time, and operational attention are scarce, while useful ideas often come from people or groups that cannot simply buy long-running access. KenMatch separates funding from rank. Public pulse votes make interest visible, allocation credits make scarce prioritization harder to concentrate, and checkpoints keep releases auditable before more runtime is spent.
 
 ## ✨ Features
 
 - Public proposal feed with search, categories, stage/tier filters, and realistic community-facing examples.
-- Seeded contributor profiles plus real account creation, email verification, password reset, and cookie-backed sessions.
+- Linked contributor profiles plus real account creation, email verification, password reset, and cookie-backed sessions.
 - Earned quadratic voice for scarce allocation, with separate up/down pulse voting for broad public curation.
 - Threaded comments with replies, voting, and small stakes for discussion quality.
 - Proposal quality bonds, checkpoint approval gates, run metadata, rollback plans, and visible blocked work.
@@ -166,7 +166,7 @@ KenMatch seeks to equalize the **long-horizon deployment of frontier AI toward t
 - libSQL-backed persistence with local-file or remote libSQL support.
 - Public upvote/downvote signal, separate quadratic voice allocation, and threaded comments with voting.
 - Forgot-password, email-verification, owner/admin notification, profile editing, profile-picture customization, About/Contact editing, visitor telemetry, and audit logging.
-- Universal sitewide search, mobile navigation drawer, bookmark/share affordances, and public profile surfaces.
+- Universal sitewide search, mobile navigation drawer, bookmark/share affordances, and linked public profile surfaces.
 - Ken timing metadata: created and updated timestamps, launch countdown, submission age, compute usage, remaining runtime window, and completion state.
 - Incremental run audit history for partial delivery, early completion, and checkpoint-by-checkpoint evidence notes.
 - Economics and treasury views with committed versus projected support, sponsor pools, restricted funding, simulated runway, safety reserve coverage, and sponsor covenant details.
@@ -251,6 +251,7 @@ KenMatch ships with a standalone Next.js build configuration and a Docker image 
 - `/auth` sign-in and account creation
 - `/forgot-password`, `/reset`, `/verify` email-backed account recovery and verification
 - `/account` profile, avatar, links, verification request, and bookmarks
+- `/people/[id]` linked public profile surface for contributors referenced from Kens, comments, and account cards
 - `/verification` public identity and participation guidance
 - `/about` owner-editable About / Contact page
 - `/admin` owner/admin/moderator operations portal

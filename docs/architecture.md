@@ -125,6 +125,8 @@ The theme toggle writes only `light` or `oled` to `localStorage`. The layout boo
   - Account recovery UI.
 - `src/components/profile-editor.tsx`
   - Account profile, avatar, external link, and verification-request UI.
+- `src/app/people/[slug]/page.tsx`
+  - Linked public profile surface for contributors referenced from Kens and comments; `/people` itself redirects to the Ken board rather than exposing a directory.
 - `src/components/about-editor.tsx`
   - Owner-only online About / Contact editor.
 - `src/components/admin/*`

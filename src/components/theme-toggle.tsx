@@ -18,9 +18,8 @@ function getInitialTheme(): ThemeValue {
   if (typeof window !== "undefined") {
     const stored = window.localStorage.getItem("kenmatch-theme");
     if (stored) return normalize(stored);
-    if (window.matchMedia("(prefers-color-scheme: dark)").matches) return "oled";
   }
-  return "light";
+  return "oled";
 }
 
 function applyTheme(theme: ThemeValue) {
@@ -40,7 +39,7 @@ function subscribeTheme(callback: () => void) {
 }
 
 function getServerTheme(): ThemeValue {
-  return "light";
+  return "oled";
 }
 
 export function ThemeToggle() {

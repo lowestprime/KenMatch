@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build --experimental-build-mode compile --webpack && next build --experimental-build-mode generate-env --webpack && node scripts/repair-next-route-chunks.mjs",
-    "start": "node .next/standalone/server.js",
+    "start": "node scripts/prepare-standalone-assets.mjs && node .next/standalone/server.js",
     "lint": "eslint .",
     "typecheck": "node -e \"const fs=require('node:fs'); for (const p of ['.next/types','.next/dev/types']) fs.rmSync(p,{recursive:true,force:true});\" && next typegen && tsc --noEmit",
     "test": "node --experimental-strip-types --test --experimental-test-isolation=none tests/**/*.test.ts"

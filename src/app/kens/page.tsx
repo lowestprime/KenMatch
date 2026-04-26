@@ -10,8 +10,8 @@ import { labelForStage } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Kens",
-  description: "Browse, filter, and vote on Kens that help people. Search by category, lane, and status.",
-  openGraph: { title: "Kens | KenMatch", description: "Browse the public board of Kens people are proposing, backing, and running." },
+  description: "Browse, filter, pulse, and allocate voice to public Kens by category, lane, and run status.",
+  openGraph: { title: "Kens | KenMatch", description: "Browse public Kens with visible ranking, funding context, checkpoints, and simulated run outputs." },
 };
 
 interface KensPageProps {
@@ -39,9 +39,9 @@ export default async function KensPage({ searchParams }: KensPageProps) {
     <div className="page-stack">
       <section className="panel hero-panel card-sheen space-y-4">
         <div className="eyebrow">Community feed</div>
-        <h1 className="font-display text-4xl font-semibold text-foreground">Kens people want to use, fund, and talk about</h1>
+        <h1 className="font-display text-4xl font-semibold text-foreground">Kens competing for sustained compute</h1>
         <p className="max-w-4xl text-lg leading-8 text-muted">
-          A public feed of Kens that actually help people: saving money at home, making smoke days easier to handle, helping clinics and advocates move faster, protecting open tools, and giving creative groups better starter kits. Every Ken stays visible with timestamps, funding context, run progress, and public discussion.
+          Each card is a public proposal with a quick pulse score, scarcer allocation-credit signal, simulated funding context, checkpoints, and run progress. Open the whole card to inspect evidence, discuss tradeoffs, or allocate voice.
         </p>
         <div className="metric-grid">
           <div className="metric-card"><div className="eyebrow">Active</div><div className="metric-value">{activeCount}</div></div>
@@ -49,7 +49,7 @@ export default async function KensPage({ searchParams }: KensPageProps) {
           <div className="metric-card"><div className="eyebrow">Creative</div><div className="metric-value">{creativeCount}</div></div>
         </div>
         <div className="rounded-[1.35rem] border border-border bg-background/55 p-5 text-sm leading-7 text-muted">
-          {viewer ? `Signed in as ${viewer.name}. Quick pulse votes are public and fast; priority credits stay separate and harder to spend.` : "You can read every Ken without an account. Signing in unlocks public votes, comments, and Ken submission."}
+          {viewer ? `Signed in as ${viewer.name}. Pulse votes are fast; allocation credits are intentionally harder to concentrate.` : "You can read every Ken without an account. Signing in unlocks pulse votes, comments, allocation credits, and Ken submission."}
         </div>
       </section>
 
@@ -78,9 +78,9 @@ export default async function KensPage({ searchParams }: KensPageProps) {
           <div className="panel space-y-4">
             <div className="eyebrow">How this board works</div>
             <div className="space-y-3 text-sm leading-7 text-muted">
-              <p>Upvote/downvote is the quick public signal. Priority voice is the slower, limited credit system used for real allocation decisions.</p>
-              <p>Sandbox demos are clearly labeled as simulations. Real funding is tracked separately on the funding page.</p>
-              <p>Kens can ship early, pause at their compute limit, or deliver partially. The honest outcome is always shown.</p>
+              <p>Use pulse like a forum vote: quick support or concern. Use allocation credits when you want scarce voice to affect lane ranking.</p>
+              <p>Sandbox demos are always labeled as simulations. Real funding and pledges are tracked separately on the backing page.</p>
+              <p>Kens can ship early, pause at a compute limit, continue running, or deliver partial artifacts. The status stays visible.</p>
             </div>
           </div>
 
@@ -88,7 +88,7 @@ export default async function KensPage({ searchParams }: KensPageProps) {
             <div className="eyebrow">For potential backers</div>
             <div className="space-y-3 text-sm leading-7 text-muted">
               <p>Backers can fund a category, a Ken, or the safety reserve. They do not buy rank, release approvals, or extra voice.</p>
-              <p>Good sponsorship fits are simple to explain: more saved bills, faster appeal packets, clearer smoke-day guidance, safer software, or better creative tools.</p>
+              <p>Good sponsorship fits are concrete: reproducible lab maps, safer dependency releases, archive tools, clinical workflow drafts, or public-service monitors.</p>
             </div>
           </div>
 

@@ -19,6 +19,30 @@ function expectedOrigin(request: NextRequest, host: string) {
   return `${request.nextUrl.protocol}//${host}`;
 }
 
+function redirectToCanonicalHttps(request: NextRequest, host: string) {
+  if (isDevelopment || !host) return null;
+  const publicOrigin = process.env.KENMATCH_PUBLIC_ORIGIN ?? "https://kmat.ch";
+  let canonical: URL;
+  try {
+    canonical = new URL(publicOrigin);
+  } catch {
+    canonical = new URL("https://kmat.ch");
+  }
+  const canonicalHost = normalizeHost(canonical.host);
+  const forwardedProto = (request.headers.get("x-forwarded-proto") ?? "")
+    .split(",")[0]
+    .trim()
+    .toLowerCase();
+  const observedProto = forwardedProto || request.nextUrl.protocol.replace(":", "").toLowerCase();
+  if (canonical.protocol !== "https:" || host !== canonicalHost || observedProto !== "http") {
+    return null;
+  }
+  const url = request.nextUrl.clone();
+  url.protocol = "https:";
+  url.host = canonical.host;
+  return applySecurityHeaders(NextResponse.redirect(url, 308));
+}
+
 function applySecurityHeaders(response: NextResponse) {
   response.headers.set("x-kenmatch-request-id", crypto.randomUUID());
   response.headers.set("X-Content-Type-Options", "nosniff");
@@ -71,6 +95,9 @@ export function middleware(request: NextRequest) {
   if (allowedHosts.length && host && !allowedHosts.includes(host)) {
     return blockRequest(request, 421, "Host not allowed.", "host not in allowlist");
   }
+
+  const httpsRedirect = redirectToCanonicalHttps(request, host);
+  if (httpsRedirect) return httpsRedirect;
 
   const response = applySecurityHeaders(NextResponse.next());
   if (path.startsWith("/api/")) {

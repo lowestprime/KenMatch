@@ -364,12 +364,12 @@ Status semantics:
 | 7 | Improve account creation/auth/public participation | DONE | signup, forgot-pw, email verification, identity verification panels |
 | 8 | Make all examples more realistic and exciting | DONE | `src/lib/seed-plus.ts`, refreshed Ken demo bodies |
 | 9 | Ensure the website is fully functional from the ground up | DONE | typecheck/lint/test/build all green (see Validation) |
-| 10 | Ensure all UI, elements, buttons, and flows are comprehensively optimized and operational | DONE | audited routes: `/`, `/kens`, `/submit`, `/people`, `/about`, `/account`, `/admin`, `/auth`, `/economics`, `/governance`, `/forgot-password`, `/reset`, `/verification`, `/verify` |
+| 10 | Ensure all UI, elements, buttons, and flows are comprehensively optimized and operational | DONE | audited routes: `/`, `/kens`, `/submit`, linked `/people/[slug]` profiles, `/about`, `/account`, `/admin`, `/auth`, `/economics`, `/governance`, `/forgot-password`, `/reset`, `/verification`, `/verify` |
 | 11 | Make art/GUI elegant and engagement-driving | DONE | updated `kenmatch-mark.tsx`, `icon.svg`, `icon-dark.svg`, `apple-touch-icon.svg` |
 | 12 | Make the demo easy to use and fully operational | DONE | empty/error/loading states added across routes |
 | 13 | Upgrade UI to feel more like modern Reddit, less elitist, more inclusive | DONE | nested comments in `discussion-thread.tsx`, mobile nav drawer |
 | 14 | Enhance realism of demo/sim with sandbox capital | DONE | `ken-sandbox-strip.tsx` with explicit non-real-capital banner |
-| 15 | Enhance realism with hypothetical consumer-grade frontier-AI results | DONE | seeded model lineups (GPT-5.4, GPT-5.4 mini, Claude Sonnet 4.6, Gemini 3.1 Pro Preview, Gemini 3 Flash Preview) with honest labeling |
+| 15 | Enhance realism with hypothetical frontier-AI results | DONE | seeded current API-accessible frontier-model workflow labels with honest sandbox labeling |
 | 16 | Maximize engagement and sponsorship appeal | DONE | refined copy + sponsor lanes in `/economics`, demo banner |
 | 17 | Preserve honest demo/live distinction | DONE | `sandbox-banner` on `/`, disclosures on `/economics` and Ken details |
 | 18 | Keep Stripe live flow safe if enabled | DONE (optional) | `src/lib/stripe.ts` unchanged; only active when keys set |
@@ -398,7 +398,7 @@ Status semantics:
 | A14 | Profile picture upload + gradient customization | DONE | `src/components/profile-editor.tsx`, `avatar.tsx`, `avatarImage` / `avatarGradient` columns |
 | A15 | Reddit-like nested/threaded comments | DONE | `src/components/discussion-thread.tsx` with sort modes, collapse, recursive depth |
 | A16 | Admin/owner backend portal (graphical, owner-only) | DONE | `src/app/admin/` + `src/components/admin/`, system-role gating |
-| A17 | Rich user profile management | DONE | `/account`, `/people/[slug]`, profile editor, links/pronouns/location |
+| A17 | Rich user profile management | DONE | `/account`, linked `/people/[slug]` profiles, profile editor, links/pronouns/location |
 | A18 | Public-facing verification mechanism with criteria | DONE | `/verification` route + `/account` verification panel |
 | A19 | Persistence of all live user changes across container rebuilds | DONE | `data/kenmatch.sqlite` volume mount + `docs/synology-nas-deploy.md` §10 backup guidance |
 | A20 | Highest-value additional enhancements | DONE | universal sitewide `Ctrl+K` search, mobile nav drawer, global `error.tsx`/`loading.tsx`/`not-found.tsx`, per-route loading skeletons |

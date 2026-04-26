@@ -693,7 +693,7 @@ async function seedDatabase() {
         voiceCredits, credibility, avatarHue, createdAt
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
-        username = COALESCE(profiles.username, excluded.username),
+        username = excluded.username,
         showRealName = excluded.showRealName,
         name = excluded.name,
         role = excluded.role,
