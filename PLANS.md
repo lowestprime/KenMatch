@@ -385,7 +385,7 @@ Status semantics:
 | A4 | About/Contact page editable only by owner | DONE | `src/app/about/page.tsx`, `src/components/about-editor.tsx`, `src/lib/about-defaults.ts`, DB-backed `site_settings` |
 | A5 | Compact, intuitive, functional spacing | DONE | overhauled `src/app/globals.css` (1458 lines added), typography, shell paddings |
 | A6 | Public GitHub + outlink badges in footer | DONE | `src/components/site-shell.tsx` footer links to https://github.com/lowestprime/KenMatch |
-| A7 | Favicon upgrade: presence, light/OLED, modern | DONE | route-backed `src/app/icon.svg`, `src/app/icon-dark.svg`, `src/app/apple-touch-icon.svg`, `src/app/manifest.webmanifest`, `src/app/layout.tsx` |
+| A7 | Favicon upgrade: presence, light/OLED, modern | DONE | route-backed SVG handlers, static PNG/ICO preview assets in `public/`, metadata in `src/app/layout.tsx`, live 200 checks |
 | A8 | Themes consolidated to Light + OLED with modern toggle | DONE | `src/components/theme-toggle.tsx`, `--oled-*` tokens in globals |
 | A8a | OLED theme uses solid black | DONE | OLED tokens use `#000000` backgrounds |
 | A8b | Font system upgraded across the site | DONE | `src/app/layout.tsx` font config + global typography scale |
@@ -406,7 +406,7 @@ Status semantics:
 ### Residual external steps (not in-repo work)
 | ID | Step | Status | Owner |
 |----|------|--------|-------|
-| X1 | Rebuild and redeploy Synology container so route-backed icon/manifest handlers and the latest UI/data/docs updates are active at `https://kmat.ch` | BLOCKED (requires NAS access) | Site owner |
+| X1 | Rebuild and redeploy Synology container so route-backed icon/manifest handlers and the latest UI/data/docs updates are active at `https://kmat.ch` | DONE (2026-04-26 NAS deploy at `647a33e`) | Codex via SSH/SMB |
 | X2 | Populate SMTP credentials (`KENMATCH_SMTP_*`) in production `.env` to enable real email dispatch | BLOCKED (requires provider credentials) | Site owner |
 | X3 | Set `KENMATCH_REQUIRE_EMAIL_VERIFICATION=true` in production once SMTP is live | BLOCKED (depends on X2) | Site owner |
 | X4 | Optional: populate `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` when moving from demo to live sponsorship | NOT APPLICABLE for public demo | Site owner |
@@ -505,7 +505,16 @@ Run the app locally and verify at minimum:
 - [x] Canonical validation commands passed or blockers were explicitly documented.
 - [x] Docs/examples/env/setup were updated to match the final behavior.
 - [x] Final completion ledger reflects the true end state.
-- [ ] Production container rebuilt and redeployed on Synology NAS after the 2026-04-21 route-backed favicon/manifest fix (external step — see X1).
+- [x] Production container rebuilt and redeployed on Synology NAS after the route-backed favicon/manifest and static preview-asset fixes.
+
+## 2026-04-26 validation and deployment run
+- `npm run typecheck && npm run lint && npm run test && npm run build` -> clean; 21/21 tests passing; Next route chunk verification passed.
+- Browser Use plugin bootstrap was attempted first, but the Node REPL bridge was blocked by local Node `22.18.0` requiring `>=22.22.0`; `agent-browser` CLI was used for browser-level validation.
+- Local browser validation on production standalone output verified OLED default, hidden header on scroll, no `People` directory nav, no `⌘K` text, search-overlay dismissal, mobile drawer full-height `z-index: 5000`, and no horizontal overflow.
+- Live `https://kmat.ch` returns 200 on `/`, `/api/health`, `/kens`, `/submit`, `/economics`, `/governance`, `/about`, `/favicon.ico`, `/apple-icon.png`, `/og-image.png`, and `/manifest.webmanifest`; `http://kmat.ch` returns 301 to `https://kmat.ch/`.
+- Live browser validation verified OLED default, refreshed Ken titles/cards, full-card Ken links, no `View thread` buttons, `OpenAI GPT-5.5` sandbox model labels, mobile drawer links, and no reported `/submit` or `/economics` render errors.
+- NAS deploy: `/volume2/docker_ssd/kenmatch` fast-forwarded to `647a33e`; `.env` and SQLite backups were created; `docker compose -f docker-compose.synology.tunnel.yml build --pull kenmatch` and `up -d --force-recreate kenmatch cloudflared` completed with `kenmatch-demo` healthy and `cloudflared` running.
+- Production DB warm-up completed successfully after fixing seed vote upserts against the persisted SQLite database.
 
 ## 2026-04-20 validation run
 - `npm run typecheck` → clean (0 errors)
