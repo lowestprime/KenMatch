@@ -837,21 +837,12 @@ async function seedDatabase() {
   });
 
   const voteStatements = seedVotes.map((vote) => ({
-    sql: `INSERT INTO votes (id, taskId, profileId, voteCount, rationale, updatedAt) VALUES (?, ?, ?, ?, ?, ?)
-      ON CONFLICT(taskId, profileId) DO UPDATE SET
-        id = excluded.id,
-        voteCount = excluded.voteCount,
-        rationale = excluded.rationale,
-        updatedAt = excluded.updatedAt`,
+    sql: "INSERT OR REPLACE INTO votes (id, taskId, profileId, voteCount, rationale, updatedAt) VALUES (?, ?, ?, ?, ?, ?)",
     args: [vote.id, vote.taskId, vote.profileId, vote.voteCount, vote.rationale, vote.updatedAt],
   } satisfies InStatement));
 
   const pulseStatements = seedTaskPulseVotes.map((vote) => ({
-    sql: `INSERT INTO task_pulse_votes (id, taskId, profileId, value, updatedAt) VALUES (?, ?, ?, ?, ?)
-      ON CONFLICT(taskId, profileId) DO UPDATE SET
-        id = excluded.id,
-        value = excluded.value,
-        updatedAt = excluded.updatedAt`,
+    sql: "INSERT OR REPLACE INTO task_pulse_votes (id, taskId, profileId, value, updatedAt) VALUES (?, ?, ?, ?, ?)",
     args: [vote.id, vote.taskId, vote.profileId, vote.value, vote.updatedAt],
   } satisfies InStatement));
 
@@ -868,11 +859,7 @@ async function seedDatabase() {
   } satisfies InStatement));
 
   const commentVoteStatements = seedCommentVotes.map((vote) => ({
-    sql: `INSERT INTO comment_votes (id, commentId, profileId, value, updatedAt) VALUES (?, ?, ?, ?, ?)
-      ON CONFLICT(commentId, profileId) DO UPDATE SET
-        id = excluded.id,
-        value = excluded.value,
-        updatedAt = excluded.updatedAt`,
+    sql: "INSERT OR REPLACE INTO comment_votes (id, commentId, profileId, value, updatedAt) VALUES (?, ?, ?, ?, ?)",
     args: [vote.id, vote.commentId, vote.profileId, vote.value, vote.updatedAt],
   } satisfies InStatement));
 
