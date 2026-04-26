@@ -6,9 +6,9 @@
 <h1 align="center" id="kenmatch">
   <a href="https://kmat.ch"><img src="./public/readme-title.svg" alt="KenMatch" width="370"></a>
   <br>
-  <a href="https://github.com/lowestprime/KenMatch"><img src="https://img.shields.io/badge/GitHub-lowestprime%2FKenMatch-6f42c1?labelColor=000000&logo=github&logoColor=ffffff" alt="GitHub repository: lowestprime/KenMatch"></a>
+  <a href="https://github.com/lowestprime/KenMatch"><img src="https://img.shields.io/badge/GitHub-lowestprime%2FKenMatch-002366?labelColor=000000&logo=github&logoColor=002366" alt="GitHub repository: lowestprime/KenMatch"></a>
   &nbsp;
-  <a href="https://kmat.ch"><img src="https://img.shields.io/badge/Live-kmat.ch-002366?labelColor=000000&logo=googlechrome&logoColor=ffffff" alt="Live website: kmat.ch"></a>
+  <a href="https://kmat.ch"><img src="https://badgen.net/badge/Live/kmat.ch/6f42c1?labelColor=000000&icon=https%3A%2F%2Fraw.githubusercontent.com%2Flowestprime%2FKenMatch%2Frefs%2Fheads%2Fmain%2Fpublic%2Ficon-dark.svg" alt="Live website: kmat.ch"></a>
   &nbsp;
   <a href="https://deepwiki.com/lowestprime/KenMatch"><img src="https://badgen.net/badge/KenMatch/DeepWiki/800000?labelColor=000000&icon=https%3A%2F%2Fwww.freelogovectors.net%2Fsvg18%2Fdevin-logo-icon-freeloogvectors.net.svg" alt="KenMatch DeepWiki"></a>
 </h1>
