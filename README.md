@@ -1,19 +1,17 @@
 <div align="center">
   <br>
   <a href="https://kmat.ch"><img src="./public/icon-dark.svg" alt="KenMatch Brand Emblem" width="150" height="150"></a>
-
-  <h1>
-    <a href="https://kmat.ch"><img src="./public/readme-title.svg" alt="KenMatch" width="370"></a>
-  </h1>
-
-  <p>
-    <a href="https://github.com/lowestprime/KenMatch"><img src="https://img.shields.io/badge/GitHub-lowestprime%2FKenMatch-6f42c1?labelColor=000000&logo=github&logoColor=ffffff" alt="GitHub repository: lowestprime/KenMatch"></a>
-    &nbsp;
-    <a href="https://kmat.ch"><img src="https://img.shields.io/badge/Live-kmat.ch-002366?labelColor=000000&logo=googlechrome&logoColor=ffffff" alt="Live website: kmat.ch"></a>
-    &nbsp;
-    <a href="https://deepwiki.com/lowestprime/KenMatch"><img src="https://badgen.net/badge/KenMatch/DeepWiki/800000?labelColor=000000&icon=https%3A%2F%2Fwww.freelogovectors.net%2Fsvg18%2Fdevin-logo-icon-freeloogvectors.net.svg" alt="KenMatch DeepWiki"></a>
-  </p>
 </div>
+
+<h1 align="center" id="kenmatch">
+  <a href="https://kmat.ch"><img src="./public/readme-title.svg" alt="KenMatch" width="370"></a>
+  <br>
+  <a href="https://github.com/lowestprime/KenMatch"><img src="https://img.shields.io/badge/GitHub-lowestprime%2FKenMatch-6f42c1?labelColor=000000&logo=github&logoColor=ffffff" alt="GitHub repository: lowestprime/KenMatch"></a>
+  &nbsp;
+  <a href="https://kmat.ch"><img src="https://img.shields.io/badge/Live-kmat.ch-002366?labelColor=000000&logo=googlechrome&logoColor=ffffff" alt="Live website: kmat.ch"></a>
+  &nbsp;
+  <a href="https://deepwiki.com/lowestprime/KenMatch"><img src="https://badgen.net/badge/KenMatch/DeepWiki/800000?labelColor=000000&icon=https%3A%2F%2Fwww.freelogovectors.net%2Fsvg18%2Fdevin-logo-icon-freeloogvectors.net.svg" alt="KenMatch DeepWiki"></a>
+</h1>
 
 KenMatch is a public board for proposing, ranking, funding, launching, and auditing long-running AI work. Each unit of work is called a ***Ken***. A Ken can be an open tool, a civic workflow, a scientific evidence map, a repair assistant, or a creative service that benefits from sustained compute, checkpoints, public feedback, and visible funding.
 
