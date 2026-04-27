@@ -851,6 +851,132 @@ html[data-theme="dark"] .auth-switcher button.is-active {
   padding-top: 0.8rem;
 }
 
+.ken-visual {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent-strong) 18%, var(--line));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--ken-visual-a) 13%, transparent), transparent 42%),
+    color-mix(in srgb, var(--panel-strong) 82%, transparent);
+  border-radius: 0.7rem;
+  min-width: 0;
+}
+.ken-visual svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  color: var(--ink);
+}
+.ken-visual-card {
+  max-height: 9.25rem;
+}
+.ken-visual-card svg {
+  aspect-ratio: 5 / 2.05;
+  max-height: 8.1rem;
+}
+.ken-visual-detail {
+  align-self: stretch;
+}
+.ken-visual-detail svg {
+  min-height: 13rem;
+}
+.ken-visual-frame {
+  fill: color-mix(in srgb, var(--panel) 74%, transparent);
+  stroke: color-mix(in srgb, var(--ken-visual-a) 28%, var(--line));
+  stroke-width: 1.5;
+}
+.ken-visual-orbit {
+  fill: none;
+  stroke: color-mix(in srgb, var(--ken-visual-b) 38%, transparent);
+  stroke-width: 1;
+  stroke-dasharray: 3 6;
+}
+.ken-visual-orbit.is-second {
+  stroke: color-mix(in srgb, var(--ken-visual-c) 28%, transparent);
+  stroke-dasharray: 1 7;
+}
+.ken-visual-glyph {
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--ken-visual-a) 26%, transparent));
+}
+.ken-visual-glyph circle {
+  fill: color-mix(in srgb, var(--ken-visual-c) 30%, transparent);
+}
+.ken-visual-timeline line:first-child {
+  stroke: color-mix(in srgb, var(--ink) 16%, transparent);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+.ken-visual-timeline .is-progress {
+  stroke: var(--ken-visual-b);
+  stroke-width: 3.2;
+  stroke-linecap: round;
+}
+.ken-visual-timeline circle {
+  fill: var(--panel);
+  stroke: color-mix(in srgb, var(--ink) 22%, transparent);
+  stroke-width: 2;
+}
+.ken-visual-timeline circle.is-complete {
+  fill: var(--ken-visual-c);
+  stroke: color-mix(in srgb, var(--ken-visual-c) 70%, white);
+}
+.ken-visual-status circle {
+  fill: color-mix(in srgb, var(--ken-visual-b) 26%, var(--panel));
+  stroke: var(--ken-visual-a);
+  stroke-width: 1.8;
+}
+.ken-visual-status path {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.ken-visual-sandbox,
+.ken-visual-lane {
+  fill: var(--muted);
+  font-family: var(--font-mono), monospace;
+  font-size: 7.8px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+.ken-visual-lane {
+  fill: var(--ink-muted);
+  letter-spacing: 0.12em;
+}
+.ken-visual-meta {
+  position: absolute;
+  inset: auto 0.5rem 0.5rem auto;
+  display: flex;
+  max-width: calc(100% - 1rem);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.25rem;
+  pointer-events: none;
+}
+.ken-visual-meta span {
+  border: 1px solid color-mix(in srgb, var(--ken-visual-a) 28%, var(--line));
+  background: color-mix(in srgb, var(--surface) 74%, transparent);
+  color: var(--ink-muted);
+  border-radius: 0.35rem;
+  padding: 0.18rem 0.34rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.ken-visual.is-blocked {
+  --ken-visual-a: var(--danger);
+  --ken-visual-b: #7f1d1d;
+  --ken-visual-c: var(--accent-gold);
+}
+.ken-detail-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.42fr);
+  align-items: stretch;
+  gap: clamp(0.75rem, 1.4vw, 1.15rem);
+}
+
 .sandbox-disclosure {
   display: grid;
   gap: 0.5rem;
@@ -2108,6 +2234,18 @@ body.mobile-nav-open { overflow: hidden; }
 
   .task-card-header {
     gap: 0.4rem;
+  }
+
+  .ken-detail-heading {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ken-visual-card svg {
+    max-height: 7.25rem;
+  }
+
+  .ken-visual-detail svg {
+    min-height: 9rem;
   }
 
   .visitor-map text {

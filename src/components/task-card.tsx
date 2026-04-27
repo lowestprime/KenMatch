@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { KenVisual } from "@/components/ken-visual";
 import { KenSandboxStrip } from "@/components/ken-sandbox-strip";
 import { KenTimingStrip } from "@/components/ken-timing-strip";
 import { formatCurrency, formatDateTime, labelForStage, labelForTier } from "@/lib/utils";
@@ -31,6 +32,7 @@ export function TaskCard({ task }: { task: TaskSummary }) {
             </div>
             <div className="task-card-meta">Updated {formatDateTime(task.lastActivityAt)}</div>
           </div>
+          <KenVisual task={task} variant="card" />
           <div className="space-y-2">
             <div className="task-card-kicker">Posted by {task.proposerName} · Created {formatDateTime(task.createdAt)}</div>
             <h3 className="task-card-title">{task.title}</h3>

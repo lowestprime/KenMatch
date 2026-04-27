@@ -13,11 +13,10 @@ import type {
 } from "@/lib/types";
 
 const frontierModelLineup = [
-  "OpenAI o3-deep-research",
-  "OpenAI GPT-5.2",
-  "Claude Opus 4.1",
-  "Gemini 3 Pro Preview",
-  "xAI Grok 4.1 Fast",
+  "current API-accessible reasoning model",
+  "current API-accessible long-context model",
+  "current API-accessible coding model",
+  "current API-accessible multimodal model",
   "sandbox evaluator ensemble",
 ];
 

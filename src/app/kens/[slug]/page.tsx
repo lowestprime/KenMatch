@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { DiscussionThread } from "@/components/discussion-thread";
+import { KenVisual } from "@/components/ken-visual";
 import { KenSandboxStrip } from "@/components/ken-sandbox-strip";
 import { KenTimingStrip } from "@/components/ken-timing-strip";
 import { TaskPulsePanel } from "@/components/task-pulse-panel";
@@ -28,10 +29,13 @@ export default async function KenDetailPage({ params }: { params: Promise<{ slug
           <span className="tag">{task.categoryName}</span>
           <span className="tag">Pulse {task.taskPulseScore > 0 ? `+${task.taskPulseScore}` : task.taskPulseScore}</span>
         </div>
-        <div className="space-y-4">
-          <div className="eyebrow">Ken thread</div>
-          <h1 className="max-w-4xl font-display text-4xl font-semibold text-foreground sm:text-5xl">{task.title}</h1>
-          <p className="max-w-4xl text-lg leading-8 text-muted">{task.summary}</p>
+        <div className="ken-detail-heading">
+          <div className="space-y-4">
+            <div className="eyebrow">Ken thread</div>
+            <h1 className="max-w-4xl font-display text-4xl font-semibold text-foreground sm:text-5xl">{task.title}</h1>
+            <p className="max-w-4xl text-lg leading-8 text-muted">{task.summary}</p>
+          </div>
+          <KenVisual task={task} variant="detail" />
         </div>
         <div className="detail-meta-row">
           <span className="micro-pill">Created {formatDateTime(task.createdAt)}</span>
