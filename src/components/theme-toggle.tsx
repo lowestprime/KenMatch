@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type ThemeValue = "light" | "oled";
 
@@ -10,14 +10,14 @@ function normalize(value: string | null): ThemeValue {
 }
 
 function getInitialTheme(): ThemeValue {
+  if (typeof window !== "undefined") {
+    const stored = window.localStorage.getItem("kenmatch-theme");
+    if (stored) return normalize(stored);
+  }
   if (typeof document !== "undefined") {
     const current = document.documentElement.dataset.theme ?? null;
     if (current === "light") return "light";
     if (current === "oled" || current === "dark") return "oled";
-  }
-  if (typeof window !== "undefined") {
-    const stored = window.localStorage.getItem("kenmatch-theme");
-    if (stored) return normalize(stored);
   }
   return "oled";
 }
@@ -28,26 +28,27 @@ function applyTheme(theme: ThemeValue) {
   window.localStorage.setItem("kenmatch-theme", theme);
 }
 
-function subscribeTheme(callback: () => void) {
-  const notify = () => callback();
-  window.addEventListener("storage", notify);
-  window.addEventListener("kenmatch-theme-change", notify);
-  return () => {
-    window.removeEventListener("storage", notify);
-    window.removeEventListener("kenmatch-theme-change", notify);
-  };
-}
-
-function getServerTheme(): ThemeValue {
-  return "oled";
-}
-
 export function ThemeToggle() {
-  const theme = useSyncExternalStore(subscribeTheme, getInitialTheme, getServerTheme);
+  const [theme, setTheme] = useState<ThemeValue>("oled");
   const buttonRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
-    applyTheme(theme);
+    const syncTheme = () => {
+      const nextTheme = getInitialTheme();
+      document.documentElement.dataset.theme = nextTheme;
+      document.documentElement.style.colorScheme = nextTheme === "light" ? "light" : "dark";
+      setTheme(nextTheme);
+    };
+    syncTheme();
+    window.addEventListener("storage", syncTheme);
+    window.addEventListener("kenmatch-theme-change", syncTheme);
+    return () => {
+      window.removeEventListener("storage", syncTheme);
+      window.removeEventListener("kenmatch-theme-change", syncTheme);
+    };
+  }, []);
+
+  useEffect(() => {
     if (buttonRef.current) {
       buttonRef.current.dataset.theme = theme;
     }
@@ -65,6 +66,7 @@ export function ThemeToggle() {
       aria-pressed={theme === "oled"}
       onClick={() => {
         applyTheme(next);
+        setTheme(next);
         window.dispatchEvent(new Event("kenmatch-theme-change"));
       }}
     >

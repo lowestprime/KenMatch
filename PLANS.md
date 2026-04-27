@@ -512,7 +512,7 @@ Run the app locally and verify at minimum:
 - Browser Use plugin bootstrap was attempted first, but the Node REPL bridge was blocked by local Node `22.18.0` requiring `>=22.22.0`; `agent-browser` CLI was used for browser-level validation.
 - Local browser validation on production standalone output verified OLED default, hidden header on scroll, no `People` directory nav, no `⌘K` text, search-overlay dismissal, mobile drawer full-height `z-index: 5000`, and no horizontal overflow.
 - Live `https://kmat.ch` returns 200 on `/`, `/api/health`, `/kens`, `/submit`, `/economics`, `/governance`, `/about`, `/favicon.ico`, `/apple-icon.png`, `/og-image.png`, and `/manifest.webmanifest`; `http://kmat.ch` returns 301 to `https://kmat.ch/`.
-- Live browser validation verified OLED default, refreshed Ken titles/cards, full-card Ken links, no `View thread` buttons, `OpenAI GPT-5.5` sandbox model labels, mobile drawer links, and no reported `/submit` or `/economics` render errors.
+- Live browser validation verified OLED default, refreshed Ken titles/cards, full-card Ken links, no `View thread` buttons, current sandbox model labels, mobile drawer links, and no reported `/submit` or `/economics` render errors.
 - NAS deploy: `/volume2/docker_ssd/kenmatch` fast-forwarded to `647a33e`; `.env` and SQLite backups were created; `docker compose -f docker-compose.synology.tunnel.yml build --pull kenmatch` and `up -d --force-recreate kenmatch cloudflared` completed with `kenmatch-demo` healthy and `cloudflared` running.
 - Production DB warm-up completed successfully after fixing seed vote upserts against the persisted SQLite database.
 

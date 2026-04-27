@@ -7,14 +7,14 @@ export const DEFAULT_ABOUT_PAGE: AboutPageContent = {
     "KenMatch is built by Cooper Beaman so high-value scientific, technical, and public-interest work can be prioritized by collective judgment rather than wealth.",
   missionTitle: "Why KenMatch exists",
   missionBody:
-    "The most capable AI systems now consume electricity, engineering effort, and capital on a scale comparable to sizable public utilities, but the decisions about what those systems are used for remain concentrated inside a small number of private labs. KenMatch turns that asymmetry around: anyone can propose a specific, documented use of sustained frontier compute, the public decides which of those proposals matter most, and a transparent allocation protocol converts that judgment into structured access to real compute. Concretely, it is a marketplace where people submit Kens (proposed deep-research or public-benefit uses of frontier compute), voters allocate quadratic voice over them, and a disciplined, open accounting layer reports how that collective signal is being translated into committed compute hours, sponsorships, and audited outputs.",
+    "Sustained frontier-AI work depends on scarce API budget, engineering time, review labor, and operational attention. Today those resources are easiest to access for teams with money, institutional backing, or private lab relationships. KenMatch makes the prioritization layer visible: anyone can propose a documented Ken, contributors can add public signal and scarce allocation credits, and the site records how ranking, checkpoints, funding context, and sandbox outputs would be governed. In this public demo, dollar amounts and model results are explicitly simulated until live backing and execution are configured.",
   beliefsTitle: "What I believe",
   beliefsBullets: [
-    "AI access should be decided democratically, not only by what investors or labs find profitable.",
-    "Transparency beats charisma: every allocation, revenue flow, and safety decision should be auditable in real time.",
-    "Hard public-interest problems in science, health, climate, and governance deserve sustained frontier compute, not one-off demos.",
-    "Provisional merit signals like email verification, rate limiting, and peer attestation can replace status theater and political gatekeeping.",
-    "Open, reproducible infrastructure is a public good; closed, wealth-controlled compute is a market failure we can route around.",
+    "Public-interest AI work should be contestable by people who can explain the value, not only by teams that can prepay for compute.",
+    "Transparency beats charisma: allocation rules, sponsorship context, review decisions, and rollback points should be legible before launch.",
+    "Hard problems in science, health, climate, governance, public services, software, and culture often need sustained runs with checkpoints, not one-off demos.",
+    "Email verification, rate limits, profile evidence, peer attestation, and admin review are practical signals for limiting abuse without excluding new contributors by status alone.",
+    "Open, reproducible infrastructure makes it easier to audit whether scarce AI resources are helping real people and communities.",
   ],
   backgroundTitle: "Background",
   backgroundBody:
@@ -22,19 +22,19 @@ export const DEFAULT_ABOUT_PAGE: AboutPageContent = {
   goalsTitle: "Goals for KenMatch",
   goalsBullets: [
     "Prove that a transparent, merit-sensitive allocation protocol can consistently surface high-value scientific and public-interest Kens.",
-    "Maintain a credible, recurring treasury that can cover at least six months of public-good compute obligations.",
-    "Ship reference runs that are fully reproducible, openly licensed, and cited publicly as evidence of the process working.",
+    "Separate public ranking from sponsorship so backing can support compute, review, and operations without buying release decisions.",
+    "Publish reference sandbox runs with traceable assumptions, checkpoint notes, and simulated costs before any production-scale commitments.",
     "Broaden participation beyond insiders by lowering the cost of proposing, evaluating, and contributing safety review to high-stakes AI work.",
-    "Keep KenMatch sustainable and independent so the protocol, not a single operator, is what people trust.",
+    "Keep KenMatch sustainable and independent by making governance, treasury logic, and audit trails more important than any single operator.",
   ],
   contactTitle: "Contact",
   contactBody:
     "For partnership inquiries, verification questions, research collaboration, or anything else related to the platform, reach out directly. Press, funders, and builders are all welcome.",
-  contactEmail: "",
+  contactEmail: "cooperbeaman@proton.me",
   links: [
     { label: "Repository", url: "https://github.com/lowestprime/KenMatch" },
     { label: "GitHub profile", url: "https://github.com/lowestprime" },
-    { label: "Contact", url: "https://github.com/lowestprime/KenMatch" },
+    { label: "Contact", url: "mailto:cooperbeaman@proton.me" },
   ],
   lastUpdated: new Date(0).toISOString(),
 };

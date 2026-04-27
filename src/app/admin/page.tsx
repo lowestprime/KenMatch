@@ -9,6 +9,7 @@ import { AdminVerifications } from "@/components/admin/verifications";
 import { AdminVisitors } from "@/components/admin/visitors";
 import { VisitorMap } from "@/components/visitor-map";
 import { getAdminDashboard, getAdminNotificationSettings } from "@/lib/db";
+import { smtpConfigured } from "@/lib/env";
 import { getViewerSession } from "@/lib/session";
 
 export const metadata = { title: "Admin" };
@@ -60,7 +61,7 @@ export default async function AdminPage() {
           <p style={{ color: "var(--muted)" }}>
             Send email alerts when new accounts are created, new visitors arrive, verifications are requested, or Kens are submitted.
           </p>
-          <AdminNotifications settings={notifications} />
+          <AdminNotifications settings={notifications} smtpConfigured={smtpConfigured} />
         </div>
       </section>
 

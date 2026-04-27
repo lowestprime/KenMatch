@@ -68,8 +68,8 @@ export default function VerificationPublicPage() {
             evidence is required, we reply by email.
           </li>
           <li>
-            <strong>Step 5 · Outcome.</strong> Approved accounts gain a visible verification badge in the comment thread, people directory, and profile page. Declined requests
-            may be resubmitted with additional evidence at any time.
+            <strong>Step 5 · Outcome.</strong> Approved accounts gain a visible verification badge in comment threads, contextual profile links, and their profile page.
+            Declined requests may be resubmitted with additional evidence at any time.
           </li>
         </ol>
       </section>
@@ -81,8 +81,8 @@ export default function VerificationPublicPage() {
           publicly; only the badge and decision state are. You can request deletion of the note at any time by emailing the maintainer.
         </p>
         <p style={{ color: "var(--muted)", fontSize: "0.88rem" }}>
-          We never share verification data with sponsors or third parties. All identity content lives on the Synology-hosted libSQL database that backs kmat.ch, with
-          encrypted nightly snapshots.
+          We never share verification data with sponsors or third parties. The production deployment keeps account and verification records in the persisted KenMatch data
+          volume documented for the Synology deployment; backups must be preserved before rebuilds or redeploys.
         </p>
       </section>
 
