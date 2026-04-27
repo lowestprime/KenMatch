@@ -94,6 +94,7 @@ import type {
   VoteRecord,
 } from "@/lib/types";
 import { DEFAULT_ABOUT_PAGE } from "@/lib/about-defaults";
+import { TEST_AUTH_USERS, type TestAuthMode } from "@/lib/test-auth";
 
 type DbRow = Record<string, Value>;
 
@@ -2248,6 +2249,145 @@ export async function createSession(accountId: string) {
     now.toISOString(),
   ]);
   return { token, expiresAt };
+}
+
+export async function ensureTestAuthAccount(mode: TestAuthMode) {
+  const config = TEST_AUTH_USERS[mode];
+  const now = new Date().toISOString();
+  const existing = await findAccountByEmail(config.email);
+  const systemRole = config.systemRole;
+  const voiceCredits = systemRole === "owner" ? 120 : 12;
+  const credibility = systemRole === "owner" ? 0.98 : 0.66;
+  const attestationLevel = systemRole === "owner" ? "expert" : "provisional";
+  const profileId = existing?.profileId ?? `local-${mode}`;
+
+  if (existing) {
+    await batch(
+      [
+        {
+          sql: `UPDATE profiles SET
+            username = ?, showRealName = 0, name = ?, role = ?, bio = ?, specialty = ?, attestation = ?,
+            attestationLevel = ?, moderationStatus = 'active', voiceCredits = ?, credibility = ?,
+            verificationStatus = ?, verificationRequestedAt = NULL, verificationNote = ?
+            WHERE id = ?`,
+          args: [
+            config.username,
+            config.name,
+            systemRole === "owner" ? "Local validation owner" : "Local validation contributor",
+            systemRole === "owner"
+              ? "Local-only deterministic owner account used for CI and browser validation. Disabled outside loopback development."
+              : "Local-only deterministic contributor account used for CI and browser validation. Disabled outside loopback development.",
+            "KenMatch validation",
+            systemRole === "owner" ? "Local owner validation account." : "Local contributor validation account.",
+            attestationLevel,
+            voiceCredits,
+            credibility,
+            systemRole === "owner" ? "approved" : "none",
+            systemRole === "owner" ? "Local-only owner bypass account." : null,
+            existing.profileId,
+          ],
+        },
+        {
+          sql: `UPDATE accounts SET
+            username = ?, systemRole = ?, emailVerified = 1, emailVerifiedAt = COALESCE(emailVerifiedAt, ?)
+            WHERE id = ?`,
+          args: [config.username, systemRole, now, existing.id],
+        },
+        {
+          sql: "INSERT OR REPLACE INTO profile_attestations (profileId, provider, status, sybilRisk, reviewedAt, signals, note) VALUES (?, ?, ?, ?, ?, ?, ?)",
+          args: [
+            existing.profileId,
+            "Local test auth bypass",
+            systemRole === "owner" ? "verified" : "review",
+            "low",
+            now,
+            serializeList(["Loopback only", "Non-production only", "Deterministic account"]),
+            "Local-only account used for automated browser validation.",
+          ],
+        },
+      ],
+      "write",
+    );
+    return existing.id;
+  }
+
+  const { passwordHash, passwordSalt } = createPasswordHash(randomUUID());
+  const accountId = randomUUID();
+  await batch(
+    [
+      {
+        sql: `INSERT INTO profiles (
+          id, username, showRealName, name, role, bio, specialty, attestation, attestationLevel, moderationStatus,
+          voiceCredits, credibility, avatarHue, avatarImage, avatarGradient, avatarImageScale, avatarImageX, avatarImageY, links, location, pronouns,
+          verificationStatus, verificationRequestedAt, verificationNote, createdAt
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        args: [
+          profileId,
+          config.username,
+          0,
+          config.name,
+          systemRole === "owner" ? "Local validation owner" : "Local validation contributor",
+          systemRole === "owner"
+            ? "Local-only deterministic owner account used for CI and browser validation. Disabled outside loopback development."
+            : "Local-only deterministic contributor account used for CI and browser validation. Disabled outside loopback development.",
+          "KenMatch validation",
+          systemRole === "owner" ? "Local owner validation account." : "Local contributor validation account.",
+          attestationLevel,
+          "active",
+          voiceCredits,
+          credibility,
+          avatarHueFor(config.email),
+          null,
+          null,
+          1,
+          50,
+          50,
+          "[]",
+          null,
+          null,
+          systemRole === "owner" ? "approved" : "none",
+          null,
+          systemRole === "owner" ? "Local-only owner bypass account." : null,
+          now,
+        ],
+      },
+      {
+        sql: "INSERT INTO profile_attestations (profileId, provider, status, sybilRisk, reviewedAt, signals, note) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        args: [
+          profileId,
+          "Local test auth bypass",
+          systemRole === "owner" ? "verified" : "review",
+          "low",
+          now,
+          serializeList(["Loopback only", "Non-production only", "Deterministic account"]),
+          "Local-only account used for automated browser validation.",
+        ],
+      },
+      {
+        sql: `INSERT INTO accounts (
+          id, profileId, email, username, passwordHash, passwordSalt, licensingConsent, systemRole,
+          emailVerified, emailVerifiedAt, lastLoginAt, createdAt
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        args: [
+          accountId,
+          profileId,
+          config.email,
+          config.username,
+          passwordHash,
+          passwordSalt,
+          "audit-only",
+          systemRole,
+          1,
+          now,
+          null,
+          now,
+        ],
+      },
+    ],
+    "write",
+  );
+
+  return accountId;
 }
 
 export async function deleteSessionByTokenHash(tokenHash: string) {

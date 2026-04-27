@@ -7,6 +7,7 @@ KenMatch now includes meaningful app-layer hardening, but a public home-network 
 - strict response headers in `middleware.ts`
 - host filtering and cross-site request blocking in `middleware.ts`
 - secure cookie-backed sessions in `src/lib/session.ts`
+- local/CI-only test authentication in `/api/test-auth/bypass`, disabled by default and unavailable in production or off loopback hosts
 - email verification and forgot-password token expiry in `src/lib/db.ts` and `src/app/actions.ts`
 - SMTP-backed owner/admin notification dispatch in `src/lib/mail.ts`
 - detailed-vs-public health response split in `src/app/api/health/route.ts`

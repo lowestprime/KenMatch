@@ -5,7 +5,7 @@ import { env } from "@/lib/env";
 
 export const ACTIVE_SESSION_COOKIE = env.KENMATCH_SESSION_COOKIE;
 
-function cookieOptions(maxAge?: number) {
+export function sessionCookieOptions(maxAge?: number) {
   return {
     httpOnly: true,
     sameSite: "strict" as const,
@@ -29,12 +29,12 @@ export async function getViewerProfileId() {
 
 export async function setViewerSessionCookie(token: string) {
   const store = await cookies();
-  store.set(ACTIVE_SESSION_COOKIE, token, cookieOptions(env.KENMATCH_SESSION_DAYS * 24 * 60 * 60));
+  store.set(ACTIVE_SESSION_COOKIE, token, sessionCookieOptions(env.KENMATCH_SESSION_DAYS * 24 * 60 * 60));
 }
 
 export async function clearViewerSessionCookie() {
   const store = await cookies();
-  store.set(ACTIVE_SESSION_COOKIE, "", cookieOptions(0));
+  store.set(ACTIVE_SESSION_COOKIE, "", sessionCookieOptions(0));
 }
 
 export async function getViewerToken() {

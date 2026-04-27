@@ -32,6 +32,8 @@ const envSchema = z.object({
   KENMATCH_ALLOW_SIGNUPS: booleanish.default(true),
   KENMATCH_REQUIRE_EMAIL_VERIFICATION: booleanish.default(false),
   KENMATCH_ENABLE_DEMO_PROFILE_SWITCHER: booleanish.default(false),
+  KENMATCH_ENABLE_TEST_AUTH_BYPASS: booleanish.default(false),
+  KENMATCH_TEST_AUTH_BYPASS_TOKEN: z.string().optional(),
   KENMATCH_PUBLIC_ORIGIN: z.string().url().optional(),
   KENMATCH_CANONICAL_ORIGIN: z.string().url().default("https://kmat.ch"),
   KENMATCH_ALLOWED_HOSTS: z.string().optional(),
