@@ -34,9 +34,12 @@ import {
   seedProfiles,
   seedRuns,
   seedTasks,
-  seedVotes
+  seedVotes,
+  retiredSeedCategoryIds,
+  retiredSeedTaskIds,
 } from "@/lib/seed";
 import {
+  seedChangelogEntries,
   seedCheckpointGates,
   seedComments,
   seedCommentVotes,
@@ -52,9 +55,11 @@ import {
 import type {
   AboutPageContent,
   AccountRecord,
+  AdminSmtpSettings,
   AdminNotificationSettings,
   AuditLogRecord,
   BookmarkRecord,
+  ChangelogEntryRecord,
   CategoryProposalRecord,
   CategorySummary,
   CheckpointDetail,
@@ -67,6 +72,7 @@ import type {
   EmailTokenRecord,
   GovernanceEventRecord,
   HomepageMetrics,
+  MaintenanceState,
   MarketplaceFilters,
   ProfileAttestationRecord,
   ProfileLink,
@@ -82,6 +88,7 @@ import type {
   SystemRole,
   TaskDetail,
   TaskFinanceRecord,
+  TaskIllustrationRecord,
   TaskPulseVoteRecord,
   TaskRecord,
   TaskSummary,
@@ -90,6 +97,7 @@ import type {
   VerificationStatus,
   ViewerSession,
   VisitorAggregate,
+  VisitorStats,
   VisitorRecord,
   VoteRecord,
 } from "@/lib/types";
@@ -352,7 +360,8 @@ async function initializeDatabase() {
         slug TEXT NOT NULL UNIQUE,
         name TEXT NOT NULL,
         description TEXT NOT NULL,
-        thesis TEXT NOT NULL
+        thesis TEXT NOT NULL,
+        symbolKey TEXT NOT NULL DEFAULT ''
       )`,
       `CREATE TABLE IF NOT EXISTS category_proposals (
         id TEXT PRIMARY KEY,
@@ -407,6 +416,20 @@ async function initializeDatabase() {
         simulationSummary TEXT NOT NULL DEFAULT '',
         sampleOutcome TEXT NOT NULL DEFAULT '',
         sponsorAppeal TEXT NOT NULL DEFAULT '',
+        FOREIGN KEY (taskId) REFERENCES tasks(id)
+      )`,
+      `CREATE TABLE IF NOT EXISTS task_illustrations (
+        taskId TEXT PRIMARY KEY,
+        source TEXT NOT NULL,
+        url TEXT NOT NULL,
+        altText TEXT NOT NULL,
+        mimeType TEXT NOT NULL,
+        sizeBytes INTEGER NOT NULL,
+        width INTEGER,
+        height INTEGER,
+        storagePath TEXT,
+        updatedAt TEXT NOT NULL,
+        updatedBy TEXT,
         FOREIGN KEY (taskId) REFERENCES tasks(id)
       )`,
       `CREATE TABLE IF NOT EXISTS votes (
@@ -562,6 +585,18 @@ async function initializeDatabase() {
         updatedAt TEXT NOT NULL,
         paidAt TEXT
       )`,
+      `CREATE TABLE IF NOT EXISTS changelog_entries (
+        id TEXT PRIMARY KEY,
+        entryDate TEXT NOT NULL,
+        title TEXT NOT NULL,
+        entryType TEXT NOT NULL,
+        summary TEXT NOT NULL,
+        details TEXT NOT NULL,
+        visible INTEGER NOT NULL DEFAULT 1,
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL,
+        updatedBy TEXT
+      )`,
       `CREATE TABLE IF NOT EXISTS request_rate_limits (
         scope TEXT NOT NULL,
         identifier TEXT NOT NULL,
@@ -589,6 +624,7 @@ async function initializeDatabase() {
       "CREATE INDEX IF NOT EXISTS idx_sessions_tokenHash ON sessions(tokenHash)",
       "CREATE INDEX IF NOT EXISTS idx_task_pulse_votes_taskId ON task_pulse_votes(taskId)",
       "CREATE INDEX IF NOT EXISTS idx_sponsorship_commitments_status ON sponsorship_commitments(status)",
+      "CREATE INDEX IF NOT EXISTS idx_changelog_entries_visible ON changelog_entries(visible, entryDate)",
       "CREATE INDEX IF NOT EXISTS idx_request_rate_limits_updatedAt ON request_rate_limits(updatedAt)",
       "CREATE INDEX IF NOT EXISTS idx_security_events_createdAt ON security_events(createdAt)",
       "CREATE INDEX IF NOT EXISTS idx_bookmarks_profileId ON bookmarks(profileId)",
@@ -623,6 +659,7 @@ async function initializeDatabase() {
   await ensureColumn(client, "profiles", "verificationStatus", "TEXT NOT NULL DEFAULT 'none'");
   await ensureColumn(client, "profiles", "verificationRequestedAt", "TEXT");
   await ensureColumn(client, "profiles", "verificationNote", "TEXT");
+  await ensureColumn(client, "categories", "symbolKey", "TEXT NOT NULL DEFAULT ''");
   await ensureColumn(client, "revenue_streams", "publicBenefitCovenant", "TEXT NOT NULL DEFAULT ''");
   await ensureColumn(client, "revenue_streams", "openDeliverableBoundary", "TEXT NOT NULL DEFAULT ''");
   await ensureColumn(client, "revenue_streams", "contributorDividendPercent", "INTEGER NOT NULL DEFAULT 0");
@@ -739,13 +776,14 @@ async function seedDatabase() {
   } satisfies InStatement));
 
   const categoryStatements = seedCategories.map((category) => ({
-    sql: `INSERT INTO categories (id, slug, name, description, thesis) VALUES (?, ?, ?, ?, ?)
+    sql: `INSERT INTO categories (id, slug, name, description, thesis, symbolKey) VALUES (?, ?, ?, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
         slug = excluded.slug,
         name = excluded.name,
         description = excluded.description,
-        thesis = excluded.thesis`,
-    args: [category.id, category.slug, category.name, category.description, category.thesis],
+        thesis = excluded.thesis,
+        symbolKey = excluded.symbolKey`,
+    args: [category.id, category.slug, category.name, category.description, category.thesis, category.symbolKey ?? category.slug],
   } satisfies InStatement));
 
   const taskStatements = seedTasks.flatMap((task) => {
@@ -1060,7 +1098,56 @@ async function seedDatabase() {
     ],
   } satisfies InStatement));
 
+  const changelogStatements = seedChangelogEntries.map((entry) => ({
+    sql: `INSERT INTO changelog_entries (
+      id, entryDate, title, entryType, summary, details, visible, createdAt, updatedAt, updatedBy
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      entryDate = excluded.entryDate,
+      title = excluded.title,
+      entryType = excluded.entryType,
+      summary = excluded.summary,
+      details = excluded.details,
+      visible = excluded.visible,
+      updatedAt = excluded.updatedAt,
+      updatedBy = excluded.updatedBy`,
+    args: [
+      entry.id,
+      entry.entryDate,
+      entry.title,
+      entry.entryType,
+      entry.summary,
+      entry.details,
+      entry.visible ? 1 : 0,
+      entry.createdAt,
+      entry.updatedAt,
+      entry.updatedBy,
+    ],
+  } satisfies InStatement));
+
   const client = getClient();
+  if (retiredSeedTaskIds.length > 0) {
+    const placeholders = retiredSeedTaskIds.map(() => "?").join(",");
+    const cleanupStatements: InStatement[] = [
+      { sql: `DELETE FROM comment_votes WHERE commentId IN (SELECT id FROM comments WHERE taskId IN (${placeholders}))`, args: retiredSeedTaskIds },
+      { sql: `DELETE FROM comments WHERE taskId IN (${placeholders})`, args: retiredSeedTaskIds },
+      { sql: `DELETE FROM task_pulse_votes WHERE taskId IN (${placeholders})`, args: retiredSeedTaskIds },
+      { sql: `DELETE FROM votes WHERE taskId IN (${placeholders})`, args: retiredSeedTaskIds },
+      { sql: `DELETE FROM checkpoint_gates WHERE checkpointId IN (SELECT id FROM checkpoints WHERE taskId IN (${placeholders}))`, args: retiredSeedTaskIds },
+      { sql: `DELETE FROM checkpoints WHERE taskId IN (${placeholders})`, args: retiredSeedTaskIds },
+      { sql: `DELETE FROM run_updates WHERE taskId IN (${placeholders})`, args: retiredSeedTaskIds },
+      { sql: `DELETE FROM task_timings WHERE taskId IN (${placeholders})`, args: retiredSeedTaskIds },
+      { sql: `DELETE FROM runs WHERE taskId IN (${placeholders})`, args: retiredSeedTaskIds },
+      { sql: `DELETE FROM task_illustrations WHERE taskId IN (${placeholders})`, args: retiredSeedTaskIds },
+      { sql: `DELETE FROM task_finance WHERE taskId IN (${placeholders})`, args: retiredSeedTaskIds },
+      { sql: `DELETE FROM tasks WHERE id IN (${placeholders})`, args: retiredSeedTaskIds },
+    ];
+    await client.batch(cleanupStatements, "write");
+  }
+  if (retiredSeedCategoryIds.length > 0) {
+    const placeholders = retiredSeedCategoryIds.map(() => "?").join(",");
+    await client.execute({ sql: `DELETE FROM categories WHERE id IN (${placeholders}) AND id NOT IN (SELECT categoryId FROM tasks)`, args: retiredSeedCategoryIds });
+  }
   const allStatements = [
     ...profileStatements,
     ...attestationStatements,
@@ -1079,6 +1166,7 @@ async function seedDatabase() {
     ...revenueStatements,
     ...treasuryStatements,
     ...sponsorshipStatements,
+    ...changelogStatements,
   ];
   console.log(`[db] seedDatabase: dispatching ${allStatements.length} statements`);
   await client.batch(allStatements, "write");

@@ -88,6 +88,7 @@ export interface CategoryRecord {
   name: string;
   description: string;
   thesis: string;
+  symbolKey?: string;
 }
 
 export interface CategoryProposalRecord {
@@ -215,6 +216,15 @@ export interface VisitorAggregate {
   lastSeenAt: string;
 }
 
+export interface VisitorStats {
+  totalUnique: number;
+  recent24h: number;
+  recent7d: number;
+  countries: number;
+  accountCreated: number;
+  topCountries: Array<{ countryName: string; visitorCount: number }>;
+}
+
 export interface AdminNotificationSettings {
   recipientEmails: string[];
   notifyOnSignup: boolean;
@@ -230,6 +240,64 @@ export interface SiteSettingRecord {
   value: string;
   updatedAt: string;
   updatedBy: string | null;
+}
+
+export const maintenanceModes = ["off", "on"] as const;
+export type MaintenanceMode = (typeof maintenanceModes)[number];
+
+export interface MaintenanceState {
+  mode: MaintenanceMode;
+  message: string;
+  expectedReturn: string;
+  updatedAt: string;
+  updatedBy: string | null;
+}
+
+export const changelogTypes = ["launch", "feature", "data", "security", "operations"] as const;
+export type ChangelogType = (typeof changelogTypes)[number];
+
+export interface ChangelogEntryRecord {
+  id: string;
+  entryDate: string;
+  title: string;
+  entryType: ChangelogType;
+  summary: string;
+  details: string;
+  visible: boolean;
+  createdAt: string;
+  updatedAt: string;
+  updatedBy: string | null;
+}
+
+export const kenIllustrationSources = ["deterministic", "uploaded", "admin-set", "generated-placeholder"] as const;
+export type KenIllustrationSource = (typeof kenIllustrationSources)[number];
+
+export interface TaskIllustrationRecord {
+  taskId: string;
+  source: KenIllustrationSource;
+  url: string;
+  altText: string;
+  mimeType: string;
+  sizeBytes: number;
+  width: number | null;
+  height: number | null;
+  storagePath: string | null;
+  updatedAt: string;
+  updatedBy: string | null;
+}
+
+export interface AdminSmtpSettings {
+  host: string;
+  port: number;
+  secure: boolean;
+  username: string;
+  from: string;
+  passwordConfigured: boolean;
+  source: "env" | "database" | "none";
+  lastTestedAt: string | null;
+  lastTestStatus: "untested" | "success" | "error";
+  lastTestMessage: string | null;
+  updatedAt: string;
 }
 
 export interface AboutPageContent {
@@ -492,6 +560,7 @@ export interface ViewerSession {
 export interface TaskSummary extends TaskRecord, TaskFinanceRecord {
   categoryName: string;
   categorySlug: string;
+  categorySymbolKey: string;
   proposerName: string;
   totalVotes: number;
   supporterCount: number;
@@ -516,6 +585,10 @@ export interface TaskSummary extends TaskRecord, TaskFinanceRecord {
   updateCount: number;
   latestUpdateLabel: string | null;
   bookmarked: boolean;
+  illustrationUrl: string | null;
+  illustrationAlt: string | null;
+  illustrationSource: KenIllustrationSource;
+  illustrationUpdatedAt: string | null;
 }
 
 export interface CheckpointDetail extends CheckpointRecord, CheckpointGateRecord {}
