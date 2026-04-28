@@ -2,27 +2,29 @@ import "server-only";
 
 import nodemailer from "nodemailer";
 
-import { env, smtpConfigured } from "@/lib/env";
+import { getEffectiveSmtpConfig, recordAdminSmtpTest } from "@/lib/db";
 
 let cachedTransporter: nodemailer.Transporter | null = null;
+let cachedTransporterKey = "";
 let cachedWarnedNoSmtp = false;
 
-function getTransporter(): nodemailer.Transporter | null {
-  if (!smtpConfigured) {
-    return null;
-  }
-  if (!cachedTransporter) {
+async function getTransporter(): Promise<{ transporter: nodemailer.Transporter; from: string; source: "env" | "database" } | null> {
+  const config = await getEffectiveSmtpConfig();
+  if (!config) return null;
+  const key = `${config.source}:${config.host}:${config.port}:${config.secure}:${config.username}:${config.from}`;
+  if (!cachedTransporter || cachedTransporterKey !== key) {
     cachedTransporter = nodemailer.createTransport({
-      host: env.KENMATCH_SMTP_HOST,
-      port: env.KENMATCH_SMTP_PORT,
-      secure: env.KENMATCH_SMTP_SECURE,
+      host: config.host,
+      port: config.port,
+      secure: config.secure,
       auth: {
-        user: env.KENMATCH_SMTP_USER,
-        pass: env.KENMATCH_SMTP_PASS,
+        user: config.username,
+        pass: config.password,
       },
     });
+    cachedTransporterKey = key;
   }
-  return cachedTransporter;
+  return { transporter: cachedTransporter, from: config.from, source: config.source };
 }
 
 export interface MailPayload {
@@ -34,21 +36,17 @@ export interface MailPayload {
 }
 
 export async function sendMail(payload: MailPayload): Promise<{ ok: boolean; info?: unknown; error?: string }> {
-  const transporter = getTransporter();
-  if (!transporter) {
+  const transport = await getTransporter();
+  if (!transport) {
     if (!cachedWarnedNoSmtp) {
-      console.warn(
-        `[mail] SMTP not configured. Skipping delivery of "${payload.subject}" to ${
-          Array.isArray(payload.to) ? payload.to.join(", ") : payload.to
-        }. Configure KENMATCH_SMTP_* env vars to enable email.`,
-      );
+      console.warn(`[mail] SMTP not configured. Skipping outbound email "${payload.subject}".`);
       cachedWarnedNoSmtp = true;
     }
     return { ok: false, error: "SMTP not configured" };
   }
   try {
-    const info = await transporter.sendMail({
-      from: env.KENMATCH_SMTP_FROM,
+    const info = await transport.transporter.sendMail({
+      from: transport.from,
       to: payload.to,
       subject: payload.subject,
       text: payload.text,
@@ -59,6 +57,29 @@ export async function sendMail(payload: MailPayload): Promise<{ ok: boolean; inf
   } catch (error) {
     console.error("[mail] send failed", error);
     return { ok: false, error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+export async function sendSmtpTestMail(input: { to: string; actorId: string | null }) {
+  const transport = await getTransporter();
+  if (!transport) {
+    await recordAdminSmtpTest("error", "SMTP is not configured.", input.actorId);
+    return { ok: false, error: "SMTP is not configured." };
+  }
+  try {
+    await transport.transporter.verify();
+    const info = await transport.transporter.sendMail({
+      from: transport.from,
+      to: input.to,
+      subject: "KenMatch SMTP test",
+      text: "KenMatch SMTP validation succeeded. This test confirms only that the configured server accepted a message.",
+    });
+    await recordAdminSmtpTest("success", `Test email accepted by ${transport.source} SMTP.`, input.actorId);
+    return { ok: true, info };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    await recordAdminSmtpTest("error", message, input.actorId);
+    return { ok: false, error: message };
   }
 }
 

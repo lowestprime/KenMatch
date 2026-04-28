@@ -1,4 +1,4 @@
-import type { VisitorAggregate } from "@/lib/types";
+import type { VisitorAggregate, VisitorStats } from "@/lib/types";
 
 const COUNTRY_POSITIONS: Record<string, { lat: number; lon: number }> = {
   US: { lat: 39.5, lon: -98.35 },
@@ -60,7 +60,7 @@ function project(lat: number, lon: number) {
   return { x, y };
 }
 
-export function VisitorMap({ aggregates }: { aggregates: VisitorAggregate[] }) {
+export function VisitorMap({ aggregates, stats }: { aggregates: VisitorAggregate[]; stats?: VisitorStats }) {
   const total = aggregates.reduce((sum, item) => sum + item.visitorCount, 0);
   const mapped = aggregates
     .map((aggregate) => {
@@ -111,6 +111,14 @@ export function VisitorMap({ aggregates }: { aggregates: VisitorAggregate[] }) {
         <span>{total} unique visitors across {aggregates.length} countries</span>
         <span className="micro-pill">Data anonymized via salted hash</span>
       </div>
+      {stats ? (
+        <div className="visitor-stat-grid" aria-label="Visitor summary">
+          <span><strong>{stats.recent24h}</strong> last 24h</span>
+          <span><strong>{stats.recent7d}</strong> last 7d</span>
+          <span><strong>{stats.accountCreated}</strong> created accounts</span>
+          <span><strong>{stats.countries}</strong> countries</span>
+        </div>
+      ) : null}
       {topCountries.length > 0 ? (
         <div className="visitor-country-list" aria-label="Top visitor countries">
           {topCountries.map((country) => (

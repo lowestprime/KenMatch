@@ -24,7 +24,7 @@ export default async function HomePage() {
             Rank the Kens worth long-running compute, checkpoints, and review.
           </h1>
           <p className="max-w-3xl text-lg leading-8 text-muted">
-            A Ken is a proposed run of frontier-model work that needs continuity: literature maps, reproducibility agents, defensive software checks, archive tools, and civic workflows that should stay source-linked, auditable, and useful after the first demo.
+            A Ken is a bounded proposal for sustained model-assisted work: mechanism maps, reproducibility agents, benchmark harnesses, dependency-safety planning, protocol scouting, and other outputs that need visible sources, checkpoints, and review after the first demo.
           </p>
           <div className="hero-actions">
             <Link href="/kens" className="cta-primary">Browse Kens</Link>
@@ -44,7 +44,7 @@ export default async function HomePage() {
         <div className="space-y-4 fade-up stagger-1">
           <div className="panel space-y-4">
             <div className="eyebrow">How long a Ken can run</div>
-            {[ ["Months", "Top 3 per category", "Living maps, agents, and monitoring jobs that need repeated human checkpoints."], ["Weeks", "Next 10 per category", "Multi-step research, coding, and synthesis runs with visible mid-run decisions."], ["Days", "Next 100 per category", "Focused deliverables with clear acceptance checks and public artifacts."] ].map(([label, value, copy]) => (
+            {[ ["Months", "Top 3 per category", "Long-horizon synthesis, evaluation, and tool-building with repeated human checkpoints."], ["Weeks", "Next 10 per category", "Multi-step research, coding, and design runs with visible mid-run decisions."], ["Days", "Next 100 per category", "Focused deliverables with clear acceptance checks and public artifacts."] ].map(([label, value, copy]) => (
               <div key={label} className="rounded-[1.25rem] border border-border bg-background/55 p-4">
                 <div className="font-display text-xl font-semibold text-foreground">{label}</div>
                 <div className="mt-1 text-sm font-medium text-teal">{value}</div>

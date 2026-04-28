@@ -49,6 +49,17 @@ const FOOTER_LINKS = [
       </svg>
     ),
   },
+  {
+    href: "/about/changelog",
+    label: "Changelog",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14" aria-hidden="true">
+        <path d="M4 5h16" />
+        <path d="M4 12h10" />
+        <path d="M4 19h16" />
+      </svg>
+    ),
+  },
 ];
 
 export function SiteShell({

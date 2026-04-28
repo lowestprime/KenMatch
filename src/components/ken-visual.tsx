@@ -13,6 +13,9 @@ type KenVisualTask = Pick<
   | "updateCount"
   | "taskPulseScore"
   | "sandboxCapitalUsd"
+  | "illustrationUrl"
+  | "illustrationAlt"
+  | "illustrationSource"
 >;
 
 type VisualPalette = {
@@ -33,9 +36,10 @@ type VisualNode = {
 const CATEGORY_PALETTES: Record<string, VisualPalette> = {
   "science-health": { primary: "#77f7d6", secondary: "#68a8ff", tertiary: "#f4f9ff", wash: "#0b3f48" },
   "open-tools": { primary: "#83f4ff", secondary: "#a77bff", tertiary: "#ffd86e", wash: "#1b2a52" },
-  "public-interest": { primary: "#8af4b4", secondary: "#4dc9ff", tertiary: "#ffbd77", wash: "#173f33" },
-  "creative-works": { primary: "#ff8edc", secondary: "#9c83ff", tertiary: "#ffd66d", wash: "#421b4c" },
-  "everyday-services": { primary: "#ffd36f", secondary: "#75e7ff", tertiary: "#9fffba", wash: "#3a3220" },
+  "research-synthesis": { primary: "#c6f88d", secondary: "#65d6ff", tertiary: "#fff1a8", wash: "#263d1b" },
+  "engineering-systems": { primary: "#8cecff", secondary: "#6e85ff", tertiary: "#ffcb7d", wash: "#122a44" },
+  "safety-evaluation": { primary: "#ff9d8d", secondary: "#a77bff", tertiary: "#8ff9d2", wash: "#3a1825" },
+  "frontier-creative": { primary: "#ff8edc", secondary: "#9c83ff", tertiary: "#ffd66d", wash: "#421b4c" },
 };
 
 const TIER_LABELS: Record<TaskSummary["allocatedTier"], string> = {
@@ -148,9 +152,10 @@ function pulseLabel(score: number) {
 function motifLabel(slug: string) {
   if (slug === "science-health") return "evidence map";
   if (slug === "open-tools") return "software module";
-  if (slug === "public-interest") return "public workflow";
-  if (slug === "creative-works") return "creative studio";
-  if (slug === "everyday-services") return "service route";
+  if (slug === "research-synthesis") return "review graph";
+  if (slug === "engineering-systems") return "systems map";
+  if (slug === "safety-evaluation") return "evaluation harness";
+  if (slug === "frontier-creative") return "simulation studio";
   return "review lattice";
 }
 
@@ -181,20 +186,44 @@ function DomainMotif({ slug, gradientId }: { slug: string; gradientId: string })
     );
   }
 
-  if (slug === "public-interest") {
+  if (slug === "research-synthesis") {
     return (
       <g className="ken-visual-domain" stroke={`url(#${gradientId})`}>
-        <path className="ken-visual-panel-shape" d="M38 79h86" />
-        <path d="M45 48l36-18l36 18H45Z" />
-        <path d="M54 51v25M70 51v25M86 51v25M102 51v25" />
-        <path className="ken-visual-accent-line" d="M129 40c12 5 20 13 23 25c-12 6-25 8-39 7" />
-        <circle cx="146" cy="62" r="6" />
-        <path d="M146 56v12M140 62h12" />
+        <path className="ken-visual-panel-shape" d="M35 40h54v35H35zM111 31h43v28h-43zM116 76h39v21h-39z" />
+        <path d="M89 57h22M70 75l46 11M62 40l49 5" />
+        <circle cx="62" cy="58" r="7" />
+        <circle cx="133" cy="45" r="6" />
+        <circle cx="136" cy="86" r="5" />
+        <path className="ken-visual-accent-line" d="M45 51h28M45 62h20M121 43h22M125 86h22" />
       </g>
     );
   }
 
-  if (slug === "creative-works") {
+  if (slug === "engineering-systems") {
+    return (
+      <g className="ken-visual-domain" stroke={`url(#${gradientId})`}>
+        <path className="ken-visual-panel-shape" d="M38 37h45v31H38zM103 48h54v37h-54z" />
+        <path d="M83 52h20M65 68v22h38M123 48V30h27" />
+        <circle cx="65" cy="90" r="6" />
+        <circle cx="150" cy="30" r="6" />
+        <path className="ken-visual-accent-line" d="M49 49h22M114 61h31M114 73h21" />
+      </g>
+    );
+  }
+
+  if (slug === "safety-evaluation") {
+    return (
+      <g className="ken-visual-domain" stroke={`url(#${gradientId})`}>
+        <path className="ken-visual-panel-shape" d="M48 34l36-12l36 12v27c0 22-14 37-36 45c-22-8-36-23-36-45V34Z" />
+        <path d="M84 34v60M62 55h44M66 72h36" />
+        <path className="ken-visual-accent-line" d="M126 42h30M126 54h22M126 66h27" />
+        <circle cx="149" cy="84" r="10" />
+        <path d="M144 84l3.5 3.8l7.5-8.8" />
+      </g>
+    );
+  }
+
+  if (slug === "frontier-creative") {
     return (
       <g className="ken-visual-domain" stroke={`url(#${gradientId})`}>
         <path className="ken-visual-panel-shape" d="M36 76c17-30 42-43 77-40c-5 32-27 49-66 54" />
@@ -203,19 +232,6 @@ function DomainMotif({ slug, gradientId }: { slug: string; gradientId: string })
         <circle cx="55" cy="47" r="7" />
         <circle cx="72" cy="37" r="4" />
         <path d="M43 85c19-1 34-5 45-13" />
-      </g>
-    );
-  }
-
-  if (slug === "everyday-services") {
-    return (
-      <g className="ken-visual-domain" stroke={`url(#${gradientId})`}>
-        <path className="ken-visual-panel-shape" d="M37 39h42v28H37zM105 59h42v28h-42z" />
-        <path d="M79 53c18-11 29-4 26 20" />
-        <path className="ken-visual-accent-line" d="M48 53h18M116 73h18M58 67v15h44" />
-        <circle cx="58" cy="82" r="5" />
-        <circle cx="103" cy="82" r="5" />
-        <path d="M122 35l10 10l18-20" />
       </g>
     );
   }
@@ -282,7 +298,9 @@ export function KenVisual({
     "--ken-visual-progress": `${Math.round(progress * 100)}%`,
     "--ken-visual-pulse": pulseIntensity.toFixed(2),
   } as CSSProperties;
-  const aria = `${task.title}: ${task.categoryName} ${motifLabel(task.categorySlug)}, ${TIER_LABELS[task.allocatedTier]}, ${STAGE_LABELS[task.stage]}, ${Math.round(progress * 100)} percent checkpoint progress, ${task.sandboxCapitalUsd > 0 ? "sandbox demo data shown" : "no sandbox funding shown"}.`;
+  const aria = task.illustrationUrl && task.illustrationAlt
+    ? `${task.title}: ${task.illustrationAlt}. ${TIER_LABELS[task.allocatedTier]}, ${STAGE_LABELS[task.stage]}, ${Math.round(progress * 100)} percent checkpoint progress.`
+    : `${task.title}: ${task.categoryName} ${motifLabel(task.categorySlug)}, ${TIER_LABELS[task.allocatedTier]}, ${STAGE_LABELS[task.stage]}, ${Math.round(progress * 100)} percent checkpoint progress, ${task.sandboxCapitalUsd > 0 ? "sandbox demo data shown" : "no sandbox funding shown"}.`;
 
   return (
     <div
@@ -291,6 +309,15 @@ export function KenVisual({
       role="img"
       aria-label={aria}
     >
+      {task.illustrationUrl ? (
+        <img
+          className="ken-visual-upload"
+          src={task.illustrationUrl}
+          alt=""
+          aria-hidden="true"
+          loading="lazy"
+        />
+      ) : null}
       <svg viewBox="0 0 220 132" aria-hidden="true" focusable="false">
         <defs>
           <linearGradient id={gradientId} x1="20" y1="16" x2="202" y2="114" gradientUnits="userSpaceOnUse">

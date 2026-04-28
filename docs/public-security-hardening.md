@@ -10,6 +10,9 @@ KenMatch now includes meaningful app-layer hardening, but a public home-network 
 - local/CI-only test authentication in `/api/test-auth/bypass`, disabled by default and unavailable in production or off loopback hosts
 - email verification and forgot-password token expiry in `src/lib/db.ts` and `src/app/actions.ts`
 - SMTP-backed owner/admin notification dispatch in `src/lib/mail.ts`
+- owner-only database SMTP configuration in `/admin` when env SMTP is absent and `KENMATCH_CONFIG_ENCRYPTION_KEY` is set
+- DB-backed maintenance mode with public maintenance page, admin recovery paths, and public-safe health state
+- admin-managed Ken illustration uploads validated by MIME, extension, file size, and basic dimensions; SVG uploads are blocked
 - detailed-vs-public health response split in `src/app/api/health/route.ts`
 - structured request rate limiting in `request_rate_limits`
 - security event logging in `security_events`
@@ -24,7 +27,7 @@ KenMatch now includes meaningful app-layer hardening, but a public home-network 
 4. Use HTTPS only for the public origin.
 5. Set `KENMATCH_PUBLIC_ORIGIN` and `KENMATCH_ALLOWED_HOSTS` exactly.
 6. Set `KENMATCH_HEALTH_TOKEN`.
-7. Set `KENMATCH_VISITOR_HASH_SALT` and SMTP secrets before accepting public signups.
+7. Set `KENMATCH_VISITOR_HASH_SALT`, SMTP secrets, and `KENMATCH_CONFIG_ENCRYPTION_KEY` before accepting public signups that depend on email dispatch.
 8. Run the container as non-root.
 9. Back up the local database and `.env`.
 
@@ -74,7 +77,9 @@ If Stripe is enabled:
 6. sponsor pledge flow works
 7. if enabled, live sponsor checkout completes and the webhook updates the economics page
 8. `/icon.svg`, `/icon-dark.svg`, `/apple-touch-icon.svg`, and `/manifest.webmanifest` return 200
-9. if using Cloudflare Tunnel, the tunnel connector is healthy and the NAS app remains loopback-only
+9. `/about/changelog` renders public release notes
+10. maintenance mode can be enabled and disabled from `/admin` without locking out owner recovery
+11. if using Cloudflare Tunnel, the tunnel connector is healthy and the NAS app remains loopback-only
 
 ## Honest boundary
 

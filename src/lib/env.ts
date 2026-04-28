@@ -53,6 +53,9 @@ const envSchema = z.object({
   KENMATCH_SMTP_SECURE: booleanish.default(true),
   KENMATCH_SMTP_FROM: z.string().default("KenMatch <no-reply@kmat.ch>"),
   KENMATCH_CONFIG_ENCRYPTION_KEY: z.string().optional(),
+  KENMATCH_MAINTENANCE_MODE: z.enum(["off", "on"]).optional(),
+  KENMATCH_MAINTENANCE_MESSAGE: z.string().optional(),
+  KENMATCH_MAINTENANCE_EXPECTED_RETURN: z.string().optional(),
   KENMATCH_VISITOR_HASH_SALT: z.string().optional(),
 });
 

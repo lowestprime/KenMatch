@@ -85,6 +85,10 @@ KENMATCH_SMTP_USER=<smtp-user>
 KENMATCH_SMTP_PASS=<smtp-password-or-app-token>
 KENMATCH_SMTP_SECURE=false
 KENMATCH_SMTP_FROM=KenMatch <no-reply@kmat.ch>
+KENMATCH_CONFIG_ENCRYPTION_KEY=<64-hex-or-long-random-secret>
+KENMATCH_MAINTENANCE_MODE=off
+KENMATCH_MAINTENANCE_MESSAGE=
+KENMATCH_MAINTENANCE_EXPECTED_RETURN=
 KENMATCH_VISITOR_HASH_SALT=<long-random-secret>
 NEXT_PUBLIC_TURNSTILE_SITE_KEY=<optional>
 KENMATCH_TURNSTILE_SECRET_KEY=<optional>
@@ -100,6 +104,8 @@ Guidance:
 - Set `KENMATCH_ALLOWED_HOSTS` to the exact hostname users should reach.
 - Set `KENMATCH_HEALTH_TOKEN` before public deployment, even if your container health check only uses the public-safe response.
 - Set SMTP variables before enabling required email verification or forgot-password flows in production.
+- If SMTP is not set in `.env`, the owner can configure database-backed SMTP from `/admin` only after `KENMATCH_CONFIG_ENCRYPTION_KEY` is present. Environment SMTP values always take priority and cannot be silently overridden by database settings.
+- `KENMATCH_MAINTENANCE_MODE=on` is an emergency override. Routine maintenance can also be toggled from `/admin`; public users see a maintenance page while admin/auth/account recovery routes remain reachable.
 - Set `KENMATCH_VISITOR_HASH_SALT` to a long random value before first public launch; rotating it later resets unique-visitor deduplication.
 - Add Turnstile keys for public signups and sponsor intake.
 - Add Stripe keys only if you want live sponsor checkout.
@@ -263,11 +269,12 @@ After each upgrade:
 
 ### 10.1 What persists across container rebuilds
 
-Everything that gets written by users from the live site (new accounts, Kens, votes, pulse reactions, comments, sponsorship commitments, audit log entries, notifications settings, verification requests, visitor aggregates, profile pictures, About-page edits) lives in a single SQLite database file:
+Everything that gets written by users from the live site (new accounts, Kens, votes, pulse reactions, comments, sponsorship commitments, audit log entries, notifications settings, verification requests, maintenance state, changelog entries, SMTP status, visitor aggregates, profile pictures, Ken illustrations, and About-page edits) lives under the mounted persistent data directory:
 
 - `/volume1/docker/kenmatch/data/kenmatch.sqlite`
+- `/volume1/docker/kenmatch/data/ken-illustrations/` for admin-uploaded Ken images
 
-That path is bind-mounted into the container as `/app/data/kenmatch.sqlite` via the `volumes:` section of both `docker-compose.synology.yml` and `docker-compose.synology.tunnel.yml`. Rebuilding or recreating the container does **not** touch the file, because the container only contains the application runtime; persistent state is stored exclusively under `data/` on the Synology host.
+That directory is bind-mounted into the container as `/app/data` via the `volumes:` section of both `docker-compose.synology.yml` and `docker-compose.synology.tunnel.yml`. Rebuilding or recreating the container does **not** touch it, because the container only contains the application runtime; persistent state is stored exclusively under `data/` on the Synology host.
 
 ### 10.2 Required hot backups
 

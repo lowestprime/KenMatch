@@ -17,20 +17,33 @@ function allowDetailedView(request: Request) {
 }
 
 async function livenessResponse() {
+  let maintenance = false;
+  try {
+    const { getMaintenanceState } = await import("@/lib/db");
+    maintenance = (await getMaintenanceState()).mode === "on";
+  } catch {
+    maintenance = false;
+  }
   return NextResponse.json(
-    { ok: true, probe: "liveness", checkedAt: new Date().toISOString() },
+    {
+      ok: true,
+      probe: "liveness",
+      maintenance,
+      checkedAt: new Date().toISOString(),
+    },
     { status: 200 },
   );
 }
 
 async function readinessResponse(request: Request, detailed: boolean) {
   try {
-    const { getHealthSummary } = await import("@/lib/db");
+    const { getHealthSummary, getMaintenanceState } = await import("@/lib/db");
     const summary = await getHealthSummary();
+    const maintenance = await getMaintenanceState();
     const status = summary.ok ? 200 : 503;
 
     if (detailed) {
-      return NextResponse.json({ probe: "readiness", ...summary }, { status });
+      return NextResponse.json({ probe: "readiness", ...summary, maintenance: maintenance.mode === "on" }, { status });
     }
 
     return NextResponse.json(
@@ -38,6 +51,7 @@ async function readinessResponse(request: Request, detailed: boolean) {
         probe: "readiness",
         ok: summary.ok,
         databaseMode: summary.databaseMode,
+        maintenance: maintenance.mode === "on",
         checkedAt: summary.checkedAt,
       },
       { status },

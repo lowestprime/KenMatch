@@ -1,8 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { Manrope, Space_Grotesk, JetBrains_Mono } from "next/font/google";
+import { headers } from "next/headers";
 
+import { MaintenanceScreen } from "@/components/maintenance-screen";
 import { SiteShell } from "@/components/site-shell";
 import { canonicalOrigin, env } from "@/lib/env";
+import { getMaintenanceState } from "@/lib/db";
 import { getViewerSession } from "@/lib/session";
 import "@/app/globals.css";
 
@@ -93,7 +96,22 @@ export const viewport: Viewport = {
 export const dynamic = "force-dynamic";
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const viewer = await getViewerSession();
+  const [viewer, maintenance, headerStore] = await Promise.all([
+    getViewerSession(),
+    getMaintenanceState(),
+    headers(),
+  ]);
+  const pathname = headerStore.get("x-kenmatch-pathname") ?? "/";
+  const isRecoveryPath =
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/account") ||
+    pathname.startsWith("/auth") ||
+    pathname.startsWith("/forgot-password") ||
+    pathname.startsWith("/reset") ||
+    pathname.startsWith("/verify") ||
+    pathname.startsWith("/api/test-auth");
+  const isAdminViewer = viewer && ["owner", "admin", "moderator"].includes(viewer.account.systemRole);
+  const showMaintenance = maintenance.mode === "on" && !isRecoveryPath && !isAdminViewer;
 
   return (
     <html lang="en" data-scroll-behavior="smooth" data-theme="oled" style={{ colorScheme: "dark" }} suppressHydrationWarning>
@@ -106,7 +124,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       </head>
       <body className={`${bodyFont.variable} ${displayFont.variable} ${monoFont.variable} font-body antialiased`}>
         <SiteShell viewer={viewer}>
-          {children}
+          {showMaintenance ? <MaintenanceScreen state={maintenance} /> : children}
         </SiteShell>
       </body>
     </html>

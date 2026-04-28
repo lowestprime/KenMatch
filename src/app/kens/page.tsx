@@ -32,7 +32,7 @@ export default async function KensPage({ searchParams }: KensPageProps) {
   const { tasks, categories, viewer } = await getMarketplaceData(viewerProfileId, { query, category, tier, stage, sort });
   const activeCount = tasks.filter((task) => task.stage === "running" || task.stage === "scheduled").length;
   const sandboxCount = tasks.filter((task) => task.sandboxCapitalUsd > 0).length;
-  const creativeCount = tasks.filter((task) => task.categorySlug === "creative-works").length;
+  const shippedCount = tasks.filter((task) => task.stage === "shipped").length;
   const upcoming = tasks.filter((task) => task.stage === "voting" || task.stage === "scheduled").slice(0, 4);
 
   return (
@@ -46,7 +46,7 @@ export default async function KensPage({ searchParams }: KensPageProps) {
         <div className="metric-grid">
           <div className="metric-card"><div className="eyebrow">Active</div><div className="metric-value">{activeCount}</div></div>
           <div className="metric-card"><div className="eyebrow">With demos</div><div className="metric-value">{sandboxCount}</div></div>
-          <div className="metric-card"><div className="eyebrow">Creative</div><div className="metric-value">{creativeCount}</div></div>
+          <div className="metric-card"><div className="eyebrow">Partial/shipped</div><div className="metric-value">{shippedCount}</div></div>
         </div>
         <div className="rounded-[1.35rem] border border-border bg-background/55 p-5 text-sm leading-7 text-muted">
           {viewer ? `Signed in as ${viewer.name}. Pulse votes are fast; allocation credits are intentionally harder to concentrate.` : "You can read every Ken without an account. Signing in unlocks pulse votes, comments, allocation credits, and Ken submission."}
@@ -89,7 +89,7 @@ export default async function KensPage({ searchParams }: KensPageProps) {
             <div className="eyebrow">For potential backers</div>
             <div className="space-y-3 text-sm leading-7 text-muted">
               <p>Backers can fund a category, a Ken, or the safety reserve. They do not buy rank, release approvals, or extra voice.</p>
-              <p>Good sponsorship fits are concrete: reproducible lab maps, safer dependency releases, archive tools, clinical workflow drafts, or public-service monitors.</p>
+              <p>Good sponsorship fits are concrete: reproducible lab maps, dependency safety plans, evaluation harnesses, protocol scouts, and auditable engineering design work.</p>
             </div>
           </div>
 

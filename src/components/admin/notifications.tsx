@@ -4,26 +4,27 @@ import { useActionState } from "react";
 
 import { initialActionState } from "@/app/action-state";
 import { updateNotificationSettingsAction } from "@/app/actions";
-import type { AdminNotificationSettings } from "@/lib/types";
+import type { AdminNotificationSettings, AdminSmtpSettings } from "@/lib/types";
 
 export function AdminNotifications({
   settings,
-  smtpConfigured,
+  smtp,
 }: {
   settings: AdminNotificationSettings;
-  smtpConfigured: boolean;
+  smtp: AdminSmtpSettings;
 }) {
   const [state, formAction, pending] = useActionState(updateNotificationSettingsAction, initialActionState);
+  const dispatchEnabled = smtp.source !== "none";
   return (
     <form action={formAction} className="form-grid">
       <div className="admin-hint">
         <strong>Dispatch scope.</strong> These settings control server-side email alerts. First-visit alerts fire once per salted visitor hash, while signups, verification requests, and Ken submissions are always audit logged even if email is disabled.
       </div>
-      <div className={`admin-hint ${smtpConfigured ? "alert-success" : "alert-warn"}`}>
-        <strong>{smtpConfigured ? "SMTP enabled." : "SMTP not configured."}</strong>{" "}
-        {smtpConfigured
-          ? "Saved recipients will receive server-side alerts when the enabled events occur."
-          : "Preferences are persisted and events remain audit-logged, but outbound email dispatch is skipped until KENMATCH_SMTP_* environment variables are configured."}
+      <div className={`admin-hint ${dispatchEnabled ? "alert-success" : "alert-warn"}`}>
+        <strong>{dispatchEnabled ? `SMTP enabled from ${smtp.source}.` : "SMTP not configured."}</strong>{" "}
+        {dispatchEnabled
+          ? "Saved recipients will receive server-side alerts when enabled events occur. Audit logging remains separate from email delivery."
+          : "Preferences are persisted and events remain audit-logged, but outbound email dispatch is skipped until environment SMTP or encrypted database SMTP is configured."}
       </div>
       <label className="field-label">
         <span>Recipient emails (comma or newline separated)</span>

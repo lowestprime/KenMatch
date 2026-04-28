@@ -1,5 +1,9 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
+import { mkdir, unlink, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -25,10 +29,15 @@ import {
   findAccountByIdExported,
   getAboutPageContent,
   getAdminNotificationSettings,
+  getAdminSmtpSettings,
+  getMaintenanceState,
   logSecurityEvent,
   markEmailVerified,
   markVisitorAccountCreated,
+  publicWritesOpen,
   recordAudit,
+  removeTaskIllustration,
+  recordAdminSmtpTest,
   requestVerification,
   resolveSponsorRestrictionTarget,
   saveCommentVote,
@@ -38,7 +47,11 @@ import {
   setAboutPageContent,
   setAccountRole,
   setAdminNotificationSettings,
+  setAdminSmtpSettings,
+  setMaintenanceState,
   suspendProfile,
+  upsertChangelogEntry,
+  upsertTaskIllustration,
   updateAccountLastLogin,
   updateAccountPassword,
   updateProfileDetails,
@@ -51,7 +64,9 @@ import {
   buildVerificationEmail,
   buildVerificationRequestEmail,
   sendMail,
+  sendSmtpTestMail,
 } from "@/lib/mail";
+import { validateKenIllustration } from "@/lib/illustrations";
 import { guardMutationRequest, turnstileConfigured } from "@/lib/security";
 import {
   clearViewerSessionCookie,
@@ -61,7 +76,7 @@ import {
   setViewerSessionCookie,
 } from "@/lib/session";
 import { getStripeClient, stripeEnabled } from "@/lib/stripe";
-import type { AboutPageContent, ProfileLink, SearchResultItem, SponsorType } from "@/lib/types";
+import type { AboutPageContent, ChangelogType, ProfileLink, SearchResultItem, SponsorType } from "@/lib/types";
 import { extractVisitorContext } from "@/lib/visitor";
 
 const proposalSchema = z.object({
@@ -188,6 +203,36 @@ const sponsorSchema = z.object({
   mode: z.enum(["simulated", "pledged", "live"]),
 });
 
+const maintenanceSchema = z.object({
+  mode: z.enum(["off", "on"]),
+  message: z.string().min(12, "Maintenance message should explain the pause.").max(600),
+  expectedReturn: z.string().max(160).optional(),
+});
+
+const changelogSchema = z.object({
+  id: z.string().max(80).optional(),
+  entryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD."),
+  title: z.string().min(4).max(140),
+  entryType: z.enum(["launch", "feature", "data", "security", "operations"] satisfies [ChangelogType, ...ChangelogType[]]),
+  summary: z.string().min(12).max(500),
+  details: z.string().max(4000).optional(),
+  visible: z.string().optional(),
+});
+
+const smtpSettingsSchema = z.object({
+  host: z.string().max(255),
+  port: z.coerce.number().int().min(1).max(65535),
+  secure: z.string().optional(),
+  username: z.string().max(255),
+  from: z.string().min(3).max(255),
+  password: z.string().max(500).optional(),
+  clearPassword: z.string().optional(),
+});
+
+const smtpTestSchema = z.object({
+  recipient: z.string().email("Enter a valid test recipient."),
+});
+
 function splitLines(input: string) {
   return input.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
 }
@@ -209,6 +254,12 @@ async function requireViewerProfileId() {
     throw new Error("Sign in to vote, comment, or submit a Ken.");
   }
   return profileId;
+}
+
+async function assertPublicWritesOpen() {
+  if (!(await publicWritesOpen())) {
+    throw new Error("KenMatch is in maintenance mode. Public writes are paused, but accounts and existing data remain intact.");
+  }
 }
 
 async function requireAdminSession() {
@@ -339,6 +390,7 @@ export async function signUpAction(_: ActionState, formData: FormData): Promise<
 
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   try {
+    await assertPublicWritesOpen();
     await guardMutationRequest({
       action: "sign-up",
       formData,
@@ -578,6 +630,7 @@ export async function resendVerificationAction(_: ActionState, formData: FormDat
 export async function updateProfileAction(_: ActionState, formData: FormData): Promise<ActionState> {
   let profileId: string;
   try {
+    await assertPublicWritesOpen();
     profileId = await requireViewerProfileId();
     await guardMutationRequest({
       action: "update-profile",
@@ -631,6 +684,7 @@ export async function updateProfileAction(_: ActionState, formData: FormData): P
 export async function requestVerificationAction(_: ActionState, formData: FormData): Promise<ActionState> {
   let profileId: string;
   try {
+    await assertPublicWritesOpen();
     profileId = await requireViewerProfileId();
     await guardMutationRequest({
       action: "request-verification",
@@ -679,6 +733,7 @@ export async function requestVerificationAction(_: ActionState, formData: FormDa
 export async function toggleBookmarkAction(_: ActionState, formData: FormData): Promise<ActionState> {
   let profileId: string;
   try {
+    await assertPublicWritesOpen();
     profileId = await requireViewerProfileId();
     await guardMutationRequest({
       action: "toggle-bookmark",
@@ -707,6 +762,7 @@ export async function toggleBookmarkAction(_: ActionState, formData: FormData): 
 export async function createProposalAction(_: ActionState, formData: FormData): Promise<ActionState> {
   let profileId: string;
   try {
+    await assertPublicWritesOpen();
     profileId = await requireViewerProfileId();
     await guardMutationRequest({
       action: "create-proposal",
@@ -763,6 +819,7 @@ export async function createProposalAction(_: ActionState, formData: FormData): 
 export async function createCategoryProposalAction(_: ActionState, formData: FormData): Promise<ActionState> {
   let profileId: string;
   try {
+    await assertPublicWritesOpen();
     profileId = await requireViewerProfileId();
     await guardMutationRequest({
       action: "create-category-proposal",
@@ -807,6 +864,7 @@ export async function createCategoryProposalAction(_: ActionState, formData: For
 export async function saveVoteAction(_: ActionState, formData: FormData): Promise<ActionState> {
   let profileId: string;
   try {
+    await assertPublicWritesOpen();
     profileId = await requireViewerProfileId();
     await guardMutationRequest({
       action: "save-vote",
@@ -839,6 +897,7 @@ export async function saveVoteAction(_: ActionState, formData: FormData): Promis
 export async function saveTaskPulseAction(_: ActionState, formData: FormData): Promise<ActionState> {
   let profileId: string;
   try {
+    await assertPublicWritesOpen();
     profileId = await requireViewerProfileId();
     await guardMutationRequest({
       action: "save-pulse",
@@ -876,6 +935,7 @@ export async function saveTaskPulseAction(_: ActionState, formData: FormData): P
 export async function createCommentAction(_: ActionState, formData: FormData): Promise<ActionState> {
   let profileId: string;
   try {
+    await assertPublicWritesOpen();
     profileId = await requireViewerProfileId();
     await guardMutationRequest({
       action: "create-comment",
@@ -943,6 +1003,7 @@ export async function saveCommentVoteAction(_: ActionState, formData: FormData):
 
 export async function createSponsorshipCommitmentAction(_: ActionState, formData: FormData): Promise<ActionState> {
   try {
+    await assertPublicWritesOpen();
     await guardMutationRequest({
       action: "create-sponsorship",
       formData,
@@ -1140,6 +1201,227 @@ export async function updateNotificationSettingsAction(_: ActionState, formData:
 
   revalidateCorePaths();
   return { status: "success", message: "Notification preferences saved." };
+}
+
+export async function updateMaintenanceAction(_: ActionState, formData: FormData): Promise<ActionState> {
+  let session: Awaited<ReturnType<typeof requireAdminSession>>;
+  try {
+    session = await requireAdminSession();
+    await guardMutationRequest({
+      action: "update-maintenance",
+      actorId: session.account.id,
+      formData,
+      rateLimit: { scope: "update-maintenance", limit: 12, windowSeconds: 60 * 60 },
+    });
+  } catch (error) {
+    return { status: "error", message: actionErrorMessage(error, "Unable to update maintenance mode.") };
+  }
+
+  const parsed = maintenanceSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) {
+    return { status: "error", message: "Maintenance settings need a valid mode and message.", fieldErrors: flattenFieldErrors(parsed.error) };
+  }
+  try {
+    await setMaintenanceState({
+      mode: parsed.data.mode,
+      message: parsed.data.message,
+      expectedReturn: parsed.data.expectedReturn?.trim() ?? "",
+    }, session.account.id);
+    await recordAudit({
+      accountId: session.account.id,
+      action: "admin.maintenance",
+      detail: `Maintenance mode set to ${parsed.data.mode}.`,
+    });
+  } catch (error) {
+    return { status: "error", message: actionErrorMessage(error, "Unable to update maintenance mode.") };
+  }
+
+  revalidateCorePaths();
+  return { status: "success", message: parsed.data.mode === "on" ? "Maintenance mode enabled." : "Maintenance mode disabled." };
+}
+
+export async function updateSmtpSettingsAction(_: ActionState, formData: FormData): Promise<ActionState> {
+  let session: Awaited<ReturnType<typeof requireOwnerSession>>;
+  try {
+    session = await requireOwnerSession();
+    await guardMutationRequest({
+      action: "update-smtp",
+      actorId: session.account.id,
+      formData,
+      rateLimit: { scope: "update-smtp", limit: 8, windowSeconds: 60 * 60 },
+    });
+  } catch (error) {
+    return { status: "error", message: actionErrorMessage(error, "Unable to save SMTP settings.") };
+  }
+  const parsed = smtpSettingsSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) {
+    return { status: "error", message: "SMTP settings need valid host, port, sender, and username.", fieldErrors: flattenFieldErrors(parsed.error) };
+  }
+  try {
+    await setAdminSmtpSettings({
+      host: parsed.data.host,
+      port: parsed.data.port,
+      secure: parsed.data.secure === "on",
+      username: parsed.data.username,
+      from: parsed.data.from,
+      password: parsed.data.password,
+      clearPassword: parsed.data.clearPassword === "on",
+    }, session.account.id);
+    await recordAudit({
+      accountId: session.account.id,
+      action: "admin.smtp-updated",
+      detail: "SMTP settings updated. Password value was not logged.",
+    });
+  } catch (error) {
+    return { status: "error", message: actionErrorMessage(error, "Unable to save SMTP settings.") };
+  }
+  revalidatePath("/admin");
+  return { status: "success", message: "SMTP settings saved." };
+}
+
+export async function sendSmtpTestAction(_: ActionState, formData: FormData): Promise<ActionState> {
+  let session: Awaited<ReturnType<typeof requireOwnerSession>>;
+  try {
+    session = await requireOwnerSession();
+    await guardMutationRequest({
+      action: "test-smtp",
+      actorId: session.account.id,
+      formData,
+      rateLimit: { scope: "test-smtp", limit: 4, windowSeconds: 60 * 60 },
+    });
+  } catch (error) {
+    return { status: "error", message: actionErrorMessage(error, "Unable to send SMTP test.") };
+  }
+  const parsed = smtpTestSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) {
+    return { status: "error", message: "Enter a valid test recipient.", fieldErrors: flattenFieldErrors(parsed.error) };
+  }
+  const result = await sendSmtpTestMail({ to: parsed.data.recipient, actorId: session.account.id });
+  await recordAudit({
+    accountId: session.account.id,
+    action: "admin.smtp-test",
+    detail: result.ok ? "SMTP test accepted by the configured provider." : "SMTP test failed.",
+  });
+  revalidatePath("/admin");
+  return result.ok
+    ? { status: "success", message: "SMTP test accepted by the configured provider." }
+    : { status: "error", message: result.error ?? "SMTP test failed." };
+}
+
+export async function upsertChangelogEntryAction(_: ActionState, formData: FormData): Promise<ActionState> {
+  let session: Awaited<ReturnType<typeof requireAdminSession>>;
+  try {
+    session = await requireAdminSession();
+  } catch (error) {
+    return { status: "error", message: actionErrorMessage(error, "Unable to update changelog.") };
+  }
+  const parsed = changelogSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) {
+    return { status: "error", message: "Changelog entry needs a date, title, type, and summary.", fieldErrors: flattenFieldErrors(parsed.error) };
+  }
+  try {
+    await upsertChangelogEntry({
+      id: parsed.data.id?.trim() || parsed.data.title,
+      entryDate: parsed.data.entryDate,
+      title: parsed.data.title,
+      entryType: parsed.data.entryType,
+      summary: parsed.data.summary,
+      details: parsed.data.details?.trim() ?? "",
+      visible: parsed.data.visible === "on",
+    }, session.account.id);
+    await recordAudit({
+      accountId: session.account.id,
+      action: "admin.changelog-updated",
+      detail: `Changelog entry updated: ${parsed.data.title}`,
+    });
+  } catch (error) {
+    return { status: "error", message: actionErrorMessage(error, "Unable to update changelog.") };
+  }
+  revalidatePath("/about");
+  revalidatePath("/about/changelog");
+  revalidatePath("/changelog");
+  revalidatePath("/admin");
+  return { status: "success", message: "Changelog entry saved." };
+}
+
+export async function uploadTaskIllustrationAction(_: ActionState, formData: FormData): Promise<ActionState> {
+  let session: Awaited<ReturnType<typeof requireAdminSession>>;
+  try {
+    session = await requireAdminSession();
+  } catch (error) {
+    return { status: "error", message: actionErrorMessage(error, "Unable to upload illustration.") };
+  }
+  const taskId = String(formData.get("taskId") ?? "").trim();
+  const altText = String(formData.get("altText") ?? "").trim();
+  const file = formData.get("illustration");
+  if (!taskId || !altText || !(file instanceof File) || file.size <= 0) {
+    return { status: "error", message: "Choose a Ken, upload an image, and provide alt text." };
+  }
+  try {
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const validation = validateKenIllustration({
+      filename: file.name,
+      mimeType: file.type,
+      sizeBytes: file.size,
+      bytes,
+    });
+    if (!validation.ok) {
+      return { status: "error", message: validation.error };
+    }
+    const directory = join(process.cwd(), "data", "ken-illustrations");
+    await mkdir(directory, { recursive: true });
+    const filename = `${taskId}-${randomUUID()}.${validation.extension}`;
+    const storagePath = join(directory, filename);
+    await writeFile(storagePath, bytes);
+    await upsertTaskIllustration({
+      taskId,
+      source: "uploaded",
+      url: `/api/ken-illustrations/${filename}`,
+      altText,
+      mimeType: validation.mimeType,
+      sizeBytes: file.size,
+      width: validation.width,
+      height: validation.height,
+      storagePath,
+    }, session.account.id);
+    await recordAudit({
+      accountId: session.account.id,
+      action: "admin.ken-illustration-uploaded",
+      detail: `Illustration updated for ${taskId}.`,
+      metadata: { mimeType: validation.mimeType, sizeBytes: file.size },
+    });
+  } catch (error) {
+    return { status: "error", message: actionErrorMessage(error, "Unable to upload illustration.") };
+  }
+  revalidateCorePaths();
+  return { status: "success", message: "Ken illustration uploaded." };
+}
+
+export async function removeTaskIllustrationAction(_: ActionState, formData: FormData): Promise<ActionState> {
+  let session: Awaited<ReturnType<typeof requireAdminSession>>;
+  try {
+    session = await requireAdminSession();
+  } catch (error) {
+    return { status: "error", message: actionErrorMessage(error, "Unable to remove illustration.") };
+  }
+  const taskId = String(formData.get("taskId") ?? "").trim();
+  const storagePath = String(formData.get("storagePath") ?? "").trim();
+  if (!taskId) return { status: "error", message: "Choose a Ken illustration to remove." };
+  try {
+    if (storagePath && storagePath.startsWith(join(process.cwd(), "data", "ken-illustrations"))) {
+      await unlink(storagePath).catch(() => undefined);
+    }
+    await removeTaskIllustration(taskId);
+    await recordAudit({
+      accountId: session.account.id,
+      action: "admin.ken-illustration-removed",
+      detail: `Illustration removed for ${taskId}.`,
+    });
+  } catch (error) {
+    return { status: "error", message: actionErrorMessage(error, "Unable to remove illustration.") };
+  }
+  revalidateCorePaths();
+  return { status: "success", message: "Ken illustration removed; deterministic visual fallback is active." };
 }
 
 export async function verifyProfileDecisionAction(_: ActionState, formData: FormData): Promise<ActionState> {

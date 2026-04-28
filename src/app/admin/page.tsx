@@ -5,11 +5,16 @@ import { AdminAccounts } from "@/components/admin/accounts";
 import { AdminAuditFeed } from "@/components/admin/audit-feed";
 import { AdminCategoryProposals } from "@/components/admin/category-proposals";
 import { AdminNotifications } from "@/components/admin/notifications";
+import {
+  AdminChangelogPanel,
+  AdminIllustrationPanel,
+  AdminMaintenancePanel,
+  AdminSmtpPanel,
+} from "@/components/admin/operations";
 import { AdminVerifications } from "@/components/admin/verifications";
 import { AdminVisitors } from "@/components/admin/visitors";
 import { VisitorMap } from "@/components/visitor-map";
 import { getAdminDashboard, getAdminNotificationSettings } from "@/lib/db";
-import { smtpConfigured } from "@/lib/env";
 import { getViewerSession } from "@/lib/session";
 
 export const metadata = { title: "Admin" };
@@ -45,6 +50,7 @@ export default async function AdminPage() {
           <span>· {dashboard.pendingVerifications.length} pending verifications</span>
           <span>· {dashboard.categoryProposals.filter((item) => item.reviewStatus === "pending").length} category proposals</span>
           <span>· {dashboard.visitors.length} unique visitors (last 500)</span>
+          <span>· maintenance {dashboard.maintenance.mode}</span>
         </div>
       </section>
 
@@ -54,14 +60,48 @@ export default async function AdminPage() {
           <p style={{ color: "var(--muted)" }}>
             Approximate country-level traffic from Cloudflare geolocation headers. Visitor IDs are salted hashes; the map is for operating awareness, not personal tracking.
           </p>
-          <VisitorMap aggregates={dashboard.countryAggregates} />
+          <VisitorMap aggregates={dashboard.countryAggregates} stats={dashboard.visitorStats} />
         </div>
         <div className="panel grid gap-3">
           <h2>Notifications</h2>
           <p style={{ color: "var(--muted)" }}>
             Send email alerts when new accounts are created, new visitors arrive, verifications are requested, or Kens are submitted.
           </p>
-          <AdminNotifications settings={notifications} smtpConfigured={smtpConfigured} />
+          <AdminNotifications settings={notifications} smtp={dashboard.smtp} />
+        </div>
+      </section>
+
+      <section className="section-grid" data-columns="2">
+        <div className="panel grid gap-3">
+          <h2>Maintenance mode</h2>
+          <p style={{ color: "var(--muted)" }}>
+            Pause public writes and show a clean public maintenance page while keeping admin recovery, auth, health, and assets reachable.
+          </p>
+          <AdminMaintenancePanel maintenance={dashboard.maintenance} />
+        </div>
+        <div className="panel grid gap-3">
+          <h2>SMTP configuration</h2>
+          <p style={{ color: "var(--muted)" }}>
+            Environment SMTP remains authoritative. Owner-managed database SMTP is available only when env SMTP is absent and secrets can be encrypted at rest.
+          </p>
+          <AdminSmtpPanel smtp={dashboard.smtp} isOwner={isOwner} />
+        </div>
+      </section>
+
+      <section className="section-grid" data-columns="2">
+        <div className="panel grid gap-3">
+          <h2>Changelog</h2>
+          <p style={{ color: "var(--muted)" }}>
+            Publish compact release notes so public users can tell what changed without reading commits or deployment logs.
+          </p>
+          <AdminChangelogPanel entries={dashboard.changelog} />
+        </div>
+        <div className="panel grid gap-3">
+          <h2>Ken illustrations</h2>
+          <p style={{ color: "var(--muted)" }}>
+            Admin-uploaded Ken images are optional and persist in the data volume. Every card still has a deterministic fallback visual.
+          </p>
+          <AdminIllustrationPanel tasks={dashboard.tasks} illustrations={dashboard.illustrations} />
         </div>
       </section>
 
@@ -102,7 +142,7 @@ export default async function AdminPage() {
       <section className="section-grid" data-columns="2">
         <div className="panel grid gap-3">
           <h2>Unique visitors</h2>
-          <AdminVisitors visitors={dashboard.visitors.slice(0, 40)} />
+          <AdminVisitors visitors={dashboard.visitors.slice(0, 80)} stats={dashboard.visitorStats} />
         </div>
         <div className="panel grid gap-3">
           <h2>Audit log</h2>

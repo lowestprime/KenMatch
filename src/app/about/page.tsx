@@ -33,6 +33,9 @@ export default async function AboutPage() {
           <a className="cta-primary" href={`mailto:${about.contactEmail}`}>
             Contact the creator
           </a>
+          <Link className="cta-secondary" href="/about/changelog">
+            Read the changelog
+          </Link>
           {about.links.slice(0, 3).map((link) => (
             <a
               key={link.url}

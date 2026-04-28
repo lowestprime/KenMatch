@@ -13,13 +13,13 @@
   <a href="https://deepwiki.com/lowestprime/KenMatch"><img src="https://badgen.net/badge/KenMatch/DeepWiki/800000?labelColor=000000&icon=https%3A%2F%2Fwww.freelogovectors.net%2Fsvg18%2Fdevin-logo-icon-freeloogvectors.net.svg" alt="KenMatch DeepWiki"></a>
 </h1>
 
-KenMatch is a public board for proposing, ranking, funding, launching, and auditing long-running AI work. Each unit of work is called a ***Ken***. A Ken can be an open tool, a civic workflow, a scientific evidence map, a repair assistant, or a creative service that benefits from sustained compute, checkpoints, public feedback, and visible funding.
+KenMatch is a public board for proposing, ranking, funding, launching, and auditing long-running AI work. Each unit of work is called a ***Ken***. A Ken can be a scientific mechanism atlas, reproducibility scout, evaluation harness, open developer tool, engineering tradeoff explorer, or other bounded deliverable that benefits from sustained compute, checkpoints, public feedback, and visible funding.
 
 ## 🎯 Mission and Background
 
 KenMatch is built around a simple idea: everyone should have a public, legible opportunity to decide which long-horizon Kens receive time, review, and funding, ***without*** relying on wealth as the allocator.
 
-As frontier models evolve from short, single-turn assistants into long-context, tool-using systems, the “few queries” standard is becoming less representative of the work people want to run. The opportunity to participate in long-horizon AI effort for public challenges, services, research, and creative work can still be constrained by capital and access. KenMatch makes that allocation problem visible: public signal, scarce voice, funding context, checkpoint gates, and audit records are separated so a useful Ken can earn priority without pretending the demo is live provider execution.
+As frontier models evolve from short, single-turn assistants into long-context, tool-using systems, the “few queries” standard is becoming less representative of the work people want to run. The opportunity to participate in long-horizon AI effort for research, software, evaluation, engineering, and public-benefit outputs can still be constrained by capital and access. KenMatch makes that allocation problem visible: public signal, scarce voice, funding context, checkpoint gates, and audit records are separated so a useful Ken can earn priority without pretending the demo is live provider execution.
 
 ## 💡 Concept
 
@@ -61,7 +61,7 @@ KenMatch centralizes the proposal, refinement, and prioritization of long-horizo
 
 1. Deep scientific and technical research that benefits from iterative investigation and synthesis.
 2. Complex software development and maintenance.
-3. Public-interest analysis and tooling.
+3. Evaluation, reproducibility, safety, and benchmark infrastructure.
 4. Other high-leverage work whose results can be validated, reused, and compounded.
 
 The platform is designed for tasks that are naturally multi-stage, requiring:
@@ -146,7 +146,7 @@ This stance reflects widely adopted principles for AI alignment, including risk 
 
 ## 🌌 Vision
 
-KenMatch is a public queue for work that benefits from sustained frontier-compute runs, visible checkpoints, and human review. A Ken can be a scientific evidence map, a reproducibility scout, a defensive software regression watch, a public-records review workflow, an archive tool, or another bounded project where one quick prompt is not enough.
+KenMatch is a public queue for work that benefits from sustained frontier-compute runs, visible checkpoints, and human review. A Ken can be a scientific evidence map, a reproducibility scout, a defensive software regression reproducer, a benchmark harness, an engineering tradeoff explorer, an educational simulation tool, or another bounded project where one quick prompt is not enough.
 
 The allocation problem is practical: compute, review time, and operational attention are scarce, while useful ideas often come from people or groups that cannot simply buy long-running access. KenMatch separates funding from rank. Public pulse votes make interest visible, allocation credits make scarce prioritization harder to concentrate, and checkpoints keep releases auditable before more runtime is spent.
 
@@ -160,6 +160,8 @@ The allocation problem is practical: compute, review time, and operational atten
 - Economics surface for supported service packaging, screened evaluation licensing, compute routing, private execution lanes, sponsorship routing, treasury entries, and the 80/20 public reporting split.
 - Structured sponsor commitments with projected, simulated, and committed funding states plus optional Stripe Checkout for live sponsor intake.
 - Sandbox-backed demo Kens with clearly disclosed simulated capital, current API-accessible model lineups, API spend, pilot-user counts, and sample outcomes shown directly in the UI.
+- Deterministic Ken/category/status visuals plus optional admin-managed Ken illustrations stored in the persisted data volume. Uploaded illustrations are validated server-side; SVG uploads are blocked.
+- Owner-controlled maintenance mode, public changelog, admin SMTP configuration/status, visitor summaries, and filtered audit log views.
 - Two theme modes (`Light` and true-black `OLED`), rich motion, compact responsive navigation, strong visual hierarchy, and preview-safe KenMatch favicon/social-image assets.
 - Public board at `/kens` with search, category, lane, and status filters.
 - Real account creation and persistent signed-in accounts.
@@ -208,6 +210,8 @@ Copy `.env.example` and set values as needed.
 - `KENMATCH_ADMIN_EMAILS`: comma-separated admin account emails.
 - `KENMATCH_NOTIFICATION_EMAILS`: comma-separated alert recipients for signup, visitor, verification, and Ken events.
 - `KENMATCH_SMTP_HOST` / `KENMATCH_SMTP_PORT` / `KENMATCH_SMTP_USER` / `KENMATCH_SMTP_PASS` / `KENMATCH_SMTP_SECURE` / `KENMATCH_SMTP_FROM`: SMTP settings for verification, reset, and admin notification email dispatch.
+- `KENMATCH_CONFIG_ENCRYPTION_KEY`: stable server-side encryption key required before owner-managed SMTP passwords can be stored from `/admin`. Environment SMTP values always take priority.
+- `KENMATCH_MAINTENANCE_MODE` / `KENMATCH_MAINTENANCE_MESSAGE` / `KENMATCH_MAINTENANCE_EXPECTED_RETURN`: emergency maintenance override. Admins can also control database-backed maintenance mode from `/admin`.
 - `KENMATCH_VISITOR_HASH_SALT`: server-only salt for unique visitor deduplication.
 - `KENMATCH_HEALTH_TOKEN`: token for detailed health responses.
 - `KENMATCH_TREASURY_TARGET_MONTHS`: reserve target used by the economics view.
@@ -255,6 +259,7 @@ KenMatch ships with a standalone Next.js build configuration and a Docker image 
 - `/people/[slug]` linked public profile surface for contributors referenced from Kens, comments, and account cards
 - `/verification` public identity and participation guidance
 - `/about` owner-editable About / Contact page
+- `/about/changelog` public changelog
 - `/admin` owner/admin/moderator operations portal
 
 Legacy `/tasks` routes now redirect to `/kens` routes.
@@ -265,6 +270,7 @@ Legacy `/tasks` routes now redirect to `/kens` routes.
 - `src/components` public UI, timing display, voting, comments, sponsor intake, auth, and shell
 - `src/lib/attestation.ts` participation policy derived from attestation state
 - `src/lib/db.ts` database schema, seeding, hydration, account persistence, funding ledger, rate limits, and write flows
+- `src/lib/illustrations.ts` upload validation for admin-managed Ken illustrations
 - `src/lib/security.ts` form hardening, origin checks, rate-limit integration, and Turnstile verification
 - `src/lib/stripe.ts` optional hosted sponsor checkout wiring
 - `src/lib/seed.ts` and `src/lib/seed-plus.ts` realistic demo data

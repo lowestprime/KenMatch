@@ -27,9 +27,9 @@ Allowed statuses:
 ## Active task
 - Task title: KenMatch public-release hardening, modernization, and full-functionality completion
 - Requested by: direct longform implementation prompt (public release at https://kmat.ch)
-- Status: DONE (pending container redeploy on Synology NAS to propagate route-backed favicon/manifest handlers and latest copy/data updates)
+- Status: IN PROGRESS (2026-04-28 launch-readiness continuation: maintenance, changelog, SMTP config, Ken illustration persistence, admin summaries, and seed-board replacement)
 - Owner: Codex
-- Last updated: 2026-04-21
+- Last updated: 2026-04-28
 
 ## Goal
 Bring KenMatch to the highest realistic public-release state achievable from this repository by:

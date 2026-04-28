@@ -99,7 +99,9 @@ export function middleware(request: NextRequest) {
   const httpsRedirect = redirectToCanonicalHttps(request, host);
   if (httpsRedirect) return httpsRedirect;
 
-  const response = applySecurityHeaders(NextResponse.next());
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-kenmatch-pathname", path);
+  const response = applySecurityHeaders(NextResponse.next({ request: { headers: requestHeaders } }));
   if (path.startsWith("/api/")) {
     response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
   }

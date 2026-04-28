@@ -26,7 +26,7 @@ import {
   } from "@/lib/allocation";
 import { summarizeEconomics,
   summarizeRevenueStream } from "@/lib/economics";
-import { env, isAdminEmail, isOwnerEmail, canonicalOrigin, notificationEmails, ownerEmail } from "@/lib/env";
+import { env, isAdminEmail, isOwnerEmail, canonicalOrigin, notificationEmails, ownerEmail, smtpConfigured } from "@/lib/env";
 import {
   seedCategories,
   seedCheckpoints,
@@ -102,6 +102,7 @@ import type {
   VoteRecord,
 } from "@/lib/types";
 import { DEFAULT_ABOUT_PAGE } from "@/lib/about-defaults";
+import { configEncryptionAvailable, decryptConfigSecret, encryptConfigSecret } from "@/lib/config-crypto";
 import { TEST_AUTH_USERS, type TestAuthMode } from "@/lib/test-auth";
 
 type DbRow = Record<string, Value>;
@@ -1328,6 +1329,22 @@ function mapTaskFinance(row: DbRow): TaskFinanceRecord {
   };
 }
 
+function mapTaskIllustration(row: DbRow): TaskIllustrationRecord {
+  return {
+    taskId: getString(row, "taskId"),
+    source: getString(row, "source") as TaskIllustrationRecord["source"],
+    url: getString(row, "url"),
+    altText: getString(row, "altText"),
+    mimeType: getString(row, "mimeType"),
+    sizeBytes: getNumber(row, "sizeBytes"),
+    width: row.width === null || row.width === undefined ? null : getNumber(row, "width"),
+    height: row.height === null || row.height === undefined ? null : getNumber(row, "height"),
+    storagePath: getNullableString(row, "storagePath"),
+    updatedAt: getString(row, "updatedAt"),
+    updatedBy: getNullableString(row, "updatedBy"),
+  };
+}
+
 function mapVote(row: DbRow): VoteRecord {
   return {
     id: getString(row, "id"),
@@ -1550,6 +1567,7 @@ const loadCategories = () =>
       name: getString(row, "name"),
       description: getString(row, "description"),
       thesis: getString(row, "thesis"),
+      symbolKey: getString(row, "symbolKey") || getString(row, "slug"),
     })),
   );
 function mapCategoryProposal(row: DbRow): CategoryProposalRecord {
@@ -1571,6 +1589,7 @@ function mapCategoryProposal(row: DbRow): CategoryProposalRecord {
 }
 const loadTasks = () => loadRows("SELECT * FROM tasks ORDER BY createdAt DESC").then((rows) => rows.map(mapTask));
 const loadTaskFinance = () => loadRows("SELECT * FROM task_finance").then((rows) => rows.map(mapTaskFinance));
+const loadTaskIllustrations = () => loadRows("SELECT * FROM task_illustrations").then((rows) => rows.map(mapTaskIllustration));
 const loadVotes = () => loadRows("SELECT * FROM votes ORDER BY updatedAt DESC").then((rows) => rows.map(mapVote));
 const loadTaskPulseVotes = () => loadRows("SELECT * FROM task_pulse_votes ORDER BY updatedAt DESC").then((rows) => rows.map(mapTaskPulseVote));
 const loadComments = () => loadRows("SELECT * FROM comments ORDER BY createdAt ASC").then((rows) => rows.map(mapComment));
@@ -1613,6 +1632,7 @@ async function findCategoryBySlug(slug: string) {
         name: getString(row, "name"),
         description: getString(row, "description"),
         thesis: getString(row, "thesis"),
+        symbolKey: getString(row, "symbolKey") || getString(row, "slug"),
       }
     : null;
 }
@@ -1757,13 +1777,14 @@ function sortTasks(tasks: TaskSummary[]) {
 }
 
 async function hydrate(viewerProfileId?: string | null) {
-  const [profiles, profileAttestations, categories, tasks, finances, votes, pulseVotes, comments, commentVotes, runs, taskTimings, runUpdates, checkpoints, checkpointGates, governance, revenueStreams, treasuryEntries, sponsorshipCommitments, bookmarks, accounts] =
+  const [profiles, profileAttestations, categories, tasks, finances, illustrations, votes, pulseVotes, comments, commentVotes, runs, taskTimings, runUpdates, checkpoints, checkpointGates, governance, revenueStreams, treasuryEntries, sponsorshipCommitments, bookmarks, accounts] =
     await Promise.all([
       loadProfiles(),
       loadProfileAttestations(),
       loadCategories(),
       loadTasks(),
       loadTaskFinance(),
+      loadTaskIllustrations(),
       loadVotes(),
       loadTaskPulseVotes(),
       loadComments(),
@@ -1797,6 +1818,7 @@ async function hydrate(viewerProfileId?: string | null) {
   }
 
   const financeMap = new Map(finances.map((finance) => [finance.taskId, finance]));
+  const illustrationMap = new Map(illustrations.map((illustration) => [illustration.taskId, illustration]));
   const attestationMap = new Map(profileAttestations.map((entry) => [entry.profileId, entry]));
   const profileSummaries: ProfileSummary[] = profiles.map((profile) => {
     const castVotes = voteByProfile.get(profile.id) ?? [];
@@ -1938,6 +1960,7 @@ async function hydrate(viewerProfileId?: string | null) {
       updatedAt: task.createdAt,
     } satisfies TaskTimingRecord;
     const category = categoryMap.get(task.categoryId);
+    const illustration = illustrationMap.get(task.id);
     const proposer = profileMap.get(task.proposerId);
     const taskVotes = voteByTask.get(task.id) ?? [];
     const pulse = pulseByTask.get(task.id) ?? [];
@@ -1963,6 +1986,7 @@ async function hydrate(viewerProfileId?: string | null) {
       ...finance,
       categoryName: category?.name ?? "Unknown category",
       categorySlug: category?.slug ?? "unknown",
+      categorySymbolKey: category?.symbolKey || category?.slug || "default",
       proposerName: proposer ? publicProfileName(proposer) : "Unknown proposer",
       totalVotes: taskVotes.reduce((total, vote) => total + vote.voteCount, 0),
       supporterCount: taskVotes.length,
@@ -1987,6 +2011,10 @@ async function hydrate(viewerProfileId?: string | null) {
       updateCount: updates.length,
       latestUpdateLabel: updates[0]?.label ?? null,
       bookmarked: bookmarkSet.has(task.id),
+      illustrationUrl: illustration?.url ?? null,
+      illustrationAlt: illustration?.altText ?? null,
+      illustrationSource: illustration?.source ?? "deterministic",
+      illustrationUpdatedAt: illustration?.updatedAt ?? null,
     };
   });
 
@@ -3407,6 +3435,82 @@ export async function aggregateVisitorsByCountry(): Promise<VisitorAggregate[]> 
   }));
 }
 
+export async function getVisitorStats(): Promise<VisitorStats> {
+  const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const since7d = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const [totals, recent24h, recent7d, countries, accountCreated, topCountries] = await Promise.all([
+    loadOne("SELECT COUNT(*) AS count FROM visitors"),
+    loadOne("SELECT COUNT(*) AS count FROM visitors WHERE lastSeenAt >= ?", [since24h]),
+    loadOne("SELECT COUNT(*) AS count FROM visitors WHERE lastSeenAt >= ?", [since7d]),
+    loadOne("SELECT COUNT(DISTINCT countryCode) AS count FROM visitors WHERE countryCode IS NOT NULL AND trim(countryCode) != ''"),
+    loadOne("SELECT COUNT(*) AS count FROM visitors WHERE accountCreated = 1"),
+    loadRows(
+      `SELECT COALESCE(countryName, countryCode, 'Unknown') AS countryName, COUNT(*) AS visitorCount
+       FROM visitors
+       GROUP BY COALESCE(countryName, countryCode, 'Unknown')
+       ORDER BY visitorCount DESC
+       LIMIT 8`,
+    ),
+  ]);
+
+  return {
+    totalUnique: totals ? getNumber(totals, "count") : 0,
+    recent24h: recent24h ? getNumber(recent24h, "count") : 0,
+    recent7d: recent7d ? getNumber(recent7d, "count") : 0,
+    countries: countries ? getNumber(countries, "count") : 0,
+    accountCreated: accountCreated ? getNumber(accountCreated, "count") : 0,
+    topCountries: topCountries.map((row) => ({
+      countryName: getString(row, "countryName"),
+      visitorCount: getNumber(row, "visitorCount"),
+    })),
+  };
+}
+
+export async function listTaskIllustrations(): Promise<TaskIllustrationRecord[]> {
+  return loadTaskIllustrations();
+}
+
+export async function upsertTaskIllustration(input: Omit<TaskIllustrationRecord, "updatedAt" | "updatedBy">, updatedBy: string | null) {
+  const task = await findTaskById(input.taskId);
+  if (!task) {
+    throw new Error("Ken not found.");
+  }
+  const now = new Date().toISOString();
+  await execute(
+    `INSERT INTO task_illustrations (
+      taskId, source, url, altText, mimeType, sizeBytes, width, height, storagePath, updatedAt, updatedBy
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(taskId) DO UPDATE SET
+      source = excluded.source,
+      url = excluded.url,
+      altText = excluded.altText,
+      mimeType = excluded.mimeType,
+      sizeBytes = excluded.sizeBytes,
+      width = excluded.width,
+      height = excluded.height,
+      storagePath = excluded.storagePath,
+      updatedAt = excluded.updatedAt,
+      updatedBy = excluded.updatedBy`,
+    [
+      input.taskId,
+      input.source,
+      input.url,
+      input.altText.trim().slice(0, 240),
+      input.mimeType,
+      input.sizeBytes,
+      input.width,
+      input.height,
+      input.storagePath,
+      now,
+      updatedBy,
+    ],
+  );
+}
+
+export async function removeTaskIllustration(taskId: string) {
+  await execute("DELETE FROM task_illustrations WHERE taskId = ?", [taskId]);
+}
+
 export async function getSiteSetting(key: string): Promise<SiteSettingRecord | null> {
   const row = await loadOne("SELECT * FROM site_settings WHERE key = ? LIMIT 1", [key]);
   if (!row) return null;
@@ -3426,6 +3530,115 @@ export async function setSiteSetting(key: string, value: string, updatedBy: stri
   } else {
     await execute("INSERT INTO site_settings (key, value, updatedAt, updatedBy) VALUES (?, ?, ?, ?)", [key, value, now, updatedBy]);
   }
+}
+
+const DEFAULT_MAINTENANCE_STATE: MaintenanceState = {
+  mode: "off",
+  message: "KenMatch is temporarily paused for maintenance. User data remains intact.",
+  expectedReturn: "",
+  updatedAt: new Date(0).toISOString(),
+  updatedBy: null,
+};
+
+export async function getMaintenanceState(): Promise<MaintenanceState> {
+  if (env.KENMATCH_MAINTENANCE_MODE === "on") {
+    return {
+      mode: "on",
+      message: env.KENMATCH_MAINTENANCE_MESSAGE?.trim() || DEFAULT_MAINTENANCE_STATE.message,
+      expectedReturn: env.KENMATCH_MAINTENANCE_EXPECTED_RETURN?.trim() || "",
+      updatedAt: new Date().toISOString(),
+      updatedBy: "environment",
+    };
+  }
+
+  const record = await getSiteSetting("site.maintenance");
+  if (!record) return DEFAULT_MAINTENANCE_STATE;
+  try {
+    const parsed = JSON.parse(record.value) as Partial<MaintenanceState>;
+    return {
+      mode: parsed.mode === "on" ? "on" : "off",
+      message: typeof parsed.message === "string" && parsed.message.trim()
+        ? parsed.message.slice(0, 600)
+        : DEFAULT_MAINTENANCE_STATE.message,
+      expectedReturn: typeof parsed.expectedReturn === "string" ? parsed.expectedReturn.slice(0, 160) : "",
+      updatedAt: record.updatedAt,
+      updatedBy: record.updatedBy,
+    };
+  } catch {
+    return DEFAULT_MAINTENANCE_STATE;
+  }
+}
+
+export async function setMaintenanceState(input: Pick<MaintenanceState, "mode" | "message" | "expectedReturn">, updatedBy: string | null) {
+  const payload: MaintenanceState = {
+    mode: input.mode === "on" ? "on" : "off",
+    message: input.message.trim().slice(0, 600) || DEFAULT_MAINTENANCE_STATE.message,
+    expectedReturn: input.expectedReturn.trim().slice(0, 160),
+    updatedAt: new Date().toISOString(),
+    updatedBy,
+  };
+  await setSiteSetting("site.maintenance", JSON.stringify(payload), updatedBy);
+}
+
+export async function publicWritesOpen() {
+  const state = await getMaintenanceState();
+  return state.mode !== "on";
+}
+
+export async function listChangelogEntries(includeHidden = false, limit = 50): Promise<ChangelogEntryRecord[]> {
+  const rows = await loadRows(
+    `SELECT * FROM changelog_entries
+     ${includeHidden ? "" : "WHERE visible = 1"}
+     ORDER BY entryDate DESC, createdAt DESC
+     LIMIT ?`,
+    [limit],
+  );
+  return rows.map((row) => ({
+    id: getString(row, "id"),
+    entryDate: getString(row, "entryDate"),
+    title: getString(row, "title"),
+    entryType: getString(row, "entryType") as ChangelogEntryRecord["entryType"],
+    summary: getString(row, "summary"),
+    details: getString(row, "details"),
+    visible: getNumber(row, "visible") > 0,
+    createdAt: getString(row, "createdAt"),
+    updatedAt: getString(row, "updatedAt"),
+    updatedBy: getNullableString(row, "updatedBy"),
+  }));
+}
+
+export async function upsertChangelogEntry(
+  input: Pick<ChangelogEntryRecord, "id" | "entryDate" | "title" | "entryType" | "summary" | "details" | "visible">,
+  updatedBy: string | null,
+) {
+  const now = new Date().toISOString();
+  const id = slugify(input.id || input.title) || randomUUID();
+  await execute(
+    `INSERT INTO changelog_entries (
+      id, entryDate, title, entryType, summary, details, visible, createdAt, updatedAt, updatedBy
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      entryDate = excluded.entryDate,
+      title = excluded.title,
+      entryType = excluded.entryType,
+      summary = excluded.summary,
+      details = excluded.details,
+      visible = excluded.visible,
+      updatedAt = excluded.updatedAt,
+      updatedBy = excluded.updatedBy`,
+    [
+      id,
+      input.entryDate,
+      input.title.trim().slice(0, 140),
+      input.entryType,
+      input.summary.trim().slice(0, 500),
+      input.details.trim().slice(0, 4000),
+      input.visible ? 1 : 0,
+      now,
+      now,
+      updatedBy,
+    ],
+  );
 }
 
 const DEFAULT_NOTIFICATION_SETTINGS: AdminNotificationSettings = {
@@ -3461,6 +3674,189 @@ export async function getAdminNotificationSettings(): Promise<AdminNotificationS
 
 export async function setAdminNotificationSettings(settings: AdminNotificationSettings, updatedBy: string | null) {
   await setSiteSetting("admin.notifications", JSON.stringify(settings), updatedBy);
+}
+
+type StoredSmtpSettings = {
+  host: string;
+  port: number;
+  secure: boolean;
+  username: string;
+  from: string;
+  encryptedPassword: string | null;
+  lastTestedAt: string | null;
+  lastTestStatus: AdminSmtpSettings["lastTestStatus"];
+  lastTestMessage: string | null;
+  updatedAt: string;
+};
+
+const DEFAULT_SMTP_SETTINGS: AdminSmtpSettings = {
+  host: "",
+  port: 587,
+  secure: false,
+  username: "",
+  from: env.KENMATCH_SMTP_FROM,
+  passwordConfigured: false,
+  source: "none",
+  lastTestedAt: null,
+  lastTestStatus: "untested",
+  lastTestMessage: null,
+  updatedAt: new Date(0).toISOString(),
+};
+
+function sanitizeSmtpMessage(message: string) {
+  return message
+    .replace(/pass(word)?=[^\s&]+/gi, "password=[redacted]")
+    .replace(/AUTH\s+[A-Z0-9+/=._-]+/gi, "AUTH [redacted]")
+    .slice(0, 500);
+}
+
+async function getStoredSmtpSettings(): Promise<StoredSmtpSettings | null> {
+  const record = await getSiteSetting("admin.smtp");
+  if (!record) return null;
+  try {
+    const parsed = JSON.parse(record.value) as Partial<StoredSmtpSettings>;
+    return {
+      host: typeof parsed.host === "string" ? parsed.host : "",
+      port: Number.isInteger(parsed.port) ? Number(parsed.port) : 587,
+      secure: parsed.secure === true,
+      username: typeof parsed.username === "string" ? parsed.username : "",
+      from: typeof parsed.from === "string" && parsed.from.trim() ? parsed.from : env.KENMATCH_SMTP_FROM,
+      encryptedPassword: typeof parsed.encryptedPassword === "string" && parsed.encryptedPassword ? parsed.encryptedPassword : null,
+      lastTestedAt: typeof parsed.lastTestedAt === "string" ? parsed.lastTestedAt : null,
+      lastTestStatus: parsed.lastTestStatus === "success" || parsed.lastTestStatus === "error" ? parsed.lastTestStatus : "untested",
+      lastTestMessage: typeof parsed.lastTestMessage === "string" ? sanitizeSmtpMessage(parsed.lastTestMessage) : null,
+      updatedAt: record.updatedAt,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function getAdminSmtpSettings(): Promise<AdminSmtpSettings> {
+  if (smtpConfigured) {
+    return {
+      host: env.KENMATCH_SMTP_HOST ?? "",
+      port: env.KENMATCH_SMTP_PORT ?? 587,
+      secure: env.KENMATCH_SMTP_SECURE,
+      username: env.KENMATCH_SMTP_USER ?? "",
+      from: env.KENMATCH_SMTP_FROM,
+      passwordConfigured: true,
+      source: "env",
+      lastTestedAt: null,
+      lastTestStatus: "untested",
+      lastTestMessage: "Environment SMTP is active and takes precedence over database settings.",
+      updatedAt: new Date(0).toISOString(),
+    };
+  }
+
+  const stored = await getStoredSmtpSettings();
+  if (!stored) return DEFAULT_SMTP_SETTINGS;
+  return {
+    host: stored.host,
+    port: stored.port,
+    secure: stored.secure,
+    username: stored.username,
+    from: stored.from,
+    passwordConfigured: Boolean(stored.encryptedPassword),
+    source: stored.host && stored.encryptedPassword ? "database" : "none",
+    lastTestedAt: stored.lastTestedAt,
+    lastTestStatus: stored.lastTestStatus,
+    lastTestMessage: stored.lastTestMessage,
+    updatedAt: stored.updatedAt,
+  };
+}
+
+export async function setAdminSmtpSettings(input: {
+  host: string;
+  port: number;
+  secure: boolean;
+  username: string;
+  from: string;
+  password?: string;
+  clearPassword?: boolean;
+}, updatedBy: string | null) {
+  if (smtpConfigured) {
+    throw new Error("Environment SMTP is configured and has priority. Edit KENMATCH_SMTP_* values on the server instead.");
+  }
+  const existing = await getStoredSmtpSettings();
+  let encryptedPassword = existing?.encryptedPassword ?? null;
+  const password = input.password?.trim() ?? "";
+  if (input.clearPassword) {
+    encryptedPassword = null;
+  } else if (password) {
+    if (!configEncryptionAvailable()) {
+      throw new Error("KENMATCH_CONFIG_ENCRYPTION_KEY is required before SMTP passwords can be stored.");
+    }
+    encryptedPassword = encryptConfigSecret(password);
+  }
+  const now = new Date().toISOString();
+  const payload: StoredSmtpSettings = {
+    host: input.host.trim().slice(0, 255),
+    port: Math.min(65535, Math.max(1, Math.trunc(input.port))),
+    secure: input.secure,
+    username: input.username.trim().slice(0, 255),
+    from: input.from.trim().slice(0, 255) || env.KENMATCH_SMTP_FROM,
+    encryptedPassword,
+    lastTestedAt: existing?.lastTestedAt ?? null,
+    lastTestStatus: existing?.lastTestStatus ?? "untested",
+    lastTestMessage: existing?.lastTestMessage ?? null,
+    updatedAt: now,
+  };
+  await setSiteSetting("admin.smtp", JSON.stringify(payload), updatedBy);
+}
+
+export async function recordAdminSmtpTest(status: "success" | "error", message: string, updatedBy: string | null) {
+  const existing = await getStoredSmtpSettings();
+  const now = new Date().toISOString();
+  const payload: StoredSmtpSettings = {
+    host: existing?.host ?? "",
+    port: existing?.port ?? 587,
+    secure: existing?.secure ?? false,
+    username: existing?.username ?? "",
+    from: existing?.from ?? env.KENMATCH_SMTP_FROM,
+    encryptedPassword: existing?.encryptedPassword ?? null,
+    lastTestedAt: now,
+    lastTestStatus: status,
+    lastTestMessage: sanitizeSmtpMessage(message),
+    updatedAt: now,
+  };
+  await setSiteSetting("admin.smtp", JSON.stringify(payload), updatedBy);
+}
+
+export async function getEffectiveSmtpConfig(): Promise<{
+  host: string;
+  port: number;
+  secure: boolean;
+  username: string;
+  password: string;
+  from: string;
+  source: "env" | "database";
+} | null> {
+  if (smtpConfigured) {
+    return {
+      host: env.KENMATCH_SMTP_HOST ?? "",
+      port: env.KENMATCH_SMTP_PORT ?? 587,
+      secure: env.KENMATCH_SMTP_SECURE,
+      username: env.KENMATCH_SMTP_USER ?? "",
+      password: env.KENMATCH_SMTP_PASS ?? "",
+      from: env.KENMATCH_SMTP_FROM,
+      source: "env",
+    };
+  }
+
+  const stored = await getStoredSmtpSettings();
+  if (!stored?.host || !stored.username || !stored.encryptedPassword) {
+    return null;
+  }
+  return {
+    host: stored.host,
+    port: stored.port,
+    secure: stored.secure,
+    username: stored.username,
+    password: decryptConfigSecret(stored.encryptedPassword),
+    from: stored.from,
+    source: "database",
+  };
 }
 
 export async function getAboutPageContent(): Promise<AboutPageContent> {
@@ -3514,14 +3910,34 @@ export async function listAuditLog(limit = 200): Promise<AuditLogRecord[]> {
 }
 
 export async function getAdminDashboard() {
-  const [accounts, profiles, pendingVerifications, recentAudit, visitors, countryAggregates, categoryProposals] = await Promise.all([
+  const [
+    accounts,
+    profiles,
+    pendingVerifications,
+    recentAudit,
+    visitors,
+    visitorStats,
+    countryAggregates,
+    categoryProposals,
+    maintenance,
+    changelog,
+    smtp,
+    illustrations,
+    marketplace,
+  ] = await Promise.all([
     loadAccounts(),
     loadProfiles(),
     loadRows("SELECT * FROM profiles WHERE verificationStatus = 'pending' ORDER BY verificationRequestedAt ASC").then((rows) => rows.map(mapProfile)),
     listAuditLog(50),
     listVisitors(500),
+    getVisitorStats(),
     aggregateVisitorsByCountry(),
     loadCategoryProposals(),
+    getMaintenanceState(),
+    listChangelogEntries(true, 12),
+    getAdminSmtpSettings(),
+    listTaskIllustrations(),
+    hydrate(null),
   ]);
   return {
     accounts,
@@ -3529,8 +3945,14 @@ export async function getAdminDashboard() {
     pendingVerifications,
     recentAudit,
     visitors,
+    visitorStats,
     countryAggregates,
     categoryProposals,
+    maintenance,
+    changelog,
+    smtp,
+    illustrations,
+    tasks: marketplace.tasks,
   };
 }
 
