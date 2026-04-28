@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     template: "%s · KenMatch",
   },
   description:
-    "KenMatch turns sustained frontier AI compute into a publicly accountable commons. Propose Kens, vote on priority, and watch transparent allocation, funding, and checkpoints in real time.",
+    "KenMatch turns sustained frontier AI compute into a publicly accountable board. Propose Kens, vote on priority, and inspect allocation, funding context, and checkpoints through visible records.",
   keywords: [
     "KenMatch",
     "AI compute",
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "KenMatch — Transparent allocation of frontier AI compute",
     description:
-      "A community board for proposing, voting on, and shipping high-leverage AI Kens with transparent funding and checkpoints.",
+      "A public board for proposing, ranking, funding, launching, and auditing long-running AI work with visible checkpoints.",
     siteName: "KenMatch",
     type: "website",
     url: canonicalOrigin,
@@ -73,7 +73,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "KenMatch",
     description:
-      "Transparent allocation of frontier AI compute. Propose, vote, fund, and ship Kens with public accountability.",
+      "Transparent allocation of frontier AI compute. Propose, rank, fund, launch, and audit Kens with public accountability.",
     images: ["/og-image.png"],
   },
   robots: { index: true, follow: true },

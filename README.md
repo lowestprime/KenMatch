@@ -17,9 +17,9 @@ KenMatch is a public board for proposing, ranking, funding, launching, and audit
 
 ## 🎯 Mission and Background
 
-KenMatch is built around a simple idea: everyone should have a public, legible opportunity to decide which long-horizon Kens receive time, review, and funding, ***without*** relying on wealth as the allocator. ([1](https://deepmind.google/models/model-cards/gemini-3-1-pro/))([2](https://developers.openai.com/api/docs/models))([5](https://platform.claude.com/docs/en/docs/about-claude/models/all-models))([3](https://www.anthropic.com/news/claude-opus-4-7))([4](https://x.ai/api))
+KenMatch is built around a simple idea: everyone should have a public, legible opportunity to decide which long-horizon Kens receive time, review, and funding, ***without*** relying on wealth as the allocator.
 
-As frontier models evolve from short, single-turn assistants into long-context, tool-using agents, the “few queries” standard is rapidly becoming obsolete. The opportunity to participate in the alignment of long-horizon AI effort toward public challenges, services, research, and creative endeavors, however, is likely to remain capital and access constrained. KenMatch interrupts this trend. Major AI providers now document advanced reasoning, long context, and agentic capabilities as first-class features, underscoring a growing demand for solutions democratizing access, participation, and governance, independent of capital. ([1](https://deepmind.google/models/model-cards/gemini-3-1-pro/))([2](https://developers.openai.com/api/docs/models))([3](https://www.anthropic.com/news/claude-opus-4-7))([4](https://x.ai/api))
+As frontier models evolve from short, single-turn assistants into long-context, tool-using systems, the “few queries” standard is becoming less representative of the work people want to run. The opportunity to participate in long-horizon AI effort for public challenges, services, research, and creative work can still be constrained by capital and access. KenMatch makes that allocation problem visible: public signal, scarce voice, funding context, checkpoint gates, and audit records are separated so a useful Ken can earn priority without pretending the demo is live provider execution.
 
 ## 💡 Concept
 

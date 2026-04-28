@@ -32,12 +32,12 @@ export function TaskCard({ task }: { task: TaskSummary }) {
             </div>
             <div className="task-card-meta">Updated {formatDateTime(task.lastActivityAt)}</div>
           </div>
-          <KenVisual task={task} variant="card" />
           <div className="space-y-2">
             <div className="task-card-kicker">Posted by {task.proposerName} · Created {formatDateTime(task.createdAt)}</div>
             <h3 className="task-card-title">{task.title}</h3>
             <p className="text-sm leading-7 text-muted">{task.summary}</p>
           </div>
+          <KenVisual task={task} variant="card" />
           <div className="grid gap-3 text-sm text-muted sm:grid-cols-4">
             <div className="stat-card"><span>Voice</span><strong>{task.totalVotes}</strong></div>
             <div className="stat-card"><span>Backers</span><strong>{task.supporterCount}</strong></div>

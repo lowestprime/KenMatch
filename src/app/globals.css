@@ -854,12 +854,18 @@ html[data-theme="dark"] .auth-switcher button.is-active {
 .ken-visual {
   position: relative;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--accent-strong) 18%, var(--line));
+  isolation: isolate;
+  border: 1px solid color-mix(in srgb, var(--ken-visual-primary) 22%, var(--line));
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--ken-visual-a) 13%, transparent), transparent 42%),
-    color-mix(in srgb, var(--panel-strong) 82%, transparent);
+    radial-gradient(circle at 18% 18%, color-mix(in srgb, var(--ken-visual-primary) 18%, transparent), transparent 38%),
+    radial-gradient(circle at 86% 18%, color-mix(in srgb, var(--ken-visual-secondary) 16%, transparent), transparent 36%),
+    linear-gradient(135deg, color-mix(in srgb, var(--ken-visual-wash) 48%, transparent), transparent 64%),
+    color-mix(in srgb, var(--panel-strong) 88%, transparent);
   border-radius: 0.7rem;
   min-width: 0;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #fff 7%, transparent),
+    0 18px 42px color-mix(in srgb, var(--ken-visual-secondary) 13%, transparent);
 }
 .ken-visual svg {
   display: block;
@@ -868,69 +874,145 @@ html[data-theme="dark"] .auth-switcher button.is-active {
   color: var(--ink);
 }
 .ken-visual-card {
-  max-height: 9.25rem;
+  max-height: 10rem;
 }
 .ken-visual-card svg {
-  aspect-ratio: 5 / 2.05;
-  max-height: 8.1rem;
+  aspect-ratio: 5 / 2.35;
+  max-height: 8.8rem;
 }
 .ken-visual-detail {
   align-self: stretch;
 }
 .ken-visual-detail svg {
-  min-height: 13rem;
+  min-height: 14.2rem;
 }
-.ken-visual-frame {
-  fill: color-mix(in srgb, var(--panel) 74%, transparent);
-  stroke: color-mix(in srgb, var(--ken-visual-a) 28%, var(--line));
+.ken-visual-shell {
+  fill: color-mix(in srgb, var(--surface) 82%, transparent);
+  stroke: color-mix(in srgb, var(--ken-visual-primary) 34%, var(--line));
   stroke-width: 1.5;
 }
-.ken-visual-orbit {
+.ken-visual-grid {
+  opacity: 0.32;
+  mix-blend-mode: screen;
+}
+.ken-visual-grid-line {
   fill: none;
-  stroke: color-mix(in srgb, var(--ken-visual-b) 38%, transparent);
-  stroke-width: 1;
-  stroke-dasharray: 3 6;
+  stroke: color-mix(in srgb, var(--ink) 11%, transparent);
+  stroke-width: 0.7;
 }
-.ken-visual-orbit.is-second {
-  stroke: color-mix(in srgb, var(--ken-visual-c) 28%, transparent);
-  stroke-dasharray: 1 7;
+.ken-visual-ribbon {
+  fill: none;
+  stroke: color-mix(in srgb, var(--ken-visual-secondary) 38%, transparent);
+  stroke-width: 1.2;
+  stroke-linecap: round;
+  stroke-dasharray: 2 8;
 }
-.ken-visual-glyph {
-  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--ken-visual-a) 26%, transparent));
+.ken-visual-ribbon.is-secondary {
+  stroke: color-mix(in srgb, var(--ken-visual-tertiary) 28%, transparent);
+  stroke-dasharray: 1 9;
 }
-.ken-visual-glyph circle {
-  fill: color-mix(in srgb, var(--ken-visual-c) 30%, transparent);
+.ken-visual-node-field line {
+  stroke: color-mix(in srgb, var(--ken-visual-secondary) 22%, transparent);
+  stroke-width: 0.8;
 }
-.ken-visual-timeline line:first-child {
-  stroke: color-mix(in srgb, var(--ink) 16%, transparent);
-  stroke-width: 2.4;
+.ken-visual-node-field circle {
+  fill: var(--ken-visual-primary);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--ken-visual-primary) 46%, transparent));
+}
+.ken-visual-node-field circle.tone-1 {
+  fill: var(--ken-visual-secondary);
+}
+.ken-visual-node-field circle.tone-2 {
+  fill: var(--ken-visual-tertiary);
+}
+.ken-visual-domain {
+  fill: none;
+  stroke-width: 4.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 14px color-mix(in srgb, var(--ken-visual-primary) 30%, transparent));
+}
+.ken-visual-domain .ken-visual-panel-shape {
+  fill: color-mix(in srgb, var(--surface) 36%, transparent);
+  stroke-width: 3.1;
+}
+.ken-visual-domain .ken-visual-accent-line {
+  stroke: color-mix(in srgb, var(--ken-visual-tertiary) 72%, var(--ken-visual-primary));
+  stroke-width: 3;
+}
+.ken-visual-stage > path:first-child {
+  fill: none;
+  stroke: color-mix(in srgb, var(--ink) 14%, transparent);
+  stroke-width: 3.6;
   stroke-linecap: round;
 }
-.ken-visual-timeline .is-progress {
-  stroke: var(--ken-visual-b);
-  stroke-width: 3.2;
+.ken-visual-stage > path.is-progress {
+  stroke: var(--ken-visual-secondary);
+  stroke-width: 4.2;
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--ken-visual-secondary) 45%, transparent));
+}
+.ken-visual-stage circle {
+  fill: color-mix(in srgb, var(--surface) 92%, transparent);
+  stroke: color-mix(in srgb, var(--ink) 24%, transparent);
+  stroke-width: 1.8;
+}
+.ken-visual-stage .is-complete circle {
+  fill: var(--ken-visual-tertiary);
+  stroke: color-mix(in srgb, var(--ken-visual-tertiary) 72%, #fff);
+}
+.ken-visual-stage path {
+  fill: none;
+  stroke: color-mix(in srgb, var(--surface) 88%, #000);
+  stroke-width: 1.6;
   stroke-linecap: round;
-}
-.ken-visual-timeline circle {
-  fill: var(--panel);
-  stroke: color-mix(in srgb, var(--ink) 22%, transparent);
-  stroke-width: 2;
-}
-.ken-visual-timeline circle.is-complete {
-  fill: var(--ken-visual-c);
-  stroke: color-mix(in srgb, var(--ken-visual-c) 70%, white);
+  stroke-linejoin: round;
 }
 .ken-visual-status circle {
-  fill: color-mix(in srgb, var(--ken-visual-b) 26%, var(--panel));
-  stroke: var(--ken-visual-a);
-  stroke-width: 1.8;
+  fill: color-mix(in srgb, var(--surface) 82%, transparent);
+  stroke: color-mix(in srgb, var(--ken-visual-primary) 78%, #fff);
+  stroke-width: 2;
+  filter: drop-shadow(0 0 12px color-mix(in srgb, var(--ken-visual-primary) 30%, transparent));
 }
 .ken-visual-status path {
   fill: none;
   stroke: var(--ink);
-  stroke-width: 1.8;
+  stroke-width: 2.3;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+.ken-visual-progress-dial circle {
+  fill: color-mix(in srgb, var(--surface) 64%, transparent);
+  stroke: color-mix(in srgb, var(--ink) 16%, transparent);
+  stroke-width: 4;
+}
+.ken-visual-progress-dial circle.is-progress {
+  fill: none;
+  stroke: var(--ken-visual-tertiary);
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--ken-visual-tertiary) 38%, transparent));
+}
+.ken-visual-progress-dial text {
+  fill: var(--ink);
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  font-weight: 800;
+  text-anchor: middle;
+}
+.ken-visual-pulse-meter path:first-child {
+  fill: none;
+  stroke: color-mix(in srgb, var(--ink) 16%, transparent);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+.ken-visual-pulse-meter path.is-hot {
+  fill: none;
+  stroke: var(--ken-visual-primary);
+  stroke-width: 4;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--ken-visual-primary) 48%, transparent));
+}
+.ken-visual-pulse-meter circle {
+  fill: var(--ken-visual-primary);
 }
 .ken-visual-sandbox,
 .ken-visual-lane {
@@ -956,19 +1038,50 @@ html[data-theme="dark"] .auth-switcher button.is-active {
   pointer-events: none;
 }
 .ken-visual-meta span {
-  border: 1px solid color-mix(in srgb, var(--ken-visual-a) 28%, var(--line));
-  background: color-mix(in srgb, var(--surface) 74%, transparent);
-  color: var(--ink-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  border: 1px solid color-mix(in srgb, var(--ken-visual-primary) 30%, var(--line));
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  color: color-mix(in srgb, var(--ink) 82%, var(--ken-visual-primary));
   border-radius: 0.35rem;
   padding: 0.18rem 0.34rem;
   font-size: 0.62rem;
   font-weight: 700;
   line-height: 1.2;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 7%, transparent);
+}
+.ken-visual-meta-dot {
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 999px;
+  background: var(--ken-visual-primary);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--ken-visual-primary) 48%, transparent);
+}
+.ken-visual-meta-dot.is-stage {
+  background: var(--ken-visual-secondary);
+}
+.ken-visual-meta-dot.is-pulse {
+  background: var(--ken-visual-tertiary);
 }
 .ken-visual.is-blocked {
-  --ken-visual-a: var(--danger);
-  --ken-visual-b: #7f1d1d;
-  --ken-visual-c: var(--accent-gold);
+  --ken-visual-primary: var(--danger);
+  --ken-visual-secondary: #7f1d1d;
+  --ken-visual-tertiary: var(--accent-gold);
+  --ken-visual-wash: #240606;
+}
+html[data-theme="light"] .ken-visual {
+  background:
+    radial-gradient(circle at 18% 18%, color-mix(in srgb, var(--ken-visual-primary) 16%, transparent), transparent 38%),
+    radial-gradient(circle at 86% 18%, color-mix(in srgb, var(--ken-visual-secondary) 14%, transparent), transparent 36%),
+    linear-gradient(135deg, color-mix(in srgb, var(--ken-visual-wash) 11%, transparent), transparent 62%),
+    color-mix(in srgb, var(--panel-strong) 94%, white);
+}
+html[data-theme="light"] .ken-visual-shell {
+  fill: color-mix(in srgb, var(--surface) 88%, white);
+}
+html[data-theme="light"] .ken-visual-domain .ken-visual-panel-shape {
+  fill: color-mix(in srgb, white 52%, transparent);
 }
 .ken-detail-heading {
   display: grid;
@@ -2241,11 +2354,21 @@ body.mobile-nav-open { overflow: hidden; }
   }
 
   .ken-visual-card svg {
-    max-height: 7.25rem;
+    max-height: 8.4rem;
   }
 
   .ken-visual-detail svg {
-    min-height: 9rem;
+    min-height: 10.6rem;
+  }
+
+  .ken-visual-meta {
+    inset: auto 0.38rem 0.38rem 0.38rem;
+    justify-content: flex-start;
+  }
+
+  .ken-visual-meta span {
+    font-size: 0.62rem;
+    padding: 0.16rem 0.28rem;
   }
 
   .visitor-map text {
