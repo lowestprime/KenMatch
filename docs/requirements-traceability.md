@@ -47,9 +47,9 @@ This file maps the stable product requirements from `KenMatch_Conception.md` to 
 - Supporting summary logic in `src/lib/economics.ts` distinguishes committed support from projected support, simulated runway, restricted funding, and safety reserve coverage so optimistic sponsorship does not masquerade as committed treasury support.
 - Public rendering is implemented on `src/app/economics/page.tsx`.
 
-### Creative and cultural work alongside practical/public-interest work
-- The `creative-works` category is present in `src/lib/seed.ts`.
-- Creative examples are rendered directly on the board and overview pages.
+### High-skill creative and research outputs
+- The prior broad `creative-works`, `public-interest`, and `everyday-services` demo categories are explicitly retired in `src/lib/seed.ts`.
+- Current launch categories focus on science/health mechanism discovery, open software, research synthesis, engineering systems, safety/evaluation, and frontier creative outputs only when the proposed artifact is bounded, auditable, and technically demanding.
 
 ### Modern public-facing interface and theming
 - Responsive shell, compact sticky header, and visual system live in `src/components/site-shell.tsx` and `src/app/globals.css`.

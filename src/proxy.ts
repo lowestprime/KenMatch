@@ -81,7 +81,7 @@ function applySecurityHeaders(response: NextResponse) {
 
 function blockRequest(request: NextRequest, status: number, body: string, reason: string) {
   const path = request.nextUrl.pathname;
-  console.warn(`[kenmatch-middleware] blocked request: path=${path} reason=${reason}`);
+  console.warn(`[kenmatch-proxy] blocked request: path=${path} reason=${reason}`);
   const blocked = applySecurityHeaders(new NextResponse(body, { status }));
   if (path.startsWith("/api/")) {
     blocked.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
@@ -89,7 +89,7 @@ function blockRequest(request: NextRequest, status: number, body: string, reason
   return blocked;
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const host = normalizeHost(request.headers.get("x-forwarded-host") ?? request.headers.get("host"));
   if (allowedHosts.length && host && !allowedHosts.includes(host)) {

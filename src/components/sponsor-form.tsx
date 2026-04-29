@@ -97,7 +97,7 @@ export function SponsorForm({
           className="field"
           name="note"
           rows={4}
-          placeholder="Explain what this funding is meant to support and any public-interest constraint it should respect."
+          placeholder="Explain what this funding is meant to support and any public-use boundary it should respect."
         />
       </label>
 

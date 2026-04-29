@@ -164,7 +164,7 @@ export const seedChangelogEntries: ChangelogEntryRecord[] = [
     title: "Example Kens rebuilt around high-skill work",
     entryType: "data",
     summary: "The demo board retired everyday-service and passive-monitoring examples in favor of research, software, engineering, and evaluation work.",
-    details: "Seed data remains simulated and is labeled as sandbox output; it does not claim live frontier-model execution or real sponsor settlement.",
+    details: "Seed data remains simulated and is labeled as sandbox output; it does not claim live provider execution or live sponsor settlement.",
     visible: true,
     createdAt: "2026-04-28T08:05:00.000Z",
     updatedAt: "2026-04-28T08:05:00.000Z",

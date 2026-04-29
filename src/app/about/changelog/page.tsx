@@ -15,7 +15,7 @@ export default async function ChangelogPage() {
         <span className="eyebrow">Changelog</span>
         <h1>What changed on KenMatch</h1>
         <p style={{ color: "var(--ink-muted)", maxWidth: "48rem" }}>
-          Compact public release notes for the board, seed data, account surfaces, admin tooling, and sandbox disclosures. These notes describe product behavior, not live frontier-model execution or real sponsor settlement.
+          Compact public release notes for the board, seed data, account surfaces, admin tooling, and sandbox disclosures. These notes describe product behavior, not live provider execution or live sponsor settlement.
         </p>
       </section>
       <section className="panel grid gap-3">

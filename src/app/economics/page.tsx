@@ -50,7 +50,7 @@ export default async function EconomicsPage() {
           The funding model is deliberately split from the allocation model. Revenue and sponsorship expand the compute treasury; public pulse, allocation credits, checkpoint approvals, and safety review decide what advances.
         </p>
         <p className="sandbox-disclosure" role="note">
-          <strong>Sandbox mode.</strong> All dollar values, backer totals, and sponsorship commitments on this page are hypothetical demonstration data based on current API-accessible frontier-model workflows. They do <strong>not</strong> represent real investments, escrowed funds, or vendor commitments. Live checkout is only active if Stripe keys are configured and explicitly labeled.
+          <strong>Sandbox mode.</strong> All dollar values, backer totals, and sponsorship commitments on this page are hypothetical demonstration data based on provider-backed long-context workflow estimates. They do <strong>not</strong> represent real investments, escrowed funds, or vendor commitments. Live checkout is only active if Stripe keys are configured and explicitly labeled.
         </p>
         <div className="signal-bar">
           <div className="flow-card">

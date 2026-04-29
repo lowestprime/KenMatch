@@ -69,7 +69,7 @@ These are not failures; they are real boundaries that the plan must respect.
    - Demo sponsorship/economics flows can still be fully functional in simulated mode without claiming live financial settlement.
 
 4. “Hypothetical consumer-grade frontier AI results” must remain clearly framed as simulated/demo outputs unless real provider integrations are configured and actually used.
-   - No fake claims of live GPT/Claude/Gemini/xAI execution if the app is rendering seeded or simulated output.
+   - No fake claims of live provider execution if the app is rendering seeded or simulated output.
    - The demo should be exciting, plausible, and sponsor-friendly without becoming deceptive.
 
 5. The conceptual document includes claims and framing that are broader than a prudent public MVP.
@@ -93,7 +93,7 @@ This task is successful only if:
 - Do not overclaim DDoS protection or “full security.”
 - Do not expose raw card collection; use Stripe Checkout only if payments are live.
 - Do not weaken host filtering, origin checks, session security, rate limits, or abuse controls.
-- Do not create a deceptive demo that claims live frontier-model execution where there is only simulation.
+- Do not create a deceptive demo that claims live provider execution where there is only simulation.
 - Do not preserve grandiose or elitist copy merely because it sounds ambitious.
 - Do not break the current route model, legacy redirects, auth model, or documented deployment pattern without replacing them coherently.
 
@@ -250,7 +250,7 @@ This task is successful only if:
   - regressions in session persistence
 
 ### Workstream F: Demo realism, seed data, and sponsor-driving excitement
-- Objective: make the simulation/demo feel exciting, credible, and sponsor-worthy using sandbox capital and plausible hypothetical frontier-model outcomes
+- Objective: make the simulation/demo feel exciting, credible, and sponsor-worthy using sandbox capital and plausible provider-backed workflow estimates
 - Files likely affected:
   - `src/lib/seed.ts`
   - `src/lib/seed-plus.ts`
@@ -339,7 +339,7 @@ This task is successful only if:
 6. Audit the board/feed/detail/comment/filter interactions end-to-end and repair anything incomplete or inconsistent.
 7. Redesign the public UI toward a more approachable, modern, inclusive, Reddit-like product language and interaction model.
 8. Upgrade visual hierarchy, cards, shells, filters, comment threading, and sponsor/economics presentation for engagement and readability.
-9. Modernize seed data and examples so the demo shows plausible sandbox capital, realistic user activity, compelling Kens, and hypothetical frontier-model outcomes without pretending they are live executions.
+9. Modernize seed data and examples so the demo shows plausible sandbox capital, realistic user activity, compelling Kens, and provider-backed workflow estimates without pretending they are live executions.
 10. Audit and improve the economics/funding/revenue/sponsorship surfaces so the business model reads as coherent, public-benefit-aligned, and sponsorable.
 11. Validate all major routes, forms, and actions with real lint/typecheck/test/build and rendered smoke checks.
 12. Update README, hardening docs, deploy docs, architecture docs, and examples to match the final repo truth.
@@ -462,7 +462,7 @@ Run the app locally and verify at minimum:
 ## Decisions and discoveries
 - 2026-04-10: Treat `KenMatch_Conception.md` as the attached long-form concept document to audit against the current repo truth.
 - 2026-04-10: Security work must target the realistic boundary documented in the repo: app hardening plus edge/origin shielding, not false claims of complete self-contained DDoS protection.
-- 2026-04-10: The demo should favor plausible sandbox economics and hypothetical frontier-model outcomes over deceptive “live execution” theater.
+- 2026-04-10: The demo should favor plausible sandbox economics and provider-backed workflow estimates over deceptive “live execution” theater.
 - 2026-04-10: The public board should be modernized toward a more inclusive, Reddit-like participation model without collapsing KenMatch into a clone or erasing its governance/economics identity.
 - 2026-04-10: The concept document must be treated as a source of requirements and copy ideas, not a source of unquestioned product truth.
 
@@ -481,7 +481,7 @@ Run the app locally and verify at minimum:
 - Minimal next step to unblock the remaining gap:
   - operate behind Cloudflare Tunnel or equivalent with proxied DNS, WAF, rate limiting, and NAS firewall/ops controls
 
-### Blocker 2: Live payment and live frontier-model integrations depend on real credentials and operational setup
+### Blocker 2: Live payment and live provider execution depend on real credentials and operational setup
 - Scope affected:
   - live sponsor checkout/webhook completion
   - live provider-backed model outputs

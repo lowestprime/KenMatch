@@ -150,7 +150,7 @@ export const seedCategories: CategoryRecord[] = [
     id: "engineering-systems",
     slug: "engineering-systems",
     name: "Engineering and Systems Design",
-    description: "Reliability tradeoffs, architecture reviews, simulation scaffolds, and operational plans for complicated public-interest systems.",
+    description: "Reliability tradeoffs, architecture reviews, simulation scaffolds, and operational plans for high-stakes research and infrastructure systems.",
     thesis: "Engineering Kens should expose assumptions, constraints, and failure modes before implementation decisions harden.",
     symbolKey: "engineering-systems",
   },

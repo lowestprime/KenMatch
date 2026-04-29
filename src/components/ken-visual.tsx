@@ -1,3 +1,4 @@
+import Image from "next/image";
 import type { CSSProperties } from "react";
 
 import type { TaskSummary } from "@/lib/types";
@@ -310,12 +311,15 @@ export function KenVisual({
       aria-label={aria}
     >
       {task.illustrationUrl ? (
-        <img
+        <Image
           className="ken-visual-upload"
           src={task.illustrationUrl}
           alt=""
           aria-hidden="true"
           loading="lazy"
+          width={220}
+          height={132}
+          unoptimized
         />
       ) : null}
       <svg viewBox="0 0 220 132" aria-hidden="true" focusable="false">
