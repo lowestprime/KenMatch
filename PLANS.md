@@ -51,7 +51,7 @@ These truths must be preserved unless the implementation explicitly and safely c
 - Legacy `/tasks` routes redirect to `/kens`.
 - This repository is now public on GitHub, which increases scrutiny, scanning, abuse attempts, and the need to remove secrets/unsafe assumptions and to harden docs and config.
 - The repo’s long-form concept file contains many expansive, ambitious, and in places likely stale or over-specific claims that must be audited against the actual product and public demo.
-- The request asks for a sandbox/simulated public demo. Simulated economics, sandbox capital, and hypothetical frontier-model results are acceptable and often preferable for a safe public release, but they must not be misrepresented as live production outputs if they are not.
+- The request asks for a sandbox/simulated public demo. Simulated economics, sandbox capital, and hypothetical AI workflow results are acceptable and often preferable for a safe public release, but they must not be misrepresented as live production outputs if they are not.
 
 ## Hard boundaries and honest constraints
 These are not failures; they are real boundaries that the plan must respect.
@@ -118,7 +118,7 @@ This task is successful only if:
 - `src/lib/security.ts`: form hardening, origin checks, rate limits, Turnstile verification
 - `src/lib/stripe.ts`: live sponsor checkout
 - `src/lib/seed.ts` and `src/lib/seed-plus.ts`: demo realism and seed content
-- `middleware.ts`: host filtering, headers, request hardening
+- `src/proxy.ts`: Next.js 16 app proxy for host filtering, headers, and request hardening
 - `Dockerfile`, `docker-compose.synology.yml`, `docker-compose.synology.tunnel.yml`, `cloudflared/config.yml.example`: deployment and public-hosting posture
 - `tests/**/*.test.ts`: automated test surface available in repo
 
@@ -140,7 +140,7 @@ This task is successful only if:
 ### Workstream A: Security, abuse resistance, and public-hosting hardening
 - Objective: maximize practical public safety for a home-network-hosted public release without pretending the repo alone can solve DDoS/origin threats
 - Files likely affected:
-  - `middleware.ts`
+  - `src/proxy.ts`
   - `src/lib/security.ts`
   - `src/lib/session.ts`
   - `src/app/api/health/route.ts`
@@ -250,7 +250,7 @@ This task is successful only if:
   - regressions in session persistence
 
 ### Workstream F: Demo realism, seed data, and sponsor-driving excitement
-- Objective: make the simulation/demo feel exciting, credible, and sponsor-worthy using sandbox capital and plausible provider-backed workflow estimates
+- Objective: make the simulation/demo feel exciting, credible, and sponsor-worthy using sandbox capital and plausible simulated provider-class workflow estimates
 - Files likely affected:
   - `src/lib/seed.ts`
   - `src/lib/seed-plus.ts`
@@ -259,7 +259,7 @@ This task is successful only if:
   - economics/governance/demo copy
 - Focus areas:
   - more realistic and varied Kens
-  - stronger examples with public-interest and practical appeal
+  - stronger examples with public-use value and practical appeal
   - plausible model/provider/result framing
   - visible outcomes, checkpoints, and sponsor relevance
   - simulated budget, API spend, user traction, and impact metrics
@@ -339,7 +339,7 @@ This task is successful only if:
 6. Audit the board/feed/detail/comment/filter interactions end-to-end and repair anything incomplete or inconsistent.
 7. Redesign the public UI toward a more approachable, modern, inclusive, Reddit-like product language and interaction model.
 8. Upgrade visual hierarchy, cards, shells, filters, comment threading, and sponsor/economics presentation for engagement and readability.
-9. Modernize seed data and examples so the demo shows plausible sandbox capital, realistic user activity, compelling Kens, and provider-backed workflow estimates without pretending they are live executions.
+9. Modernize seed data and examples so the demo shows plausible sandbox capital, realistic user activity, compelling Kens, and simulated provider-class workflow estimates without pretending they are live executions.
 10. Audit and improve the economics/funding/revenue/sponsorship surfaces so the business model reads as coherent, public-benefit-aligned, and sponsorable.
 11. Validate all major routes, forms, and actions with real lint/typecheck/test/build and rendered smoke checks.
 12. Update README, hardening docs, deploy docs, architecture docs, and examples to match the final repo truth.
@@ -357,7 +357,7 @@ Status semantics:
 |----|--------------------------|--------|-----------------------------|
 | 1 | Exhaustively audit repo-local guidance and code paths before major edits | DONE | `AGENTS.md`, `README.md`, `docs/`, key codepaths reviewed |
 | 2 | Analyze every relevant claim in concept document and reconcile with product truth | DONE | `src/app/about/`, `src/lib/about-defaults.ts`, verification/disclosure copy |
-| 3 | Optimize public-facing security posture for a public GitHub repo and home-network/NAS hosting | DONE | `middleware.ts`, `src/lib/security.ts`, `docs/public-security-hardening.md` |
+| 3 | Optimize public-facing security posture for a public GitHub repo and home-network/NAS hosting | DONE | `src/proxy.ts`, `src/lib/security.ts`, `docs/public-security-hardening.md` |
 | 4 | Improve DDoS/origin protection posture | DONE | Cloudflare Tunnel doc flow + `docker-compose.synology.tunnel.yml` |
 | 5 | Ensure safer default deployment for public hosting | DONE | loopback-only compose + documented tunnel topology |
 | 6 | Modernize and improve revenue infrastructure | DONE | `/economics` redesign, treasury governor, sandbox disclosure |
@@ -369,7 +369,7 @@ Status semantics:
 | 12 | Make the demo easy to use and fully operational | DONE | empty/error/loading states added across routes |
 | 13 | Upgrade UI to feel more like modern Reddit, less elitist, more inclusive | DONE | nested comments in `discussion-thread.tsx`, mobile nav drawer |
 | 14 | Enhance realism of demo/sim with sandbox capital | DONE | `ken-sandbox-strip.tsx` with explicit non-real-capital banner |
-| 15 | Enhance realism with hypothetical frontier-AI results | DONE | seeded current API-accessible frontier-model workflow labels with honest sandbox labeling |
+| 15 | Enhance realism with sandbox workflow examples | DONE | seeded simulated provider-class workflow labels with honest sandbox labeling |
 | 16 | Maximize engagement and sponsorship appeal | DONE | refined copy + sponsor lanes in `/economics`, demo banner |
 | 17 | Preserve honest demo/live distinction | DONE | `sandbox-banner` on `/`, disclosures on `/economics` and Ken details |
 | 18 | Keep Stripe live flow safe if enabled | DONE (optional) | `src/lib/stripe.ts` unchanged; only active when keys set |
@@ -462,7 +462,7 @@ Run the app locally and verify at minimum:
 ## Decisions and discoveries
 - 2026-04-10: Treat `KenMatch_Conception.md` as the attached long-form concept document to audit against the current repo truth.
 - 2026-04-10: Security work must target the realistic boundary documented in the repo: app hardening plus edge/origin shielding, not false claims of complete self-contained DDoS protection.
-- 2026-04-10: The demo should favor plausible sandbox economics and provider-backed workflow estimates over deceptive “live execution” theater.
+- 2026-04-10: The demo should favor plausible sandbox economics and simulated provider-class workflow estimates over deceptive “live execution” theater.
 - 2026-04-10: The public board should be modernized toward a more inclusive, Reddit-like participation model without collapsing KenMatch into a clone or erasing its governance/economics identity.
 - 2026-04-10: The concept document must be treated as a source of requirements and copy ideas, not a source of unquestioned product truth.
 
@@ -484,7 +484,7 @@ Run the app locally and verify at minimum:
 ### Blocker 2: Live payment and live provider execution depend on real credentials and operational setup
 - Scope affected:
   - live sponsor checkout/webhook completion
-  - live provider-backed model outputs
+  - live provider execution or provider-backed outputs
 - What can still be completed:
   - fully functional simulated/demo flows
   - safe live-mode scaffolding

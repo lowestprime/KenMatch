@@ -314,8 +314,7 @@ export function KenVisual({
         <Image
           className="ken-visual-upload"
           src={task.illustrationUrl}
-          alt=""
-          aria-hidden="true"
+          alt={task.illustrationAlt ?? `Illustration for ${task.title}`}
           loading="lazy"
           width={220}
           height={132}

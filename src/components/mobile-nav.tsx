@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
 
-import { signOutAction } from "@/app/actions";
 import { Avatar } from "@/components/avatar";
 import type { ViewerSession } from "@/lib/types";
 
@@ -124,7 +123,7 @@ export function MobileNav({
                     <Link href="/account" className="cta-secondary cta-compact" onClick={close}>
                       Account
                     </Link>
-                    <form action={signOutAction}>
+                    <form action="/auth/sign-out" method="post">
                       <button type="submit" className="cta-secondary cta-compact" onClick={close}>
                         Sign out
                       </button>

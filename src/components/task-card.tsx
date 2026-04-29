@@ -1,8 +1,6 @@
 import Link from "next/link";
 
 import { KenVisual } from "@/components/ken-visual";
-import { KenSandboxStrip } from "@/components/ken-sandbox-strip";
-import { KenTimingStrip } from "@/components/ken-timing-strip";
 import { formatCurrency, formatDateTime, labelForStage, labelForTier } from "@/lib/utils";
 import type { TaskSummary } from "@/lib/types";
 
@@ -15,6 +13,9 @@ const tierStyles: Record<TaskSummary["allocatedTier"], string> = {
 };
 
 export function TaskCard({ task }: { task: TaskSummary }) {
+  const progress = task.runtimeHours > 0 ? Math.min(100, Math.round((task.computeHoursUsed / task.runtimeHours) * 100)) : 0;
+  const rankLabel = task.categoryRank ? `#${task.categoryRank} in ${task.categoryName}` : task.categoryName;
+
   return (
     <Link href={`/kens/${task.slug}`} className="task-card-link" aria-label={`Open ${task.title}`}>
       <article className="task-card task-feed-card fade-up">
@@ -28,30 +29,39 @@ export function TaskCard({ task }: { task: TaskSummary }) {
             <div className="flex flex-wrap items-center gap-2">
               <span className={tierStyles[task.allocatedTier]}>{labelForTier(task.allocatedTier)}</span>
               <span className="tag">{labelForStage(task.stage)}</span>
-              <span className="tag">{task.categoryName}</span>
+              <span className="tag">{rankLabel}</span>
             </div>
             <div className="task-card-meta">Updated {formatDateTime(task.lastActivityAt)}</div>
           </div>
-          <div className="space-y-2">
-            <div className="task-card-kicker">Posted by {task.proposerName} · Created {formatDateTime(task.createdAt)}</div>
-            <h3 className="task-card-title">{task.title}</h3>
-            <p className="text-sm leading-7 text-muted">{task.summary}</p>
+          <div className="task-card-hero-row">
+            <div className="task-card-copy">
+              <div className="task-card-kicker">Proposed by {task.proposerName} · {formatDateTime(task.createdAt)}</div>
+              <h3 className="task-card-title">{task.title}</h3>
+              <p className="task-card-summary">{task.summary}</p>
+            </div>
+            <KenVisual task={task} variant="card" />
           </div>
-          <KenVisual task={task} variant="card" />
-          <div className="grid gap-3 text-sm text-muted sm:grid-cols-4">
+
+          <div className="task-card-stat-grid">
             <div className="stat-card"><span>Voice</span><strong>{task.totalVotes}</strong></div>
             <div className="stat-card"><span>Backers</span><strong>{task.supporterCount}</strong></div>
             <div className="stat-card"><span>Pilot users</span><strong>{task.sandboxPilotUsers}</strong></div>
             <div className="stat-card"><span>Sponsor pool</span><strong>{formatCurrency(task.sponsorPoolUsd)}</strong></div>
           </div>
-          <KenSandboxStrip ken={task} compact />
-          <KenTimingStrip ken={task} compact />
-          <div className="task-card-callout">
-            <div className="eyebrow">Who else could use this</div>
-            <p className="mt-2 line-clamp-3 text-sm leading-7 text-muted">{task.enterprisePackaging}</p>
+
+          <div className="task-card-run-line" aria-label="Ken run progress">
+            <div>
+              <strong>{task.completionSummary}</strong>
+              <span>{task.computeHoursUsed} / {task.runtimeHours} sandbox runtime hours</span>
+            </div>
+            <div className="task-card-progress" aria-hidden="true">
+              <span style={{ width: `${progress}%` }} />
+            </div>
           </div>
+
           <div className="task-card-footer">
-            <span className="task-card-footer-meta line-clamp-3">{task.sampleOutcome}</span>
+            <span className="task-card-footer-meta">Sandbox metrics only · no real capital, vendor bills, or delivered production outcome.</span>
+            <span className="task-card-footer-meta">Open thread for evidence, checkpoints, comments, and sponsorship context.</span>
           </div>
         </div>
       </article>

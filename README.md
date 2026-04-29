@@ -159,7 +159,7 @@ The allocation problem is practical: compute, review time, and operational atten
 - Proposal quality bonds, checkpoint approval gates, run metadata, rollback plans, and visible blocked work.
 - Economics surface for supported service packaging, screened evaluation licensing, compute routing, private execution lanes, sponsorship routing, treasury entries, and the 80/20 public reporting split.
 - Structured sponsor commitments with projected, simulated, and committed funding states plus optional Stripe Checkout for live sponsor intake.
-- Sandbox-backed demo Kens with clearly disclosed simulated capital, provider-backed workflow labels, API-spend estimates, pilot-user counts, and sample outcomes shown directly in the UI.
+- Sandbox-backed demo Kens with clearly disclosed simulated capital, demo workflow labels, API-spend estimates, pilot-user counts, and sample outcomes shown directly in the UI.
 - Deterministic Ken/category/status visuals plus optional admin-managed Ken illustrations stored in the persisted data volume. Uploaded illustrations are validated server-side; SVG uploads are blocked.
 - Owner-controlled maintenance mode, public changelog, admin SMTP configuration/status, visitor summaries, and filtered audit log views.
 - Two theme modes (`Light` and true-black `OLED`), rich motion, compact responsive navigation, strong visual hierarchy, and preview-safe KenMatch favicon/social-image assets.
@@ -242,7 +242,7 @@ KenMatch ships with a standalone Next.js build configuration and a Docker image 
 - The [`/api/health`](./src/app/api/health) health endpoint exposes a public-safe summary and can return detailed diagnostics when `KENMATCH_HEALTH_TOKEN` is supplied.
 - For local development, KenMatch constructs a file-backed SQLite-compatible database via libSQL.
 - For public deployment, `DATABASE_URL` and `DATABASE_AUTH_TOKEN` can be specified for managed remote libSQL database integration.
-- Security headers, host filtering, and mutation-origin checks live in [middleware.ts](./middleware.ts).
+- Security headers, host filtering, and mutation-origin checks live in [src/proxy.ts](./src/proxy.ts), which Next.js 16 reports as the app proxy/middleware boundary during production builds.
 - For public Synology NAS deployment, read [docs/synology-nas-deploy.md](./docs/synology-nas-deploy.md) and [docs/public-security-hardening.md](./docs/public-security-hardening.md) before exposing the service.
 
 ## 🛣️ Main Routes

@@ -71,7 +71,7 @@ This file maps the stable product requirements from `KenMatch_Conception.md` to 
 - Standalone Next.js output is configured in `next.config.ts`.
 - Docker deployment lives in `Dockerfile` and `docker-compose.synology.yml`.
 - Health checks are exposed through `src/app/api/health/route.ts`.
-- Public-hosting request filtering is implemented in `middleware.ts`.
+- Public-hosting request filtering is implemented in `src/proxy.ts`.
 - Synology-specific public-hosting guidance and hardening checklists live in `docs/synology-nas-deploy.md` and `docs/public-security-hardening.md`.
 - Synology NAS deployment instructions live in `docs/synology-nas-deploy.md`.
 

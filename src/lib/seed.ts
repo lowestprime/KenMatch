@@ -203,7 +203,7 @@ export const seedTasks: TaskRecord[] = [
     title: "Cross-Disorder Neurogenetics Map",
     summary: "Build a source-grounded map of shared genetic signals, brain-region annotations, and unresolved contradictions across psychiatric disorders.",
     problem: "Cross-disorder genetics papers are dense, inconsistent, and hard to compare across cohorts, annotations, and downstream interpretations.",
-    whyNow: "Provider-backed long-context workflows can preserve many papers and tables in one run while reviewers police over-interpretation.",
+    whyNow: "Demo-mode long-context workflows can preserve many papers and tables in one run while reviewers police over-interpretation.",
     publicBenefit: "Helps trainees, labs, and patient communities see where evidence converges, where it conflicts, and which claims remain speculative.",
     deliverables: ["Variant-to-phenotype map", "Evidence-strength rubric", "Contradiction table", "Reviewer annotation export"],
     evaluationCriteria: ["Cohort differences are shown", "No causal leap is asserted without evidence", "Reviewers can inspect each source span"],
@@ -214,7 +214,7 @@ export const seedTasks: TaskRecord[] = [
     safetyStatus: "approved",
     budgetUsd: 42000,
     runtimeHours: 720,
-    backend: "Provider-backed long-context synthesis with source-span audit",
+    backend: "Demo-mode long-context synthesis with source-span audit",
     createdAt: "2026-04-11T10:15:00.000Z",
   },
   {
@@ -525,7 +525,7 @@ export const seedVotes: VoteRecord[] = [
 
 export const seedRuns: ComputeRunRecord[] = [
   { id: "run-rd", taskId: "rare-disease-mechanism-atlas", status: "running", backend: "Long-context retrieval and contradiction-preserving synthesis with reviewer gates", budgetUsd: 38000, runtimeHours: 720, checkpointCadenceHours: 48, reproducibilityNotes: "Each atlas node stores source spans, uncertainty labels, reviewer actions, and revision history.", rollbackPlan: "Freeze new nodes, keep validated atlas entries visible, and route contested claims to domain review." },
-  { id: "run-ng", taskId: "cross-disorder-neurogenetics-map", status: "running", backend: "Provider-backed long-context synthesis with source-span audit", budgetUsd: 42000, runtimeHours: 720, checkpointCadenceHours: 48, reproducibilityNotes: "Every mapped claim retains cohort, annotation method, source span, and reviewer decision.", rollbackPlan: "Hide unsupported cross-disorder links and return affected claims to review." },
+  { id: "run-ng", taskId: "cross-disorder-neurogenetics-map", status: "running", backend: "Demo-mode long-context synthesis with source-span audit", budgetUsd: 42000, runtimeHours: 720, checkpointCadenceHours: 48, reproducibilityNotes: "Every mapped claim retains cohort, annotation method, source span, and reviewer decision.", rollbackPlan: "Hide unsupported cross-disorder links and return affected claims to review." },
   { id: "run-pr", taskId: "lab-protocol-reproduction-scout", status: "running", backend: "Long-context retrieval with structured extraction and reviewer gates", budgetUsd: 18000, runtimeHours: 220, checkpointCadenceHours: 24, reproducibilityNotes: "Each extracted step stores source snippets, model trace, reviewer decision, and unresolved ambiguity label.", rollbackPlan: "Freeze new protocol packets and route contested extraction to domain reviewers." },
   { id: "run-var", taskId: "protein-variant-contradiction-map", status: "scheduled", backend: "Document-grounded table extraction with expert correction gates", budgetUsd: 16000, runtimeHours: 168, checkpointCadenceHours: 24, reproducibilityNotes: "Assay comparisons preserve source table, species, readout, and reviewer adjudication.", rollbackPlan: "Hold public release if assay context cannot be preserved." },
   { id: "run-os", taskId: "open-source-regression-reproducer", status: "complete", backend: "Sandboxed coding agents with reproducible CI traces", budgetUsd: 5000, runtimeHours: 72, checkpointCadenceHours: 12, reproducibilityNotes: "Repro packets preserve clean checkout, dependency versions, terminal logs, failing test, and maintainer feedback.", rollbackPlan: "Hide noisy repros and fall back to manual curation until deterministic runs clear review." },

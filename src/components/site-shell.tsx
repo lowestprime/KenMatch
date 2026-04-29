@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { signOutAction } from "@/app/actions";
 import { KenMatchMark } from "@/components/kenmatch-mark";
 import { HeaderScrollController } from "@/components/header-scroll-controller";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -112,7 +111,7 @@ export function SiteShell({
                     {showAdminLink ? (
                       <Link href="/admin" className="cta-secondary cta-compact">Admin</Link>
                     ) : null}
-                    <form action={signOutAction}>
+                    <form action="/auth/sign-out" method="post">
                       <button type="submit" className="cta-secondary cta-compact">Sign out</button>
                     </form>
                   </div>
@@ -169,7 +168,7 @@ export function SiteShell({
             Voice stays separate from money. Backing supports compute, review, and operations without buying rank.
           </p>
           <p className="site-footer-meta site-footer-sandbox">
-            Simulated sandbox capital, hypothetical frontier AI demo outcomes, and placeholder sponsorship commitments are clearly disclosed wherever they appear.
+            Simulated sandbox capital, demo workflow outcomes, and placeholder sponsorship commitments are clearly disclosed wherever they appear.
           </p>
         </div>
       </footer>
