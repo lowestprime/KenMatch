@@ -3167,3 +3167,160 @@ body.mobile-nav-open { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0s !important; transition-duration: 0s !important; }
 }
+
+/* Final mobile feed-card guardrail.
+   Must remain at the end of globals.css so later compact/base card rules
+   cannot reintroduce the desktop two-column feed on phone widths. */
+@media (max-width: 640px) {
+  .task-card-link,
+  .task-card,
+  .task-feed-card,
+  .task-feed-body,
+  .task-card-header,
+  .task-card-copy,
+  .task-card-hero-row,
+  .task-card-run-line,
+  .task-card-footer {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .task-feed-card {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.58rem;
+  }
+
+  .task-feed-rail {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.34rem;
+    padding: 0.44rem 0.58rem;
+    overflow: hidden;
+  }
+
+  .task-feed-rail::before,
+  .task-feed-rail::after {
+    flex: 0 0 auto;
+    font-size: 0.86rem;
+    line-height: 1;
+  }
+
+  .task-feed-score {
+    flex: 0 0 auto;
+    font-size: 1.04rem;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .task-feed-score-label {
+    flex: 0 0 auto;
+    font-size: 0.62rem;
+    line-height: 1.15;
+    white-space: nowrap;
+  }
+
+  .task-feed-score-meta {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin-left: auto;
+    overflow: hidden;
+    text-align: right;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .task-card-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 0.42rem;
+  }
+
+  .task-card-header > .flex {
+    min-width: 0;
+  }
+
+  .tag,
+  .tier-chip {
+    max-width: 100%;
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    text-align: left;
+    line-height: 1.25;
+  }
+
+  .task-card-hero-row {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 0.52rem;
+  }
+
+  .task-card-hero-row .ken-visual,
+  .task-card-hero-row .ken-art {
+    order: -1;
+    justify-self: start;
+  }
+
+  .ken-symbol-card {
+    width: clamp(3.65rem, 18vw, 4.35rem);
+    justify-self: start;
+  }
+
+  .ken-art-card {
+    width: clamp(4.8rem, 28vw, 6rem);
+    justify-self: start;
+  }
+
+  .task-card-kicker,
+  .task-card-title,
+  .task-card-summary,
+  .task-card-run-line strong,
+  .task-card-run-line span,
+  .task-card-footer-meta,
+  .stat-card span,
+  .stat-card strong {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: normal;
+    hyphens: auto;
+  }
+
+  .task-card-title {
+    font-size: clamp(1.34rem, 6.1vw, 1.72rem);
+    line-height: 1.12;
+    text-wrap: balance;
+  }
+
+  .task-card-summary {
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+
+  .task-card-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .task-card-stat-grid .stat-card {
+    min-width: 0;
+  }
+
+  .task-card-run-line {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .task-card-progress {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .task-card-footer {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.24rem;
+  }
+}
