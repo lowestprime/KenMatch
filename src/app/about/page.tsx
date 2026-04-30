@@ -23,36 +23,43 @@ export default async function AboutPage() {
 
   return (
     <div className="page-stack">
-      <section className="panel hero-panel grid gap-3">
-        <span className="eyebrow">{about.heroEyebrow}</span>
-        <h1 style={{ maxWidth: "40rem" }}>{about.heroTitle}</h1>
-        <p className="text-muted" style={{ maxWidth: "48rem", color: "var(--ink-muted)" }}>
-          {about.heroSubtitle}
-        </p>
-        <div className="hero-actions">
-          <a className="cta-primary" href={`mailto:${about.contactEmail}`}>
-            Contact the creator
-          </a>
-          <Link className="cta-secondary" href="/about/changelog">
-            Read the changelog
-          </Link>
-          {about.links.slice(0, 3).map((link) => (
-            <a
-              key={link.url}
-              className="cta-secondary"
-              href={link.url}
-              target={link.url.startsWith("http") ? "_blank" : undefined}
-              rel={link.url.startsWith("http") ? "noopener noreferrer" : undefined}
-            >
-              {link.label}
-            </a>
-          ))}
-        </div>
-        {lastUpdatedLabel ? (
-          <p className="text-xs" style={{ color: "var(--muted)" }}>
-            Last updated {lastUpdatedLabel}
+      <section className="panel hero-panel about-hero">
+        <div className="about-hero-copy">
+          <span className="eyebrow">{about.heroEyebrow}</span>
+          <h1>{about.heroTitle}</h1>
+          <p className="text-muted" style={{ color: "var(--ink-muted)" }}>
+            {about.heroSubtitle}
           </p>
-        ) : null}
+          <div className="hero-actions">
+            <a className="cta-primary" href={`mailto:${about.contactEmail}`}>
+              Contact the creator
+            </a>
+            <Link className="cta-secondary" href="/about/changelog">
+              Read the changelog
+            </Link>
+            {about.links.slice(0, 3).map((link) => (
+              <a
+                key={link.url}
+                className="cta-secondary"
+                href={link.url}
+                target={link.url.startsWith("http") ? "_blank" : undefined}
+                rel={link.url.startsWith("http") ? "noopener noreferrer" : undefined}
+              >
+                {link.label}
+              </a>
+            ))}
+          </div>
+          {lastUpdatedLabel ? (
+            <p className="text-xs" style={{ color: "var(--muted)" }}>
+              Last updated {lastUpdatedLabel}
+            </p>
+          ) : null}
+        </div>
+        <div className="about-hero-summary" aria-label="KenMatch operating commitments">
+          <div><strong>Public board</strong><span>Proposals, ranking, launch states, and checkpoints stay visible.</span></div>
+          <div><strong>Money separate from rank</strong><span>Backing expands compute and review capacity without buying priority.</span></div>
+          <div><strong>Sandbox disclosure</strong><span>Demo figures and sample outcomes are labeled before live commitments exist.</span></div>
+        </div>
       </section>
 
       <section className="section-grid" data-columns="2">

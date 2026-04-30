@@ -37,8 +37,7 @@ export const metadata: Metadata = {
     default: "KenMatch: Rank sustained AI work",
     template: "%s · KenMatch",
   },
-  description:
-    "KenMatch turns sustained frontier AI compute into a publicly accountable board. Propose Kens, vote on priority, and inspect allocation, funding context, and checkpoints through visible records.",
+  description: "Transparent allocation of frontier AI compute.",
   keywords: [
     "KenMatch",
     "AI compute",

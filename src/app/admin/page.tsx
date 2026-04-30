@@ -99,7 +99,7 @@ export default async function AdminPage() {
         <div className="panel grid gap-3">
           <h2>Ken illustrations</h2>
           <p style={{ color: "var(--muted)" }}>
-            Admin-uploaded Ken images are optional and persist in the data volume. Every card still has a deterministic fallback visual.
+            Admin-uploaded Ken images are optional and persist in the data volume. Kens without uploaded art use the public category/lane symbol.
           </p>
           <AdminIllustrationPanel tasks={dashboard.tasks} illustrations={dashboard.illustrations} />
         </div>

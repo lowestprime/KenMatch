@@ -2813,6 +2813,357 @@ body.mobile-nav-open { overflow: hidden; }
   }
 }
 
+/* Final launch repair: category/lane symbols replace generated per-Ken panels. */
+.site-header-inner {
+  padding-block: 0.2rem 0.24rem;
+}
+
+.site-brand-row {
+  min-height: 2.45rem;
+}
+
+.site-brand {
+  gap: 0.5rem;
+}
+
+.site-brand span span {
+  max-width: none;
+  white-space: nowrap;
+}
+
+.brand-mark {
+  width: 1.85rem;
+  height: 1.85rem;
+}
+
+.site-nav {
+  align-items: center;
+}
+
+.site-utility-row {
+  min-height: 2.15rem;
+}
+
+.viewer-inline-card {
+  padding: 0.18rem 0.24rem 0.18rem 0.34rem;
+}
+
+.ken-visual,
+.ken-symbol,
+.ken-art {
+  position: relative;
+  display: grid;
+  align-items: center;
+  justify-items: center;
+  overflow: visible;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  isolation: isolate;
+}
+
+.ken-symbol-card {
+  justify-self: end;
+  width: clamp(4.8rem, 8vw, 6rem);
+}
+
+.ken-symbol-detail {
+  justify-self: end;
+  width: min(100%, 13rem);
+  align-self: center;
+}
+
+.category-symbol {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  filter: drop-shadow(0 14px 30px color-mix(in srgb, var(--symbol-secondary) 18%, transparent));
+}
+
+.category-symbol-inline {
+  width: 2.6rem;
+  flex: none;
+}
+
+.category-symbol-shell {
+  fill: color-mix(in srgb, var(--symbol-background) 94%, transparent);
+  stroke: color-mix(in srgb, var(--symbol-primary) 42%, var(--line));
+  stroke-width: 2.4;
+}
+
+.category-symbol-horizon {
+  fill: none;
+  stroke: color-mix(in srgb, var(--symbol-secondary) 42%, transparent);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.category-symbol-motif,
+.category-symbol-status,
+.category-symbol-lane {
+  fill: none;
+  stroke: var(--symbol-primary);
+  stroke-width: 4.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.category-symbol-motif rect {
+  fill: color-mix(in srgb, var(--symbol-glow) 48%, transparent);
+}
+
+.category-symbol-status circle {
+  fill: color-mix(in srgb, #000 72%, var(--symbol-glow));
+  stroke: var(--symbol-secondary);
+  stroke-width: 2.8;
+}
+
+.category-symbol-status path {
+  stroke: var(--symbol-secondary);
+  stroke-width: 3.6;
+}
+
+.category-symbol-lane {
+  stroke: var(--symbol-secondary);
+  opacity: 0.82;
+}
+
+.category-symbol.is-blocked .category-symbol-shell {
+  stroke: color-mix(in srgb, var(--danger) 58%, var(--line));
+}
+
+.ken-symbol-copy {
+  display: grid;
+  gap: 0.12rem;
+  width: 100%;
+  margin-top: 0.32rem;
+  text-align: center;
+  color: var(--muted);
+}
+
+.ken-symbol-copy span {
+  display: none;
+}
+
+.ken-symbol-copy strong {
+  color: var(--ink);
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.ken-symbol-copy em {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-style: normal;
+}
+
+.ken-symbol-card .ken-symbol-copy {
+  display: none;
+}
+
+.ken-art {
+  border-radius: 0.8rem;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel-strong) 80%, transparent);
+  padding: 0.28rem;
+}
+
+.ken-art-card {
+  justify-self: end;
+  width: clamp(7rem, 13vw, 10.5rem);
+}
+
+.ken-art-detail {
+  width: min(100%, 18rem);
+}
+
+.ken-art-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 5 / 3;
+  object-fit: cover;
+  border-radius: 0.55rem;
+}
+
+.ken-art figcaption {
+  margin-top: 0.38rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+.task-card-hero-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(0.75rem, 1.4vw, 1.1rem);
+}
+
+.task-feed-card {
+  grid-template-columns: 3.35rem minmax(0, 1fr);
+}
+
+.task-card-title {
+  font-size: clamp(1.5rem, 2.1vw, 2.1rem);
+}
+
+.task-card-summary {
+  max-width: 58rem;
+}
+
+.task-card-footer {
+  border-top: 1px solid var(--line-soft);
+  padding-top: 0.32rem;
+}
+
+.ken-detail-heading {
+  grid-template-columns: minmax(0, 1fr) minmax(8.5rem, 13rem);
+  align-items: center;
+}
+
+.about-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 0.96fr) minmax(20rem, 0.74fr);
+  align-items: end;
+  gap: clamp(1rem, 2.2vw, 2.4rem);
+}
+
+.about-hero-copy {
+  display: grid;
+  gap: 0.85rem;
+  max-width: 52rem;
+}
+
+.about-hero h1 {
+  max-width: 49rem;
+  font-size: clamp(2.4rem, 5.2vw, 5.25rem);
+  line-height: 0.98;
+}
+
+.about-hero p {
+  max-width: 46rem;
+}
+
+.about-hero-summary {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.about-hero-summary div {
+  display: grid;
+  gap: 0.18rem;
+  border: 1px solid var(--line);
+  border-radius: 0.7rem;
+  background: color-mix(in srgb, var(--panel-strong) 62%, transparent);
+  padding: 0.72rem 0.8rem;
+}
+
+.about-hero-summary strong {
+  color: var(--ink);
+  font-size: 0.86rem;
+}
+
+.about-hero-summary span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.governance-list-panel,
+.public-flow-panel {
+  align-self: start;
+}
+
+.governance-list-panel > .grid,
+.public-flow-panel > .grid {
+  gap: 0.65rem;
+}
+
+.governance-list-panel .rounded-\[1\.3rem\],
+.public-flow-panel .rounded-\[1\.3rem\] {
+  padding: 0.85rem !important;
+}
+
+@media (min-width: 1081px) {
+  .site-brand-row {
+    grid-template-columns: minmax(18rem, auto) minmax(22rem, 1fr) auto;
+  }
+
+  .site-brand {
+    max-width: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .about-hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .about-hero h1 {
+    max-width: 100%;
+    font-size: clamp(2.35rem, 9vw, 4.1rem);
+  }
+
+  .ken-detail-heading {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ken-symbol-detail,
+  .ken-art-detail {
+    justify-self: start;
+    width: min(11rem, 48vw);
+  }
+}
+
+@media (max-width: 640px) {
+  .site-header-inner {
+    padding-block: 0.3rem;
+  }
+
+  .site-brand span span {
+    display: none;
+  }
+
+  .task-card-hero-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .task-card-hero-row .ken-visual,
+  .task-card-hero-row .ken-art {
+    order: 0;
+  }
+
+  .ken-symbol-card {
+    width: 3.9rem;
+  }
+
+  .ken-art-card {
+    width: 5.4rem;
+  }
+
+  .task-card-title {
+    font-size: clamp(1.35rem, 6.2vw, 1.75rem);
+  }
+
+  .task-card-summary {
+    font-size: 0.88rem;
+  }
+
+  .about-hero h1 {
+    font-size: clamp(2.05rem, 11vw, 3.2rem);
+  }
+
+  .about-hero .hero-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .category-symbol-status {
+    transform: translate(1px, 1px) scale(0.92);
+    transform-origin: 74px 24px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0s !important; transition-duration: 0s !important; }
 }

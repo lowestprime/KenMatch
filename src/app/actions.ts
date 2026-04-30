@@ -1418,7 +1418,7 @@ export async function removeTaskIllustrationAction(_: ActionState, formData: For
     return { status: "error", message: actionErrorMessage(error, "Unable to remove illustration.") };
   }
   revalidateCorePaths();
-  return { status: "success", message: "Ken illustration removed; deterministic visual fallback is active." };
+  return { status: "success", message: "Ken illustration removed; category/lane symbol is active." };
 }
 
 export async function verifyProfileDecisionAction(_: ActionState, formData: FormData): Promise<ActionState> {

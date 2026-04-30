@@ -207,7 +207,7 @@ export function AdminIllustrationPanel({
   return (
     <div className="form-grid">
       <div className="admin-hint">
-        Uploaded Ken illustrations are optional, admin-controlled, and stored under the persisted data volume. PNG, JPEG, WebP, and GIF are accepted under 1.5 MB; SVG uploads are blocked. Deterministic visuals remain the fallback.
+        Uploaded Ken illustrations are optional, admin-controlled, and stored under the persisted data volume. PNG, JPEG, WebP, and GIF are accepted under 1.5 MB; SVG uploads are blocked. The public category/lane symbol remains the fallback.
       </div>
       <form action={uploadAction} className="form-grid">
         <label className="field-label">
@@ -248,7 +248,7 @@ export function AdminIllustrationPanel({
           <StatusMessage state={removeState} />
         </form>
       ) : (
-        <p className="text-sm" style={{ color: "var(--muted)" }}>Selected Ken is using the deterministic visual fallback.</p>
+        <p className="text-sm" style={{ color: "var(--muted)" }}>Selected Ken is using its category/lane symbol.</p>
       )}
     </div>
   );

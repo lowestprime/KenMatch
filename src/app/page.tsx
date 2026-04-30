@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { CategorySymbol } from "@/components/ken-visual";
 import { TaskCard } from "@/components/task-card";
 import { getHomeData } from "@/lib/db";
 import { getViewerProfileId } from "@/lib/session";
@@ -80,7 +81,16 @@ export default async function HomePage() {
             {categories.map((category) => (
               <div key={category.id} className="rounded-[1.3rem] border border-border bg-background/55 p-5">
                 <div className="flex items-center justify-between gap-3">
-                  <div className="font-display text-xl font-semibold text-foreground">{category.name}</div>
+                  <div className="flex items-center gap-3">
+                    <CategorySymbol
+                      categorySlug={category.slug}
+                      categoryName={category.name}
+                      tier="queued"
+                      stage={category.runningCount > 0 ? "running" : category.shippedCount > 0 ? "shipped" : "review"}
+                      variant="inline"
+                    />
+                    <div className="font-display text-xl font-semibold text-foreground">{category.name}</div>
+                  </div>
                   <span className="tag">{category.proposalCount} Kens</span>
                 </div>
                 <p className="mt-2 text-sm leading-7 text-muted">{category.thesis}</p>

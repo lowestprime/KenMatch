@@ -80,7 +80,7 @@ export default async function KensPage({ searchParams }: KensPageProps) {
             <div className="space-y-3 text-sm leading-7 text-muted">
               <p>Use pulse like a forum vote: quick support or concern. Use allocation credits when you want scarce voice to affect lane ranking.</p>
               <p>Sandbox demos are always labeled as simulations. Real funding and pledges are tracked separately on the backing page.</p>
-              <p>Visual indicators summarize domain, lane, checkpoint progress, and run state. They are deterministic status illustrations, not generated result imagery.</p>
+              <p>Category marks identify the domain and lane. Kens only show project-specific art when an admin uploads a reviewed illustration with alt text.</p>
               <p>Kens can ship early, pause at a compute limit, continue running, or deliver partial artifacts. The status stays visible.</p>
             </div>
           </div>

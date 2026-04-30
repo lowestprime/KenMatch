@@ -11,44 +11,33 @@ type KenVisualTask = Pick<
   | "allocatedTier"
   | "stage"
   | "completionMode"
-  | "updateCount"
-  | "taskPulseScore"
-  | "sandboxCapitalUsd"
   | "illustrationUrl"
   | "illustrationAlt"
   | "illustrationSource"
 >;
 
-type VisualPalette = {
+type SymbolPalette = {
   primary: string;
   secondary: string;
-  tertiary: string;
-  wash: string;
+  glow: string;
+  background: string;
 };
 
-type VisualNode = {
-  x: number;
-  y: number;
-  r: number;
-  tone: 0 | 1 | 2;
-  opacity: number;
-};
-
-const CATEGORY_PALETTES: Record<string, VisualPalette> = {
-  "science-health": { primary: "#77f7d6", secondary: "#68a8ff", tertiary: "#f4f9ff", wash: "#0b3f48" },
-  "open-tools": { primary: "#83f4ff", secondary: "#a77bff", tertiary: "#ffd86e", wash: "#1b2a52" },
-  "research-synthesis": { primary: "#c6f88d", secondary: "#65d6ff", tertiary: "#fff1a8", wash: "#263d1b" },
-  "engineering-systems": { primary: "#8cecff", secondary: "#6e85ff", tertiary: "#ffcb7d", wash: "#122a44" },
-  "safety-evaluation": { primary: "#ff9d8d", secondary: "#a77bff", tertiary: "#8ff9d2", wash: "#3a1825" },
-  "frontier-creative": { primary: "#ff8edc", secondary: "#9c83ff", tertiary: "#ffd66d", wash: "#421b4c" },
+const CATEGORY_PALETTES: Record<string, SymbolPalette> = {
+  "science-health": { primary: "#88f7e3", secondary: "#8bb8ff", glow: "#123a3d", background: "#020b0d" },
+  "open-tools": { primary: "#8eeaff", secondary: "#a98dff", glow: "#142040", background: "#030711" },
+  "research-synthesis": { primary: "#d0fb95", secondary: "#7bd6ff", glow: "#1d3316", background: "#050c04" },
+  "engineering-systems": { primary: "#90eaff", secondary: "#8296ff", glow: "#102540", background: "#030711" },
+  "safety-evaluation": { primary: "#ffab9f", secondary: "#b78dff", glow: "#371620", background: "#0d0407" },
+  "frontier-creative": { primary: "#ff98dd", secondary: "#a98cff", glow: "#36153d", background: "#0c0310" },
 };
 
 const TIER_LABELS: Record<TaskSummary["allocatedTier"], string> = {
-  months: "Month lane",
-  weeks: "Week lane",
-  days: "Day lane",
-  queued: "Queued",
-  blocked: "Blocked",
+  months: "Months lane",
+  weeks: "Weeks lane",
+  days: "Days lane",
+  queued: "Queued lane",
+  blocked: "Blocked lane",
 };
 
 const STAGE_LABELS: Record<TaskSummary["stage"], string> = {
@@ -60,210 +49,174 @@ const STAGE_LABELS: Record<TaskSummary["stage"], string> = {
   blocked: "Blocked",
 };
 
-const STAGE_POSITIONS: Record<TaskSummary["stage"], number> = {
-  review: 54,
-  voting: 83,
-  scheduled: 113,
-  running: 145,
-  shipped: 174,
-  blocked: 113,
-};
-
-const TIER_DENSITY: Record<TaskSummary["allocatedTier"], number> = {
-  months: 8,
-  weeks: 7,
-  days: 6,
-  queued: 4,
-  blocked: 4,
-};
-
-function hashValue(input: string) {
-  let hash = 2166136261;
-  for (let index = 0; index < input.length; index += 1) {
-    hash ^= input.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-  return hash >>> 0;
-}
-
-function hashUnit(seed: number, salt: number) {
-  let value = seed + Math.imul(salt + 1, 0x9e3779b1);
-  value ^= value >>> 16;
-  value = Math.imul(value, 0x85ebca6b);
-  value ^= value >>> 13;
-  value = Math.imul(value, 0xc2b2ae35);
-  value ^= value >>> 16;
-  return (value >>> 0) / 4294967295;
-}
-
-function paletteFor(task: KenVisualTask): VisualPalette {
-  const fixed = CATEGORY_PALETTES[task.categorySlug];
-  if (fixed) return fixed;
-
-  const hue = hashValue(`${task.categorySlug}:${task.title}`) % 360;
-  return {
-    primary: `hsl(${hue} 88% 68%)`,
-    secondary: `hsl(${(hue + 72) % 360} 88% 62%)`,
-    tertiary: `hsl(${(hue + 148) % 360} 90% 72%)`,
-    wash: `hsl(${hue} 44% 20%)`,
+function paletteFor(categorySlug: string) {
+  return CATEGORY_PALETTES[categorySlug] ?? {
+    primary: "#9ef3ff",
+    secondary: "#a98dff",
+    glow: "#152238",
+    background: "#030711",
   };
-}
-
-function progressFor(task: KenVisualTask) {
-  if (task.stage === "blocked" || task.completionMode === "blocked") return 0.16;
-  if (task.stage === "shipped" || task.completionMode === "completed-early") return 0.94;
-  if (task.completionMode === "completed-at-limit" || task.completionMode === "partial-delivery") return 0.78;
-  if (task.stage === "running") return Math.min(0.86, 0.34 + task.updateCount * 0.13);
-  if (task.stage === "scheduled") return 0.31;
-  if (task.stage === "voting") return 0.18;
-  return 0.09;
-}
-
-function checkpointCount(task: KenVisualTask) {
-  if (task.allocatedTier === "months") return 6;
-  if (task.allocatedTier === "weeks") return 5;
-  if (task.allocatedTier === "days") return 4;
-  return 3;
-}
-
-function nodeField(seed: number, count: number, variant: "card" | "detail"): VisualNode[] {
-  const detail = variant === "detail";
-  return Array.from({ length: count }, (_, index) => ({
-    x: 18 + hashUnit(seed, index * 7 + 1) * 184,
-    y: 18 + hashUnit(seed, index * 7 + 2) * (detail ? 82 : 70),
-    r: 1.1 + hashUnit(seed, index * 7 + 3) * (detail ? 2.4 : 1.6),
-    tone: (index % 3) as 0 | 1 | 2,
-    opacity: 0.22 + hashUnit(seed, index * 7 + 4) * 0.34,
-  }));
 }
 
 function completionLabel(task: KenVisualTask) {
   if (task.completionMode === "completed-early") return "Early delivery";
   if (task.completionMode === "completed-at-limit") return "At limit";
-  if (task.completionMode === "partial-delivery") return "Partial";
+  if (task.completionMode === "partial-delivery") return "Partial delivery";
   if (task.completionMode === "blocked") return "Blocked";
-  if (task.stage === "running") return "Checkpointing";
   return STAGE_LABELS[task.stage];
 }
 
-function pulseLabel(score: number) {
-  return score > 0 ? `+${score}` : String(score);
+function statusPath(stage: TaskSummary["stage"]) {
+  switch (stage) {
+    case "blocked":
+      return <path d="M50 42l10 10M60 42L50 52" />;
+    case "shipped":
+      return <path d="M49 48l5 5l11-13" />;
+    case "running":
+      return <path d="M55 39v18M46 48h18" />;
+    case "scheduled":
+      return <path d="M55 38v11l8 5" />;
+    case "voting":
+      return <path d="M47 51l8-11l8 11M55 41v17" />;
+    default:
+      return <path d="M47 43h16M47 52h16" />;
+  }
 }
 
-function motifLabel(slug: string) {
-  if (slug === "science-health") return "evidence map";
-  if (slug === "open-tools") return "software module";
-  if (slug === "research-synthesis") return "review graph";
-  if (slug === "engineering-systems") return "systems map";
-  if (slug === "safety-evaluation") return "evaluation harness";
-  if (slug === "frontier-creative") return "simulation studio";
-  return "review lattice";
+function lanePath(tier: TaskSummary["allocatedTier"]) {
+  switch (tier) {
+    case "months":
+      return "M18 76h60";
+    case "weeks":
+      return "M22 76h52";
+    case "days":
+      return "M28 76h40";
+    case "blocked":
+      return "M25 76h46";
+    default:
+      return "M31 76h34";
+  }
 }
 
-function DomainMotif({ slug, gradientId }: { slug: string; gradientId: string }) {
+function CategoryMotif({ slug }: { slug: string }) {
   if (slug === "science-health") {
     return (
-      <g className="ken-visual-domain" stroke={`url(#${gradientId})`}>
-        <path className="ken-visual-panel-shape" d="M44 33h48c8 0 13 5 13 13v26c0 8-5 13-13 13H44c-8 0-13-5-13-13V46c0-8 5-13 13-13Z" />
-        <path d="M50 45c15 0 22 25 39 25" />
-        <path d="M89 45c-17 0-24 25-39 25" />
-        <path d="M55 51h28M55 64h28" />
-        <circle cx="48" cy="45" r="3.3" />
-        <circle cx="91" cy="70" r="3.3" />
-        <path className="ken-visual-accent-line" d="M112 45h22M112 56h34M112 67h24" />
-      </g>
+      <>
+        <path d="M28 28c16 0 24 40 40 40" />
+        <path d="M68 28c-16 0-24 40-40 40" />
+        <path d="M34 40h28M34 56h28" />
+      </>
     );
   }
 
   if (slug === "open-tools") {
     return (
-      <g className="ken-visual-domain" stroke={`url(#${gradientId})`}>
-        <path className="ken-visual-panel-shape" d="M33 34h67c7 0 11 4 11 11v37H33V34Z" />
-        <path d="M45 52l12 9l-12 9M66 70h20" />
-        <path className="ken-visual-accent-line" d="M119 40l18-10l18 10v22l-18 10l-18-10Z" />
-        <path d="M137 30v42M119 40l18 11l18-11" />
-        <circle cx="137" cy="51" r="4" />
-      </g>
+      <>
+        <path d="M27 31h34c5 0 8 3 8 8v25H27z" />
+        <path d="M37 45l9 7l-9 7M51 59h11" />
+        <path d="M69 35l10 6v14l-10 6l-10-6V41z" />
+      </>
     );
   }
 
   if (slug === "research-synthesis") {
     return (
-      <g className="ken-visual-domain" stroke={`url(#${gradientId})`}>
-        <path className="ken-visual-panel-shape" d="M35 40h54v35H35zM111 31h43v28h-43zM116 76h39v21h-39z" />
-        <path d="M89 57h22M70 75l46 11M62 40l49 5" />
-        <circle cx="62" cy="58" r="7" />
-        <circle cx="133" cy="45" r="6" />
-        <circle cx="136" cy="86" r="5" />
-        <path className="ken-visual-accent-line" d="M45 51h28M45 62h20M121 43h22M125 86h22" />
-      </g>
+      <>
+        <rect x="25" y="33" width="25" height="22" rx="5" />
+        <rect x="57" y="27" width="18" height="17" rx="4" />
+        <rect x="55" y="58" width="22" height="14" rx="4" />
+        <path d="M50 43h7M46 55l12 8M45 36l12-2" />
+      </>
     );
   }
 
   if (slug === "engineering-systems") {
     return (
-      <g className="ken-visual-domain" stroke={`url(#${gradientId})`}>
-        <path className="ken-visual-panel-shape" d="M38 37h45v31H38zM103 48h54v37h-54z" />
-        <path d="M83 52h20M65 68v22h38M123 48V30h27" />
-        <circle cx="65" cy="90" r="6" />
-        <circle cx="150" cy="30" r="6" />
-        <path className="ken-visual-accent-line" d="M49 49h22M114 61h31M114 73h21" />
-      </g>
+      <>
+        <rect x="24" y="33" width="25" height="20" rx="5" />
+        <rect x="55" y="45" width="25" height="22" rx="5" />
+        <path d="M49 43h6M37 53v17h18M67 45V29h12" />
+        <circle cx="37" cy="70" r="4" />
+        <circle cx="79" cy="29" r="4" />
+      </>
     );
   }
 
   if (slug === "safety-evaluation") {
     return (
-      <g className="ken-visual-domain" stroke={`url(#${gradientId})`}>
-        <path className="ken-visual-panel-shape" d="M48 34l36-12l36 12v27c0 22-14 37-36 45c-22-8-36-23-36-45V34Z" />
-        <path d="M84 34v60M62 55h44M66 72h36" />
-        <path className="ken-visual-accent-line" d="M126 42h30M126 54h22M126 66h27" />
-        <circle cx="149" cy="84" r="10" />
-        <path d="M144 84l3.5 3.8l7.5-8.8" />
-      </g>
+      <>
+        <path d="M48 25l22 8v18c0 15-8 25-22 31c-14-6-22-16-22-31V33z" />
+        <path d="M48 34v32M36 48h24M39 60h18" />
+      </>
     );
   }
 
   if (slug === "frontier-creative") {
     return (
-      <g className="ken-visual-domain" stroke={`url(#${gradientId})`}>
-        <path className="ken-visual-panel-shape" d="M36 76c17-30 42-43 77-40c-5 32-27 49-66 54" />
-        <path d="M50 75c18-8 34-19 50-34" />
-        <path className="ken-visual-accent-line" d="M112 44c10 3 18 10 24 20M119 36l10-12M132 48l15-5" />
-        <circle cx="55" cy="47" r="7" />
-        <circle cx="72" cy="37" r="4" />
-        <path d="M43 85c19-1 34-5 45-13" />
-      </g>
+      <>
+        <path d="M27 62c11-21 27-31 49-29c-3 22-18 34-44 38" />
+        <path d="M36 62c13-6 25-14 36-25" />
+        <path d="M71 36l8-10M76 45l11-3" />
+        <circle cx="37" cy="42" r="4" />
+      </>
     );
   }
 
   return (
-    <g className="ken-visual-domain" stroke={`url(#${gradientId})`}>
-      <path className="ken-visual-panel-shape" d="M41 38h72l22 21l-22 21H41L19 59l22-21Z" />
-      <path d="M55 47h44M45 59h66M55 71h44" />
-      <path className="ken-visual-accent-line" d="M128 41c13 11 17 25 11 42M32 41c-13 11-17 25-11 42" />
-      <circle cx="78" cy="59" r="9" />
-    </g>
+    <>
+      <path d="M31 31h36l11 17l-11 17H31L20 48z" />
+      <path d="M38 39h22M34 48h30M38 57h22" />
+      <circle cx="49" cy="48" r="5" />
+    </>
   );
 }
 
-function StatusMark({ stage, x }: { stage: TaskSummary["stage"]; x: number }) {
-  if (stage === "blocked") {
-    return <path d={`M${x - 4.6} 24.4l9.2 9.2M${x + 4.6} 24.4l-9.2 9.2`} />;
-  }
-  if (stage === "shipped") {
-    return <path d={`M${x - 5.4} 29l3.5 4l7.6-8.4`} />;
-  }
-  if (stage === "running") {
-    return <path d={`M${x - 4.2} 28.8h8.4M${x} 24.6v8.4`} />;
-  }
-  if (stage === "scheduled") {
-    return <path d={`M${x} 23.5v6.1l4.8 3`} />;
-  }
-  if (stage === "voting") {
-    return <path d={`M${x - 5} 30l5-5l5 5M${x} 25v9`} />;
-  }
-  return <path d={`M${x - 4} 26.2h8M${x - 4} 31.4h8`} />;
+export function CategorySymbol({
+  categorySlug,
+  categoryName,
+  tier,
+  stage,
+  variant = "card",
+  decorative = false,
+}: {
+  categorySlug: string;
+  categoryName: string;
+  tier: TaskSummary["allocatedTier"];
+  stage: TaskSummary["stage"];
+  variant?: "card" | "detail" | "inline";
+  decorative?: boolean;
+}) {
+  const palette = paletteFor(categorySlug);
+  const style = {
+    "--symbol-primary": palette.primary,
+    "--symbol-secondary": palette.secondary,
+    "--symbol-glow": palette.glow,
+    "--symbol-background": palette.background,
+  } as CSSProperties;
+  const label = `${categoryName} symbol, ${TIER_LABELS[tier]}, ${STAGE_LABELS[stage]}.`;
+
+  return (
+    <svg
+      className={`category-symbol category-symbol-${variant} is-${stage} lane-${tier}`}
+      viewBox="0 0 96 96"
+      style={style}
+      role={decorative ? undefined : "img"}
+      aria-hidden={decorative || undefined}
+      aria-label={decorative ? undefined : label}
+      focusable="false"
+    >
+      <rect x="8" y="8" width="80" height="80" rx="24" className="category-symbol-shell" />
+      <path d="M19 73c16-8 38-8 58 0" className="category-symbol-horizon" />
+      <g className="category-symbol-motif">
+        <CategoryMotif slug={categorySlug} />
+      </g>
+      <path d={lanePath(tier)} className="category-symbol-lane" />
+      <g className="category-symbol-status">
+        <circle cx="74" cy="24" r="11" />
+        {statusPath(stage)}
+      </g>
+    </svg>
+  );
 }
 
 export function KenVisual({
@@ -273,139 +226,43 @@ export function KenVisual({
   task: KenVisualTask;
   variant?: "card" | "detail";
 }) {
-  const palette = paletteFor(task);
-  const progress = progressFor(task);
-  const seed = hashValue(`${task.title}|${task.categorySlug}|${task.stage}|${task.allocatedTier}`);
-  const visualId = `ken-${variant}-${seed.toString(36)}`;
-  const gradientId = `${visualId}-gradient`;
-  const glowId = `${visualId}-glow`;
-  const gridId = `${visualId}-grid`;
-  const checkpoints = checkpointCount(task);
-  const completedCheckpoints = Math.min(
-    checkpoints,
-    Math.max(0, task.updateCount + (task.stage === "running" || task.stage === "shipped" ? 1 : 0)),
-  );
-  const blocked = task.stage === "blocked" || task.completionMode === "blocked";
-  const statusX = STAGE_POSITIONS[task.stage];
-  const nodeCount = TIER_DENSITY[task.allocatedTier] + (variant === "detail" ? 2 : 0);
-  const nodes = nodeField(seed, nodeCount, variant);
-  const pulseIntensity = Math.min(1, Math.abs(task.taskPulseScore) / 12);
-  const arcLength = 113.1;
-  const style = {
-    "--ken-visual-primary": palette.primary,
-    "--ken-visual-secondary": palette.secondary,
-    "--ken-visual-tertiary": palette.tertiary,
-    "--ken-visual-wash": palette.wash,
-    "--ken-visual-progress": `${Math.round(progress * 100)}%`,
-    "--ken-visual-pulse": pulseIntensity.toFixed(2),
-  } as CSSProperties;
-  const aria = task.illustrationUrl && task.illustrationAlt
-    ? `${task.title}: ${task.illustrationAlt}. ${TIER_LABELS[task.allocatedTier]}, ${STAGE_LABELS[task.stage]}, ${Math.round(progress * 100)} percent checkpoint progress.`
-    : `${task.title}: ${task.categoryName} ${motifLabel(task.categorySlug)}, ${TIER_LABELS[task.allocatedTier]}, ${STAGE_LABELS[task.stage]}, ${Math.round(progress * 100)} percent checkpoint progress, ${task.sandboxCapitalUsd > 0 ? "sandbox demo data shown" : "no sandbox funding shown"}.`;
-
-  return (
-    <div
-      className={`ken-visual ken-visual-${variant} is-${task.stage} lane-${task.allocatedTier} ${blocked ? "is-blocked" : ""}`}
-      style={style}
-      role="img"
-      aria-label={aria}
-    >
-      {task.illustrationUrl ? (
+  if (task.illustrationUrl) {
+    return (
+      <figure className={`ken-art ken-art-${variant}`}>
         <Image
-          className="ken-visual-upload"
+          className="ken-art-image"
           src={task.illustrationUrl}
           alt={task.illustrationAlt ?? `Illustration for ${task.title}`}
           loading="lazy"
-          width={220}
-          height={132}
+          width={variant === "detail" ? 360 : 220}
+          height={variant === "detail" ? 220 : 132}
           unoptimized
         />
-      ) : null}
-      <svg viewBox="0 0 220 132" aria-hidden="true" focusable="false">
-        <defs>
-          <linearGradient id={gradientId} x1="20" y1="16" x2="202" y2="114" gradientUnits="userSpaceOnUse">
-            <stop offset="0" stopColor="var(--ken-visual-primary)" />
-            <stop offset="0.54" stopColor="var(--ken-visual-secondary)" />
-            <stop offset="1" stopColor="var(--ken-visual-tertiary)" />
-          </linearGradient>
-          <radialGradient id={glowId} cx={`${26 + hashUnit(seed, 91) * 42}%`} cy={`${18 + hashUnit(seed, 92) * 42}%`} r="82%">
-            <stop offset="0" stopColor="var(--ken-visual-primary)" stopOpacity="0.55" />
-            <stop offset="0.42" stopColor="var(--ken-visual-secondary)" stopOpacity="0.22" />
-            <stop offset="1" stopColor="var(--ken-visual-wash)" stopOpacity="0.02" />
-          </radialGradient>
-          <pattern id={gridId} width="14" height="14" patternUnits="userSpaceOnUse">
-            <path d="M14 0H0V14" className="ken-visual-grid-line" />
-          </pattern>
-        </defs>
+        {variant === "detail" && task.illustrationAlt ? (
+          <figcaption>{task.illustrationAlt}</figcaption>
+        ) : null}
+      </figure>
+    );
+  }
 
-        <rect x="2.5" y="2.5" width="215" height="127" rx="22" className="ken-visual-shell" />
-        <rect x="2.5" y="2.5" width="215" height="127" rx="22" fill={`url(#${glowId})`} />
-        <rect x="12" y="12" width="196" height="108" rx="17" fill={`url(#${gridId})`} className="ken-visual-grid" />
-        <path className="ken-visual-ribbon" d={`M17 ${86 + hashUnit(seed, 12) * 10}C55 62 87 57 123 70c29 10 53 2 80-24`} />
-        <path className="ken-visual-ribbon is-secondary" d={`M18 ${57 + hashUnit(seed, 13) * 8}c39-19 75-18 109 0c26 13 49 13 72-1`} />
-
-        <g className="ken-visual-node-field">
-          {nodes.slice(1).map((node, index) => {
-            const previous = nodes[index];
-            return <line key={`line-${index}`} x1={previous.x} y1={previous.y} x2={node.x} y2={node.y} />;
-          })}
-          {nodes.map((node, index) => (
-            <circle
-              key={`node-${index}`}
-              cx={node.x}
-              cy={node.y}
-              r={node.r}
-              className={`tone-${node.tone}`}
-              opacity={node.opacity}
-            />
-          ))}
-        </g>
-
-        <DomainMotif slug={task.categorySlug} gradientId={gradientId} />
-
-        <g className="ken-visual-stage">
-          <path d="M43 110H181" />
-          <path d={`M43 110H${43 + progress * 138}`} className="is-progress" />
-          {Array.from({ length: checkpoints }).map((_, index) => {
-            const x = 43 + (index * 138) / Math.max(1, checkpoints - 1);
-            return (
-              <g key={index} className={index < completedCheckpoints ? "is-complete" : ""}>
-                <circle cx={x} cy="110" r="5.2" />
-                {index < completedCheckpoints ? <path d={`M${x - 2.5} 110l1.9 2.1l3.4-4`} /> : null}
-              </g>
-            );
-          })}
-        </g>
-
-        <g className="ken-visual-status" transform={`translate(${statusX} 0)`}>
-          <circle cx="0" cy="29" r="13.2" />
-          <StatusMark stage={task.stage} x={0} />
-        </g>
-
-        <g className="ken-visual-progress-dial" transform="translate(186 35)">
-          <circle r="18" />
-          <circle
-            r="18"
-            className="is-progress"
-            strokeDasharray={`${Math.max(6, progress * arcLength)} ${arcLength}`}
-            transform="rotate(-90)"
-          />
-          <text y="4">{Math.round(progress * 100)}</text>
-        </g>
-
-        <g className="ken-visual-pulse-meter" transform="translate(169 79)">
-          <path d="M0 26V0" />
-          <path d={`M0 26V${26 - pulseIntensity * 26}`} className="is-hot" />
-          <circle cy={26 - pulseIntensity * 26} r="4" />
-        </g>
-
-        {task.sandboxCapitalUsd > 0 ? <text x="18" y="27" className="ken-visual-sandbox">Sandbox demo</text> : null}
-        <text x="18" y="118" className="ken-visual-lane">{TIER_LABELS[task.allocatedTier]}</text>
-      </svg>
-      <div className="ken-visual-meta" aria-hidden="true">
-        <span><i className="ken-visual-meta-dot is-category" />{task.categoryName}</span>
-        <span><i className="ken-visual-meta-dot is-stage" />{completionLabel(task)}</span>
-        <span><i className="ken-visual-meta-dot is-pulse" />{pulseLabel(task.taskPulseScore)} pulse</span>
+  return (
+    <div
+      className={`ken-visual ken-symbol ken-symbol-${variant} is-${task.stage} lane-${task.allocatedTier}`}
+      role="img"
+      aria-label={`${task.categoryName}; ${TIER_LABELS[task.allocatedTier]}; ${completionLabel(task)}. No uploaded Ken illustration is set.`}
+    >
+      <CategorySymbol
+        categorySlug={task.categorySlug}
+        categoryName={task.categoryName}
+        tier={task.allocatedTier}
+        stage={task.stage}
+        variant={variant}
+        decorative
+      />
+      <div className="ken-symbol-copy" aria-hidden="true">
+        <span>{task.categoryName}</span>
+        <strong>{TIER_LABELS[task.allocatedTier]}</strong>
+        <em>{completionLabel(task)}</em>
       </div>
     </div>
   );

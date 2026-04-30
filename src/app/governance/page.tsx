@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { CategorySymbol } from "@/components/ken-visual";
 import { getGovernanceData } from "@/lib/db";
 import { getViewerProfileId } from "@/lib/session";
 import { formatDateTime, labelForTier } from "@/lib/utils";
@@ -40,7 +41,7 @@ export default async function GovernancePage() {
             ))}
           </div>
         </div>
-        <div className="panel space-y-4 dense-scroll-panel">
+        <div className="panel space-y-4 governance-list-panel">
           <div className="eyebrow">Attestation ladder</div>
           <div className="grid gap-4">
             {profiles.slice(0, 6).map((profile) => (
@@ -67,7 +68,7 @@ export default async function GovernancePage() {
       </section>
 
       <section className="section-grid" data-columns="2">
-        <div className="panel space-y-4 dense-scroll-panel">
+        <div className="panel space-y-4 governance-list-panel">
           <div className="eyebrow">Recent governance log</div>
           {governance.length > 0 ? governance.map((event) => (
             <div key={event.id} className="rounded-[1.3rem] border border-border bg-background/55 p-5">
@@ -100,7 +101,16 @@ export default async function GovernancePage() {
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {categories.map((category) => (
             <div key={category.id} className="rounded-[1.3rem] border border-border bg-background/55 p-4 text-sm text-muted">
-              <div className="font-display text-xl font-semibold text-foreground">{category.name}</div>
+              <div className="flex items-center gap-3">
+                <CategorySymbol
+                  categorySlug={category.slug}
+                  categoryName={category.name}
+                  tier="queued"
+                  stage={category.runningCount > 0 ? "running" : category.shippedCount > 0 ? "shipped" : "review"}
+                  variant="inline"
+                />
+                <div className="font-display text-xl font-semibold text-foreground">{category.name}</div>
+              </div>
               <p className="mt-2">{category.description}</p>
               <div className="mt-3 text-xs uppercase tracking-[0.22em] text-muted">{category.eligibleCount} eligible · {category.runningCount} running · {category.shippedCount} shipped</div>
             </div>
