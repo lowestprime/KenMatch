@@ -26,6 +26,7 @@ RUN addgroup -S -g 1001 kenmatch && adduser -S -D -H -u 1001 -G kenmatch kenmatc
 COPY --from=builder --chown=kenmatch:kenmatch /app/.next/standalone ./
 COPY --from=builder --chown=kenmatch:kenmatch /app/.next/static ./.next/static
 COPY --from=builder --chown=kenmatch:kenmatch /app/public ./public
+RUN chmod -R a+rX /app/public
 COPY --from=builder --chown=kenmatch:kenmatch /app/node_modules/libsql ./node_modules/libsql
 COPY --from=builder --chown=kenmatch:kenmatch /app/node_modules/@libsql ./node_modules/@libsql
 COPY --from=builder --chown=kenmatch:kenmatch /app/node_modules/@neon-rs ./node_modules/@neon-rs
