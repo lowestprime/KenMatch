@@ -34,7 +34,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(env.KENMATCH_PUBLIC_ORIGIN ?? canonicalOrigin),
   applicationName: "KenMatch",
   title: {
-    default: "KenMatch — Transparent allocation of frontier AI compute",
+    default: "KenMatch: Rank sustained AI work",
     template: "%s · KenMatch",
   },
   description:
@@ -53,20 +53,18 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: "/favicon.ico", type: "image/x-icon", sizes: "32x32" },
-      { url: "/favicon-32.png", type: "image/png", sizes: "32x32" },
-      { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
-      { url: "/icon.svg", type: "image/svg+xml", media: "(prefers-color-scheme: light)" },
-      { url: "/icon-dark.svg", type: "image/svg+xml", media: "(prefers-color-scheme: dark)" },
+      { url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
+      { url: "/favicon-96x96.png", type: "image/png", sizes: "96x96" },
     ],
-    shortcut: "/icon.svg",
-    apple: [{ url: "/apple-icon.png", type: "image/png", sizes: "180x180" }],
+    shortcut: [{ url: "/favicon.ico", type: "image/x-icon" }],
+    apple: [{ url: "/apple-touch-icon.png", type: "image/png", sizes: "180x180" }],
   },
   alternates: { canonical: canonicalOrigin },
   manifest: "/manifest.webmanifest",
   openGraph: {
-    title: "KenMatch — Transparent allocation of frontier AI compute",
+    title: "KenMatch: Rank sustained AI work",
     description:
-      "A public board for proposing, ranking, funding, launching, and auditing long-running AI work with visible checkpoints.",
+      "Transparent allocation of frontier AI compute.",
     siteName: "KenMatch",
     type: "website",
     url: canonicalOrigin,
@@ -74,10 +72,14 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "KenMatch",
-    description:
-      "Transparent allocation of frontier AI compute. Propose, rank, fund, launch, and audit Kens with public accountability.",
+    title: "KenMatch: Rank sustained AI work",
+    description: "Transparent allocation of frontier AI compute.",
     images: ["/og-image.png"],
+  },
+  appleWebApp: {
+    capable: true,
+    title: "KenMatch",
+    statusBarStyle: "black-translucent",
   },
   robots: { index: true, follow: true },
 };

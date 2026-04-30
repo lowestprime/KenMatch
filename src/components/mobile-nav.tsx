@@ -20,6 +20,7 @@ export function MobileNav({
   viewer: ViewerSession | null;
 }) {
   const [open, setOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -44,6 +45,20 @@ export function MobileNav({
 
   function close() {
     setOpen(false);
+  }
+
+  async function handleSignOut() {
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      await fetch("/auth/sign-out", {
+        method: "POST",
+        credentials: "same-origin",
+        cache: "no-store",
+      });
+    } finally {
+      window.location.assign("/");
+    }
   }
 
   return (
@@ -123,11 +138,9 @@ export function MobileNav({
                     <Link href="/account" className="cta-secondary cta-compact" onClick={close}>
                       Account
                     </Link>
-                    <form action="/auth/sign-out" method="post">
-                      <button type="submit" className="cta-secondary cta-compact" onClick={close}>
-                        Sign out
-                      </button>
-                    </form>
+                    <button type="button" className="cta-secondary cta-compact" onClick={handleSignOut} disabled={signingOut}>
+                      {signingOut ? "Signing out" : "Sign out"}
+                    </button>
                   </div>
                 </>
               ) : (

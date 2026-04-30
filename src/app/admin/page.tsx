@@ -49,7 +49,7 @@ export default async function AdminPage() {
           <span>· {dashboard.profiles.length} profiles</span>
           <span>· {dashboard.pendingVerifications.length} pending verifications</span>
           <span>· {dashboard.categoryProposals.filter((item) => item.reviewStatus === "pending").length} category proposals</span>
-          <span>· {dashboard.visitors.length} unique visitors (last 500)</span>
+          <span>· {dashboard.visitors.length} unique visitors tracked</span>
           <span>· maintenance {dashboard.maintenance.mode}</span>
         </div>
       </section>
@@ -140,11 +140,11 @@ export default async function AdminPage() {
       ) : null}
 
       <section className="section-grid" data-columns="2">
-        <div className="panel grid gap-3">
+        <div className="panel grid gap-3 admin-compact-panel">
           <h2>Unique visitors</h2>
-          <AdminVisitors visitors={dashboard.visitors.slice(0, 80)} stats={dashboard.visitorStats} />
+          <AdminVisitors visitors={dashboard.visitors.slice(0, 32)} stats={dashboard.visitorStats} />
         </div>
-        <div className="panel grid gap-3">
+        <div className="panel grid gap-3 admin-compact-panel">
           <h2>Audit log</h2>
           <AdminAuditFeed entries={dashboard.recentAudit} />
         </div>

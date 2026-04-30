@@ -40,7 +40,7 @@ export function AdminVisitors({ visitors, stats }: { visitors: VisitorRecord[]; 
         ))}
       </div>
       <p className="text-xs" style={{ color: "var(--muted)" }}>
-        Raw visitor hashes are intentionally not shown; this table is for operational awareness, not personal tracking.
+        Showing the latest {visitors.length} visitors. Raw visitor hashes are intentionally not shown; this table is for operational awareness, not personal tracking.
       </p>
     </div>
   );

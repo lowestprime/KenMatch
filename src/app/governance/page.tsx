@@ -24,16 +24,23 @@ export default async function GovernancePage() {
       </section>
 
       <section className="section-grid" data-columns="2">
-        <div className="panel space-y-4">
+        <div className="panel space-y-4 governance-rules-panel">
           <div className="eyebrow">Ground rules</div>
-          <ul className="space-y-3 text-sm leading-7 text-muted">
-            <li>Voice is account-bound and attestation-aware. Money can support compute, but it cannot buy rank.</li>
-            <li>Kens can appear publicly during review, but launch requires explicit release conditions.</li>
-            <li>Blocked Kens stay visible so people can inspect where the boundary is drawn.</li>
-            <li>Checkpoint approvals give people a real stop, pause, and rollback mechanism during long runs.</li>
-          </ul>
+          <div className="governance-rule-grid">
+            {[
+              ["Voice", "Account-bound and attestation-aware. Money can support compute, but it cannot buy rank."],
+              ["Launch", "Public review is allowed; sustained runs require explicit release conditions."],
+              ["Safety", "Blocked Kens stay visible so people can inspect where the boundary is drawn."],
+              ["Checkpoints", "Approvals create real stop, pause, and rollback points during long runs."],
+            ].map(([label, copy]) => (
+              <div key={label} className="governance-rule-card">
+                <strong>{label}</strong>
+                <span>{copy}</span>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="panel space-y-4">
+        <div className="panel space-y-4 dense-scroll-panel">
           <div className="eyebrow">Attestation ladder</div>
           <div className="grid gap-4">
             {profiles.slice(0, 6).map((profile) => (
@@ -60,7 +67,7 @@ export default async function GovernancePage() {
       </section>
 
       <section className="section-grid" data-columns="2">
-        <div className="panel space-y-4">
+        <div className="panel space-y-4 dense-scroll-panel">
           <div className="eyebrow">Recent governance log</div>
           {governance.length > 0 ? governance.map((event) => (
             <div key={event.id} className="rounded-[1.3rem] border border-border bg-background/55 p-5">

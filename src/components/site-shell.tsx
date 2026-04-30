@@ -87,6 +87,18 @@ export function SiteShell({
                 <span>Transparent allocation of frontier AI compute</span>
               </span>
             </Link>
+            <nav className="site-nav" aria-label="Primary">
+              {primaryNav.map((item) => (
+                <Link key={item.href} href={item.href} className="nav-pill">
+                  {item.label}
+                </Link>
+              ))}
+              {showAdminLink ? (
+                <Link href="/admin" className="nav-pill nav-pill-admin">
+                  Admin
+                </Link>
+              ) : null}
+            </nav>
             <div className="site-utility-row">
               <SearchCommand />
               <ThemeToggle />
@@ -120,20 +132,6 @@ export function SiteShell({
                 <Link href="/auth" className="cta-secondary cta-compact">Sign in</Link>
               )}
             </div>
-          </div>
-          <div className="site-nav-row">
-            <nav className="site-nav" aria-label="Primary">
-              {primaryNav.map((item) => (
-                <Link key={item.href} href={item.href} className="nav-pill">
-                  {item.label}
-                </Link>
-              ))}
-              {showAdminLink ? (
-                <Link href="/admin" className="nav-pill nav-pill-admin">
-                  Admin
-                </Link>
-              ) : null}
-            </nav>
           </div>
         </div>
       </header>

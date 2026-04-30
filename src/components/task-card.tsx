@@ -60,8 +60,8 @@ export function TaskCard({ task }: { task: TaskSummary }) {
           </div>
 
           <div className="task-card-footer">
-            <span className="task-card-footer-meta">Sandbox metrics only · no real capital, vendor bills, or delivered production outcome.</span>
-            <span className="task-card-footer-meta">Open thread for evidence, checkpoints, comments, and sponsorship context.</span>
+            <span className="task-card-footer-meta">Sandbox metrics only · not real capital or vendor bills.</span>
+            <span className="task-card-footer-meta">Open thread for checkpoints and review.</span>
           </div>
         </div>
       </article>

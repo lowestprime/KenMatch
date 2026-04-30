@@ -70,11 +70,11 @@ const STAGE_POSITIONS: Record<TaskSummary["stage"], number> = {
 };
 
 const TIER_DENSITY: Record<TaskSummary["allocatedTier"], number> = {
-  months: 15,
-  weeks: 12,
-  days: 9,
-  queued: 7,
-  blocked: 7,
+  months: 8,
+  weeks: 7,
+  days: 6,
+  queued: 4,
+  blocked: 4,
 };
 
 function hashValue(input: string) {
@@ -131,9 +131,9 @@ function nodeField(seed: number, count: number, variant: "card" | "detail"): Vis
   return Array.from({ length: count }, (_, index) => ({
     x: 18 + hashUnit(seed, index * 7 + 1) * 184,
     y: 18 + hashUnit(seed, index * 7 + 2) * (detail ? 82 : 70),
-    r: 1.3 + hashUnit(seed, index * 7 + 3) * (detail ? 2.9 : 2.2),
+    r: 1.1 + hashUnit(seed, index * 7 + 3) * (detail ? 2.4 : 1.6),
     tone: (index % 3) as 0 | 1 | 2,
-    opacity: 0.32 + hashUnit(seed, index * 7 + 4) * 0.5,
+    opacity: 0.22 + hashUnit(seed, index * 7 + 4) * 0.34,
   }));
 }
 
@@ -287,7 +287,7 @@ export function KenVisual({
   );
   const blocked = task.stage === "blocked" || task.completionMode === "blocked";
   const statusX = STAGE_POSITIONS[task.stage];
-  const nodeCount = TIER_DENSITY[task.allocatedTier] + (variant === "detail" ? 4 : 0);
+  const nodeCount = TIER_DENSITY[task.allocatedTier] + (variant === "detail" ? 2 : 0);
   const nodes = nodeField(seed, nodeCount, variant);
   const pulseIntensity = Math.min(1, Math.abs(task.taskPulseScore) / 12);
   const arcLength = 113.1;

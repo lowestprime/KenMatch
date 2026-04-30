@@ -50,7 +50,7 @@ export function AdminAuditFeed({ entries }: { entries: AuditLogRecord[] }) {
           </select>
         </label>
       </div>
-      <ul className="grid gap-2">
+      <ul className="admin-audit-list grid gap-2">
       {filtered.map((entry) => (
         <li key={entry.id} className="audit-card">
           <div className="flex items-center justify-between gap-2 flex-wrap">

@@ -50,7 +50,7 @@ export default async function EconomicsPage() {
           The funding model is deliberately split from the allocation model. Revenue and sponsorship expand the compute treasury; public pulse, allocation credits, checkpoint approvals, and safety review decide what advances.
         </p>
         <p className="sandbox-disclosure" role="note">
-          <strong>Sandbox mode.</strong> All dollar values, backer totals, and sponsorship commitments on this page are hypothetical demonstration data based on demo-mode long-context workflow estimates. They do <strong>not</strong> represent real investments, escrowed funds, or vendor commitments. Live checkout is only active if Stripe keys are configured and explicitly labeled.
+          <strong>Sandbox mode.</strong> All dollar values, backer totals, and sponsorship commitments on this page are sandbox demonstration data based on demo-mode long-context workflow estimates. They do <strong>not</strong> represent real investments, escrowed funds, or vendor commitments. Live checkout is only active if Stripe keys are configured and explicitly labeled.
         </p>
         <div className="signal-bar">
           <div className="flow-card">
@@ -95,7 +95,7 @@ export default async function EconomicsPage() {
           kens={sponsorableKens}
           liveCheckoutEnabled={liveCheckoutEnabled}
         />
-        <div className="panel space-y-4">
+        <div className="panel space-y-4 dense-scroll-panel">
           <div className="eyebrow">Funding constitution</div>
           <h2 className="font-display text-3xl font-semibold text-foreground">What money can and cannot do here</h2>
           <div className="grid gap-4">
@@ -121,7 +121,7 @@ export default async function EconomicsPage() {
       </section>
 
       <section className="section-grid" data-columns="2">
-        <div className="panel space-y-4">
+        <div className="panel space-y-4 dense-scroll-panel">
           <div className="eyebrow">How the board keeps running</div>
           {revenueStreams.map((stream) => (
             <div key={stream.id} className="rounded-[1.3rem] border border-border bg-background/55 p-5">
@@ -143,7 +143,7 @@ export default async function EconomicsPage() {
             </div>
           ))}
         </div>
-        <div className="panel space-y-4">
+        <div className="panel space-y-4 dense-scroll-panel">
           <div className="eyebrow">Backer commitments</div>
           {sponsorshipCommitments.length > 0 ? sponsorshipCommitments.map((commitment) => (
             <div key={commitment.id} className="rounded-[1.3rem] border border-border bg-background/55 p-5">
@@ -171,7 +171,7 @@ export default async function EconomicsPage() {
       </section>
 
       <section className="section-grid" data-columns="2">
-        <div className="panel space-y-4">
+        <div className="panel space-y-4 dense-scroll-panel">
           <div className="eyebrow">Treasury ledger</div>
           {treasuryEntries.map((entry) => (
             <div key={entry.id} className="rounded-[1.3rem] border border-border bg-background/55 p-4 text-sm text-muted">

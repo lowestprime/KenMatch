@@ -484,7 +484,7 @@ Run the app locally and verify at minimum:
 ### Blocker 2: Live payment and live provider execution depend on real credentials and operational setup
 - Scope affected:
   - live sponsor checkout/webhook completion
-  - live provider execution or provider-backed outputs
+  - live provider execution or provider-endorsed outputs
 - What can still be completed:
   - fully functional simulated/demo flows
   - safe live-mode scaffolding
