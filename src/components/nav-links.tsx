@@ -5,10 +5,12 @@ import { usePathname } from "next/navigation";
 
 const nav = [
   { href: "/", label: "Overview" },
-  { href: "/kens", label: "Kens" },
-  { href: "/submit", label: "Propose" },
-  { href: "/governance", label: "Governance" },
-  { href: "/economics", label: "Funding" },
+  { href: "/kens", label: "Feed" },
+  { href: "/submit", label: "Submit" },
+  { href: "/governance", label: "Rules" },
+  { href: "/economics", label: "Backing" },
+  { href: "/about", label: "About" },
+  { href: "/faq", label: "FAQ" },
   { href: "/account", label: "Account" },
 ];
 

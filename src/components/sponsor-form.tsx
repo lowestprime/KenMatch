@@ -129,7 +129,7 @@ export function SponsorForm({
         </button>
       </div>
 
-      {state.message ? <p className={`text-sm ${state.status === "error" ? "text-red-500" : "text-teal"}`}>{state.message}</p> : null}
+      {state.message ? <p className={`text-sm ${state.status === "error" ? "text-red-500" : "text-accent"}`}>{state.message}</p> : null}
     </form>
   );
 }

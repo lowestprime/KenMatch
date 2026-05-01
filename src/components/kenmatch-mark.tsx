@@ -11,7 +11,8 @@ export function KenMatchMark({
       <defs>
         <linearGradient id="kenmatch-mark-gradient" x1="8" y1="8" x2="64" y2="64" gradientUnits="userSpaceOnUse">
           <stop offset="0" stopColor="var(--accent-strong)" />
-          <stop offset="0.55" stopColor="var(--accent-glow)" />
+          <stop offset="0.34" stopColor="var(--accent-glow)" />
+          <stop offset="0.68" stopColor="var(--accent-gold)" />
           <stop offset="1" stopColor="var(--accent-warm)" />
         </linearGradient>
         <filter id="kenmatch-glow" x="-20%" y="-20%" width="140%" height="140%">
@@ -24,7 +25,17 @@ export function KenMatchMark({
         width="64"
         height="64"
         rx="18"
-        fill="url(#kenmatch-mark-gradient)"
+        fill="#000"
+      />
+      <rect
+        x="7"
+        y="7"
+        width="58"
+        height="58"
+        rx="16"
+        fill="none"
+        stroke="url(#kenmatch-mark-gradient)"
+        strokeWidth="3"
       />
       <g className={foregroundSelector}>
         <path

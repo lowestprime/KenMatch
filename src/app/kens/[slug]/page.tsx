@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import { CategoryFilterChip, LaneFilterChip } from "@/components/filter-chip-link";
 import { DiscussionThread } from "@/components/discussion-thread";
 import { KenVisual } from "@/components/ken-visual";
 import { KenSandboxStrip } from "@/components/ken-sandbox-strip";
@@ -8,7 +9,7 @@ import { TaskPulsePanel } from "@/components/task-pulse-panel";
 import { VotePanel } from "@/components/vote-panel";
 import { getTaskDetail } from "@/lib/db";
 import { getViewerSession } from "@/lib/session";
-import { formatCurrency, formatDateTime, formatHoursToHuman, labelForStage, labelForTier } from "@/lib/utils";
+import { formatCurrency, formatDateTime, formatHoursToHuman, labelForStage } from "@/lib/utils";
 
 export default async function KenDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -24,9 +25,9 @@ export default async function KenDetailPage({ params }: { params: Promise<{ slug
     <div className="page-stack">
       <section className="panel hero-panel card-sheen space-y-6">
         <div className="flex flex-wrap gap-3">
-          <span className={`tier-chip is-${task.allocatedTier}`}>{labelForTier(task.allocatedTier)}</span>
+          <LaneFilterChip tier={task.allocatedTier} />
           <span className="tag">{labelForStage(task.stage)}</span>
-          <span className="tag">{task.categoryName}</span>
+          <CategoryFilterChip slug={task.categorySlug} label={task.categoryName} />
           <span className="tag">Pulse {task.taskPulseScore > 0 ? `+${task.taskPulseScore}` : task.taskPulseScore}</span>
         </div>
         <div className="ken-detail-heading">
@@ -226,7 +227,7 @@ function ListBlock({ title, items }: { title: string; items: string[] }) {
       <div className="font-display text-xl font-semibold text-foreground">{title}</div>
       <ul className="mt-3 space-y-2 text-sm leading-7 text-muted">
         {items.map((item) => (
-          <li key={item} className="flex gap-3"><span className="mt-2 size-2 rounded-full bg-teal" /><span>{item}</span></li>
+          <li key={item} className="flex gap-3"><span className="list-accent-dot mt-2 size-2 rounded-full" /><span>{item}</span></li>
         ))}
       </ul>
     </div>

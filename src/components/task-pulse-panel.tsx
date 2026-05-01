@@ -42,7 +42,7 @@ export function TaskPulsePanel({
           <PulseButton label={`▼ ${negativePulseCount}`} current={userPulse === -1} value={userPulse === -1 ? 0 : -1} disabled={disabled || isPending} />
         </div>
         {disabled ? <p className="text-sm text-muted">{disabledMessage ?? "Sign in to vote publicly on this Ken."}</p> : null}
-        {state.message ? <p className={`text-sm ${state.status === "error" ? "text-red-500" : "text-teal"}`}>{state.message}</p> : null}
+        {state.message ? <p className={`text-sm ${state.status === "error" ? "text-red-500" : "text-accent"}`}>{state.message}</p> : null}
       </form>
     </div>
   );

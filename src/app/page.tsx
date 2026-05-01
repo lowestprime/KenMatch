@@ -3,7 +3,10 @@ import Link from "next/link";
 import { CategorySymbol } from "@/components/ken-visual";
 import { TaskCard } from "@/components/task-card";
 import { getHomeData } from "@/lib/db";
+import { KEN_DEFINITION } from "@/lib/faq";
 import { getViewerProfileId } from "@/lib/session";
+import { categoryFilterHref, laneFilterHref } from "@/lib/taxonomy";
+import type { AllocationTier } from "@/lib/types";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 
 export default async function HomePage() {
@@ -25,7 +28,7 @@ export default async function HomePage() {
             Rank the Kens worth long-running compute, checkpoints, and review.
           </h1>
           <p className="max-w-3xl text-lg leading-8 text-muted">
-            A Ken is a bounded proposal for sustained model-assisted work: mechanism maps, reproducibility agents, benchmark harnesses, dependency-safety planning, protocol scouting, and other outputs that need visible sources, checkpoints, and review after the first demo.
+            {KEN_DEFINITION} Examples include mechanism maps, reproducibility agents, benchmark harnesses, dependency-safety planning, protocol scouting, and other outputs that need public inspection after the first demo.
           </p>
           <div className="hero-actions">
             <Link href="/kens" className="cta-primary">Browse Kens</Link>
@@ -45,12 +48,16 @@ export default async function HomePage() {
         <div className="space-y-4 fade-up stagger-1">
           <div className="panel space-y-4">
             <div className="eyebrow">How long a Ken can run</div>
-            {[ ["Months", "Top 3 per category", "Long-horizon synthesis, evaluation, and tool-building with repeated human checkpoints."], ["Weeks", "Next 10 per category", "Multi-step research, coding, and design runs with visible mid-run decisions."], ["Days", "Next 100 per category", "Focused deliverables with clear acceptance checks and public artifacts."] ].map(([label, value, copy]) => (
-              <div key={label} className="rounded-[1.25rem] border border-border bg-background/55 p-4">
+            {[
+              ["months", "Months", "Top 3 per category", "Long-horizon synthesis, evaluation, and tool-building with repeated human checkpoints."],
+              ["weeks", "Weeks", "Next 10 per category", "Multi-step research, coding, and design runs with visible mid-run decisions."],
+              ["days", "Days", "Next 100 per category", "Focused deliverables with clear acceptance checks and public artifacts."],
+            ].map(([tier, label, value, copy]) => (
+              <Link key={label} href={laneFilterHref(tier as AllocationTier)} className="lane-summary-card interactive-surface">
                 <div className="font-display text-xl font-semibold text-foreground">{label}</div>
-                <div className="mt-1 text-sm font-medium text-teal">{value}</div>
+                <div className="mt-1 text-sm font-medium text-accent">{value}</div>
                 <p className="mt-2 text-sm leading-6 text-muted">{copy}</p>
-              </div>
+              </Link>
             ))}
           </div>
           <div className="metric-grid">
@@ -67,7 +74,7 @@ export default async function HomePage() {
             <div className="eyebrow">Trending Kens</div>
             <h2 className="font-display text-3xl font-semibold text-foreground">What the board is prioritizing now</h2>
           </div>
-          <Link href="/kens" className="text-sm font-semibold text-teal">Open the full feed</Link>
+          <Link href="/kens" className="text-sm font-semibold text-accent">Open the full feed</Link>
         </div>
         <div className="feed-list">
           {featuredTasks.slice(0, 4).map((task) => <TaskCard key={task.id} task={task} />)}
@@ -79,7 +86,7 @@ export default async function HomePage() {
           <div className="eyebrow">Where Kens show up</div>
           <div className="grid gap-4">
             {categories.map((category) => (
-              <div key={category.id} className="rounded-[1.3rem] border border-border bg-background/55 p-5">
+              <Link key={category.id} href={categoryFilterHref(category.slug)} className="category-summary-card interactive-surface">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <CategorySymbol
@@ -94,7 +101,7 @@ export default async function HomePage() {
                   <span className="tag">{category.proposalCount} Kens</span>
                 </div>
                 <p className="mt-2 text-sm leading-7 text-muted">{category.thesis}</p>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

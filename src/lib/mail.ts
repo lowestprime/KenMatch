@@ -33,6 +33,11 @@ export interface MailPayload {
   text: string;
   html?: string;
   replyTo?: string;
+  attachments?: Array<{
+    filename: string;
+    content: Buffer;
+    contentType: string;
+  }>;
 }
 
 export async function sendMail(payload: MailPayload): Promise<{ ok: boolean; info?: unknown; error?: string }> {
@@ -52,6 +57,7 @@ export async function sendMail(payload: MailPayload): Promise<{ ok: boolean; inf
       text: payload.text,
       html: payload.html,
       replyTo: payload.replyTo,
+      attachments: payload.attachments,
     });
     return { ok: true, info };
   } catch (error) {
@@ -87,12 +93,12 @@ export function buildVerificationEmail(input: { name: string; url: string }) {
   const { name, url } = input;
   const subject = "Verify your KenMatch account";
   const text = `Hi ${name},\n\nPlease confirm your email address to finish activating your KenMatch account:\n\n${url}\n\nIf you didn't sign up, you can safely ignore this message.\n\n— KenMatch`;
-  const html = `<!doctype html><html><body style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#0c1020;padding:32px;color:#e7edf5">
-    <div style="max-width:520px;margin:0 auto;background:#10152a;border-radius:16px;padding:28px;border:1px solid #1f2744">
+  const html = `<!doctype html><html><body style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#000;padding:32px;color:#f4f8ff">
+    <div style="max-width:520px;margin:0 auto;background:#05060c;border-radius:16px;padding:28px;border:1px solid #24283a">
     <h2 style="margin:0 0 16px;font-size:22px">Confirm your email</h2>
     <p>Hi ${escapeHtml(name)},</p>
     <p>Thanks for signing up. Please confirm your email address to finish activating your KenMatch account.</p>
-    <p style="margin:24px 0;text-align:center"><a href="${url}" style="display:inline-block;background:linear-gradient(120deg,#18b6a4,#4f8dff,#ff8f49);color:white;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:600">Confirm my email</a></p>
+    <p style="margin:24px 0;text-align:center"><a href="${url}" style="display:inline-block;background:linear-gradient(120deg,#6ea8ff,#8b5cf6,#ffd166,#ff6b6b);color:#000;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:700">Confirm my email</a></p>
     <p style="color:#8b93a8;font-size:13px">If the button doesn't work, copy this link into your browser:<br><span style="word-break:break-all">${escapeHtml(url)}</span></p>
     <p style="color:#8b93a8;font-size:13px;margin-top:24px">This link expires in 48 hours. If you didn't sign up, you can safely ignore this message.</p>
     </div></body></html>`;
@@ -103,12 +109,12 @@ export function buildPasswordResetEmail(input: { name: string; url: string }) {
   const { name, url } = input;
   const subject = "Reset your KenMatch password";
   const text = `Hi ${name},\n\nWe received a request to reset your KenMatch password. Click the link below to set a new one:\n\n${url}\n\nThis link expires in 30 minutes. If you didn't request a reset, you can safely ignore this message.\n\n— KenMatch`;
-  const html = `<!doctype html><html><body style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#0c1020;padding:32px;color:#e7edf5">
-    <div style="max-width:520px;margin:0 auto;background:#10152a;border-radius:16px;padding:28px;border:1px solid #1f2744">
+  const html = `<!doctype html><html><body style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#000;padding:32px;color:#f4f8ff">
+    <div style="max-width:520px;margin:0 auto;background:#05060c;border-radius:16px;padding:28px;border:1px solid #24283a">
     <h2 style="margin:0 0 16px;font-size:22px">Reset your password</h2>
     <p>Hi ${escapeHtml(name)},</p>
     <p>We received a request to reset your KenMatch password. Click the button below to set a new one:</p>
-    <p style="margin:24px 0;text-align:center"><a href="${url}" style="display:inline-block;background:linear-gradient(120deg,#18b6a4,#4f8dff,#ff8f49);color:white;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:600">Set new password</a></p>
+    <p style="margin:24px 0;text-align:center"><a href="${url}" style="display:inline-block;background:linear-gradient(120deg,#6ea8ff,#8b5cf6,#ffd166,#ff6b6b);color:#000;padding:12px 24px;border-radius:10px;text-decoration:none;font-weight:700">Set new password</a></p>
     <p style="color:#8b93a8;font-size:13px">If the button doesn't work, copy this link into your browser:<br><span style="word-break:break-all">${escapeHtml(url)}</span></p>
     <p style="color:#8b93a8;font-size:13px;margin-top:24px">This link expires in 30 minutes. If you didn't request a reset, you can ignore this message.</p>
     </div></body></html>`;
@@ -164,6 +170,35 @@ export function buildVerificationRequestEmail(input: { name: string; note: strin
     `Review: ${input.profileUrl}`,
   ].join("\n");
   return { subject, text };
+}
+
+export function buildContactSubmissionEmail(input: {
+  title: string;
+  topic: string;
+  replyEmail: string;
+  bodyMarkdown: string;
+  attachmentCount: number;
+}) {
+  const subject = `[KenMatch] ${input.topic}: ${input.title}`;
+  const text = [
+    `New KenMatch contact submission`,
+    ``,
+    `Title: ${input.title}`,
+    `Topic: ${input.topic}`,
+    `Reply email: ${input.replyEmail}`,
+    `Attachments: ${input.attachmentCount}`,
+    ``,
+    `Message:`,
+    input.bodyMarkdown,
+  ].join("\n");
+  const html = `<!doctype html><html><body style="font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#000;padding:32px;color:#f4f8ff">
+    <div style="max-width:680px;margin:0 auto;background:#05060c;border-radius:16px;padding:28px;border:1px solid #24283a">
+    <p style="margin:0 0 8px;color:#ffcf66;font-size:12px;letter-spacing:.16em;text-transform:uppercase">KenMatch contact</p>
+    <h2 style="margin:0 0 16px;font-size:24px">${escapeHtml(input.title)}</h2>
+    <p style="color:#b8c4d6;margin:0 0 16px"><strong>Topic:</strong> ${escapeHtml(input.topic)}<br><strong>Reply:</strong> ${escapeHtml(input.replyEmail)}<br><strong>Attachments:</strong> ${input.attachmentCount}</p>
+    <pre style="white-space:pre-wrap;word-break:break-word;background:#000;border:1px solid #24283a;border-radius:12px;padding:16px;color:#f4f8ff;font-family:ui-monospace,SFMono-Regular,Consolas,monospace">${escapeHtml(input.bodyMarkdown)}</pre>
+    </div></body></html>`;
+  return { subject, text, html, replyTo: input.replyEmail };
 }
 
 function escapeHtml(value: string) {

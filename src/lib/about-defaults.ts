@@ -4,13 +4,14 @@ export const DEFAULT_ABOUT_PAGE: AboutPageContent = {
   heroEyebrow: "Creator and mission",
   heroTitle: "Make sustained frontier compute transparent, merit-sensitive, and publicly accountable.",
   heroSubtitle:
-    "KenMatch is built by Cooper Beaman so high-value scientific, technical, and public-benefit work can be proposed, ranked, funded, launched, and audited through visible rules rather than private access.",
+    "KenMatch is Cooper Beaman's prototype for a public board that helps people propose, rank, fund, launch, and audit sustained AI-assisted work through visible rules rather than private access.",
   missionTitle: "Why KenMatch exists",
   missionBody:
-    "Sustained frontier-AI work depends on scarce API budget, engineering time, review labor, and operational attention. Today those resources are easiest to access for teams with money, institutional backing, or private lab relationships. KenMatch makes the prioritization layer visible: anyone can propose a documented Ken, contributors can add public signal and scarce allocation credits, and the site records how ranking, checkpoints, funding context, and sandbox outputs would be governed. In this public demo, dollar amounts and model results are explicitly simulated until live backing and execution are configured.",
+    "Sustained frontier-AI work depends on scarce API budget, engineering time, review labor, and operational attention. Today those resources are easiest to access for people with capital, institutional backing, or private lab relationships. I built KenMatch to stake out a public alternative before that allocation layer hardens: anyone can propose a documented Ken, contributors can add public signal and scarce allocation credits, and the site records how ranking, checkpoints, funding context, and sandbox outputs would be governed. The prototype is intentionally public because demand for shared ways to direct increasingly capable AI systems is likely to grow as those systems become better at long-horizon intellectual work. In this demo, dollar amounts and model results are explicitly simulated until live backing and execution are configured.",
   beliefsTitle: "What I believe",
   beliefsBullets: [
     "Public-interest AI work should be contestable by people who can explain the value, not only by teams that can prepay for compute.",
+    "Creativity, taste, imagination, and public judgment should become legitimate inputs into where powerful AI systems spend sustained attention.",
     "Transparency beats charisma: allocation rules, sponsorship context, review decisions, and rollback points should be legible before launch.",
     "Hard problems in science, health, software reliability, evaluation, reproducibility, and engineering design often need sustained runs with checkpoints, not one-off demos.",
     "Email verification, rate limits, profile evidence, peer attestation, and admin review are practical signals for limiting abuse without excluding new contributors by status alone.",
@@ -25,6 +26,7 @@ export const DEFAULT_ABOUT_PAGE: AboutPageContent = {
     "Separate public ranking from sponsorship so backing can support compute, review, and operations without buying release decisions.",
     "Publish reference sandbox runs with traceable assumptions, checkpoint notes, and simulated costs before any production-scale commitments.",
     "Broaden participation beyond insiders by lowering the cost of proposing, evaluating, and contributing safety review to high-stakes AI work.",
+    "Recruit experienced AI, software, research, and public-interest collaborators who want a public mechanism for steering frontier compute toward collective flourishing.",
     "Keep KenMatch sustainable and independent by making governance, treasury logic, and audit trails more important than any single operator.",
   ],
   contactTitle: "Contact",

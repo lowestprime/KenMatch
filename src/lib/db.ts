@@ -60,6 +60,8 @@ import type {
   AuditLogRecord,
   BookmarkRecord,
   ChangelogEntryRecord,
+  ContactAttachmentRecord,
+  ContactSubmissionRecord,
   CategoryProposalRecord,
   CategorySummary,
   CheckpointDetail,
@@ -102,6 +104,8 @@ import type {
   VoteRecord,
 } from "@/lib/types";
 import { DEFAULT_ABOUT_PAGE } from "@/lib/about-defaults";
+import { FAQ_ENTRIES } from "@/lib/faq";
+import { laneVisuals } from "@/lib/taxonomy";
 import { configEncryptionAvailable, decryptConfigSecret, encryptConfigSecret } from "@/lib/config-crypto";
 import { TEST_AUTH_USERS, type TestAuthMode } from "@/lib/test-auth";
 
@@ -598,6 +602,29 @@ async function initializeDatabase() {
         updatedAt TEXT NOT NULL,
         updatedBy TEXT
       )`,
+      `CREATE TABLE IF NOT EXISTS contact_submissions (
+        id TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        topic TEXT NOT NULL,
+        replyEmail TEXT NOT NULL,
+        bodyMarkdown TEXT NOT NULL,
+        attachmentCount INTEGER NOT NULL DEFAULT 0,
+        emailStatus TEXT NOT NULL,
+        emailError TEXT,
+        ipAddress TEXT,
+        userAgent TEXT,
+        createdAt TEXT NOT NULL
+      )`,
+      `CREATE TABLE IF NOT EXISTS contact_attachments (
+        id TEXT PRIMARY KEY,
+        submissionId TEXT NOT NULL,
+        fileName TEXT NOT NULL,
+        mimeType TEXT NOT NULL,
+        sizeBytes INTEGER NOT NULL,
+        contentBase64 TEXT NOT NULL,
+        createdAt TEXT NOT NULL,
+        FOREIGN KEY (submissionId) REFERENCES contact_submissions(id) ON DELETE CASCADE
+      )`,
       `CREATE TABLE IF NOT EXISTS request_rate_limits (
         scope TEXT NOT NULL,
         identifier TEXT NOT NULL,
@@ -626,6 +653,8 @@ async function initializeDatabase() {
       "CREATE INDEX IF NOT EXISTS idx_task_pulse_votes_taskId ON task_pulse_votes(taskId)",
       "CREATE INDEX IF NOT EXISTS idx_sponsorship_commitments_status ON sponsorship_commitments(status)",
       "CREATE INDEX IF NOT EXISTS idx_changelog_entries_visible ON changelog_entries(visible, entryDate)",
+      "CREATE INDEX IF NOT EXISTS idx_contact_submissions_createdAt ON contact_submissions(createdAt)",
+      "CREATE INDEX IF NOT EXISTS idx_contact_attachments_submissionId ON contact_attachments(submissionId)",
       "CREATE INDEX IF NOT EXISTS idx_request_rate_limits_updatedAt ON request_rate_limits(updatedAt)",
       "CREATE INDEX IF NOT EXISTS idx_security_events_createdAt ON security_events(createdAt)",
       "CREATE INDEX IF NOT EXISTS idx_bookmarks_profileId ON bookmarks(profileId)",
@@ -1137,6 +1166,8 @@ async function seedDatabase() {
       { sql: `DELETE FROM checkpoint_gates WHERE checkpointId IN (SELECT id FROM checkpoints WHERE taskId IN (${placeholders}))`, args: retiredSeedTaskIds },
       { sql: `DELETE FROM checkpoints WHERE taskId IN (${placeholders})`, args: retiredSeedTaskIds },
       { sql: `DELETE FROM run_updates WHERE taskId IN (${placeholders})`, args: retiredSeedTaskIds },
+      { sql: `DELETE FROM governance_events WHERE taskId IN (${placeholders})`, args: retiredSeedTaskIds },
+      { sql: `DELETE FROM bookmarks WHERE taskId IN (${placeholders})`, args: retiredSeedTaskIds },
       { sql: `DELETE FROM task_timings WHERE taskId IN (${placeholders})`, args: retiredSeedTaskIds },
       { sql: `DELETE FROM runs WHERE taskId IN (${placeholders})`, args: retiredSeedTaskIds },
       { sql: `DELETE FROM task_illustrations WHERE taskId IN (${placeholders})`, args: retiredSeedTaskIds },
@@ -3641,6 +3672,103 @@ export async function upsertChangelogEntry(
   );
 }
 
+function mapContactAttachment(row: DbRow): ContactAttachmentRecord {
+  return {
+    id: getString(row, "id"),
+    submissionId: getString(row, "submissionId"),
+    fileName: getString(row, "fileName"),
+    mimeType: getString(row, "mimeType"),
+    sizeBytes: getNumber(row, "sizeBytes"),
+    contentBase64: getString(row, "contentBase64"),
+    createdAt: getString(row, "createdAt"),
+  };
+}
+
+function mapContactSubmission(row: DbRow): ContactSubmissionRecord {
+  const emailStatus = getString(row, "emailStatus");
+  return {
+    id: getString(row, "id"),
+    title: getString(row, "title"),
+    topic: getString(row, "topic"),
+    replyEmail: getString(row, "replyEmail"),
+    bodyMarkdown: getString(row, "bodyMarkdown"),
+    attachmentCount: getNumber(row, "attachmentCount"),
+    emailStatus: emailStatus === "sent" || emailStatus === "failed" ? emailStatus : "not-configured",
+    emailError: getNullableString(row, "emailError"),
+    ipAddress: getNullableString(row, "ipAddress"),
+    userAgent: getNullableString(row, "userAgent"),
+    createdAt: getString(row, "createdAt"),
+  };
+}
+
+export async function createContactSubmission(input: {
+  title: string;
+  topic: string;
+  replyEmail: string;
+  bodyMarkdown: string;
+  attachments: Array<Pick<ContactAttachmentRecord, "fileName" | "mimeType" | "sizeBytes" | "contentBase64">>;
+  emailStatus: ContactSubmissionRecord["emailStatus"];
+  emailError?: string | null;
+  ipAddress?: string | null;
+  userAgent?: string | null;
+}) {
+  const now = new Date().toISOString();
+  const id = randomUUID();
+  await batch(
+    [
+      {
+        sql: `INSERT INTO contact_submissions (
+          id, title, topic, replyEmail, bodyMarkdown, attachmentCount, emailStatus, emailError, ipAddress, userAgent, createdAt
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        args: [
+          id,
+          input.title.trim().slice(0, 140),
+          input.topic.trim().slice(0, 60),
+          input.replyEmail.trim().toLowerCase().slice(0, 200),
+          input.bodyMarkdown.trim().slice(0, 8000),
+          input.attachments.length,
+          input.emailStatus,
+          input.emailError?.slice(0, 500) ?? null,
+          input.ipAddress ?? null,
+          input.userAgent?.slice(0, 500) ?? null,
+          now,
+        ],
+      },
+      ...input.attachments.map((attachment) => ({
+        sql: `INSERT INTO contact_attachments (
+          id, submissionId, fileName, mimeType, sizeBytes, contentBase64, createdAt
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        args: [
+          randomUUID(),
+          id,
+          attachment.fileName.slice(0, 180),
+          attachment.mimeType.slice(0, 120),
+          attachment.sizeBytes,
+          attachment.contentBase64,
+          now,
+        ],
+      })),
+    ],
+    "write",
+  );
+  return id;
+}
+
+export async function listContactSubmissions(limit = 100): Promise<ContactSubmissionRecord[]> {
+  const rows = await loadRows("SELECT * FROM contact_submissions ORDER BY createdAt DESC LIMIT ?", [limit]);
+  return rows.map(mapContactSubmission);
+}
+
+export async function getContactSubmission(id: string): Promise<ContactSubmissionRecord | null> {
+  const row = await loadOne("SELECT * FROM contact_submissions WHERE id = ? LIMIT 1", [id]);
+  if (!row) return null;
+  const attachments = await loadRows(
+    "SELECT * FROM contact_attachments WHERE submissionId = ? ORDER BY createdAt ASC",
+    [id],
+  );
+  return { ...mapContactSubmission(row), attachments: attachments.map(mapContactAttachment) };
+}
+
 const DEFAULT_NOTIFICATION_SETTINGS: AdminNotificationSettings = {
   recipientEmails: notificationEmails,
   notifyOnSignup: true,
@@ -4004,6 +4132,26 @@ export async function searchIndex(viewerProfileId?: string | null): Promise<Sear
       url: `/kens?category=${category.slug}`,
     });
   }
+  for (const lane of Object.values(laneVisuals)) {
+    items.push({
+      id: `lane-${lane.tier}`,
+      type: "page",
+      title: `${lane.label} lane`,
+      subtitle: lane.description,
+      url: `/kens?tier=${lane.tier}`,
+      badge: "lane",
+    });
+  }
+  for (const entry of FAQ_ENTRIES) {
+    items.push({
+      id: `faq-${entry.id}`,
+      type: "page",
+      title: entry.question,
+      subtitle: entry.answer,
+      url: `/faq#${entry.id}`,
+      badge: "FAQ",
+    });
+  }
   for (const event of snapshot.governance.slice(0, 20)) {
     items.push({
       id: event.id,
@@ -4020,6 +4168,8 @@ export async function searchIndex(viewerProfileId?: string | null): Promise<Sear
     { id: "governance", type: "page", title: "Governance", subtitle: "Safety council and allocation chamber decisions.", url: "/governance" },
     { id: "economics", type: "page", title: "Economics", subtitle: "Treasury, revenue engines, sponsorship pools.", url: "/economics" },
     { id: "about", type: "page", title: "About / Contact", subtitle: "Creator, mission, and contact info.", url: "/about" },
+    { id: "faq", type: "page", title: "FAQ", subtitle: "What Kens are and how KenMatch works.", url: "/faq" },
+    { id: "changelog", type: "page", title: "Changelog", subtitle: "Significant product, data, and operations updates.", url: "/about#changelog" },
   );
   return items;
 }

@@ -3,6 +3,8 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useDeferredValue, useEffect, useRef, useState, useTransition } from "react";
 
+import { SearchField } from "@/components/search-field";
+
 function buildTarget(pathname: string, query: string, category: string, tier: string, stage: string, sort: string) {
   const params = new URLSearchParams();
   if (query) params.set("q", query);
@@ -37,9 +39,19 @@ export function TaskBoardFilters({ initialQuery, initialCategory, initialTier, i
 
   return (
     <section className="panel filters-panel">
-      <label className="flex-1 space-y-2 text-xs uppercase tracking-[0.22em] text-muted">
-        Search Kens
-        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search by title, use case, model, sponsor fit, or category" className="field" />
+      <label className="filter-search-label">
+        <span>Search Kens</span>
+        <SearchField
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          onClear={() => {
+            setQuery("");
+            startTransition(() => router.replace(buildTarget(pathname, "", category, tier, stage, sort)));
+          }}
+          placeholder="Search by title, use case, model, sponsor fit, or category"
+          label="Search Kens"
+          className="search-field-board"
+        />
       </label>
       <FilterSelect label="Category" value={category} onChange={(next) => { setCategory(next); startTransition(() => router.replace(buildTarget(pathname, query.trim(), next, tier, stage, sort))); }}>
         <option value="all">All categories</option>
@@ -77,7 +89,7 @@ function FilterSelect({ label, value, onChange, children }: { label: string; val
   return (
     <label className="space-y-2 text-xs uppercase tracking-[0.22em] text-muted">
       {label}
-      <select value={value} onChange={(event) => onChange(event.target.value)} className="field min-w-[11rem]">
+      <select value={value} onChange={(event) => onChange(event.target.value)} className="field filter-select-field">
         {children}
       </select>
     </label>

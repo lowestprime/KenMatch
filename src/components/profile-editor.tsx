@@ -25,11 +25,11 @@ type ProfileEditorInitial = {
 };
 
 const GRADIENT_PRESETS = [
-  { label: "Teal · Azure", value: "linear-gradient(135deg, #0d7d74, #4f8dff)" },
-  { label: "Warm · Amber", value: "linear-gradient(135deg, #e36a2c, #ffd166)" },
+  { label: "Blue · Violet", value: "linear-gradient(135deg, #315dff, #8b5cf6)" },
+  { label: "Gold · Red", value: "linear-gradient(135deg, #ffd166, #e33f5f)" },
   { label: "Violet · Magenta", value: "linear-gradient(135deg, #7c3aed, #ec4899)" },
-  { label: "Emerald · Ink", value: "linear-gradient(135deg, #10b981, #0f172a)" },
-  { label: "Sunset", value: "linear-gradient(135deg, #ff8f49, #ec4899, #7c3aed)" },
+  { label: "Red · Ink", value: "linear-gradient(135deg, #ff6b6b, #05020a)" },
+  { label: "Royal Ribbon", value: "linear-gradient(135deg, #315dff, #7c5cff, #ffd166, #e33f5f)" },
 ];
 
 const MAX_IMAGE_BYTES = 180_000;
@@ -49,8 +49,8 @@ export function ProfileEditor({ initial }: { initial: ProfileEditorInitial }) {
   const [state, formAction, pending] = useActionState(updateProfileAction, initialActionState);
   const [avatarImage, setAvatarImage] = useState<string | null>(initial.avatarImage);
   const [avatarGradient, setAvatarGradient] = useState<string | null>(initial.avatarGradient);
-  const [colorA, setColorA] = useState("#0d7d74");
-  const [colorB, setColorB] = useState("#4f8dff");
+  const [colorA, setColorA] = useState("#315dff");
+  const [colorB, setColorB] = useState("#8b5cf6");
   const [avatarImageScale, setAvatarImageScale] = useState(initial.avatarImageScale);
   const [avatarImageX, setAvatarImageX] = useState(initial.avatarImageX);
   const [avatarImageY, setAvatarImageY] = useState(initial.avatarImageY);

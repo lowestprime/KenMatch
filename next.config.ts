@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
     workerThreads: true,
     webpackBuildWorker: false,
     serverActions: {
-      bodySizeLimit: "2mb",
+      bodySizeLimit: "8mb",
     },
   },
   turbopack: {

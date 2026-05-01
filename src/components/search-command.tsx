@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 
 import { searchAction } from "@/app/actions";
+import { SearchField } from "@/components/search-field";
 import type { SearchResultItem } from "@/lib/types";
 
 function useCommandKey(onOpen: () => void) {
@@ -105,21 +106,16 @@ export function SearchCommand() {
       />
       <div className="search-shell">
         <div className="search-input-row">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18" aria-hidden="true">
-            <circle cx="11" cy="11" r="7" />
-            <path d="m20 20-3.5-3.5" />
-          </svg>
-          <input
-            ref={inputRef}
-            className="search-input"
-            placeholder="Search Kens, profiles, rules, and backing..."
+          <SearchField
+            inputRef={inputRef}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={handleKey}
-            autoComplete="off"
-            spellCheck={false}
+            onClear={() => setQuery("")}
+            placeholder="Search Kens, profiles, FAQ, categories, and backing..."
+            label="Sitewide search"
+            className="search-field-command"
           />
-          <kbd className="search-kbd" aria-hidden="true">Esc</kbd>
         </div>
         <div className="search-results" role="listbox" aria-label="Search results">
           {loading ? (
@@ -144,11 +140,6 @@ export function SearchCommand() {
               </Link>
             ))
           )}
-        </div>
-        <div className="search-footer">
-          <span>up/down to move</span>
-          <span>enter to open</span>
-          <span>esc to close</span>
         </div>
       </div>
     </div>

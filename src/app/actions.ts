@@ -11,6 +11,13 @@ import { z } from "zod";
 import { type ActionState } from "@/app/action-state";
 import { MAX_VOTES_PER_TASK } from "@/lib/allocation";
 import {
+  CONTACT_ATTACHMENT_LIMITS,
+  CONTACT_OWNER_EMAIL,
+  contactSchema,
+  sanitizeContactAttachmentName,
+  validateContactAttachmentMeta,
+} from "@/lib/contact";
+import {
   authenticateAccount,
   bindSponsorshipCheckoutSession,
   consumeEmailToken,
@@ -18,6 +25,7 @@ import {
   createBookmark,
   createComment,
   createCategoryProposal,
+  createContactSubmission,
   createEmailToken,
   createProposal,
   createSponsorshipCommitment,
@@ -54,8 +62,9 @@ import {
   updateProfileDetails,
   normalizeUsername,
 } from "@/lib/db";
-import { canonicalOrigin, env, notificationEmails } from "@/lib/env";
+import { canonicalOrigin, env, notificationEmails, ownerEmail } from "@/lib/env";
 import {
+  buildContactSubmissionEmail,
   buildPasswordResetEmail,
   buildSignupNotificationEmail,
   buildVerificationEmail,
@@ -278,6 +287,7 @@ async function requireOwnerSession() {
 }
 
 function revalidateCorePaths(slug?: string) {
+  revalidatePath("/", "layout");
   revalidatePath("/");
   revalidatePath("/kens");
   revalidatePath("/tasks");
@@ -285,6 +295,10 @@ function revalidateCorePaths(slug?: string) {
   revalidatePath("/economics");
   revalidatePath("/submit");
   revalidatePath("/about");
+  revalidatePath("/about/changelog");
+  revalidatePath("/changelog");
+  revalidatePath("/faq");
+  revalidatePath("/auth");
   revalidatePath("/admin");
   revalidatePath("/account");
   revalidatePath("/people");
@@ -492,6 +506,16 @@ export async function signOutAction() {
   redirect("/");
 }
 
+export async function signOutClientAction(): Promise<ActionState> {
+  const token = await getViewerToken();
+  if (token) {
+    await deleteSessionByToken(token);
+  }
+  await clearViewerSessionCookie();
+  revalidateCorePaths();
+  return { status: "success", message: "Signed out." };
+}
+
 export async function forgotPasswordAction(_: ActionState, formData: FormData): Promise<ActionState> {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   try {
@@ -573,6 +597,112 @@ export async function resetPasswordAction(_: ActionState, formData: FormData): P
     return { status: "error", message: actionErrorMessage(error, "Unable to reset the password.") };
   }
   return { status: "success", message: "Password reset. You can now sign in." };
+}
+
+async function readContactAttachments(formData: FormData) {
+  const files = formData
+    .getAll("attachments")
+    .filter((value): value is File => typeof File !== "undefined" && value instanceof File && value.size > 0);
+
+  if (files.length > CONTACT_ATTACHMENT_LIMITS.maxFiles) {
+    throw new Error(`Attach no more than ${CONTACT_ATTACHMENT_LIMITS.maxFiles} files.`);
+  }
+
+  let totalBytes = 0;
+  const attachments: Array<{ fileName: string; mimeType: string; sizeBytes: number; contentBase64: string }> = [];
+  for (const file of files) {
+    const mimeType = file.type || "application/octet-stream";
+    totalBytes += file.size;
+    const validationError = validateContactAttachmentMeta({
+      name: file.name,
+      type: mimeType,
+      size: file.size,
+      nextTotalBytes: totalBytes,
+    });
+    if (validationError) throw new Error(validationError);
+    const buffer = Buffer.from(await file.arrayBuffer());
+    attachments.push({
+      fileName: sanitizeContactAttachmentName(file.name),
+      mimeType,
+      sizeBytes: file.size,
+      contentBase64: buffer.toString("base64"),
+    });
+  }
+  return attachments;
+}
+
+export async function contactOwnerAction(_: ActionState, formData: FormData): Promise<ActionState> {
+  let securityContext: Awaited<ReturnType<typeof guardMutationRequest>>;
+  try {
+    securityContext = await guardMutationRequest({
+      action: "contact-owner",
+      formData,
+      requireTurnstile: turnstileConfigured(),
+      rateLimit: {
+        scope: "contact-owner",
+        identifierParts: [String(formData.get("replyEmail") ?? "").trim().toLowerCase()],
+        limit: 3,
+        windowSeconds: 60 * 60,
+      },
+    });
+  } catch (error) {
+    return { status: "error", message: actionErrorMessage(error, "Unable to submit the message.") };
+  }
+
+  const parsed = contactSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: "Fix the highlighted contact fields.",
+      fieldErrors: flattenFieldErrors(parsed.error),
+    };
+  }
+
+  try {
+    const attachments = await readContactAttachments(formData);
+    const mail = buildContactSubmissionEmail({
+      title: parsed.data.title,
+      topic: parsed.data.topic,
+      replyEmail: parsed.data.replyEmail,
+      bodyMarkdown: parsed.data.bodyMarkdown,
+      attachmentCount: attachments.length,
+    });
+    const emailResult = await sendMail({
+      to: ownerEmail || CONTACT_OWNER_EMAIL,
+      ...mail,
+      attachments: attachments.map((attachment) => ({
+        filename: attachment.fileName,
+        content: Buffer.from(attachment.contentBase64, "base64"),
+        contentType: attachment.mimeType,
+      })),
+    });
+    const emailStatus = emailResult.ok ? "sent" : emailResult.error === "SMTP not configured" ? "not-configured" : "failed";
+    const submissionId = await createContactSubmission({
+      ...parsed.data,
+      attachments,
+      emailStatus,
+      emailError: emailResult.error ?? null,
+      ipAddress: securityContext.ipAddress,
+      userAgent: securityContext.userAgent,
+    });
+    await recordAudit({
+      accountId: null,
+      action: "contact.submitted",
+      detail: `Contact submission ${submissionId}: ${parsed.data.topic}`,
+      metadata: { emailStatus, attachmentCount: attachments.length },
+      ipAddress: securityContext.ipAddress,
+    });
+    revalidatePath("/faq");
+    revalidatePath("/about");
+    return {
+      status: "success",
+      message: emailResult.ok
+        ? "Message sent to Cooper and saved."
+        : "Message saved. Email delivery is not configured yet, so Cooper will need to review it from stored submissions.",
+    };
+  } catch (error) {
+    return { status: "error", message: actionErrorMessage(error, "Unable to submit the message.") };
+  }
 }
 
 export async function verifyEmailAction(token: string) {

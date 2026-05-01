@@ -133,7 +133,7 @@ export default async function AdminPage() {
         <section className="panel grid gap-3">
           <h2>Category proposals</h2>
           <p style={{ color: "var(--muted)" }}>
-            Review user-proposed lanes. Approval creates a public category that appears in filters and new Ken submission.
+            Review user-proposed categories. Approval creates a public category that appears in filters and new Ken submission.
           </p>
           <AdminCategoryProposals items={dashboard.categoryProposals} />
         </section>

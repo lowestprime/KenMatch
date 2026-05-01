@@ -1,7 +1,12 @@
 import Link from "next/link";
 
 import { AboutEditor } from "@/components/about-editor";
-import { getAboutPageContent } from "@/lib/db";
+import { ChangelogList } from "@/components/changelog-list";
+import { ContactForm } from "@/components/contact-form";
+import { getAboutPageContent, listChangelogEntries } from "@/lib/db";
+import { env } from "@/lib/env";
+import { KEN_DEFINITION } from "@/lib/faq";
+import { turnstileConfigured } from "@/lib/security";
 import { getViewerSession } from "@/lib/session";
 
 export const metadata = {
@@ -11,7 +16,7 @@ export const metadata = {
 };
 
 export default async function AboutPage() {
-  const [about, viewer] = await Promise.all([getAboutPageContent(), getViewerSession()]);
+  const [about, viewer, changelog] = await Promise.all([getAboutPageContent(), getViewerSession(), listChangelogEntries(false, 20)]);
   const canEdit = viewer?.account.systemRole === "owner";
   const lastUpdatedLabel = about.lastUpdated && about.lastUpdated !== new Date(0).toISOString()
     ? new Date(about.lastUpdated).toLocaleDateString(undefined, {
@@ -34,12 +39,12 @@ export default async function AboutPage() {
             <a className="cta-primary" href={`mailto:${about.contactEmail}`}>
               Contact the creator
             </a>
-            <Link className="cta-secondary" href="/about/changelog">
+            <Link className="cta-secondary" href="/about#changelog">
               Read the changelog
             </Link>
-            {about.links.slice(0, 3).map((link) => (
+            {about.links.slice(0, 3).map((link, index) => (
               <a
-                key={link.url}
+                key={`${link.label}-${link.url}-${index}`}
                 className="cta-secondary"
                 href={link.url}
                 target={link.url.startsWith("http") ? "_blank" : undefined}
@@ -66,6 +71,7 @@ export default async function AboutPage() {
         <div className="panel grid gap-3">
           <h2>{about.missionTitle}</h2>
           <p style={{ color: "var(--ink-muted)" }}>{about.missionBody}</p>
+          <p className="ken-definition-callout">{KEN_DEFINITION}</p>
         </div>
         <div className="panel grid gap-3">
           <h2>{about.beliefsTitle}</h2>
@@ -109,9 +115,9 @@ export default async function AboutPage() {
         </div>
         {about.links.length > 0 ? (
           <div className="site-footer-links" style={{ marginTop: "0.5rem" }}>
-            {about.links.map((link) => (
+            {about.links.map((link, index) => (
               <a
-                key={link.url}
+                key={`${link.label}-${link.url}-${index}`}
                 className="footer-badge"
                 href={link.url}
                 target={link.url.startsWith("http") ? "_blank" : undefined}
@@ -122,6 +128,28 @@ export default async function AboutPage() {
             ))}
           </div>
         ) : null}
+      </section>
+
+      <section id="contact" className="panel contact-panel" aria-labelledby="about-contact-form-heading">
+        <div>
+          <div className="eyebrow">Feedback route</div>
+          <h2 id="about-contact-form-heading">Send questions, suggestions, or recommendations</h2>
+          <p style={{ color: "var(--ink-muted)" }}>
+            Use the structured form for markdown notes, public FAQ gaps, partnership ideas, bug reports, and small attachments. Messages are routed to {about.contactEmail} when SMTP is configured and saved locally either way.
+          </p>
+        </div>
+        <ContactForm turnstileSiteKey={turnstileConfigured() ? env.NEXT_PUBLIC_TURNSTILE_SITE_KEY : undefined} />
+      </section>
+
+      <section id="changelog" className="panel changelog-section" aria-labelledby="changelog-heading">
+        <div className="section-heading">
+          <div>
+            <div className="eyebrow">Changelog</div>
+            <h2 id="changelog-heading">Significant updates from prototype to launch</h2>
+          </div>
+          <Link className="cta-secondary cta-compact" href="/faq">Read the FAQ</Link>
+        </div>
+        <ChangelogList entries={changelog} />
       </section>
 
       {canEdit ? (

@@ -63,7 +63,7 @@ export function AuthPanels({
                 </button>
               </form>
               {resendState.message ? (
-                <p className={`mt-2 text-xs ${resendState.status === "error" ? "text-red-500" : "text-teal"}`}>{resendState.message}</p>
+                <p className={`mt-2 text-xs ${resendState.status === "error" ? "text-red-500" : "text-accent"}`}>{resendState.message}</p>
               ) : null}
             </details>
           </div>
@@ -96,7 +96,7 @@ export function AuthPanels({
         </form>
       )}
 
-      {state.message ? <p className={`text-sm ${state.status === "error" ? "text-red-500" : "text-teal"}`}>{state.message}</p> : null}
+      {state.message ? <p className={`text-sm ${state.status === "error" ? "text-red-500" : "text-accent"}`}>{state.message}</p> : null}
     </div>
   );
 }
