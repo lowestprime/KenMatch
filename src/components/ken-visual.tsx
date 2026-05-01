@@ -1,6 +1,7 @@
 import Image from "next/image";
 import type { CSSProperties } from "react";
 
+import { categoryVisualForSlug, laneVisuals } from "@/lib/taxonomy";
 import type { TaskSummary } from "@/lib/types";
 
 type KenVisualTask = Pick<
@@ -15,22 +16,6 @@ type KenVisualTask = Pick<
   | "illustrationAlt"
   | "illustrationSource"
 >;
-
-type SymbolPalette = {
-  primary: string;
-  secondary: string;
-  glow: string;
-  background: string;
-};
-
-const CATEGORY_PALETTES: Record<string, SymbolPalette> = {
-  "science-health": { primary: "#88f7e3", secondary: "#8bb8ff", glow: "#123a3d", background: "#020b0d" },
-  "open-tools": { primary: "#8eeaff", secondary: "#a98dff", glow: "#142040", background: "#030711" },
-  "research-synthesis": { primary: "#d0fb95", secondary: "#7bd6ff", glow: "#1d3316", background: "#050c04" },
-  "engineering-systems": { primary: "#90eaff", secondary: "#8296ff", glow: "#102540", background: "#030711" },
-  "safety-evaluation": { primary: "#ffab9f", secondary: "#b78dff", glow: "#371620", background: "#0d0407" },
-  "frontier-creative": { primary: "#ff98dd", secondary: "#a98cff", glow: "#36153d", background: "#0c0310" },
-};
 
 const TIER_LABELS: Record<TaskSummary["allocatedTier"], string> = {
   months: "Months lane",
@@ -48,15 +33,6 @@ const STAGE_LABELS: Record<TaskSummary["stage"], string> = {
   shipped: "Shipped",
   blocked: "Blocked",
 };
-
-function paletteFor(categorySlug: string) {
-  return CATEGORY_PALETTES[categorySlug] ?? {
-    primary: "#9ef3ff",
-    secondary: "#a98dff",
-    glow: "#152238",
-    background: "#030711",
-  };
-}
 
 function completionLabel(task: KenVisualTask) {
   if (task.completionMode === "completed-early") return "Early delivery";
@@ -99,74 +75,72 @@ function lanePath(tier: TaskSummary["allocatedTier"]) {
 }
 
 function CategoryMotif({ slug }: { slug: string }) {
-  if (slug === "science-health") {
+  const visual = categoryVisualForSlug(slug);
+  if (visual.motif === "helix") {
     return (
       <>
-        <path d="M28 28c16 0 24 40 40 40" />
-        <path d="M68 28c-16 0-24 40-40 40" />
-        <path d="M34 40h28M34 56h28" />
+        <path d="M31 28c14 5 22 13 36 40" />
+        <path d="M67 28c-14 5-22 13-36 40" />
+        <path d="M38 41h22M36 55h24" />
       </>
     );
   }
 
-  if (slug === "open-tools") {
+  if (visual.motif === "tool") {
     return (
       <>
-        <path d="M27 31h34c5 0 8 3 8 8v25H27z" />
-        <path d="M37 45l9 7l-9 7M51 59h11" />
-        <path d="M69 35l10 6v14l-10 6l-10-6V41z" />
+        <path d="M27 35h31c4 0 7 3 7 7v22H27z" />
+        <path d="M37 47l8 6l-8 6M51 59h10" />
+        <path d="M68 32l9 5v12l-9 5l-9-5V37z" />
       </>
     );
   }
 
-  if (slug === "research-synthesis") {
+  if (visual.motif === "graph") {
     return (
       <>
-        <rect x="25" y="33" width="25" height="22" rx="5" />
-        <rect x="57" y="27" width="18" height="17" rx="4" />
-        <rect x="55" y="58" width="22" height="14" rx="4" />
-        <path d="M50 43h7M46 55l12 8M45 36l12-2" />
+        <circle cx="35" cy="37" r="8" />
+        <circle cx="63" cy="32" r="7" />
+        <circle cx="62" cy="64" r="9" />
+        <path d="M43 36l13-3M39 44l17 14M63 39l-1 16" />
       </>
     );
   }
 
-  if (slug === "engineering-systems") {
+  if (visual.motif === "system") {
     return (
       <>
-        <rect x="24" y="33" width="25" height="20" rx="5" />
-        <rect x="55" y="45" width="25" height="22" rx="5" />
-        <path d="M49 43h6M37 53v17h18M67 45V29h12" />
-        <circle cx="37" cy="70" r="4" />
-        <circle cx="79" cy="29" r="4" />
+        <rect x="25" y="31" width="22" height="20" rx="6" />
+        <rect x="54" y="45" width="24" height="22" rx="7" />
+        <path d="M47 41h7M36 51v17h18M66 45V30h12" />
+        <circle cx="36" cy="68" r="4" />
+        <circle cx="78" cy="30" r="4" />
       </>
     );
   }
 
-  if (slug === "safety-evaluation") {
+  if (visual.motif === "shield") {
     return (
       <>
         <path d="M48 25l22 8v18c0 15-8 25-22 31c-14-6-22-16-22-31V33z" />
-        <path d="M48 34v32M36 48h24M39 60h18" />
+        <path d="M48 35v29M36 49h24M40 60h16" />
       </>
     );
   }
 
-  if (slug === "frontier-creative") {
+  if (visual.motif === "spark") {
     return (
       <>
-        <path d="M27 62c11-21 27-31 49-29c-3 22-18 34-44 38" />
-        <path d="M36 62c13-6 25-14 36-25" />
-        <path d="M71 36l8-10M76 45l11-3" />
-        <circle cx="37" cy="42" r="4" />
+        <path d="M48 25l6 17l18 6l-18 6l-6 17l-6-17l-18-6l18-6z" />
+        <path d="M70 26l3 8l8 3l-8 3l-3 8l-3-8l-8-3l8-3z" />
       </>
     );
   }
 
   return (
     <>
-      <path d="M31 31h36l11 17l-11 17H31L20 48z" />
-      <path d="M38 39h22M34 48h30M38 57h22" />
-      <circle cx="49" cy="48" r="5" />
+      <path d="M48 26l25 14v20L48 74L23 60V40z" />
+      <path d="M35 43h26M35 53h26M48 31v34" />
     </>
   );
 }
@@ -186,11 +160,13 @@ export function CategorySymbol({
   variant?: "card" | "detail" | "inline";
   decorative?: boolean;
 }) {
-  const palette = paletteFor(categorySlug);
+  const palette = categoryVisualForSlug(categorySlug);
+  const lane = laneVisuals[tier];
   const style = {
     "--symbol-primary": palette.primary,
     "--symbol-secondary": palette.secondary,
-    "--symbol-glow": palette.glow,
+    "--symbol-tertiary": palette.tertiary,
+    "--symbol-glow": lane.primary,
     "--symbol-background": palette.background,
   } as CSSProperties;
   const label = `${categoryName} symbol, ${TIER_LABELS[tier]}, ${STAGE_LABELS[stage]}.`;

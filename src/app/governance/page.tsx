@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
+import { CategoryFilterChip, LaneFilterChip } from "@/components/filter-chip-link";
 import { CategorySymbol } from "@/components/ken-visual";
 import { getGovernanceData } from "@/lib/db";
 import { getViewerProfileId } from "@/lib/session";
-import { formatDateTime, labelForTier } from "@/lib/utils";
+import { categoryFilterHref } from "@/lib/taxonomy";
+import { formatDateTime } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Governance",
@@ -87,10 +90,13 @@ export default async function GovernancePage() {
           {blockedTasks.length > 0 ? blockedTasks.map((task) => (
             <div key={task.id} className="rounded-[1.3rem] border border-red-500/30 bg-red-500/10 p-5">
               <div className="flex items-center justify-between gap-3">
-                <div className="font-display text-xl font-semibold text-red-300">{task.title}</div>
-                <span className="tier-chip is-blocked">{labelForTier(task.allocatedTier)}</span>
+                <Link href={`/kens/${task.slug}`} className="font-display text-xl font-semibold text-red-300">{task.title}</Link>
+                <LaneFilterChip tier={task.allocatedTier} />
               </div>
               <p className="mt-2 text-sm leading-7 text-red-100/80">{task.problem}</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <CategoryFilterChip slug={task.categorySlug} label={task.categoryName} />
+              </div>
             </div>
           )) : <p className="text-sm text-muted">No Kens are currently blocked. Blocked Kens appear here so the safety boundary is always visible.</p>}
         </div>
@@ -100,7 +106,7 @@ export default async function GovernancePage() {
         <div className="eyebrow">Category health</div>
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {categories.map((category) => (
-            <div key={category.id} className="rounded-[1.3rem] border border-border bg-background/55 p-4 text-sm text-muted">
+            <Link key={category.id} href={categoryFilterHref(category.slug)} className="category-summary-card interactive-surface text-sm text-muted">
               <div className="flex items-center gap-3">
                 <CategorySymbol
                   categorySlug={category.slug}
@@ -113,7 +119,7 @@ export default async function GovernancePage() {
               </div>
               <p className="mt-2">{category.description}</p>
               <div className="mt-3 text-xs uppercase tracking-[0.22em] text-muted">{category.eligibleCount} eligible · {category.runningCount} running · {category.shippedCount} shipped</div>
-            </div>
+            </Link>
           ))}
         </div>
       </section>

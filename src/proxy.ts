@@ -11,6 +11,10 @@ function normalizeHost(value: string | null) {
   return (value ?? "").trim().toLowerCase().replace(/:\d+$/, "");
 }
 
+function normalizeHostWithPort(value: string | null) {
+  return (value ?? "").trim().toLowerCase();
+}
+
 function expectedOrigin(request: NextRequest, host: string) {
   if (process.env.KENMATCH_PUBLIC_ORIGIN) {
     return process.env.KENMATCH_PUBLIC_ORIGIN.toLowerCase();
@@ -91,7 +95,9 @@ function blockRequest(request: NextRequest, status: number, body: string, reason
 
 export function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
-  const host = normalizeHost(request.headers.get("x-forwarded-host") ?? request.headers.get("host"));
+  const hostHeader = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+  const host = normalizeHost(hostHeader);
+  const hostWithPort = normalizeHostWithPort(hostHeader);
   if (allowedHosts.length && host && !allowedHosts.includes(host)) {
     return blockRequest(request, 421, "Host not allowed.", "host not in allowlist");
   }
@@ -114,7 +120,7 @@ export function proxy(request: NextRequest) {
       }
 
       const origin = request.headers.get("origin");
-      if (origin && host && origin.toLowerCase() !== expectedOrigin(request, host)) {
+      if (origin && hostWithPort && origin.toLowerCase() !== expectedOrigin(request, hostWithPort)) {
         return blockRequest(request, 403, "Origin mismatch.", "origin does not match expected origin for host");
       }
     }

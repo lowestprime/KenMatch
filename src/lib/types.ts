@@ -269,6 +269,39 @@ export interface ChangelogEntryRecord {
   updatedBy: string | null;
 }
 
+export interface FAQEntry {
+  id: string;
+  question: string;
+  answer: string;
+  category: "basics" | "participation" | "allocation" | "backing" | "safety" | "privacy" | "operations";
+  keywords: string[];
+}
+
+export interface ContactAttachmentRecord {
+  id: string;
+  submissionId: string;
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  contentBase64: string;
+  createdAt: string;
+}
+
+export interface ContactSubmissionRecord {
+  id: string;
+  title: string;
+  topic: string;
+  replyEmail: string;
+  bodyMarkdown: string;
+  attachmentCount: number;
+  emailStatus: "sent" | "not-configured" | "failed";
+  emailError: string | null;
+  ipAddress: string | null;
+  userAgent: string | null;
+  createdAt: string;
+  attachments?: ContactAttachmentRecord[];
+}
+
 export const kenIllustrationSources = ["deterministic", "uploaded", "admin-set", "generated-placeholder"] as const;
 export type KenIllustrationSource = (typeof kenIllustrationSources)[number];
 

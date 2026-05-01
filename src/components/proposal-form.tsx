@@ -40,7 +40,7 @@ export function ProposalForm({ categories, disabled }: { categories: Array<{ slu
             </select>
           </label>
           <div className="rounded-[1.2rem] border border-border bg-background/55 p-4 text-sm leading-6 text-muted sm:col-span-2">
-            <div className="font-semibold text-foreground">Tier-based bond and checkpoint policy</div>
+            <div className="font-semibold text-foreground">Lane-based bond and checkpoint policy</div>
             <p className="mt-2">{tierDetails[requestedTier]}</p>
             <p className="mt-2">KenMatch calculates the bond automatically from the lane you choose, so the bond shown during review always matches the real allocation rules.</p>
           </div>
@@ -71,7 +71,7 @@ export function ProposalForm({ categories, disabled }: { categories: Array<{ slu
           {isPending ? "Submitting Ken" : "Submit Ken for review"}
         </button>
       </div>
-      {state.message ? <p className={`text-sm ${state.status === "error" ? "text-red-500" : "text-teal"}`}>{state.message}</p> : null}
+      {state.message ? <p className={`text-sm ${state.status === "error" ? "text-red-500" : "text-accent"}`}>{state.message}</p> : null}
     </form>
   );
 }

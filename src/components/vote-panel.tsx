@@ -93,7 +93,7 @@ export function VotePanel({
           {isPending ? "Saving priority" : "Save priority credits"}
         </button>
         {disabled ? <p className="text-sm text-muted">{disabledMessage ?? "Sign in to allocate voice to this Ken."}</p> : null}
-        {state.message ? <p className={`text-sm ${state.status === "error" ? "text-red-500" : "text-teal"}`}>{state.message}</p> : null}
+        {state.message ? <p className={`text-sm ${state.status === "error" ? "text-red-500" : "text-accent"}`}>{state.message}</p> : null}
       </form>
     </div>
   );

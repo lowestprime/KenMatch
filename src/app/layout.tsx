@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     default: "KenMatch: Rank sustained AI work",
     template: "%s · KenMatch",
   },
-  description: "Transparent allocation of frontier AI compute.",
+  description: "Public ranking for sustained AI-assisted work, checkpoints, and transparent frontier compute allocation.",
   keywords: [
     "KenMatch",
     "AI compute",
@@ -45,12 +45,15 @@ export const metadata: Metadata = {
     "quadratic voting",
     "transparent AI",
     "frontier compute",
+    "AI governance",
+    "public AI alignment",
     "Cooper Beaman",
   ],
   authors: [{ name: "Cooper Beaman", url: "https://github.com/lowestprime" }],
   creator: "Cooper Beaman",
   icons: {
     icon: [
+      { url: "/icon-dark.svg", type: "image/svg+xml", sizes: "any" },
       { url: "/favicon.ico", type: "image/x-icon", sizes: "32x32" },
       { url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
       { url: "/favicon-96x96.png", type: "image/png", sizes: "96x96" },
@@ -63,7 +66,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "KenMatch: Rank sustained AI work",
     description:
-      "Transparent allocation of frontier AI compute.",
+      "Public ranking for sustained AI-assisted work, checkpoints, and transparent frontier compute allocation.",
     siteName: "KenMatch",
     type: "website",
     url: canonicalOrigin,
@@ -72,7 +75,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "KenMatch: Rank sustained AI work",
-    description: "Transparent allocation of frontier AI compute.",
+    description: "Public ranking for sustained AI-assisted work, checkpoints, and transparent frontier compute allocation.",
     images: ["/og-image.png"],
   },
   appleWebApp: {

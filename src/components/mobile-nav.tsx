@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
 
 import { Avatar } from "@/components/avatar";
+import { SignOutButton } from "@/components/auth-session-controls";
 import type { ViewerSession } from "@/lib/types";
 
 export type MobileNavLink = { href: string; label: string };
@@ -20,7 +21,6 @@ export function MobileNav({
   viewer: ViewerSession | null;
 }) {
   const [open, setOpen] = useState(false);
-  const [signingOut, setSigningOut] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -45,20 +45,6 @@ export function MobileNav({
 
   function close() {
     setOpen(false);
-  }
-
-  async function handleSignOut() {
-    if (signingOut) return;
-    setSigningOut(true);
-    try {
-      await fetch("/auth/sign-out", {
-        method: "POST",
-        credentials: "same-origin",
-        cache: "no-store",
-      });
-    } finally {
-      window.location.assign("/");
-    }
   }
 
   return (
@@ -138,9 +124,7 @@ export function MobileNav({
                     <Link href="/account" className="cta-secondary cta-compact" onClick={close}>
                       Account
                     </Link>
-                    <button type="button" className="cta-secondary cta-compact" onClick={handleSignOut} disabled={signingOut}>
-                      {signingOut ? "Signing out" : "Sign out"}
-                    </button>
+                    <SignOutButton onSignedOut={close} />
                   </div>
                 </>
               ) : (

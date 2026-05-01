@@ -4,6 +4,7 @@ import Link from "next/link";
 import { CategoryProposalForm } from "@/components/category-proposal-form";
 import { ProposalForm } from "@/components/proposal-form";
 import { getHomeData } from "@/lib/db";
+import { KEN_DEFINITION } from "@/lib/faq";
 import { getViewerSession } from "@/lib/session";
 
 export const metadata: Metadata = {
@@ -21,7 +22,7 @@ export default async function SubmitPage() {
         <div className="eyebrow">Ken intake</div>
         <h1 className="font-display text-4xl font-semibold text-foreground">Submit a Ken for review, public ranking, and checkpointed launch</h1>
         <p className="max-w-4xl text-lg leading-8 text-muted">
-          Strong Kens make the public benefit, the evidence base, the risks, the delivery path, and the audit trail clear before they ask for scarce compute.
+          {KEN_DEFINITION} Strong submissions make the public benefit, the evidence base, the risks, the delivery path, and the audit trail clear before they ask for scarce compute.
         </p>
       </section>
       {viewer ? (

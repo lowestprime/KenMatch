@@ -7,6 +7,7 @@ import { SearchCommand } from "@/components/search-command";
 import { VisitorBeacon } from "@/components/visitor-beacon";
 import { Avatar } from "@/components/avatar";
 import { MobileNav } from "@/components/mobile-nav";
+import { SignOutButton } from "@/components/auth-session-controls";
 import type { ParticipationState, ViewerSession } from "@/lib/types";
 
 const primaryNav = [
@@ -16,6 +17,7 @@ const primaryNav = [
   { href: "/governance", label: "Rules" },
   { href: "/economics", label: "Backing" },
   { href: "/about", label: "About" },
+  { href: "/faq", label: "FAQ" },
 ];
 
 const FOOTER_LINKS = [
@@ -39,7 +41,7 @@ const FOOTER_LINKS = [
     ),
   },
   {
-    href: "/about",
+    href: "/faq#contact",
     label: "Contact",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14" aria-hidden="true">
@@ -49,7 +51,7 @@ const FOOTER_LINKS = [
     ),
   },
   {
-    href: "/about/changelog",
+    href: "/about#changelog",
     label: "Changelog",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14" aria-hidden="true">
@@ -123,9 +125,7 @@ export function SiteShell({
                     {showAdminLink ? (
                       <Link href="/admin" className="cta-secondary cta-compact">Admin</Link>
                     ) : null}
-                    <form action="/auth/sign-out" method="post">
-                      <button type="submit" className="cta-secondary cta-compact">Sign out</button>
-                    </form>
+                    <SignOutButton />
                   </div>
                 </div>
               ) : (

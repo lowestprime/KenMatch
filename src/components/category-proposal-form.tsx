@@ -15,7 +15,7 @@ export function CategoryProposalForm({ disabled }: { disabled?: boolean }) {
     <form action={formAction} className="panel category-proposal-panel">
       <div className="grid gap-2">
         <span className="eyebrow">Propose a new category</span>
-        <h2>When an idea does not fit the existing lanes</h2>
+        <h2>When an idea does not fit the existing categories</h2>
         <p className="text-sm leading-7 text-muted">
           New categories should make the board easier to understand, not fragment it. Strong proposals describe a repeatable class of Kens, clear public or community value, realistic evaluation criteria, and examples that could attract serious discussion or backing. Admin review assigns the public category symbol before approval.
         </p>
@@ -25,7 +25,7 @@ export function CategoryProposalForm({ disabled }: { disabled?: boolean }) {
           "Broad enough to contain many future Kens, not a single personal idea.",
           "Safe, auditable, and compatible with public checkpoints.",
           "Useful to an identifiable public, community, creative, research, civic, or technical audience.",
-          "Clear about what admins should reject, merge into an existing lane, or hold for more review.",
+          "Clear about what admins should reject, merge into an existing category, or hold for more review.",
         ].map((item) => (
           <div key={item} className="guideline-item">{item}</div>
         ))}
@@ -38,7 +38,7 @@ export function CategoryProposalForm({ disabled }: { disabled?: boolean }) {
       <Field name="publicBenefit" label="Why should KenMatch add it?" as="textarea" placeholder="Explain the public, community, cultural, scientific, technical, or practical value." error={errorFor("publicBenefit")} disabled={disabled || pending} />
       <AbuseGuardFields action="submit-category-proposal" siteKey={turnstileSiteKey} />
       <div className="form-footer">
-        <p className="text-xs leading-6 text-muted">Admins can approve, reject, or ask for revision. Approval adds the lane with an assigned category symbol; public symbol uploads are not enabled yet.</p>
+        <p className="text-xs leading-6 text-muted">Admins can approve, reject, or ask for revision. Approval adds the category with an assigned symbol; public symbol uploads are not enabled yet.</p>
         <button type="submit" className="cta-primary" disabled={disabled || pending}>
           {pending ? "Submitting" : "Propose category"}
         </button>

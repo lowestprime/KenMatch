@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { TaskBoardFilters } from "@/components/task-board-filters";
 import { TaskCard } from "@/components/task-card";
 import { getMarketplaceData } from "@/lib/db";
+import { KEN_DEFINITION } from "@/lib/faq";
 import { getViewerProfileId } from "@/lib/session";
 import { allocationTiers, sortOptions, taskStages } from "@/lib/types";
 import type { MarketplaceFilters, SortOption } from "@/lib/types";
@@ -41,7 +42,7 @@ export default async function KensPage({ searchParams }: KensPageProps) {
         <div className="eyebrow">Community feed</div>
         <h1 className="font-display text-4xl font-semibold text-foreground">Kens competing for sustained compute</h1>
         <p className="max-w-4xl text-lg leading-8 text-muted">
-          Each card is a public proposal with a quick pulse score, scarcer allocation-credit signal, simulated funding context, checkpoints, and run progress. The visual panel encodes category, lane, status, checkpoint progress, and sandbox-demo state without implying live model execution.
+          {KEN_DEFINITION} Each card adds quick pulse signal, scarcer allocation-credit signal, simulated funding context, checkpoints, and run progress without implying live model execution.
         </p>
         <div className="metric-grid">
           <div className="metric-card"><div className="eyebrow">Active</div><div className="metric-value">{activeCount}</div></div>
@@ -55,7 +56,15 @@ export default async function KensPage({ searchParams }: KensPageProps) {
 
       <section className="board-layout">
         <div className="space-y-4">
-          <TaskBoardFilters initialQuery={query} initialCategory={category} initialTier={tier} initialStage={stage} initialSort={sort} categories={categories} />
+          <TaskBoardFilters
+            key={`${query}|${category}|${tier}|${stage}|${sort}`}
+            initialQuery={query}
+            initialCategory={category}
+            initialTier={tier}
+            initialStage={stage}
+            initialSort={sort}
+            categories={categories}
+          />
 
           <div className="panel board-summary-panel">
             <div className="board-summary-row text-sm text-muted">
