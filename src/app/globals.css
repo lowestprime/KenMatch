@@ -66,9 +66,9 @@ html[data-theme="oled"] {
   --accent-glow: #8b5cf6;
   --accent-warm: #ff6b6b;
   --accent-gold: #ffd166;
-  --mark-front: #04070a;
-  --mark-front-muted-1: rgba(4, 7, 10, 0.82);
-  --mark-front-muted-2: rgba(4, 7, 10, 0.68);
+  --mark-front: #f4f8ff;
+  --mark-front-muted-1: rgba(244, 248, 255, 0.82);
+  --mark-front-muted-2: rgba(244, 248, 255, 0.68);
   --danger: #f87171;
   --danger-soft: rgba(248, 113, 113, 0.16);
   --success: #6ea8ff;
