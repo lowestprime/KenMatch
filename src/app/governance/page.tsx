@@ -13,18 +13,59 @@ export const metadata: Metadata = {
   description: "Visible review states, checkpoint gates, attestation levels, blocked work, and governance decisions on KenMatch.",
 };
 
+const boardRoles = [
+  {
+    title: "Public contributors",
+    label: "Allocation chamber",
+    body: "Submit Kens, refine briefs, discuss tradeoffs, add evidence, pulse-vote, and spend scarce allocation credits. This is the broad Reddit/Stack Exchange-like signal layer, not a wealth gate.",
+  },
+  {
+    title: "Verified reviewers",
+    label: "Safety and validity council",
+    body: "Review risk, evidence quality, reproducibility, and evaluation criteria. Their role is to filter unsafe or invalid work and set release conditions, not to secretly choose popular winners.",
+  },
+  {
+    title: "Moderators and operators",
+    label: "Process stewards",
+    body: "Keep accounts, category proposals, maintenance, abuse controls, audits, and visible UI state working. Operational privileges should preserve public process rather than override public rank.",
+  },
+  {
+    title: "Sponsors and backers",
+    label: "Capacity support",
+    body: "Fund compute, review, safety reserve, or category capacity. Backing may increase available resources, but it cannot buy votes, ranking power, release approval, or hidden priority.",
+  },
+];
+
 export default async function GovernancePage() {
   const viewerProfileId = await getViewerProfileId();
   const { governance, blockedTasks, categories, profiles } = await getGovernanceData(viewerProfileId);
 
   return (
     <div className="page-stack">
-      <section className="panel space-y-4">
+      <section className="panel space-y-4 hero-panel">
         <div className="eyebrow">Governance and safety</div>
-        <h1 className="font-display text-4xl font-semibold text-foreground">Visible review states, checkpoint gates, and accountable participation</h1>
+        <h1 className="font-display text-4xl font-semibold text-foreground">Public board roles, visible review states, and accountable participation</h1>
         <p className="max-w-4xl text-lg leading-8 text-muted">
-          KenMatch keeps launch decisions, blocked work, and contributor standing visible. The goal is a legible public process for deciding what should, and should not, receive sustained compute.
+          KenMatch uses “board” to mean the visible public operating surface where proposals, evidence, votes, safety checks, sponsor context, and checkpoint decisions can be inspected. It is not a private committee with hidden authority to buy, bury, or secretly select winners.
         </p>
+      </section>
+
+      <section className="panel protocol-panel">
+        <div className="section-heading">
+          <div>
+            <span className="eyebrow">Board composition</span>
+            <h2>Roles are deliberately narrow and auditable</h2>
+          </div>
+        </div>
+        <div className="ecosystem-grid">
+          {boardRoles.map((role) => (
+            <article key={role.title} className="ecosystem-card">
+              <span className="micro-pill">{role.label}</span>
+              <strong>{role.title}</strong>
+              <p>{role.body}</p>
+            </article>
+          ))}
+        </div>
       </section>
 
       <section className="section-grid" data-columns="2">
@@ -33,9 +74,9 @@ export default async function GovernancePage() {
           <div className="governance-rule-grid">
             {[
               ["Voice", "Account-bound and attestation-aware. Money can support compute, but it cannot buy rank."],
-              ["Launch", "Public review is allowed; sustained runs require explicit release conditions."],
-              ["Safety", "Blocked Kens stay visible so people can inspect where the boundary is drawn."],
-              ["Checkpoints", "Approvals create real stop, pause, and rollback points during long runs."],
+              ["Board scope", "The public board coordinates signal, review, and checkpoints; it does not create private control over public Kens."],
+              ["Safety", "Blocked Kens stay visible so people can inspect where the boundary is drawn and why public curiosity cannot override harm review."],
+              ["Checkpoints", "Approvals create real stop, pause, and rollback points during long runs, with decisions recorded for later audit."],
             ].map(([label, copy]) => (
               <div key={label} className="governance-rule-card">
                 <strong>{label}</strong>
