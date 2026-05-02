@@ -1,7 +1,13 @@
+import { KEN_LIFECYCLE_STAGES, LANE_OPERATING_POLICIES, SUBMISSION_APPROVAL_CRITERIA, TOKEN_ASSIGNMENT_RULES } from "@/lib/allocation-policy";
 import type { FAQEntry } from "@/lib/types";
 
 export const KEN_DEFINITION =
-  "A Ken is a bounded public proposal for sustained AI-assisted work, with sources, checkpoints, and review.";
+  "A Ken is a public work order for sustained AI-assisted work: a clear problem, evidence base, run lane, checkpoints, and review trail that the board can inspect from proposal through delivery.";
+
+const lifecycleSummary = KEN_LIFECYCLE_STAGES.map((stage) => `${stage.label}: ${stage.summary}`).join(" ");
+const creditSummary = TOKEN_ASSIGNMENT_RULES.map((rule) => `${rule.label}: ${rule.credits} credit${rule.credits === 1 ? "" : "s"} (${rule.cadence}). ${rule.criteria}`).join(" ");
+const laneSummary = Object.values(LANE_OPERATING_POLICIES).map((lane) => `${lane.label}: ${lane.bestFor}; bond ${lane.bondCredits}; checkpoints are ${lane.checkpointCadence}.`).join(" ");
+const approvalSummary = SUBMISSION_APPROVAL_CRITERIA.map((criterion) => `• ${criterion}`).join(" ");
 
 export const FAQ_ENTRIES: FAQEntry[] = [
   {
@@ -9,16 +15,16 @@ export const FAQ_ENTRIES: FAQEntry[] = [
     category: "basics",
     question: "What is a Ken?",
     answer:
-      `${KEN_DEFINITION} A good Ken is specific enough to inspect, valuable enough to deserve scarce attention, and structured so progress can be reviewed publicly instead of disappearing into a private chat or private lab queue.`,
-    keywords: ["ken", "definition", "proposal", "ai work", "checkpoint"],
+      `${KEN_DEFINITION} Think of a Ken as a public, inspectable brief for work that may need more continuity than a normal prompt: the problem, source material, proposed outputs, risks, and checkpoint gates are visible before scarce compute is allocated.`,
+    keywords: ["ken", "definition", "proposal", "ai work", "checkpoint", "work order"],
   },
   {
     id: "why-kenmatch-exists",
     category: "basics",
     question: "Why does KenMatch exist?",
     answer:
-      "KenMatch exists to make the prioritization layer for long-horizon frontier AI work visible. As models become more capable, the public should be able to help define which scientific, technical, safety, and public-benefit problems deserve sustained attention instead of leaving that allocation entirely to private capital and closed institutional access.",
-    keywords: ["mission", "public", "frontier ai", "allocation", "capital"],
+      "KenMatch exists because future AI systems may become able to address long-horizon intellectual work more comprehensively than any individual expert, but the public still needs a way to decide which problems deserve sustained attention. The prototype tests a public ranking, checkpoint, and funding layer so creativity, taste, evidence, and public benefit can guide frontier compute instead of leaving allocation only to private capital or closed institutional queues.",
+    keywords: ["mission", "public", "frontier ai", "allocation", "capital", "public benefit"],
   },
   {
     id: "sandbox-status",
@@ -29,19 +35,43 @@ export const FAQ_ENTRIES: FAQEntry[] = [
     keywords: ["sandbox", "simulated", "funding", "sponsors", "prototype"],
   },
   {
+    id: "lifecycle",
+    category: "operations",
+    question: "What happens from Ken submission to completion?",
+    answer:
+      `The lifecycle is deliberately public and checkpointed. ${lifecycleSummary}`,
+    keywords: ["lifecycle", "stages", "approval", "run", "checkpoint", "audit"],
+  },
+  {
+    id: "approval-requirements",
+    category: "allocation",
+    question: "What does a Ken need before it can be approved and run?",
+    answer:
+      `A Ken must be specific, inspectable, useful, and reviewable before it should receive scarce compute. Approval checks include: ${approvalSummary}`,
+    keywords: ["approval", "requirements", "submit", "review", "criteria", "run"],
+  },
+  {
     id: "lanes",
     category: "allocation",
     question: "What are Months, Weeks, and Days lanes?",
     answer:
-      "Lanes describe the maximum duration and review cadence for a Ken. Months lanes are for the top long-horizon work in each category, Weeks lanes are for multi-step research or build runs, and Days lanes are for focused deliverables with clear acceptance checks. Queued Kens are still gathering signal; Blocked Kens are held by safety or governance review.",
+      `Lanes describe the maximum duration and review cadence for a Ken. ${laneSummary} Queued Kens are still gathering signal; Blocked Kens are held by review.` ,
     keywords: ["lanes", "tier", "months", "weeks", "days", "queued", "blocked"],
+  },
+  {
+    id: "credits-earned",
+    category: "allocation",
+    question: "How are allocation credits assigned, replenished, or earned?",
+    answer:
+      `Allocation credits are scarce voice credits, not money. Current policy: ${creditSummary} Awards should point to visible public work, verification evidence, or accepted checkpoint contributions so credit assignment remains auditable.`,
+    keywords: ["credits", "tokens", "replenishment", "earn", "voice", "award", "verification"],
   },
   {
     id: "voice-vs-pulse",
     category: "participation",
     question: "What is the difference between pulse and allocation credits?",
     answer:
-      "Pulse is quick forum-style signal: support or concern. Allocation credits are scarcer and intentionally harder to concentrate, so spending more voice on the same Ken costs more. This lets broad support matter without letting one account cheaply dominate a category.",
+      "Pulse is quick forum-style signal: support or concern. Allocation credits are scarcer and intentionally harder to concentrate, so spending more voice on the same Ken costs quadratically. This lets broad support matter without letting one account cheaply dominate a category.",
     keywords: ["pulse", "voice", "credits", "vote", "quadratic"],
   },
   {
@@ -51,6 +81,22 @@ export const FAQ_ENTRIES: FAQEntry[] = [
     answer:
       "No. Sponsorship can support compute, review, moderation, and operations, but it does not buy public rank, release approvals, hidden priority, or extra voice. Restrictions and sponsor context stay visible so readers can inspect where backing is attached.",
     keywords: ["money", "sponsor", "rank", "backing", "funding"],
+  },
+  {
+    id: "sponsor-incentives",
+    category: "backing",
+    question: "What do sponsors or backers receive?",
+    answer:
+      "Backers can fund compute supply, review capacity, moderation, delivery support, or restricted public-good pools. They receive transparent attribution, a visible funding trail, and a clearer path from public demand to completed artifacts, but they do not receive votes, ranking power, safety overrides, or private control of public Kens.",
+    keywords: ["sponsor", "backer", "incentive", "funding", "treasury", "attribution"],
+  },
+  {
+    id: "contributor-incentives",
+    category: "participation",
+    question: "How are successful contributors rewarded?",
+    answer:
+      "Contributors can earn credibility, verification capacity, and allocation-credit awards when their proposals, evidence, review notes, tests, reproducibility work, or checkpoint contributions materially improve a successful Ken. The rule is simple: rewards should be tied to visible contributions that helped the public board make or validate a better decision.",
+    keywords: ["contributor", "reward", "credits", "successful", "checkpoint", "reputation"],
   },
   {
     id: "who-can-participate",
@@ -73,7 +119,7 @@ export const FAQ_ENTRIES: FAQEntry[] = [
     category: "safety",
     question: "Why show blocked Kens?",
     answer:
-      "Blocked Kens stay visible so the safety boundary can be inspected. A blocked record does not mean KenMatch endorses the work; it documents why public signal, sponsorship, or curiosity cannot override an unsafe or inappropriate run.",
+      "Blocked Kens stay visible so the boundary can be inspected. A blocked record does not mean KenMatch endorses the work; it documents why public signal, sponsorship, or curiosity cannot override a blocked or inappropriate run.",
     keywords: ["blocked", "safety", "governance", "boundary"],
   },
   {
