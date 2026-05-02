@@ -21,6 +21,14 @@ interface SavedDiscussionItem {
 }
 
 type SavedMode = "all" | "kens" | "discussion" | "comments";
+type SavedItemKind = "ken" | "discussion" | "comment";
+
+function matchesMode(kind: SavedItemKind, mode: SavedMode) {
+  if (mode === "all") return true;
+  if (mode === "kens") return kind === "ken";
+  if (mode === "comments") return kind === "comment";
+  return kind === "discussion" || kind === "comment";
+}
 
 export function AccountSavedItems({ kens, discussion }: { kens: SavedKenItem[]; discussion: SavedDiscussionItem[] }) {
   const [query, setQuery] = useState("");
@@ -44,7 +52,7 @@ export function AccountSavedItems({ kens, discussion }: { kens: SavedKenItem[]; 
       href: item.url,
     }));
     return [...kenItems, ...discussionItems]
-      .filter((item) => mode === "all" || item.type === mode || (mode === "discussion" && item.type === "comment"))
+      .filter((item) => matchesMode(item.type, mode))
       .filter((item) => !normalized || `${item.title} ${item.subtitle} ${item.body}`.toLowerCase().includes(normalized));
   }, [discussion, kens, mode, normalized]);
 
