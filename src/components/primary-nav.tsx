@@ -21,10 +21,10 @@ export function PrimaryNav({ items }: { items: PrimaryNavItem[] }) {
     if (!nav) return;
     const active = activeRef.current;
     if (!active || pathname === "/") {
-      nav.scrollTo({ left: 0, behavior: "instant" as ScrollBehavior });
+      nav.scrollTo({ left: 0, behavior: "auto" });
       return;
     }
-    active.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "instant" as ScrollBehavior });
+    active.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "auto" });
   }, [pathname]);
 
   return (
