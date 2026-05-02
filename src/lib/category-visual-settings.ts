@@ -123,7 +123,7 @@ export async function getCategoryVisualOverrideCss() {
     .filter((setting) => setting.updatedAt)
     .map((setting) => {
       const slug = cssEscapeAttribute(setting.slug);
-      return `.category-symbol[data-category-slug="${slug}"],.ken-symbol[data-category-slug="${slug}"]{--category-visual-primary:${normalizeColor(setting.primaryColor, fallback.primaryColor)};--category-visual-secondary:${normalizeColor(setting.secondaryColor, fallback.secondaryColor)};--category-visual-tertiary:${normalizeColor(setting.tertiaryColor, fallback.tertiaryColor)};--category-visual-background:${normalizeColor(setting.backgroundColor, fallback.backgroundColor)}}`;
+      return `.category-symbol[data-category-slug="${slug}"],.ken-symbol[data-category-slug="${slug}"]{--symbol-primary:${normalizeColor(setting.primaryColor, fallback.primaryColor)} !important;--symbol-secondary:${normalizeColor(setting.secondaryColor, fallback.secondaryColor)} !important;--symbol-tertiary:${normalizeColor(setting.tertiaryColor, fallback.tertiaryColor)} !important;--symbol-background:${normalizeColor(setting.backgroundColor, fallback.backgroundColor)} !important}`;
     })
     .join("\n");
   return rules ? `/* DB-backed category visual overrides */\n${rules}` : "";
