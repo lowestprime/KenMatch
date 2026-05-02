@@ -7,6 +7,7 @@ import { SearchCommand } from "@/components/search-command";
 import { VisitorBeacon } from "@/components/visitor-beacon";
 import { MobileNav } from "@/components/mobile-nav";
 import { ProfileMenu } from "@/components/profile-menu";
+import { ReleasePolishStyles } from "@/components/release-polish-styles";
 import type { ViewerSession } from "@/lib/types";
 
 const primaryNav = [
@@ -62,17 +63,12 @@ const FOOTER_LINKS = [
   },
 ];
 
-export function SiteShell({
-  viewer,
-  children,
-}: {
-  viewer: ViewerSession | null;
-  children: React.ReactNode;
-}) {
+export function SiteShell({ viewer, children }: { viewer: ViewerSession | null; children: React.ReactNode }) {
   const showAdminLink = Boolean(viewer && (viewer.account.systemRole === "admin" || viewer.account.systemRole === "owner" || viewer.account.systemRole === "moderator"));
 
   return (
     <div className="site-frame">
+      <ReleasePolishStyles />
       <a href="#main-content" className="skip-link">Skip to content</a>
       <VisitorBeacon />
       <HeaderScrollController />
@@ -83,27 +79,16 @@ export function SiteShell({
           <div className="site-brand-row">
             <Link href="/" className="site-brand" aria-label="KenMatch home">
               <KenMatchMark className="brand-mark" />
-              <span className="site-brand-text">
-                <strong>KenMatch</strong>
-                <span>Transparent allocation of frontier AI compute</span>
-              </span>
+              <span className="site-brand-text"><strong>KenMatch</strong><span>Transparent allocation of frontier AI compute</span></span>
             </Link>
             <nav className="site-nav" aria-label="Primary">
-              {primaryNav.map((item) => (
-                <Link key={item.href} href={item.href} className="nav-pill">
-                  {item.label}
-                </Link>
-              ))}
+              {primaryNav.map((item) => <Link key={item.href} href={item.href} className="nav-pill">{item.label}</Link>)}
             </nav>
             <div className="site-utility-row">
               <SearchCommand />
               <ThemeToggle />
               <MobileNav primaryNav={primaryNav} showAdminLink={showAdminLink} viewer={viewer} />
-              {viewer ? (
-                <ProfileMenu viewer={viewer} showAdminLink={showAdminLink} />
-              ) : (
-                <Link href="/auth" className="cta-secondary cta-compact">Sign in</Link>
-              )}
+              {viewer ? <ProfileMenu viewer={viewer} showAdminLink={showAdminLink} /> : <Link href="/auth" className="cta-secondary cta-compact">Sign in</Link>}
             </div>
           </div>
         </div>
@@ -114,33 +99,19 @@ export function SiteShell({
           <div className="site-footer-top">
             <Link href="/" className="site-brand site-brand-footer" aria-label="KenMatch home">
               <KenMatchMark className="brand-mark brand-mark-footer" />
-              <span className="site-brand-text">
-                <strong>KenMatch</strong>
-                <span>Public allocation for frontier AI work</span>
-              </span>
+              <span className="site-brand-text"><strong>KenMatch</strong><span>Public allocation for frontier AI work</span></span>
             </Link>
             <div className="site-footer-links" aria-label="External links">
               {FOOTER_LINKS.map((link) => (
-                <a
-                  key={link.href}
-                  className="footer-badge"
-                  href={link.href}
-                  target={link.href.startsWith("http") ? "_blank" : undefined}
-                  rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
-                >
-                  <span className="footer-badge-icon">{link.icon}</span>
-                  <span>{link.label}</span>
+                <a key={link.href} className="footer-badge" href={link.href} target={link.href.startsWith("http") ? "_blank" : undefined} rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}>
+                  <span className="footer-badge-icon">{link.icon}</span><span>{link.label}</span>
                 </a>
               ))}
             </div>
           </div>
           <p>Kens stay public from intake through launch, checkpoints, partial delivery, and final audit.</p>
-          <p className="site-footer-meta">
-            Voice stays separate from money. Backing supports compute, review, and operations without buying rank.
-          </p>
-          <p className="site-footer-meta site-footer-sandbox">
-            Simulated sandbox capital, demo workflow outcomes, and placeholder sponsorship commitments are clearly disclosed wherever they appear.
-          </p>
+          <p className="site-footer-meta">Voice stays separate from money. Backing supports compute, review, and operations without buying rank.</p>
+          <p className="site-footer-meta site-footer-sandbox">Simulated sandbox capital, demo workflow outcomes, and placeholder sponsorship commitments are clearly disclosed wherever they appear.</p>
         </div>
       </footer>
     </div>
