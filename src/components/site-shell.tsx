@@ -5,10 +5,9 @@ import { HeaderScrollController } from "@/components/header-scroll-controller";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SearchCommand } from "@/components/search-command";
 import { VisitorBeacon } from "@/components/visitor-beacon";
-import { Avatar } from "@/components/avatar";
 import { MobileNav } from "@/components/mobile-nav";
-import { SignOutButton } from "@/components/auth-session-controls";
-import type { ParticipationState, ViewerSession } from "@/lib/types";
+import { ProfileMenu } from "@/components/profile-menu";
+import type { ViewerSession } from "@/lib/types";
 
 const primaryNav = [
   { href: "/", label: "Overview" },
@@ -32,7 +31,7 @@ const FOOTER_LINKS = [
   },
   {
     href: "https://github.com/lowestprime",
-    label: "Creator",
+    label: "Owner",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14" aria-hidden="true">
         <circle cx="12" cy="8" r="4" />
@@ -70,7 +69,7 @@ export function SiteShell({
   viewer: ViewerSession | null;
   children: React.ReactNode;
 }) {
-  const showAdminLink = viewer && (viewer.account.systemRole === "admin" || viewer.account.systemRole === "owner" || viewer.account.systemRole === "moderator");
+  const showAdminLink = Boolean(viewer && (viewer.account.systemRole === "admin" || viewer.account.systemRole === "owner" || viewer.account.systemRole === "moderator"));
 
   return (
     <div className="site-frame">
@@ -95,39 +94,13 @@ export function SiteShell({
                   {item.label}
                 </Link>
               ))}
-              {showAdminLink ? (
-                <Link href="/admin" className="nav-pill nav-pill-admin">
-                  Admin
-                </Link>
-              ) : null}
             </nav>
             <div className="site-utility-row">
               <SearchCommand />
               <ThemeToggle />
-              <MobileNav primaryNav={primaryNav} showAdminLink={Boolean(showAdminLink)} viewer={viewer} />
+              <MobileNav primaryNav={primaryNav} showAdminLink={showAdminLink} viewer={viewer} />
               {viewer ? (
-                <div className="viewer-inline-card">
-                  <Link
-                    href={`/people/${viewer.profile.id}`}
-                    className="viewer-inline-identity"
-                    aria-label={`Open profile for ${viewer.profile.name}`}
-                  >
-                    <Avatar profile={viewer.profile} size={34} />
-                    <div>
-                      <div className="viewer-inline-name">{viewer.profile.showRealName ? viewer.profile.name : `@${viewer.profile.username}`}</div>
-                      <div className="viewer-inline-meta">
-                        @{viewer.profile.username} · {labelForParticipationState(viewer.profile.participationState)} · {viewer.profile.availableCredits}/{viewer.profile.effectiveVoiceCredits} voice
-                      </div>
-                    </div>
-                  </Link>
-                  <div className="viewer-inline-actions">
-                    <Link href="/account" className="cta-secondary cta-compact">Account</Link>
-                    {showAdminLink ? (
-                      <Link href="/admin" className="cta-secondary cta-compact">Admin</Link>
-                    ) : null}
-                    <SignOutButton />
-                  </div>
-                </div>
+                <ProfileMenu viewer={viewer} showAdminLink={showAdminLink} />
               ) : (
                 <Link href="/auth" className="cta-secondary cta-compact">Sign in</Link>
               )}
@@ -139,7 +112,7 @@ export function SiteShell({
       <footer className="site-footer">
         <div className="site-footer-inner">
           <div className="site-footer-top">
-          <Link href="/" className="site-brand site-brand-footer" aria-label="KenMatch home">
+            <Link href="/" className="site-brand site-brand-footer" aria-label="KenMatch home">
               <KenMatchMark className="brand-mark brand-mark-footer" />
               <span className="site-brand-text">
                 <strong>KenMatch</strong>
@@ -172,15 +145,4 @@ export function SiteShell({
       </footer>
     </div>
   );
-}
-
-function labelForParticipationState(state: ParticipationState) {
-  switch (state) {
-    case "full":
-      return "Full participation";
-    case "review-limited":
-      return "Review-limited";
-    case "read-only":
-      return "Read-only";
-  }
 }
