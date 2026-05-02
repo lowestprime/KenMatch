@@ -50,6 +50,7 @@ export default async function DiscussPage({
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const [viewer, params] = await Promise.all([getViewerSession(), searchParams ?? Promise.resolve({})]);
+  const signedIn = Boolean(viewer);
   const topic = valueOf(params.topic) ?? "all";
   const sort = (valueOf(params.sort) ?? "hot") as "hot" | "new" | "comments" | "saved";
   const query = valueOf(params.q) ?? "";
@@ -114,9 +115,9 @@ export default async function DiscussPage({
             ) : posts.map((post) => (
               <article key={post.id} className="discussion-post-card interactive-surface">
                 <div className="discussion-vote-stack">
-                  <DiscussionVoteForm targetType="post" targetId={post.id} slug={post.slug} value={1} active={post.userVote > 0} />
+                  <DiscussionVoteForm targetType="post" targetId={post.id} slug={post.slug} value={1} active={post.userVote > 0} signedIn={signedIn} />
                   <div className="discussion-score">{post.score}</div>
-                  <DiscussionVoteForm targetType="post" targetId={post.id} slug={post.slug} value={-1} active={post.userVote < 0} />
+                  <DiscussionVoteForm targetType="post" targetId={post.id} slug={post.slug} value={-1} active={post.userVote < 0} signedIn={signedIn} />
                 </div>
                 <div className="discussion-post-body">
                   <div className="discussion-meta">
@@ -129,7 +130,7 @@ export default async function DiscussPage({
                   <p className="discussion-copy">{excerpt(post.bodyMarkdown)}</p>
                   <div className="discussion-actions">
                     <Link className="cta-secondary cta-compact" href={`/discuss/${post.slug}`}>Open thread</Link>
-                    <DiscussionSaveForm itemType="discussion_post" itemId={post.id} slug={post.slug} saved={post.saved} />
+                    <DiscussionSaveForm itemType="discussion_post" itemId={post.id} slug={post.slug} saved={post.saved} signedIn={signedIn} />
                   </div>
                 </div>
               </article>
