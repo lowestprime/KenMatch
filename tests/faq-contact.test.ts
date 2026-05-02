@@ -65,7 +65,7 @@ test("contact attachment validation enforces size and type limits", () => {
   );
 });
 
-test("contact helper exposes truthful owner fallback and safe filenames", () => {
-  assert.equal(CONTACT_OWNER_EMAIL, "cooperbeaman@proton.me");
+test("contact helper exposes anonymized owner fallback and safe filenames", () => {
+  assert.equal(CONTACT_OWNER_EMAIL, "owner@kmat.ch");
   assert.equal(sanitizeContactAttachmentName("../bad<script>.png"), ".._bad_script_.png");
 });

@@ -9,7 +9,7 @@
     "start": "node scripts/prepare-standalone-assets.mjs && node .next/standalone/server.js",
     "lint": "eslint .",
     "typecheck": "node -e \"const fs=require('node:fs'); for (const p of ['.next/types','.next/dev/types']) fs.rmSync(p,{recursive:true,force:true});\" && next typegen && tsc --noEmit",
-    "test": "node --experimental-strip-types --test --experimental-test-isolation=none tests/**/*.test.ts"
+    "test": "node -e \"const fs=require('node:fs'),cp=require('node:child_process');const files=[];(function walk(d){for(const e of fs.readdirSync(d,{withFileTypes:true})){if(e.name==='@eaDir'||e.name==='node_modules')continue;const p=d+'/'+e.name;if(e.isDirectory())walk(p);else if(/\\\\.test\\\\.ts$/.test(e.name))files.push(p)}})('tests');const r=cp.spawnSync(process.execPath,['--experimental-strip-types','--test','--experimental-test-isolation=none',...files],{stdio:'inherit'});process.exit(r.status??1)\""
   },
   "dependencies": {
     "@libsql/client": "^0.17.0",

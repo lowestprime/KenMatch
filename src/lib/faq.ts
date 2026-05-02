@@ -1,5 +1,5 @@
-import { KEN_LIFECYCLE_STAGES, LANE_OPERATING_POLICIES, SUBMISSION_APPROVAL_CRITERIA, TOKEN_ASSIGNMENT_RULES } from "@/lib/allocation-policy";
-import type { FAQEntry } from "@/lib/types";
+import { KEN_LIFECYCLE_STAGES, LANE_OPERATING_POLICIES, SUBMISSION_APPROVAL_CRITERIA, TOKEN_ASSIGNMENT_RULES } from "./allocation-policy.ts";
+import type { FAQEntry } from "./types.ts";
 
 export const KEN_DEFINITION =
   "A Ken is a public work order for sustained AI-assisted work: a clear problem, evidence base, run lane, checkpoints, and review trail that the board can inspect from proposal through delivery.";
