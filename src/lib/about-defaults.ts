@@ -1,14 +1,14 @@
 import type { AboutPageContent } from "@/lib/types";
 
 export const DEFAULT_ABOUT_PAGE: AboutPageContent = {
-  heroEyebrow: "Creator and mission",
+  heroEyebrow: "Owner and mission",
   heroTitle: "Make sustained frontier compute transparent, merit-sensitive, and publicly accountable.",
   heroSubtitle:
-    "KenMatch is Cooper Beaman's prototype for a public board that helps people propose, rank, fund, launch, and audit sustained AI-assisted work through visible rules rather than private access.",
+    "KenMatch is an owner-operated prototype for a public board that helps people propose, rank, fund, launch, and audit sustained AI-assisted work through visible rules rather than private access.",
   missionTitle: "Why KenMatch exists",
   missionBody:
-    "Sustained frontier-AI work depends on scarce API budget, engineering time, review labor, and operational attention. Today those resources are easiest to access for people with capital, institutional backing, or private lab relationships. I built KenMatch to stake out a public alternative before that allocation layer hardens: anyone can propose a documented Ken, contributors can add public signal and scarce allocation credits, and the site records how ranking, checkpoints, funding context, and sandbox outputs would be governed. The prototype is intentionally public because demand for shared ways to direct increasingly capable AI systems is likely to grow as those systems become better at long-horizon intellectual work. In this demo, dollar amounts and model results are explicitly simulated until live backing and execution are configured.",
-  beliefsTitle: "What I believe",
+    "Sustained frontier-AI work depends on scarce API budget, engineering time, review labor, and operational attention. Today those resources are easiest to access for people with capital, institutional backing, or private lab relationships. KenMatch stakes out a public alternative before that allocation layer hardens: anyone can propose a documented Ken, contributors can add public signal and scarce allocation credits, and the site records how ranking, checkpoints, funding context, and sandbox outputs would be governed. The prototype is intentionally public because demand for shared ways to direct increasingly capable AI systems is likely to grow as those systems become better at long-horizon intellectual work. In this demo, dollar amounts and model results are explicitly simulated until live backing and execution are configured.",
+  beliefsTitle: "What KenMatch believes",
   beliefsBullets: [
     "Public-interest AI work should be contestable by people who can explain the value, not only by teams that can prepay for compute.",
     "Creativity, taste, imagination, and public judgment should become legitimate inputs into where powerful AI systems spend sustained attention.",
@@ -19,7 +19,7 @@ export const DEFAULT_ABOUT_PAGE: AboutPageContent = {
   ],
   backgroundTitle: "Background",
   backgroundBody:
-    "I am a UCLA neuroscience PhD student and computational genomics researcher working at the intersection of functional genomics, cross-disorder psychiatric genetics, and reproducible research infrastructure. My academic work has focused on building reproducible, open pipelines for analyzing large human and model-organism datasets, including GWAS, single-cell transcriptomics, and long-read sequencing. In parallel I have built and administered self-hosted compute infrastructure, full-stack web applications, and structured evaluation tools that prioritize auditability, resource efficiency, and user agency. KenMatch is a direct extension of this combined training: a platform that treats sustained frontier compute as a public good that deserves the same methodological rigor, reproducibility standards, and democratic accountability I apply in neuroscience and genomics.",
+    "KenMatch is built around the conviction that the public should help define which difficult, relevant, and urgent problems deserve sustained attention from increasingly capable AI systems. The project treats long-horizon frontier compute as a public good that needs clear proposals, visible checkpoints, reproducible outputs, independent review, and allocation rules that do not default to wealth or insider access.",
   goalsTitle: "Goals for KenMatch",
   goalsBullets: [
     "Prove that a transparent, merit-sensitive allocation protocol can consistently surface high-value scientific, technical, and public-benefit Kens.",
@@ -31,11 +31,11 @@ export const DEFAULT_ABOUT_PAGE: AboutPageContent = {
   ],
   contactTitle: "Contact",
   contactBody:
-    "For partnership inquiries, verification questions, research collaboration, or anything else related to the platform, reach out directly. Press, funders, and builders are all welcome.",
+    "For partnership inquiries, verification questions, research collaboration, or anything else related to the platform, reach the owner directly. Press, funders, and builders are all welcome.",
   contactEmail: "cooperbeaman@proton.me",
   links: [
     { label: "Repository", url: "https://github.com/lowestprime/KenMatch" },
-    { label: "GitHub profile", url: "https://github.com/lowestprime" },
+    { label: "Owner profile", url: "https://github.com/lowestprime" },
     { label: "Contact", url: "mailto:cooperbeaman@proton.me" },
   ],
   lastUpdated: new Date(0).toISOString(),

@@ -22,11 +22,11 @@ export default function FAQPage() {
       <section className="panel hero-panel faq-hero">
         <div className="eyebrow">KenMatch FAQ</div>
         <h1>What are Kens, and how does the board work?</h1>
-        <p className="text-muted">{KEN_DEFINITION} This FAQ explains the prototype, the ranking lanes, public participation, sponsorship boundaries, safety review, privacy, and how to contact Cooper.</p>
+        <p className="text-muted">{KEN_DEFINITION} This FAQ explains the prototype, the ranking lanes, public participation, sponsorship boundaries, safety review, privacy, and how to contact the owner.</p>
         <div className="hero-actions">
           <Link href="/kens" className="cta-primary">Browse Kens</Link>
           <Link href="/submit" className="cta-secondary">Submit a Ken</Link>
-          <a href="#contact" className="cta-secondary">Contact Cooper</a>
+          <a href="#contact" className="cta-secondary">Contact the owner</a>
         </div>
       </section>
       <FAQExplorer entries={FAQ_ENTRIES} />
@@ -35,7 +35,7 @@ export default function FAQPage() {
           <div className="eyebrow">Contact</div>
           <h2 id="contact-heading">Questions, suggestions, recommendations, or missing info</h2>
           <p className="text-muted">
-            Use this form for public feedback, partnership leads, sponsorship questions, bug reports, FAQ gaps, or suggestions that should route to Cooper Beaman at cooperbeaman@proton.me.
+            Use this form for public feedback, partnership leads, sponsorship questions, bug reports, FAQ gaps, or suggestions that should route to the KenMatch owner.
           </p>
         </div>
         <ContactForm turnstileSiteKey={turnstileConfigured() ? env.NEXT_PUBLIC_TURNSTILE_SITE_KEY : undefined} />

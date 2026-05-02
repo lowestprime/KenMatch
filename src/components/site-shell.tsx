@@ -5,10 +5,11 @@ import { HeaderScrollController } from "@/components/header-scroll-controller";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SearchCommand } from "@/components/search-command";
 import { VisitorBeacon } from "@/components/visitor-beacon";
-import { Avatar } from "@/components/avatar";
 import { MobileNav } from "@/components/mobile-nav";
-import { SignOutButton } from "@/components/auth-session-controls";
-import type { ParticipationState, ViewerSession } from "@/lib/types";
+import { PrimaryNav } from "@/components/primary-nav";
+import { ProfileMenu } from "@/components/profile-menu";
+import { ReleasePolishStyles } from "@/components/release-polish-styles";
+import type { ViewerSession } from "@/lib/types";
 
 const primaryNav = [
   { href: "/", label: "Overview" },
@@ -32,7 +33,7 @@ const FOOTER_LINKS = [
   },
   {
     href: "https://github.com/lowestprime",
-    label: "Creator",
+    label: "Owner",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14" aria-hidden="true">
         <circle cx="12" cy="8" r="4" />
@@ -63,17 +64,12 @@ const FOOTER_LINKS = [
   },
 ];
 
-export function SiteShell({
-  viewer,
-  children,
-}: {
-  viewer: ViewerSession | null;
-  children: React.ReactNode;
-}) {
-  const showAdminLink = viewer && (viewer.account.systemRole === "admin" || viewer.account.systemRole === "owner" || viewer.account.systemRole === "moderator");
+export function SiteShell({ viewer, children }: { viewer: ViewerSession | null; children: React.ReactNode }) {
+  const showAdminLink = Boolean(viewer && (viewer.account.systemRole === "admin" || viewer.account.systemRole === "owner" || viewer.account.systemRole === "moderator"));
 
   return (
     <div className="site-frame">
+      <ReleasePolishStyles />
       <a href="#main-content" className="skip-link">Skip to content</a>
       <VisitorBeacon />
       <HeaderScrollController />
@@ -84,53 +80,14 @@ export function SiteShell({
           <div className="site-brand-row">
             <Link href="/" className="site-brand" aria-label="KenMatch home">
               <KenMatchMark className="brand-mark" />
-              <span className="site-brand-text">
-                <strong>KenMatch</strong>
-                <span>Transparent allocation of frontier AI compute</span>
-              </span>
+              <span className="site-brand-text"><strong>KenMatch</strong><span>Transparent allocation of frontier AI compute</span></span>
             </Link>
-            <nav className="site-nav" aria-label="Primary">
-              {primaryNav.map((item) => (
-                <Link key={item.href} href={item.href} className="nav-pill">
-                  {item.label}
-                </Link>
-              ))}
-              {showAdminLink ? (
-                <Link href="/admin" className="nav-pill nav-pill-admin">
-                  Admin
-                </Link>
-              ) : null}
-            </nav>
+            <PrimaryNav items={primaryNav} />
             <div className="site-utility-row">
               <SearchCommand />
               <ThemeToggle />
-              <MobileNav primaryNav={primaryNav} showAdminLink={Boolean(showAdminLink)} viewer={viewer} />
-              {viewer ? (
-                <div className="viewer-inline-card">
-                  <Link
-                    href={`/people/${viewer.profile.id}`}
-                    className="viewer-inline-identity"
-                    aria-label={`Open profile for ${viewer.profile.name}`}
-                  >
-                    <Avatar profile={viewer.profile} size={34} />
-                    <div>
-                      <div className="viewer-inline-name">{viewer.profile.showRealName ? viewer.profile.name : `@${viewer.profile.username}`}</div>
-                      <div className="viewer-inline-meta">
-                        @{viewer.profile.username} · {labelForParticipationState(viewer.profile.participationState)} · {viewer.profile.availableCredits}/{viewer.profile.effectiveVoiceCredits} voice
-                      </div>
-                    </div>
-                  </Link>
-                  <div className="viewer-inline-actions">
-                    <Link href="/account" className="cta-secondary cta-compact">Account</Link>
-                    {showAdminLink ? (
-                      <Link href="/admin" className="cta-secondary cta-compact">Admin</Link>
-                    ) : null}
-                    <SignOutButton />
-                  </div>
-                </div>
-              ) : (
-                <Link href="/auth" className="cta-secondary cta-compact">Sign in</Link>
-              )}
+              <MobileNav primaryNav={primaryNav} showAdminLink={showAdminLink} viewer={viewer} />
+              {viewer ? <ProfileMenu viewer={viewer} showAdminLink={showAdminLink} /> : <Link href="/auth" className="cta-secondary cta-compact">Sign in</Link>}
             </div>
           </div>
         </div>
@@ -139,48 +96,23 @@ export function SiteShell({
       <footer className="site-footer">
         <div className="site-footer-inner">
           <div className="site-footer-top">
-          <Link href="/" className="site-brand site-brand-footer" aria-label="KenMatch home">
+            <Link href="/" className="site-brand site-brand-footer" aria-label="KenMatch home">
               <KenMatchMark className="brand-mark brand-mark-footer" />
-              <span className="site-brand-text">
-                <strong>KenMatch</strong>
-                <span>Public allocation for frontier AI work</span>
-              </span>
+              <span className="site-brand-text"><strong>KenMatch</strong><span>Public allocation for frontier AI work</span></span>
             </Link>
             <div className="site-footer-links" aria-label="External links">
               {FOOTER_LINKS.map((link) => (
-                <a
-                  key={link.href}
-                  className="footer-badge"
-                  href={link.href}
-                  target={link.href.startsWith("http") ? "_blank" : undefined}
-                  rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}
-                >
-                  <span className="footer-badge-icon">{link.icon}</span>
-                  <span>{link.label}</span>
+                <a key={link.href} className="footer-badge" href={link.href} target={link.href.startsWith("http") ? "_blank" : undefined} rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}>
+                  <span className="footer-badge-icon">{link.icon}</span><span>{link.label}</span>
                 </a>
               ))}
             </div>
           </div>
           <p>Kens stay public from intake through launch, checkpoints, partial delivery, and final audit.</p>
-          <p className="site-footer-meta">
-            Voice stays separate from money. Backing supports compute, review, and operations without buying rank.
-          </p>
-          <p className="site-footer-meta site-footer-sandbox">
-            Simulated sandbox capital, demo workflow outcomes, and placeholder sponsorship commitments are clearly disclosed wherever they appear.
-          </p>
+          <p className="site-footer-meta">Voice stays separate from money. Backing supports compute, review, and operations without buying rank.</p>
+          <p className="site-footer-meta site-footer-sandbox">Simulated sandbox capital, demo workflow outcomes, and placeholder sponsorship commitments are clearly disclosed wherever they appear.</p>
         </div>
       </footer>
     </div>
   );
-}
-
-function labelForParticipationState(state: ParticipationState) {
-  switch (state) {
-    case "full":
-      return "Full participation";
-    case "review-limited":
-      return "Review-limited";
-    case "read-only":
-      return "Read-only";
-  }
 }

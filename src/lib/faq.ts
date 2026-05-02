@@ -97,7 +97,7 @@ export const FAQ_ENTRIES: FAQEntry[] = [
     category: "operations",
     question: "How do I send a question, suggestion, or partnership inquiry?",
     answer:
-      "Use the contact form on this FAQ page or the About page. It supports a title, markdown body, reply email, topic, and small attachments. Messages are routed to Cooper Beaman at cooperbeaman@proton.me when SMTP is configured and saved locally either way.",
+      "Use the contact form on this FAQ page or the About page. It supports a title, markdown body, reply email, topic, and small attachments. Messages are routed to the KenMatch owner when SMTP is configured and saved locally either way.",
     keywords: ["contact", "email", "feedback", "attachments", "partnership"],
   },
 ];

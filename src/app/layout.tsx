@@ -47,10 +47,10 @@ export const metadata: Metadata = {
     "frontier compute",
     "AI governance",
     "public AI alignment",
-    "Cooper Beaman",
+    "collective intelligence",
   ],
-  authors: [{ name: "Cooper Beaman", url: "https://github.com/lowestprime" }],
-  creator: "Cooper Beaman",
+  authors: [{ name: "KenMatch Owner", url: "https://github.com/lowestprime" }],
+  creator: "KenMatch Owner",
   icons: {
     icon: [
       { url: "/icon-dark.svg", type: "image/svg+xml", sizes: "any" },
@@ -88,7 +88,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f6f3ec" },
+    { media: "(prefers-color-scheme: light)", color: "#f2ecff" },
     { media: "(prefers-color-scheme: dark)", color: "#000000" },
   ],
   colorScheme: "light dark",
