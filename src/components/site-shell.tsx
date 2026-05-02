@@ -10,6 +10,7 @@ import { PrimaryNav } from "@/components/primary-nav";
 import { ProfileMenu } from "@/components/profile-menu";
 import { ReleasePolishStyles } from "@/components/release-polish-styles";
 import { CommunityPolishStyles } from "@/components/community-polish-styles";
+import { ReleaseHardeningStyles } from "@/components/release-hardening-styles";
 import { getCategoryVisualOverrideCss } from "@/lib/category-visual-settings";
 import type { ViewerSession } from "@/lib/types";
 
@@ -33,6 +34,7 @@ export async function SiteShell({ viewer, children }: { viewer: ViewerSession | 
     <div className="site-frame">
       <ReleasePolishStyles />
       <CommunityPolishStyles />
+      <ReleaseHardeningStyles />
       {categoryVisualCss ? <style dangerouslySetInnerHTML={{ __html: categoryVisualCss }} /> : null}
       <a href="#main-content" className="skip-link">Skip to content</a>
       <VisitorBeacon />
