@@ -47,7 +47,7 @@ export function ContactForm({ turnstileSiteKey }: { turnstileSiteKey?: string })
           required
           minLength={20}
           maxLength={8000}
-          placeholder="Write the question, suggestion, context, links, or markdown-formatted notes Cooper should review."
+          placeholder="Write the question, suggestion, context, links, or markdown-formatted notes the KenMatch owner should review."
           disabled={pending}
         />
         {errorFor("bodyMarkdown") ? <small className="field-error">{errorFor("bodyMarkdown")}</small> : null}
