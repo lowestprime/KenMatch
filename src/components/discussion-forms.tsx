@@ -56,7 +56,21 @@ export function DiscussionCommentForm({ postId, slug, parentId }: { postId: stri
   );
 }
 
-export function DiscussionVoteForm({ targetType, targetId, slug, value, active }: { targetType: "post" | "comment"; targetId: string; slug: string; value: -1 | 0 | 1; active: boolean }) {
+export function DiscussionVoteForm({
+  targetType,
+  targetId,
+  slug,
+  value,
+  active,
+  signedIn = true,
+}: {
+  targetType: "post" | "comment";
+  targetId: string;
+  slug: string;
+  value: -1 | 0 | 1;
+  active: boolean;
+  signedIn?: boolean;
+}) {
   const [, action, pending] = useActionState(discussionVoteAction, initialActionState);
   return (
     <form action={action} className="discussion-inline-form">
@@ -64,19 +78,47 @@ export function DiscussionVoteForm({ targetType, targetId, slug, value, active }
       <input type="hidden" name="targetId" value={targetId} />
       <input type="hidden" name="slug" value={slug} />
       <input type="hidden" name="value" value={active ? 0 : value} />
-      <button className="discussion-vote-button" type="submit" aria-pressed={active} disabled={pending}>{value > 0 ? "▲" : "▼"}</button>
+      <button
+        className="discussion-vote-button"
+        type="submit"
+        aria-pressed={active}
+        disabled={!signedIn || pending}
+        title={signedIn ? (value > 0 ? "Upvote" : "Downvote") : "Sign in to vote"}
+      >
+        {value > 0 ? "▲" : "▼"}
+      </button>
     </form>
   );
 }
 
-export function DiscussionSaveForm({ itemType, itemId, slug, saved }: { itemType: "discussion_post" | "discussion_comment"; itemId: string; slug: string; saved: boolean }) {
+export function DiscussionSaveForm({
+  itemType,
+  itemId,
+  slug,
+  saved,
+  signedIn = true,
+}: {
+  itemType: "discussion_post" | "discussion_comment";
+  itemId: string;
+  slug: string;
+  saved: boolean;
+  signedIn?: boolean;
+}) {
   const [, action, pending] = useActionState(toggleSavedDiscussionAction, initialActionState);
   return (
     <form action={action} className="discussion-inline-form">
       <input type="hidden" name="itemType" value={itemType} />
       <input type="hidden" name="itemId" value={itemId} />
       <input type="hidden" name="slug" value={slug} />
-      <button className="discussion-save-button" type="submit" aria-pressed={saved} disabled={pending}>{saved ? "Saved" : "Save"}</button>
+      <button
+        className="discussion-save-button"
+        type="submit"
+        aria-pressed={saved}
+        disabled={!signedIn || pending}
+        title={signedIn ? (saved ? "Remove from saved discussion" : "Save discussion item") : "Sign in to save discussion items"}
+      >
+        {saved ? "Saved" : "Save"}
+      </button>
     </form>
   );
 }
