@@ -5,6 +5,7 @@ import { Avatar } from "@/components/avatar";
 import { ProfileEditor } from "@/components/profile-editor";
 import { VerificationPanel } from "@/components/verification-panel";
 import { getProfilePageData } from "@/lib/db";
+import { listSavedDiscussionItems } from "@/lib/discussion-db";
 import { getViewerSession } from "@/lib/session";
 
 export const metadata = { title: "Account" };
@@ -12,7 +13,10 @@ export const metadata = { title: "Account" };
 export default async function AccountPage() {
   const viewer = await getViewerSession();
   if (!viewer) redirect("/auth");
-  const data = await getProfilePageData(viewer.profile.id);
+  const [data, savedDiscussion] = await Promise.all([
+    getProfilePageData(viewer.profile.id),
+    listSavedDiscussionItems(viewer.profile.id),
+  ]);
   if (!data) redirect("/auth");
 
   const { summary } = data;
@@ -134,7 +138,7 @@ export default async function AccountPage() {
           )}
         </div>
         <div className="panel grid gap-3">
-          <h2>Bookmarks</h2>
+          <h2>Saved Kens</h2>
           {data.bookmarkedTasks.length === 0 ? (
             <p style={{ color: "var(--muted)" }}>
               Use the bookmark action on any Ken detail page to save it here.
@@ -152,6 +156,30 @@ export default async function AccountPage() {
             </ul>
           )}
         </div>
+      </section>
+
+      <section className="panel grid gap-3">
+        <div className="section-heading">
+          <div>
+            <span className="eyebrow">Saved discussion</span>
+            <h2>Saved discussion posts and comments</h2>
+          </div>
+          <Link className="cta-secondary cta-compact" href="/discuss?sort=saved">Open saved discussion</Link>
+        </div>
+        {savedDiscussion.length === 0 ? (
+          <p style={{ color: "var(--muted)" }}>
+            Save useful discussion posts or comments while browsing the Discussion tab. They will appear here beside your saved Kens.
+          </p>
+        ) : (
+          <div className="saved-grid">
+            {savedDiscussion.map((item) => (
+              <article key={item.id} className="saved-community-card">
+                <div className="discussion-meta"><span>{item.subtitle}</span></div>
+                <Link href={item.url} className="font-display"><strong>{item.title}</strong></Link>
+              </article>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );
