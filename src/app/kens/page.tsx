@@ -50,7 +50,7 @@ export default async function KensPage({ searchParams }: KensPageProps) {
           <div className="metric-card"><div className="eyebrow">Partial/shipped</div><div className="metric-value">{shippedCount}</div></div>
         </div>
         <div className="rounded-[1.35rem] border border-border bg-background/55 p-5 text-sm leading-7 text-muted">
-          {viewer ? `Signed in as ${viewer.name}. Pulse votes are fast; allocation credits are intentionally harder to concentrate.` : "You can read every Ken without an account. Signing in unlocks pulse votes, comments, allocation credits, and Ken submission."}
+          {viewer ? `Signed in as ${viewer.name}. Pulse votes are fast; allocation credits are intentionally harder to concentrate.` : "You can read every Ken without an account. Signing in unlocks pulse votes, comments, allocation credits, Ken saving, and Ken submission."}
         </div>
       </section>
 
@@ -74,7 +74,7 @@ export default async function KensPage({ searchParams }: KensPageProps) {
           </div>
 
           <div className="feed-list">
-            {tasks.length > 0 ? tasks.map((task) => <TaskCard key={task.id} task={task} />) : (
+            {tasks.length > 0 ? tasks.map((task) => <TaskCard key={task.id} task={task} signedIn={Boolean(viewerProfileId)} />) : (
               <div className="panel space-y-3 text-center">
                 <p className="font-display text-xl font-semibold text-foreground">No Kens match these filters</p>
                 <p className="text-sm text-muted">Try broadening your search, choosing a different category, or clearing filters.</p>
