@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 import { CategoryFilterChip, LaneFilterChip } from "@/components/filter-chip-link";
 import { DiscussionThread } from "@/components/discussion-thread";
+import { KenBookmarkButton } from "@/components/ken-bookmark-button";
 import { KenVisual } from "@/components/ken-visual";
 import { KenSandboxStrip } from "@/components/ken-sandbox-strip";
 import { KenTimingStrip } from "@/components/ken-timing-strip";
@@ -29,6 +30,7 @@ export default async function KenDetailPage({ params }: { params: Promise<{ slug
           <span className="tag">{labelForStage(task.stage)}</span>
           <CategoryFilterChip slug={task.categorySlug} label={task.categoryName} />
           <span className="tag">Pulse {task.taskPulseScore > 0 ? `+${task.taskPulseScore}` : task.taskPulseScore}</span>
+          <KenBookmarkButton taskId={task.id} slug={task.slug} saved={task.bookmarked} signedIn={Boolean(viewerProfile)} compact />
         </div>
         <div className="ken-detail-heading">
           <div className="space-y-4">

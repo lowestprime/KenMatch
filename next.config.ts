@@ -15,6 +15,16 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: process.cwd(),
   },
+  async rewrites() {
+    return {
+      beforeFiles: [
+        {
+          source: "/og-image.png",
+          destination: "/share-image.png",
+        },
+      ],
+    };
+  },
 };
 
 export default nextConfig;

@@ -4,6 +4,9 @@ import type { FAQEntry } from "./types.ts";
 export const KEN_DEFINITION =
   "A Ken is a public work order for sustained AI-assisted work: a clear problem, evidence base, run lane, checkpoints, and review trail that the board can inspect from proposal through delivery.";
 
+export const KEN_NAME_ORIGIN =
+  "Ken is an older English noun for a range of vision, scope of knowledge, or extent of understanding — the sense preserved in the phrase beyond my ken. In KenMatch, each Ken marks a boundary of what the public wants to know, build, test, or discover, then makes that boundary visible enough for collective design, ranking, funding, and review.";
+
 const lifecycleSummary = KEN_LIFECYCLE_STAGES.map((stage) => `${stage.label}: ${stage.summary}`).join(" ");
 const creditSummary = TOKEN_ASSIGNMENT_RULES.map((rule) => `${rule.label}: ${rule.credits} credit${rule.credits === 1 ? "" : "s"} (${rule.cadence}). ${rule.criteria}`).join(" ");
 const laneSummary = Object.values(LANE_OPERATING_POLICIES).map((lane) => `${lane.label}: ${lane.bestFor}; bond ${lane.bondCredits}; checkpoints are ${lane.checkpointCadence}.`).join(" ");
@@ -19,12 +22,43 @@ export const FAQ_ENTRIES: FAQEntry[] = [
     keywords: ["ken", "definition", "proposal", "ai work", "checkpoint", "work order"],
   },
   {
+    id: "why-called-ken",
+    category: "basics",
+    question: "Why is it called a Ken?",
+    answer: KEN_NAME_ORIGIN,
+    keywords: ["ken", "name", "etymology", "beyond my ken", "knowledge", "vision", "understanding"],
+  },
+  {
     id: "why-kenmatch-exists",
     category: "basics",
     question: "Why does KenMatch exist?",
     answer:
       "KenMatch exists because future AI systems may become able to address long-horizon intellectual work more comprehensively than any individual expert, but the public still needs a way to decide which problems deserve sustained attention. The prototype tests a public ranking, checkpoint, and funding layer so creativity, taste, evidence, and public benefit can guide frontier compute instead of leaving allocation only to private capital or closed institutional queues.",
     keywords: ["mission", "public", "frontier ai", "allocation", "capital", "public benefit"],
+  },
+  {
+    id: "what-is-the-board",
+    category: "operations",
+    question: "Who is the board, and how much power does it have?",
+    answer:
+      "The board is not a private committee that can secretly pick winners. It is the public operating surface where contributors propose Kens, add evidence, spend scarce allocation credits, discuss risks, and inspect checkpoints. Verified reviewers and moderators can help enforce submission quality, safety boundaries, and reproducibility requirements; sponsors can fund capacity; owner/admin operators keep the prototype running. None of those roles should let money buy rank, hide objections, skip review gates, or convert a public Ken into private control.",
+    keywords: ["board", "roles", "governance", "moderator", "reviewer", "sponsor", "owner", "power"],
+  },
+  {
+    id: "discussion-tab",
+    category: "participation",
+    question: "What is the Discussion tab for?",
+    answer:
+      "Discussion is the non-Ken-specific commons. It is where users can workshop prompt designs, debate category boundaries, propose rules, review funding norms, explain safety concerns, and preserve reusable evidence before those ideas become specific Kens. Per-Ken threads stay attached to the Ken they affect; broader ecosystem debate belongs in Discussion so the Feed remains focused on executable work.",
+    keywords: ["discussion", "forum", "reddit", "comments", "community", "meta", "prompt design"],
+  },
+  {
+    id: "profiles-bookmarks",
+    category: "participation",
+    question: "How do profiles and saved items fit into KenMatch?",
+    answer:
+      "Profiles make contribution history legible: submitted Kens, public role, verification state, expertise, links, and visible participation capacity. Bookmarks let signed-in users save Kens they want to revisit from Account. The intended next step is to extend the same save pattern to discussion posts and high-value comments so contributors can build a personal research queue across the whole ecosystem.",
+    keywords: ["profile", "profiles", "bookmarks", "saved", "favorites", "account", "comments"],
   },
   {
     id: "sandbox-status",
