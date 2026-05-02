@@ -1,11 +1,12 @@
 import Link from "next/link";
 
 import { CategoryFilterChip, LaneFilterChip } from "@/components/filter-chip-link";
+import { KenBookmarkButton } from "@/components/ken-bookmark-button";
 import { KenVisual } from "@/components/ken-visual";
 import { formatCurrency, formatDateTime, labelForStage } from "@/lib/utils";
 import type { TaskSummary } from "@/lib/types";
 
-export function TaskCard({ task }: { task: TaskSummary }) {
+export function TaskCard({ task, signedIn = false }: { task: TaskSummary; signedIn?: boolean }) {
   const progress = task.runtimeHours > 0 ? Math.min(100, Math.round((task.computeHoursUsed / task.runtimeHours) * 100)) : 0;
 
   return (
@@ -56,9 +57,12 @@ export function TaskCard({ task }: { task: TaskSummary }) {
 
           <div className="task-card-footer">
             <span className="task-card-footer-meta">Sandbox metrics only · not real capital or vendor bills.</span>
-            <Link href={`/kens/${task.slug}`} className="task-card-footer-meta task-card-open-link">
-              Open thread for checkpoints and review.
-            </Link>
+            <div className="discussion-actions">
+              <KenBookmarkButton taskId={task.id} slug={task.slug} saved={task.bookmarked} signedIn={signedIn} compact />
+              <Link href={`/kens/${task.slug}`} className="task-card-footer-meta task-card-open-link">
+                Open thread for checkpoints and review.
+              </Link>
+            </div>
           </div>
         </div>
     </article>
