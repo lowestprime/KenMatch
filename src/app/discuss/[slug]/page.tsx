@@ -21,10 +21,10 @@ function CommentTree({ comments, slug, viewerSignedIn }: { comments: DiscussionC
           </div>
           <p className="discussion-copy">{comment.bodyMarkdown}</p>
           <div className="discussion-actions">
-            <DiscussionVoteForm targetType="comment" targetId={comment.id} slug={slug} value={1} active={comment.userVote > 0} />
+            <DiscussionVoteForm targetType="comment" targetId={comment.id} slug={slug} value={1} active={comment.userVote > 0} signedIn={viewerSignedIn} />
             <span className="discussion-score">{comment.score}</span>
-            <DiscussionVoteForm targetType="comment" targetId={comment.id} slug={slug} value={-1} active={comment.userVote < 0} />
-            <DiscussionSaveForm itemType="discussion_comment" itemId={comment.id} slug={slug} saved={comment.saved} />
+            <DiscussionVoteForm targetType="comment" targetId={comment.id} slug={slug} value={-1} active={comment.userVote < 0} signedIn={viewerSignedIn} />
+            <DiscussionSaveForm itemType="discussion_comment" itemId={comment.id} slug={slug} saved={comment.saved} signedIn={viewerSignedIn} />
           </div>
           {viewerSignedIn ? <div style={{ marginTop: ".75rem" }}><DiscussionCommentForm postId={comment.postId} slug={slug} parentId={comment.id} /></div> : null}
           {comment.replies.length > 0 ? <div className="discussion-comment-replies"><CommentTree comments={comment.replies} slug={slug} viewerSignedIn={viewerSignedIn} /></div> : null}
@@ -36,6 +36,7 @@ function CommentTree({ comments, slug, viewerSignedIn }: { comments: DiscussionC
 
 export default async function DiscussionThreadPage({ params }: { params: Promise<{ slug: string }> }) {
   const [{ slug }, viewer] = await Promise.all([params, getViewerSession()]);
+  const viewerSignedIn = Boolean(viewer);
   const post = await getDiscussionPost(slug, viewer?.profile.id);
   if (!post) notFound();
 
@@ -52,10 +53,10 @@ export default async function DiscussionThreadPage({ params }: { params: Promise
         </div>
         <p className="discussion-copy" style={{ maxWidth: "64rem" }}>{post.bodyMarkdown}</p>
         <div className="discussion-actions">
-          <DiscussionVoteForm targetType="post" targetId={post.id} slug={post.slug} value={1} active={post.userVote > 0} />
+          <DiscussionVoteForm targetType="post" targetId={post.id} slug={post.slug} value={1} active={post.userVote > 0} signedIn={viewerSignedIn} />
           <span className="discussion-score">{post.score}</span>
-          <DiscussionVoteForm targetType="post" targetId={post.id} slug={post.slug} value={-1} active={post.userVote < 0} />
-          <DiscussionSaveForm itemType="discussion_post" itemId={post.id} slug={post.slug} saved={post.saved} />
+          <DiscussionVoteForm targetType="post" targetId={post.id} slug={post.slug} value={-1} active={post.userVote < 0} signedIn={viewerSignedIn} />
+          <DiscussionSaveForm itemType="discussion_post" itemId={post.id} slug={post.slug} saved={post.saved} signedIn={viewerSignedIn} />
           <Link className="cta-secondary cta-compact" href="/discuss">Back to Discussion</Link>
         </div>
       </section>
@@ -64,7 +65,7 @@ export default async function DiscussionThreadPage({ params }: { params: Promise
         <div className="grid gap-3">
           <section className="panel grid gap-3">
             <div className="section-heading"><div><span className="eyebrow">Thread</span><h2>Comments and replies</h2></div></div>
-            <CommentTree comments={post.comments} slug={post.slug} viewerSignedIn={Boolean(viewer)} />
+            <CommentTree comments={post.comments} slug={post.slug} viewerSignedIn={viewerSignedIn} />
           </section>
         </div>
         <aside className="grid gap-3">
