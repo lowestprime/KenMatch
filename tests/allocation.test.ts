@@ -2,6 +2,16 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { buildCategoryRankings, quadraticCost, spentCredits, tierForRank } from "../src/lib/allocation.ts";
+import {
+  INITIAL_ALLOCATION_CREDITS,
+  KEN_LIFECYCLE_STAGES,
+  LANE_OPERATING_POLICIES,
+  MONTHLY_REPLENISHMENT_CREDITS,
+  SUBMISSION_APPROVAL_CRITERIA,
+  TOKEN_ASSIGNMENT_RULES,
+  allocationCreditCost,
+  explainCreditGrant,
+} from "../src/lib/allocation-policy.ts";
 
 test("quadratic cost grows non-linearly", () => {
   assert.equal(quadraticCost(0), 0);
@@ -35,4 +45,16 @@ test("buildCategoryRankings ranks only eligible tasks and keeps blocked work out
   assert.deepEqual(rankings.get("gamma"), { rank: 3, tier: "months" });
   assert.deepEqual(rankings.get("delta"), { rank: null, tier: "queued" });
   assert.deepEqual(rankings.get("epsilon"), { rank: null, tier: "blocked" });
+});
+
+test("allocation policy documents replenishment, awards, lanes, and lifecycle", () => {
+  assert.equal(INITIAL_ALLOCATION_CREDITS, 3);
+  assert.equal(MONTHLY_REPLENISHMENT_CREDITS, 3);
+  assert.equal(allocationCreditCost(5), 25);
+  assert.equal(explainCreditGrant("accepted-ken")?.credits, 2);
+  assert.equal(TOKEN_ASSIGNMENT_RULES.some((rule) => rule.id === "checkpoint-contribution"), true);
+  assert.equal(SUBMISSION_APPROVAL_CRITERIA.length >= 6, true);
+  assert.equal(LANE_OPERATING_POLICIES.months.bondCredits, 5);
+  assert.equal(KEN_LIFECYCLE_STAGES[0]?.id, "draft");
+  assert.equal(KEN_LIFECYCLE_STAGES.at(-1)?.id, "audit");
 });

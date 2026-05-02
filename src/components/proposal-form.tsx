@@ -5,18 +5,16 @@ import { useActionState, useState } from "react";
 import { initialActionState } from "@/app/action-state";
 import { createProposalAction } from "@/app/actions";
 import { AbuseGuardFields } from "@/components/abuse-guard-fields";
+import { LANE_OPERATING_POLICIES, SUBMISSION_APPROVAL_CRITERIA } from "@/lib/allocation-policy";
 
-const tierDetails = {
-  days: "Fast, focused Kens for narrow deliverables.",
-  weeks: "Multi-stage Kens that need continuity and review.",
-  months: "Deep Kens with repeated checkpoints and stronger release controls.",
-} as const;
+const tierDetails = LANE_OPERATING_POLICIES;
 
 export function ProposalForm({ categories, disabled }: { categories: Array<{ slug: string; name: string }>; disabled?: boolean }) {
   const [state, formAction, isPending] = useActionState(createProposalAction, initialActionState);
   const [requestedTier, setRequestedTier] = useState<keyof typeof tierDetails>("weeks");
   const errorFor = (field: string) => state.fieldErrors?.[field];
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+  const lane = tierDetails[requestedTier];
 
   return (
     <form action={formAction} className="panel grid gap-5">
@@ -41,8 +39,12 @@ export function ProposalForm({ categories, disabled }: { categories: Array<{ slu
           </label>
           <div className="rounded-[1.2rem] border border-border bg-background/55 p-4 text-sm leading-6 text-muted sm:col-span-2">
             <div className="font-semibold text-foreground">Lane-based bond and checkpoint policy</div>
-            <p className="mt-2">{tierDetails[requestedTier]}</p>
-            <p className="mt-2">KenMatch calculates the bond automatically from the lane you choose, so the bond shown during review always matches the real allocation rules.</p>
+            <p className="mt-2">{lane.bestFor}</p>
+            <dl className="mt-3 grid gap-2 sm:grid-cols-3">
+              <div><dt className="eyebrow">Bond</dt><dd className="font-semibold text-foreground">{lane.bondCredits} credit{lane.bondCredits === 1 ? "" : "s"}</dd></div>
+              <div><dt className="eyebrow">Cadence</dt><dd className="font-semibold text-foreground">{lane.checkpointCadence}</dd></div>
+              <div><dt className="eyebrow">Approval</dt><dd className="font-semibold text-foreground">{lane.approvalTarget}</dd></div>
+            </dl>
           </div>
         </div>
       </div>
@@ -62,10 +64,16 @@ export function ProposalForm({ categories, disabled }: { categories: Array<{ slu
         <Field name="enterprisePackaging" label="Optional service path" rows={4} placeholder="If this Ken succeeds, what hosted or institutional version could help fund the public board?" error={errorFor("enterprisePackaging")} disabled={disabled || isPending} />
         <Field name="dataValueNote" label="Corrections and audit data" rows={4} placeholder="What useful correction, provenance, or evaluation data would the Ken generate along the way?" error={errorFor("dataValueNote")} disabled={disabled || isPending} />
       </div>
+      <div className="rounded-[1.2rem] border border-border bg-background/55 p-4">
+        <div className="font-semibold text-foreground">Submission approval checklist</div>
+        <ul className="mt-3 grid gap-2 text-sm leading-6 text-muted sm:grid-cols-2">
+          {SUBMISSION_APPROVAL_CRITERIA.map((criterion) => <li key={criterion}>✓ {criterion}</li>)}
+        </ul>
+      </div>
       <AbuseGuardFields action="submit-ken" siteKey={turnstileSiteKey} />
       <div className="flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">
         <p className="max-w-2xl text-sm leading-7 text-muted">
-          New Kens start in public review with a locked bond, visible timestamps, public comments, and checkpoint-gated execution. Launch happens only after review and release conditions are in place.
+          New Kens start in public review with a locked bond, visible timestamps, public comments, and checkpoint-gated execution. Launch happens only after review, ranking, and release conditions are in place.
         </p>
         <button type="submit" disabled={disabled || isPending} className="cta-primary">
           {isPending ? "Submitting Ken" : "Submit Ken for review"}

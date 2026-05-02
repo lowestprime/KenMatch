@@ -2,11 +2,17 @@ import Link from "next/link";
 
 import { CategorySymbol } from "@/components/ken-visual";
 import { TaskCard } from "@/components/task-card";
+import {
+  KEN_LIFECYCLE_STAGES,
+  LANE_OPERATING_POLICIES,
+  SUBMISSION_APPROVAL_CRITERIA,
+  TOKEN_ASSIGNMENT_RULES,
+} from "@/lib/allocation-policy";
 import { getHomeData } from "@/lib/db";
 import { KEN_DEFINITION } from "@/lib/faq";
 import { getViewerProfileId } from "@/lib/session";
 import { categoryFilterHref, laneFilterHref } from "@/lib/taxonomy";
-import type { AllocationTier } from "@/lib/types";
+import type { AllocationTier, RequestedTier } from "@/lib/types";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 
 export default async function HomePage() {
@@ -38,7 +44,7 @@ export default async function HomePage() {
           <div className="hero-note">
             {viewer ? (
               <p>
-                Signed in as <span className="font-semibold text-foreground">{viewer.name}</span> with <span className="font-semibold text-foreground">{viewer.availableCredits}</span> allocation credits available.
+                Signed in as <span className="font-semibold text-foreground">{viewer.name}</span> with <span className="font-semibold text-foreground">{viewer.availableCredits}</span> allocation credits available. Credits are replenished through the public rules below, not by sponsorship.
               </p>
             ) : (
               <p>Reading is open. Accounts are only needed to vote, comment, submit Kens, or request verification.</p>
@@ -48,15 +54,11 @@ export default async function HomePage() {
         <div className="space-y-4 fade-up stagger-1">
           <div className="panel space-y-4">
             <div className="eyebrow">How long a Ken can run</div>
-            {[
-              ["months", "Months", "Top 3 per category", "Long-horizon synthesis, evaluation, and tool-building with repeated human checkpoints."],
-              ["weeks", "Weeks", "Next 10 per category", "Multi-step research, coding, and design runs with visible mid-run decisions."],
-              ["days", "Days", "Next 100 per category", "Focused deliverables with clear acceptance checks and public artifacts."],
-            ].map(([tier, label, value, copy]) => (
-              <Link key={label} href={laneFilterHref(tier as AllocationTier)} className="lane-summary-card interactive-surface">
-                <div className="font-display text-xl font-semibold text-foreground">{label}</div>
-                <div className="mt-1 text-sm font-medium text-accent">{value}</div>
-                <p className="mt-2 text-sm leading-6 text-muted">{copy}</p>
+            {Object.entries(LANE_OPERATING_POLICIES).map(([tier, policy]) => (
+              <Link key={tier} href={laneFilterHref(tier as AllocationTier)} className="lane-summary-card interactive-surface">
+                <div className="font-display text-xl font-semibold text-foreground">{policy.label}</div>
+                <div className="mt-1 text-sm font-medium text-accent">{policy.approvalTarget}</div>
+                <p className="mt-2 text-sm leading-6 text-muted">{policy.bestFor}. Bond: {policy.bondCredits} allocation credit{policy.bondCredits === 1 ? "" : "s"}; cadence: {policy.checkpointCadence}.</p>
               </Link>
             ))}
           </div>
@@ -65,6 +67,54 @@ export default async function HomePage() {
               <div key={label} className="metric-card"><div className="eyebrow">{label}</div><div className="metric-value">{value}</div></div>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="panel protocol-panel">
+        <div className="section-heading">
+          <div>
+            <div className="eyebrow">How the board works</div>
+            <h2 className="font-display text-3xl font-semibold text-foreground">From proposal to audited output</h2>
+          </div>
+          <Link href="/submit" className="cta-secondary cta-compact">Start a Ken</Link>
+        </div>
+        <div className="lifecycle-grid">
+          {KEN_LIFECYCLE_STAGES.map((stage) => (
+            <article key={stage.id} className="protocol-card interactive-surface">
+              <h3>{stage.label}</h3>
+              <p>{stage.summary}</p>
+              <small>{stage.publicGate}</small>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="section-grid" data-columns="2">
+        <div className="panel space-y-4">
+          <div className="eyebrow">Allocation credits</div>
+          <h2 className="font-display text-3xl font-semibold text-foreground">Credits replenish through participation, not money</h2>
+          <p className="text-sm leading-7 text-muted">
+            Allocation credits are the scarce voice used to push Kens up the category board. Concentrating voice on one Ken costs quadratically; broad support and useful evidence should matter more than wealth or status.
+          </p>
+          <div className="policy-list">
+            {TOKEN_ASSIGNMENT_RULES.map((rule) => (
+              <div key={rule.id} className="policy-row interactive-surface">
+                <div>
+                  <strong>{rule.label}</strong>
+                  <p>{rule.criteria}</p>
+                </div>
+                <span>{rule.credits} credit{rule.credits === 1 ? "" : "s"}<em>{rule.cadence}</em></span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="panel space-y-4">
+          <div className="eyebrow">Approval criteria</div>
+          <h2 className="font-display text-3xl font-semibold text-foreground">A Ken must be specific enough to inspect</h2>
+          <p className="text-sm leading-7 text-muted">Approval is not a popularity shortcut. The board needs enough structure to rank, review, stop, redirect, and audit a run before compute is committed.</p>
+          <ol className="criteria-list">
+            {SUBMISSION_APPROVAL_CRITERIA.map((criterion) => <li key={criterion}>{criterion}</li>)}
+          </ol>
         </div>
       </section>
 
@@ -109,7 +159,7 @@ export default async function HomePage() {
           <div className="eyebrow">Funding snapshot</div>
           <h2 className="font-display text-3xl font-semibold text-foreground">Funding adds compute supply, not control</h2>
           <p className="text-sm leading-7 text-muted">
-            KenMatch keeps ranking, checkpoints, and safety release gates separate from sponsorship. Backing can pay for compute, review, moderation, or delivery support; it cannot buy votes, hide restrictions, or override public checkpoint outcomes.
+            KenMatch keeps ranking, checkpoints, and release gates separate from sponsorship. Backing can pay for compute, review, moderation, or delivery support; it cannot buy votes, hide restrictions, or override public checkpoint outcomes.
           </p>
           <div className="signal-bar">
             <div className="flow-card"><div className="eyebrow">Coverage</div><div className="metric-value">{economics.coverageMonths.toFixed(1)} mo</div></div>
@@ -124,6 +174,7 @@ export default async function HomePage() {
                   <span className="tag">{formatCurrency(stream.treasuryMonthlyUsd)}</span>
                 </div>
                 <p className="mt-2">{stream.description}</p>
+                <p className="mt-2 text-xs uppercase tracking-[0.18em] text-accent">Contributor dividend: {stream.contributorDividendPercent}% when consent and deliverable boundaries apply</p>
               </div>
             ))}
           </div>
@@ -142,10 +193,10 @@ export default async function HomePage() {
           ))}
         </div>
         <div className="panel space-y-4">
-          <div className="eyebrow">Allocation credits</div>
+          <div className="eyebrow">Quadratic voice</div>
           <h2 className="font-display text-3xl font-semibold text-foreground">Influence gets more expensive as it concentrates</h2>
           <p className="text-sm leading-7 text-muted">
-            Quick pulse votes show broad interest. Allocation credits are scarcer: spending 1, 2, 3, or more voice on the same Ken costs quadratically, so broad support beats one person pushing a favorite. Verification can raise a contributor&apos;s cap, but it never converts money into rank.
+            Spending 1, 2, 3, or more voice on the same Ken costs quadratically, so broad support beats one person pushing a favorite. Verification can raise a contributor&apos;s cap, but it never converts money into rank.
           </p>
           <div className="signal-bar">
             <div className="flow-card"><div className="eyebrow">Issued voice</div><div className="metric-value">{formatNumber(metrics.voiceIssued)}</div></div>
