@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { AccountSavedItems } from "@/components/account-saved-items";
 import { Avatar } from "@/components/avatar";
 import { ProfileEditor } from "@/components/profile-editor";
 import { VerificationPanel } from "@/components/verification-panel";
@@ -117,70 +118,27 @@ export default async function AccountPage() {
         />
       </section>
 
-      <section className="section-grid" data-columns="2">
-        <div className="panel grid gap-3">
-          <h2>My Kens</h2>
-          {data.ownTasks.length === 0 ? (
-            <p style={{ color: "var(--muted)" }}>
-              You haven&apos;t submitted a Ken yet. <Link href="/submit" className="underline">Submit one</Link>.
-            </p>
-          ) : (
-            <ul className="grid gap-2">
-              {data.ownTasks.map((task) => (
-                <li key={task.id} className="audit-card">
-                  <Link href={`/kens/${task.slug}`} className="font-display">
-                    <strong>{task.title}</strong>
-                  </Link>
-                  <p style={{ color: "var(--muted)" }}>{task.summary}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-        <div className="panel grid gap-3">
-          <h2>Saved Kens</h2>
-          {data.bookmarkedTasks.length === 0 ? (
-            <p style={{ color: "var(--muted)" }}>
-              Use the bookmark action on any Ken detail page to save it here.
-            </p>
-          ) : (
-            <ul className="grid gap-2">
-              {data.bookmarkedTasks.map((task) => (
-                <li key={task.id} className="audit-card">
-                  <Link href={`/kens/${task.slug}`} className="font-display">
-                    <strong>{task.title}</strong>
-                  </Link>
-                  <p style={{ color: "var(--muted)" }}>{task.summary}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </section>
-
       <section className="panel grid gap-3">
-        <div className="section-heading">
-          <div>
-            <span className="eyebrow">Saved discussion</span>
-            <h2>Saved discussion posts and comments</h2>
-          </div>
-          <Link className="cta-secondary cta-compact" href="/discuss?sort=saved">Open saved discussion</Link>
-        </div>
-        {savedDiscussion.length === 0 ? (
+        <h2>My Kens</h2>
+        {data.ownTasks.length === 0 ? (
           <p style={{ color: "var(--muted)" }}>
-            Save useful discussion posts or comments while browsing the Discussion tab. They will appear here beside your saved Kens.
+            You haven&apos;t submitted a Ken yet. <Link href="/submit" className="underline">Submit one</Link>.
           </p>
         ) : (
-          <div className="saved-grid">
-            {savedDiscussion.map((item) => (
-              <article key={item.id} className="saved-community-card">
-                <div className="discussion-meta"><span>{item.subtitle}</span></div>
-                <Link href={item.url} className="font-display"><strong>{item.title}</strong></Link>
-              </article>
+          <ul className="grid gap-2">
+            {data.ownTasks.map((task) => (
+              <li key={task.id} className="audit-card">
+                <Link href={`/kens/${task.slug}`} className="font-display">
+                  <strong>{task.title}</strong>
+                </Link>
+                <p style={{ color: "var(--muted)" }}>{task.summary}</p>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
       </section>
+
+      <AccountSavedItems kens={data.bookmarkedTasks} discussion={savedDiscussion} />
     </div>
   );
 }
