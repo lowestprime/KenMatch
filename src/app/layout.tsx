@@ -30,6 +30,8 @@ const monoFont = JetBrains_Mono({
   weight: ["400", "500", "600"],
 });
 
+const shareImage = "/share-image.png";
+
 export const metadata: Metadata = {
   metadataBase: new URL(env.KENMATCH_PUBLIC_ORIGIN ?? canonicalOrigin),
   applicationName: "KenMatch",
@@ -70,13 +72,13 @@ export const metadata: Metadata = {
     siteName: "KenMatch",
     type: "website",
     url: canonicalOrigin,
-    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "KenMatch public board preview" }],
+    images: [{ url: shareImage, width: 1200, height: 630, alt: "KenMatch public board preview" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "KenMatch: Rank sustained AI work",
     description: "Public ranking for sustained AI-assisted work, checkpoints, and transparent frontier compute allocation.",
-    images: ["/og-image.png"],
+    images: [shareImage],
   },
   appleWebApp: {
     capable: true,
@@ -88,7 +90,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f2ecff" },
+    { media: "(prefers-color-scheme: light)", color: "#eadcff" },
     { media: "(prefers-color-scheme: dark)", color: "#000000" },
   ],
   colorScheme: "light dark",
