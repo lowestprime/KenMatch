@@ -10,6 +10,8 @@ export const metadata = {
   description: "KenMatch discussion space for prompt design, governance, funding norms, safety review, and ecosystem debate.",
 };
 
+type DiscussSearchParams = Record<string, string | string[] | undefined>;
+
 const topics = [
   ["all", "All"],
   ["prompt-design", "Prompt design"],
@@ -47,9 +49,12 @@ function queryHref(next: Record<string, string | undefined>) {
 export default async function DiscussPage({
   searchParams,
 }: {
-  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+  searchParams?: Promise<DiscussSearchParams>;
 }) {
-  const [viewer, params] = await Promise.all([getViewerSession(), searchParams ?? Promise.resolve({})]);
+  const [viewer, params] = await Promise.all([
+    getViewerSession(),
+    searchParams ?? Promise.resolve({} as DiscussSearchParams),
+  ]);
   const signedIn = Boolean(viewer);
   const topic = valueOf(params.topic) ?? "all";
   const sort = (valueOf(params.sort) ?? "hot") as "hot" | "new" | "comments" | "saved";
