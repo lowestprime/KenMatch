@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { AdminAccounts } from "@/components/admin/accounts";
 import { AdminAuditFeed } from "@/components/admin/audit-feed";
 import { AdminCategoryProposals } from "@/components/admin/category-proposals";
+import { AdminCategoryVisuals } from "@/components/admin/category-visuals";
 import { AdminNotifications } from "@/components/admin/notifications";
 import {
   AdminChangelogPanel,
@@ -14,6 +15,7 @@ import {
 import { AdminVerifications } from "@/components/admin/verifications";
 import { AdminVisitors } from "@/components/admin/visitors";
 import { VisitorMap } from "@/components/visitor-map";
+import { listCategoryVisualSettings } from "@/lib/category-visual-settings";
 import { getAdminDashboard, getAdminNotificationSettings } from "@/lib/db";
 import { getViewerSession } from "@/lib/session";
 
@@ -26,9 +28,10 @@ export default async function AdminPage() {
     redirect("/");
   }
 
-  const [dashboard, notifications] = await Promise.all([
+  const [dashboard, notifications, categoryVisuals] = await Promise.all([
     getAdminDashboard(),
     getAdminNotificationSettings(),
+    listCategoryVisualSettings(),
   ]);
 
   const isOwner = viewer.account.systemRole === "owner";
@@ -41,7 +44,7 @@ export default async function AdminPage() {
         <span className="eyebrow">Admin portal</span>
         <h1>KenMatch operations</h1>
         <p style={{ color: "var(--ink-muted)", maxWidth: "42rem" }}>
-          Manage accounts, verifications, visitors, notifications, category proposals, and public content from one audited surface. Changes are written to the database and reflected in the public site after revalidation.
+          Manage accounts, verifications, visitors, notifications, category proposals, category symbols, and public content from one audited surface. Changes are written to the database and reflected in the public site after revalidation.
         </p>
         <div className="profile-hero-meta">
           <span className={`role-badge is-${viewer.account.systemRole}`}>{viewer.account.systemRole}</span>
@@ -49,6 +52,7 @@ export default async function AdminPage() {
           <span>· {dashboard.profiles.length} profiles</span>
           <span>· {dashboard.pendingVerifications.length} pending verifications</span>
           <span>· {dashboard.categoryProposals.filter((item) => item.reviewStatus === "pending").length} category proposals</span>
+          <span>· {categoryVisuals.filter((item) => item.updatedAt).length} custom category visuals</span>
           <span>· {dashboard.visitors.length} unique visitors tracked</span>
           <span>· maintenance {dashboard.maintenance.mode}</span>
         </div>
@@ -104,6 +108,16 @@ export default async function AdminPage() {
           <AdminIllustrationPanel tasks={dashboard.tasks} illustrations={dashboard.illustrations} />
         </div>
       </section>
+
+      {canModerate ? (
+        <section className="panel grid gap-3">
+          <h2>Category visual system</h2>
+          <p style={{ color: "var(--muted)" }}>
+            Customize the deterministic category symbols that render across Ken cards, filters, and public overview sections. Color values are persisted in the database, applied as public CSS overrides, and can be revised without changing static assets.
+          </p>
+          <AdminCategoryVisuals items={categoryVisuals} />
+        </section>
+      ) : null}
 
       {canModerate ? (
         <section className="panel grid gap-3">
