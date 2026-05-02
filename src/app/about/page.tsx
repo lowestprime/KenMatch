@@ -12,7 +12,7 @@ import { getViewerSession } from "@/lib/session";
 export const metadata = {
   title: "About & Contact",
   description:
-    "Who is behind KenMatch, the mission, beliefs, background, goals, and how to get in touch.",
+    "KenMatch mission, public allocation rules, changelog, and contact route.",
 };
 
 export default async function AboutPage() {
@@ -36,8 +36,8 @@ export default async function AboutPage() {
             {about.heroSubtitle}
           </p>
           <div className="hero-actions">
-            <a className="cta-primary" href={`mailto:${about.contactEmail}`}>
-              Contact the creator
+            <a className="cta-primary" href="/faq#contact">
+              Contact the owner
             </a>
             <Link className="cta-secondary" href="/about#changelog">
               Read the changelog
@@ -106,8 +106,8 @@ export default async function AboutPage() {
         <h2>{about.contactTitle}</h2>
         <p style={{ color: "var(--ink-muted)" }}>{about.contactBody}</p>
         <div className="hero-actions">
-          <a className="cta-primary" href={`mailto:${about.contactEmail}`}>
-            Email {about.contactEmail}
+          <a className="cta-primary" href="/faq#contact">
+            Contact the owner
           </a>
           <Link className="cta-secondary" href="/submit">
             Submit a Ken
@@ -135,7 +135,7 @@ export default async function AboutPage() {
           <div className="eyebrow">Feedback route</div>
           <h2 id="about-contact-form-heading">Send questions, suggestions, or recommendations</h2>
           <p style={{ color: "var(--ink-muted)" }}>
-            Use the structured form for markdown notes, public FAQ gaps, partnership ideas, bug reports, and small attachments. Messages are routed to {about.contactEmail} when SMTP is configured and saved locally either way.
+            Use the structured form for markdown notes, public FAQ gaps, partnership ideas, bug reports, and small attachments. Messages are routed to the KenMatch owner when SMTP is configured and saved locally either way.
           </p>
         </div>
         <ContactForm turnstileSiteKey={turnstileConfigured() ? env.NEXT_PUBLIC_TURNSTILE_SITE_KEY : undefined} />
