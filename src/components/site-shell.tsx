@@ -9,6 +9,8 @@ import { MobileNav } from "@/components/mobile-nav";
 import { PrimaryNav } from "@/components/primary-nav";
 import { ProfileMenu } from "@/components/profile-menu";
 import { ReleasePolishStyles } from "@/components/release-polish-styles";
+import { CommunityPolishStyles } from "@/components/community-polish-styles";
+import { getCategoryVisualOverrideCss } from "@/lib/category-visual-settings";
 import type { ViewerSession } from "@/lib/types";
 
 const primaryNav = [
@@ -23,12 +25,15 @@ const primaryNav = [
   { href: "/faq", label: "FAQ" },
 ];
 
-export function SiteShell({ viewer, children }: { viewer: ViewerSession | null; children: React.ReactNode }) {
+export async function SiteShell({ viewer, children }: { viewer: ViewerSession | null; children: React.ReactNode }) {
   const showAdminLink = Boolean(viewer && (viewer.account.systemRole === "admin" || viewer.account.systemRole === "owner" || viewer.account.systemRole === "moderator"));
+  const categoryVisualCss = await getCategoryVisualOverrideCss();
 
   return (
     <div className="site-frame">
       <ReleasePolishStyles />
+      <CommunityPolishStyles />
+      {categoryVisualCss ? <style dangerouslySetInnerHTML={{ __html: categoryVisualCss }} /> : null}
       <a href="#main-content" className="skip-link">Skip to content</a>
       <VisitorBeacon />
       <HeaderScrollController />
