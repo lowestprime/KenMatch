@@ -6,6 +6,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { SearchCommand } from "@/components/search-command";
 import { VisitorBeacon } from "@/components/visitor-beacon";
 import { MobileNav } from "@/components/mobile-nav";
+import { PrimaryNav } from "@/components/primary-nav";
 import { ProfileMenu } from "@/components/profile-menu";
 import { ReleasePolishStyles } from "@/components/release-polish-styles";
 import type { ViewerSession } from "@/lib/types";
@@ -81,9 +82,7 @@ export function SiteShell({ viewer, children }: { viewer: ViewerSession | null; 
               <KenMatchMark className="brand-mark" />
               <span className="site-brand-text"><strong>KenMatch</strong><span>Transparent allocation of frontier AI compute</span></span>
             </Link>
-            <nav className="site-nav" aria-label="Primary">
-              {primaryNav.map((item) => <Link key={item.href} href={item.href} className="nav-pill">{item.label}</Link>)}
-            </nav>
+            <PrimaryNav items={primaryNav} />
             <div className="site-utility-row">
               <SearchCommand />
               <ThemeToggle />
