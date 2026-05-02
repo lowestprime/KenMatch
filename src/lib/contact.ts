@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const CONTACT_OWNER_EMAIL = "cooperbeaman@proton.me";
+export const CONTACT_OWNER_EMAIL = "owner@kmat.ch";
 
 export const CONTACT_TOPICS = ["question", "suggestion", "bug", "partnership", "press", "other"] as const;
 

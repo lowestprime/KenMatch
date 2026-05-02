@@ -697,8 +697,8 @@ export async function contactOwnerAction(_: ActionState, formData: FormData): Pr
     return {
       status: "success",
       message: emailResult.ok
-        ? "Message sent to Cooper and saved."
-        : "Message saved. Email delivery is not configured yet, so Cooper will need to review it from stored submissions.",
+        ? "Message sent to the KenMatch owner and saved."
+        : "Message saved. Email delivery is not configured yet, so the KenMatch owner will need to review it from stored submissions.",
     };
   } catch (error) {
     return { status: "error", message: actionErrorMessage(error, "Unable to submit the message.") };

@@ -64,7 +64,7 @@ export default function VerificationPublicPage() {
             role, and at least one verifiable link. This is visible only to administrators.
           </li>
           <li>
-            <strong>Step 4 · Review.</strong> A KenMatch administrator (Cooper Beaman or a delegated moderator) cross-checks the information within 5 business days. If more
+            <strong>Step 4 · Review.</strong> A KenMatch administrator or delegated moderator cross-checks the information within 5 business days. If more
             evidence is required, we reply by email.
           </li>
           <li>
@@ -89,9 +89,7 @@ export default function VerificationPublicPage() {
       <section className="panel grid gap-3">
         <h2>Appeals & corrections</h2>
         <p style={{ color: "var(--ink)", fontSize: "0.95rem" }}>
-          If a verification decision is wrong, you can reply to the notification email or contact
-          {" "}
-          <a href="mailto:cooperbeaman@proton.me">cooperbeaman@proton.me</a>. The audit log for every verification decision is visible to administrators and can be reviewed if
+          If a verification decision is wrong, you can reply to the notification email or contact the KenMatch owner through the <a href="/faq#contact">contact form</a>. The audit log for every verification decision is visible to administrators and can be reviewed if
           needed.
         </p>
       </section>
