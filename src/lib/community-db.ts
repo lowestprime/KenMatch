@@ -5,6 +5,7 @@ import { dirname, isAbsolute, join } from "node:path";
 
 import { createClient, type Client, type Value } from "@libsql/client";
 
+import { ensureDatabaseReady } from "@/lib/db";
 import { env } from "@/lib/env";
 
 const databaseFilePath = isAbsolute(env.KENMATCH_DB_FILE)
@@ -37,65 +38,9 @@ export function getCommunityClient() {
 }
 
 async function initializeCommunityTables() {
+  await ensureDatabaseReady();
   await getCommunityClient().batch([
     "PRAGMA foreign_keys = ON",
-    `CREATE TABLE IF NOT EXISTS discussion_posts (
-      id TEXT PRIMARY KEY,
-      slug TEXT NOT NULL UNIQUE,
-      authorProfileId TEXT NOT NULL,
-      title TEXT NOT NULL,
-      body TEXT NOT NULL,
-      topic TEXT NOT NULL DEFAULT 'meta',
-      tags TEXT NOT NULL DEFAULT '[]',
-      linkedTaskId TEXT,
-      pinned INTEGER NOT NULL DEFAULT 0,
-      locked INTEGER NOT NULL DEFAULT 0,
-      createdAt TEXT NOT NULL,
-      updatedAt TEXT NOT NULL,
-      FOREIGN KEY (authorProfileId) REFERENCES profiles(id),
-      FOREIGN KEY (linkedTaskId) REFERENCES tasks(id)
-    )`,
-    `CREATE TABLE IF NOT EXISTS discussion_comments (
-      id TEXT PRIMARY KEY,
-      postId TEXT NOT NULL,
-      parentId TEXT,
-      authorProfileId TEXT NOT NULL,
-      body TEXT NOT NULL,
-      createdAt TEXT NOT NULL,
-      updatedAt TEXT NOT NULL,
-      FOREIGN KEY (postId) REFERENCES discussion_posts(id) ON DELETE CASCADE,
-      FOREIGN KEY (parentId) REFERENCES discussion_comments(id) ON DELETE CASCADE,
-      FOREIGN KEY (authorProfileId) REFERENCES profiles(id)
-    )`,
-    `CREATE TABLE IF NOT EXISTS discussion_post_votes (
-      id TEXT PRIMARY KEY,
-      postId TEXT NOT NULL,
-      profileId TEXT NOT NULL,
-      value INTEGER NOT NULL,
-      updatedAt TEXT NOT NULL,
-      UNIQUE(postId, profileId),
-      FOREIGN KEY (postId) REFERENCES discussion_posts(id) ON DELETE CASCADE,
-      FOREIGN KEY (profileId) REFERENCES profiles(id)
-    )`,
-    `CREATE TABLE IF NOT EXISTS discussion_comment_votes (
-      id TEXT PRIMARY KEY,
-      commentId TEXT NOT NULL,
-      profileId TEXT NOT NULL,
-      value INTEGER NOT NULL,
-      updatedAt TEXT NOT NULL,
-      UNIQUE(commentId, profileId),
-      FOREIGN KEY (commentId) REFERENCES discussion_comments(id) ON DELETE CASCADE,
-      FOREIGN KEY (profileId) REFERENCES profiles(id)
-    )`,
-    `CREATE TABLE IF NOT EXISTS saved_items (
-      id TEXT PRIMARY KEY,
-      profileId TEXT NOT NULL,
-      itemType TEXT NOT NULL,
-      itemId TEXT NOT NULL,
-      createdAt TEXT NOT NULL,
-      UNIQUE(profileId, itemType, itemId),
-      FOREIGN KEY (profileId) REFERENCES profiles(id)
-    )`,
     `CREATE TABLE IF NOT EXISTS category_visual_overrides (
       categoryId TEXT PRIMARY KEY,
       symbolKey TEXT NOT NULL DEFAULT '',
@@ -110,12 +55,6 @@ async function initializeCommunityTables() {
       updatedBy TEXT,
       FOREIGN KEY (categoryId) REFERENCES categories(id) ON DELETE CASCADE
     )`,
-    "CREATE INDEX IF NOT EXISTS idx_discussion_posts_topic ON discussion_posts(topic)",
-    "CREATE INDEX IF NOT EXISTS idx_discussion_posts_createdAt ON discussion_posts(createdAt)",
-    "CREATE INDEX IF NOT EXISTS idx_discussion_comments_postId ON discussion_comments(postId)",
-    "CREATE INDEX IF NOT EXISTS idx_discussion_post_votes_postId ON discussion_post_votes(postId)",
-    "CREATE INDEX IF NOT EXISTS idx_discussion_comment_votes_commentId ON discussion_comment_votes(commentId)",
-    "CREATE INDEX IF NOT EXISTS idx_saved_items_profile ON saved_items(profileId, itemType)",
     "CREATE INDEX IF NOT EXISTS idx_category_visual_overrides_updatedAt ON category_visual_overrides(updatedAt)",
   ], "write");
 }
