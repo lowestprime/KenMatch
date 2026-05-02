@@ -174,6 +174,7 @@ export function CategorySymbol({
   return (
     <svg
       className={`category-symbol category-symbol-${variant} is-${stage} lane-${tier}`}
+      data-category-slug={categorySlug}
       viewBox="0 0 96 96"
       style={style}
       role={decorative ? undefined : "img"}
@@ -224,6 +225,7 @@ export function KenVisual({
   return (
     <div
       className={`ken-visual ken-symbol ken-symbol-${variant} is-${task.stage} lane-${task.allocatedTier}`}
+      data-category-slug={task.categorySlug}
       role="img"
       aria-label={`${task.categoryName}; ${TIER_LABELS[task.allocatedTier]}; ${completionLabel(task)}. No uploaded Ken illustration is set.`}
     >
