@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, type CSSProperties } from "react";
 
 import { initialActionState } from "@/app/action-state";
 import { updateCategoryVisualAction } from "@/app/admin/category-visual-actions";
@@ -30,7 +30,7 @@ function CategoryVisualForm({ item }: { item: CategoryVisualSetting }) {
             "--preview-primary": item.primaryColor,
             "--preview-secondary": item.secondaryColor,
             "--preview-background": item.backgroundColor,
-          } as React.CSSProperties}
+          } as CSSProperties}
           aria-hidden="true"
         />
         <div>
