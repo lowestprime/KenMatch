@@ -33,14 +33,13 @@ function redirectToCanonicalHttps(request: NextRequest, host: string) {
     canonical = new URL("https://kmat.ch");
   }
   const canonicalHost = normalizeHost(canonical.host);
-  const forwardedProto = (request.headers.get("x-forwarded-proto") ?? "")
-    .split(",")[0]
-    .trim()
-    .toLowerCase();
-  const observedProto = forwardedProto || request.nextUrl.protocol.replace(":", "").toLowerCase();
-  if (canonical.protocol !== "https:" || host !== canonicalHost || observedProto !== "http") {
+  
+  // 1. If the user is already on the canonical host (kmat.ch), do nothing and let the app load.
+  if (host === canonicalHost) {
     return null;
   }
+  
+  // 2. If the user is on an alias (www.kmat.ch), trigger the 308 Permanent Redirect.
   const url = request.nextUrl.clone();
   url.protocol = "https:";
   url.host = canonical.host;
