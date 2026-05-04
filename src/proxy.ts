@@ -6,13 +6,24 @@ const allowedHosts = (process.env.KENMATCH_ALLOWED_HOSTS ?? "")
   .split(",")
   .map((value) => value.trim().toLowerCase())
   .filter(Boolean);
+const internalHealthHosts = new Set(["127.0.0.1", "localhost", "0.0.0.0", "::1", "[::1]", "kenmatch", "kenmatch-demo"]);
 
 function normalizeHost(value: string | null) {
-  return (value ?? "").trim().toLowerCase().replace(/:\d+$/, "");
+  const raw = (value ?? "").trim().toLowerCase();
+  if (raw === "::1") return raw;
+  if (raw.startsWith("[")) {
+    const end = raw.indexOf("]");
+    if (end !== -1) return raw.slice(0, end + 1);
+  }
+  return raw.replace(/:\d+$/, "");
 }
 
 function normalizeHostWithPort(value: string | null) {
   return (value ?? "").trim().toLowerCase();
+}
+
+function isInternalHealthRequest(path: string, host: string) {
+  return path === "/api/health" && internalHealthHosts.has(host);
 }
 
 function expectedOrigin(request: NextRequest, host: string) {
@@ -23,8 +34,8 @@ function expectedOrigin(request: NextRequest, host: string) {
   return `${request.nextUrl.protocol}//${host}`;
 }
 
-function redirectToCanonicalHttps(request: NextRequest, host: string) {
-  if (isDevelopment || !host) return null;
+function redirectToCanonicalHttps(request: NextRequest, host: string, path: string) {
+  if (isDevelopment || !host || isInternalHealthRequest(path, host)) return null;
   const publicOrigin = process.env.KENMATCH_PUBLIC_ORIGIN ?? "https://kmat.ch";
   let canonical: URL;
   try {
@@ -33,16 +44,12 @@ function redirectToCanonicalHttps(request: NextRequest, host: string) {
     canonical = new URL("https://kmat.ch");
   }
   const canonicalHost = normalizeHost(canonical.host);
-  
-  // 1. If the user is already on the canonical host (kmat.ch), do nothing and let the app load.
+
   if (host === canonicalHost) {
     return null;
   }
-  
-  // 2. If the user is on an alias (www.kmat.ch), trigger the 308 Permanent Redirect.
-  const url = request.nextUrl.clone();
-  url.protocol = "https:";
-  url.host = canonical.host;
+
+  const url = new URL(`${request.nextUrl.pathname}${request.nextUrl.search}`, canonical.origin);
   return applySecurityHeaders(NextResponse.redirect(url, 308));
 }
 
@@ -97,11 +104,13 @@ export function proxy(request: NextRequest) {
   const hostHeader = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
   const host = normalizeHost(hostHeader);
   const hostWithPort = normalizeHostWithPort(hostHeader);
-  if (allowedHosts.length && host && !allowedHosts.includes(host)) {
+  const internalHealthRequest = isInternalHealthRequest(path, host);
+
+  if (!internalHealthRequest && allowedHosts.length && host && !allowedHosts.includes(host)) {
     return blockRequest(request, 421, "Host not allowed.", "host not in allowlist");
   }
 
-  const httpsRedirect = redirectToCanonicalHttps(request, host);
+  const httpsRedirect = redirectToCanonicalHttps(request, host, path);
   if (httpsRedirect) return httpsRedirect;
 
   const requestHeaders = new Headers(request.headers);
