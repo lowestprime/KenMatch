@@ -29,6 +29,7 @@ const primaryNav = [
 export async function SiteShell({ viewer, children }: { viewer: ViewerSession | null; children: React.ReactNode }) {
   const showAdminLink = Boolean(viewer && (viewer.account.systemRole === "admin" || viewer.account.systemRole === "owner" || viewer.account.systemRole === "moderator"));
   const categoryVisualCss = await getCategoryVisualOverrideCss();
+  const viewerKey = viewer?.account.id ?? "guest";
 
   return (
     <div className="site-frame">
@@ -52,8 +53,8 @@ export async function SiteShell({ viewer, children }: { viewer: ViewerSession | 
             <div className="site-utility-row">
               <SearchCommand />
               <ThemeToggle />
-              <MobileNav primaryNav={primaryNav} showAdminLink={showAdminLink} viewer={viewer} />
-              {viewer ? <ProfileMenu viewer={viewer} showAdminLink={showAdminLink} /> : <Link href="/auth" className="cta-secondary cta-compact">Sign in</Link>}
+              <MobileNav key={viewerKey} primaryNav={primaryNav} showAdminLink={showAdminLink} viewer={viewer} />
+              {viewer ? <ProfileMenu viewer={viewer} showAdminLink={showAdminLink} /> : <a href="/auth" className="cta-secondary cta-compact">Sign in</a>}
             </div>
           </div>
         </div>
