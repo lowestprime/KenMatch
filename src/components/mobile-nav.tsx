@@ -21,7 +21,22 @@ export function MobileNav({
   viewer: ViewerSession | null;
 }) {
   const [open, setOpen] = useState(false);
+  const [activeViewer, setActiveViewer] = useState<ViewerSession | null>(viewer);
   const pathname = usePathname();
+
+  useEffect(() => {
+    setActiveViewer(viewer);
+  }, [viewer]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    function handleAuthChanged(event: Event) {
+      const detail = (event as CustomEvent<{ signedIn?: boolean }>).detail;
+      if (detail?.signedIn === false) setActiveViewer(null);
+    }
+    window.addEventListener("kenmatch:auth-changed", handleAuthChanged);
+    return () => window.removeEventListener("kenmatch:auth-changed", handleAuthChanged);
+  }, []);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -109,14 +124,14 @@ export function MobileNav({
               ) : null}
             </nav>
             <div className="mobile-nav-footer">
-              {viewer ? (
+              {activeViewer ? (
                 <>
-                  <Link href={`/people/${viewer.profile.id}`} className="mobile-nav-viewer" onClick={close}>
-                    <Avatar profile={viewer.profile} size={38} />
+                  <Link href={`/people/${activeViewer.profile.id}`} className="mobile-nav-viewer" onClick={close}>
+                    <Avatar profile={activeViewer.profile} size={38} />
                     <span>
-                      <strong>{viewer.profile.showRealName ? viewer.profile.name : `@${viewer.profile.username}`}</strong>
+                      <strong>{activeViewer.profile.showRealName ? activeViewer.profile.name : `@${activeViewer.profile.username}`}</strong>
                       <span className="mobile-nav-viewer-meta">
-                        @{viewer.profile.username} · {viewer.profile.availableCredits}/{viewer.profile.effectiveVoiceCredits} voice
+                        @{activeViewer.profile.username} · {activeViewer.profile.availableCredits}/{activeViewer.profile.effectiveVoiceCredits} voice
                       </span>
                     </span>
                   </Link>
@@ -128,9 +143,9 @@ export function MobileNav({
                   </div>
                 </>
               ) : (
-                <Link href="/auth" className="cta-primary cta-compact" onClick={close}>
+                <a href="/auth" className="cta-primary cta-compact">
                   Sign in
-                </Link>
+                </a>
               )}
             </div>
           </aside>
