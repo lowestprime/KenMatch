@@ -1,1 +1,41 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" shape-rendering="geometricPrecision"><defs><linearGradient id="b" x1="64" y1="960" x2="960" y2="64" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#1d4ed8"/><stop offset=".25" stop-color="#4c1d95"/><stop offset=".5" stop-color="#b08d1a"/><stop offset=".75" stop-color="#991b1b"/><stop offset="1" stop-color="#6d28d9"/></linearGradient><linearGradient id="s" x1="612" y1="512" x2="784" y2="512" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#171717"/><stop offset=".16" stop-color="#2563eb"/><stop offset=".34" stop-color="#4c1d95"/><stop offset=".52" stop-color="#b08d1a"/><stop offset=".72" stop-color="#991b1b"/><stop offset="1" stop-color="#6d28d9"/></linearGradient><radialGradient id="d" cx="456" cy="512" r="42" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#000"/><stop offset=".48" stop-color="#111"/><stop offset=".72" stop-color="#9ca3af"/><stop offset="1" stop-color="#fff"/></radialGradient></defs><path d="M304 0h416c167.9 0 304 136.1 304 304v416c0 167.9-136.1 304-304 304H304C136.1 1024 0 887.9 0 720V304C0 136.1 136.1 0 304 0Zm0 48h416c141.4 0 256 114.6 256 256v416c0 141.4-114.6 256-256 256H304C162.6 976 48 861.4 48 720V304C48 162.6 162.6 48 304 48Z" fill="url(#b)" fill-rule="evenodd"/><path d="M304 48h416c141.4 0 256 114.6 256 256v416c0 141.4-114.6 256-256 256H304C162.6 976 48 861.4 48 720V304C48 162.6 162.6 48 304 48Z" fill="#fff"/><rect x="278" y="192" width="148" height="640" fill="#000"/><polygon points="456,512 612,512 767,832 604,832" fill="#000"/><polygon points="604,192 767,192 612,512 456,512" fill="#000"/><path d="M612 512a178 178 0 0 0 0-178l155-142a358 358 0 0 1 0 640Z" fill="url(#s)" opacity=".93"/><circle cx="456" cy="512" r="36" fill="url(#d)"/></svg>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1024 1024">
+  <!-- Generator: Adobe Illustrator 30.3.0, SVG Export Plug-In . SVG Version: 2.1.3 Build 182)  -->
+  <defs>
+    <linearGradient id="linear-gradient" x1="89.03954" y1="988.96047" x2="934.96047" y2="143.03954" gradientTransform="translate(0 -54)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1d4ed8"/>
+      <stop offset=".25" stop-color="#4c1d95"/>
+      <stop offset=".5" stop-color="#b08d1a"/>
+      <stop offset=".75" stop-color="#991b1b"/>
+      <stop offset="1" stop-color="#6d28d9"/>
+    </linearGradient>
+    <radialGradient id="radial-gradient" cx="394.15441" cy="514" fx="394.15441" fy="514" r="99.83547" gradientTransform="translate(235.94192 798.97721) scale(.55832 -.55832)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#000"/>
+      <stop offset=".5" stop-color="#010101"/>
+      <stop offset=".50328" stop-color="#090909"/>
+      <stop offset=".52348" stop-color="#373737"/>
+      <stop offset=".5462" stop-color="#626262"/>
+      <stop offset=".57061" stop-color="#878787"/>
+      <stop offset=".5972" stop-color="#a8a8a8"/>
+      <stop offset=".62658" stop-color="#c3c3c3"/>
+      <stop offset=".65974" stop-color="#d9d9d9"/>
+      <stop offset=".69847" stop-color="#eaeaea"/>
+      <stop offset=".74635" stop-color="#f6f6f6"/>
+      <stop offset=".81353" stop-color="#fdfdfd"/>
+      <stop offset="1" stop-color="#fff"/>
+    </radialGradient>
+    <linearGradient id="linear-gradient1" x1="481.68235" y1="567.06145" x2="430.3312" y2="456.93855" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1d4ed8"/>
+      <stop offset=".27" stop-color="#4c1d95"/>
+      <stop offset=".54" stop-color="#b08d1a"/>
+      <stop offset=".78" stop-color="#991b1b"/>
+      <stop offset="1" stop-color="#6d28d9"/>
+    </linearGradient>
+  </defs>
+  <path d="M304,0h416c167.89459,0,304,136.10544,304,304v416c0,167.89459-136.10541,304-304,304h-416C136.10544,1024,0,887.89459,0,720v-416C0,136.10544,136.10544,0,304,0ZM304,48h416c141.38489,0,256,114.6151,256,256v416c0,141.38489-114.61511,256-256,256h-416c-141.3849,0-256-114.61511-256-256v-416c0-141.3849,114.6151-256,256-256Z" fill="url(#linear-gradient)" fill-rule="evenodd"/>
+  <path d="M304,48h416c141.38489,0,256,114.6151,256,256v416c0,141.38489-114.61511,256-256,256h-416c-141.3849,0-256-114.61511-256-256v-416c0-141.3849,114.6151-256,256-256Z" fill="#fff"/>
+  <polygon points="456.00436 512 611.53589 512 767.06732 832 604.00433 832 456.00436 512"/>
+  <polygon points="604.00446 192 767.06494 192 611.53589 512 456.00677 511.99506 604.00446 192"/>
+  <rect x="278" y="192" width="148" height="640"/>
+  <circle cx="456.00677" cy="512" r="55.74028" fill="url(#radial-gradient)" stroke="url(#linear-gradient1)" stroke-miterlimit="10" stroke-width="10"/>
+</svg>

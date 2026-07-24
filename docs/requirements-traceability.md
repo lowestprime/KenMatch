@@ -54,7 +54,7 @@ This file maps the stable product requirements from `KenMatch_Conception.md` to 
 ### Modern public-facing interface and theming
 - Responsive shell, compact sticky header, and visual system live in `src/components/site-shell.tsx` and `src/app/globals.css`.
 - Light and true-black OLED themes are implemented in `src/components/theme-toggle.tsx`, `src/app/layout.tsx`, and `src/app/globals.css`.
-- Product icon and favicon support are implemented through `src/components/kenmatch-mark.tsx`, `src/lib/brand-assets.ts`, and the route-backed icon/manifest handlers under `src/app/*/route.ts`.
+- Product icon and favicon support are implemented through the exact static assets in `public/`, `src/components/kenmatch-mark.tsx`, the single manifest handler at `src/app/manifest.webmanifest/route.ts`, and compatibility redirects for the legacy SVG endpoints.
 
 ### Account recovery, email verification, notifications, and admin operations
 - Email verification and forgot-password flows are implemented in `src/app/actions.ts`, `src/lib/db.ts`, `src/lib/mail.ts`, `src/app/forgot-password/page.tsx`, `src/app/reset/page.tsx`, and `src/app/verify/page.tsx`.

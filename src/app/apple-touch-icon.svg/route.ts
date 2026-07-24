@@ -1,9 +1,11 @@
-import { assetHeaders, kenmatchAppleIconSvg } from "@/lib/brand-assets";
-
-export const dynamic = "force-static";
+const target = "/apple-touch-icon.png?v=a4ef921360a0";
 
 export function GET() {
-  return new Response(kenmatchAppleIconSvg(), {
-    headers: assetHeaders("image/svg+xml; charset=utf-8"),
+  return new Response(null, {
+    status: 308,
+    headers: {
+      Location: target,
+      "Cache-Control": "public, max-age=0, must-revalidate",
+    },
   });
 }

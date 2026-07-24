@@ -30,7 +30,9 @@ const monoFont = JetBrains_Mono({
   weight: ["400", "500", "600"],
 });
 
-const shareImage = "/share-image.png";
+const assetVersion = "a4ef921360a0";
+const openGraphImage = `/og-image.png?v=${assetVersion}`;
+const twitterImage = `/share-image.png?v=${assetVersion}`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(env.KENMATCH_PUBLIC_ORIGIN ?? canonicalOrigin),
@@ -55,16 +57,16 @@ export const metadata: Metadata = {
   creator: "KenMatch Owner",
   icons: {
     icon: [
-      { url: "/icon-dark.svg", type: "image/svg+xml", sizes: "any" },
-      { url: "/favicon.ico", type: "image/x-icon", sizes: "32x32" },
-      { url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
-      { url: "/favicon-96x96.png", type: "image/png", sizes: "96x96" },
+      { url: `/icon-dark.svg?v=${assetVersion}`, type: "image/svg+xml", sizes: "any" },
+      { url: `/favicon.ico?v=${assetVersion}`, type: "image/x-icon", sizes: "32x32" },
+      { url: `/favicon-32x32.png?v=${assetVersion}`, type: "image/png", sizes: "32x32" },
+      { url: `/favicon-96x96.png?v=${assetVersion}`, type: "image/png", sizes: "96x96" },
     ],
-    shortcut: [{ url: "/favicon.ico", type: "image/x-icon" }],
-    apple: [{ url: "/apple-touch-icon.png", type: "image/png", sizes: "180x180" }],
+    shortcut: [{ url: `/favicon.ico?v=${assetVersion}`, type: "image/x-icon" }],
+    apple: [{ url: `/apple-touch-icon.png?v=${assetVersion}`, type: "image/png", sizes: "180x180" }],
   },
   alternates: { canonical: canonicalOrigin },
-  manifest: "/manifest.webmanifest",
+  manifest: `/manifest.webmanifest?v=${assetVersion}`,
   openGraph: {
     title: "KenMatch: Rank sustained AI work",
     description:
@@ -72,13 +74,13 @@ export const metadata: Metadata = {
     siteName: "KenMatch",
     type: "website",
     url: canonicalOrigin,
-    images: [{ url: shareImage, width: 1200, height: 630, alt: "KenMatch public board preview" }],
+    images: [{ url: openGraphImage, width: 2400, height: 1199, alt: "KenMatch public board preview" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "KenMatch: Rank sustained AI work",
     description: "Public ranking for sustained AI-assisted work, checkpoints, and transparent frontier compute allocation.",
-    images: [shareImage],
+    images: [twitterImage],
   },
   appleWebApp: {
     capable: true,

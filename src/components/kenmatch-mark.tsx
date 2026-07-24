@@ -41,8 +41,8 @@ export function KenMatchMark({
         .kenmatch-mark-dark .kenmatch-mark-image-dark,
         .kenmatch-mark-oled .kenmatch-mark-image-dark{display:block;}
       `}</style>
-      <img className="kenmatch-mark-image kenmatch-mark-image-light" src="/icon-light.svg" alt="" draggable={false} decoding="async" />
-      <img className="kenmatch-mark-image kenmatch-mark-image-dark" src="/icon-dark.svg" alt="" draggable={false} decoding="async" />
+      <img className="kenmatch-mark-image kenmatch-mark-image-light" src="/icon-light.svg?v=a4ef921360a0" alt="" draggable={false} decoding="async" />
+      <img className="kenmatch-mark-image kenmatch-mark-image-dark" src="/icon-dark.svg?v=a4ef921360a0" alt="" draggable={false} decoding="async" />
     </span>
   );
 }
