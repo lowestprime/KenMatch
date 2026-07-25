@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-labelledby="title desc" focusable="false" shape-rendering="geometricPrecision">
+  <title id="title">KenMatch Fallback Prism category icon — light</title>
+  <desc id="desc">A faceted prism representing a stable, extensible fallback identity for future categories.</desc>
+  <defs>
+    <linearGradient id="brand" x1="11" y1="85" x2="85" y2="11" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#1d4ed8"/>
+    <stop offset=".25" stop-color="#4c1d95"/>
+    <stop offset=".5" stop-color="#b08d1a"/>
+    <stop offset=".75" stop-color="#991b1b"/>
+    <stop offset="1" stop-color="#6d28d9"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="30" y1="67" x2="68" y2="29" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4c1d95"/>
+      <stop offset=".54" stop-color="#b08d1a"/>
+      <stop offset="1" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <radialGradient id="aura" cx="50%" cy="44%" r="58%">
+      <stop offset="0" stop-color="#b08d1a" stop-opacity=".18"/>
+      <stop offset=".58" stop-color="#4c1d95" stop-opacity=".07"/>
+      <stop offset="1" stop-color="#1d4ed8" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="core" cx="38%" cy="32%" r="72%">
+      <stop offset="0" stop-color="#000000"/>
+      <stop offset=".44" stop-color="#000000"/>
+      <stop offset=".72" stop-color="#8a8a8a"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </radialGradient>
+  </defs>
+  <style>
+    .surface{fill:#ffffff}
+    .ring{fill:none;stroke:url(#brand);stroke-width:2.8}
+    .aura{fill:url(#aura)}
+    .glyph{fill:none;stroke:#050505;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    .accent{fill:none;stroke:url(#accent);stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+    .micro{fill:url(#accent);stroke:#ffffff;stroke-width:1.5}
+    .core{fill:url(#core);stroke:url(#accent);stroke-width:1.8}
+  </style>
+  <rect class="surface" x="8.5" y="8.5" width="79" height="79" rx="24"/>
+  <rect class="ring" x="9.4" y="9.4" width="77.2" height="77.2" rx="23.1"/>
+  <circle class="aura" cx="48" cy="48" r="27"/>
+  <g aria-hidden="true">
+
+  <path class="glyph" d="M48 26l21 12v23L48 73L27 61V38z"/>
+  <path class="glyph" d="M48 26v47M27 38l21 12l21-12M27 61l21-11l21 11"/>
+  <path class="accent" d="M37 43l11 7l11-7M37 57l11-7l11 7"/>
+  </g>
+  <circle class="core" cx="48" cy="50" r="3.7"/>
+</svg>

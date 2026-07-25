@@ -3391,10 +3391,21 @@ body.mobile-nav-open { overflow: hidden; }
 }
 
 .category-symbol {
+  --symbol-surface: color-mix(in srgb, #000000 94%, var(--symbol-background));
+  --symbol-ink: #ffffff;
+  --symbol-core-start: #ffffff;
+  --symbol-core-end: #000000;
   width: 100%;
   height: auto;
   overflow: visible;
-  filter: drop-shadow(0 14px 30px color-mix(in srgb, var(--symbol-secondary) 18%, transparent));
+  filter: drop-shadow(0 10px 24px color-mix(in srgb, var(--symbol-secondary) 14%, transparent));
+}
+
+html[data-theme="light"] .category-symbol {
+  --symbol-surface: color-mix(in srgb, #ffffff 96%, var(--symbol-background));
+  --symbol-ink: #050505;
+  --symbol-core-start: #000000;
+  --symbol-core-end: #ffffff;
 }
 
 .category-symbol-inline {
@@ -3402,51 +3413,119 @@ body.mobile-nav-open { overflow: hidden; }
   flex: none;
 }
 
-.category-symbol-shell {
-  fill: color-mix(in srgb, var(--symbol-background) 94%, transparent);
-  stroke: color-mix(in srgb, var(--symbol-primary) 42%, var(--line));
-  stroke-width: 2.4;
+.category-symbol-surface {
+  fill: var(--symbol-surface);
 }
 
-.category-symbol-horizon {
+.category-symbol-ring,
+.category-symbol-glyph,
+.category-symbol-accent,
+.category-symbol-status-ring,
+.category-symbol-status-mark {
   fill: none;
-  stroke: color-mix(in srgb, var(--symbol-secondary) 42%, transparent);
-  stroke-width: 2;
-  stroke-linecap: round;
-}
-
-.category-symbol-motif,
-.category-symbol-status,
-.category-symbol-lane {
-  fill: none;
-  stroke: var(--symbol-primary);
-  stroke-width: 4.2;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
-.category-symbol-motif rect {
-  fill: color-mix(in srgb, var(--symbol-glow) 48%, transparent);
-}
-
-.category-symbol-status circle {
-  fill: color-mix(in srgb, #000 72%, var(--symbol-glow));
-  stroke: var(--symbol-secondary);
+.category-symbol-ring {
   stroke-width: 2.8;
 }
 
-.category-symbol-status path {
-  stroke: var(--symbol-secondary);
-  stroke-width: 3.6;
+
+
+.category-symbol-aura {
+  opacity: 0.9;
 }
 
-.category-symbol-lane {
-  stroke: var(--symbol-secondary);
-  opacity: 0.82;
+.category-symbol-glyph {
+  stroke: var(--symbol-ink);
+  stroke-width: 3;
 }
 
-.category-symbol.is-blocked .category-symbol-shell {
-  stroke: color-mix(in srgb, var(--danger) 58%, var(--line));
+.category-symbol-accent {
+  stroke-width: 1.9;
+}
+
+.category-symbol-micro {
+  stroke: var(--symbol-surface);
+  stroke-width: 1.5;
+}
+
+.category-symbol-jewel {
+  stroke-width: 1.8;
+}
+
+.category-symbol-tier-segment {
+  fill: color-mix(in srgb, var(--symbol-ink) 16%, transparent);
+}
+
+.category-symbol-tier-segment.is-active {
+  opacity: 0.94;
+}
+
+.category-symbol-status-surface {
+  fill: var(--symbol-surface);
+  stroke: color-mix(in srgb, var(--symbol-ink) 18%, transparent);
+  stroke-width: 0.9;
+}
+
+.category-symbol-status-ring {
+  stroke-width: 1.6;
+}
+
+.category-symbol-status-mark {
+  stroke: var(--symbol-ink);
+  stroke-width: 2;
+}
+
+.category-symbol.is-blocked .category-symbol-status-ring,
+.category-symbol.is-blocked .category-symbol-status-mark {
+  stroke: var(--danger);
+}
+
+.category-symbol.is-blocked .category-symbol-tier-segment.is-active {
+  fill: var(--danger);
+}
+
+.category-symbol-inline .category-symbol-tier,
+.category-symbol-inline .category-symbol-status {
+  display: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .task-card:hover .category-symbol,
+  .task-card:focus-within .category-symbol {
+    transform: translateY(-1px);
+    filter: drop-shadow(0 14px 28px color-mix(in srgb, var(--symbol-secondary) 18%, transparent));
+    transition: transform 160ms ease, filter 160ms ease;
+  }
+}
+
+@media (forced-colors: active) {
+  .category-symbol {
+    filter: none;
+  }
+
+  .category-symbol-surface,
+  .category-symbol-status-surface {
+    fill: Canvas;
+  }
+
+  .category-symbol-ring,
+  .category-symbol-glyph,
+  .category-symbol-accent,
+  .category-symbol-jewel,
+  .category-symbol-status-ring,
+  .category-symbol-status-mark {
+    stroke: CanvasText;
+  }
+
+  .category-symbol-micro,
+  .category-symbol-tier-segment,
+  .category-symbol-tier-segment.is-active {
+    fill: CanvasText;
+    stroke: Canvas;
+  }
 }
 
 .ken-symbol-copy {

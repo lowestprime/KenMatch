@@ -38,6 +38,8 @@
   - Role-gated operations portal for visitors, notifications, verifications, roles, moderation, and audit log review.
 - `public/icon-light.svg`, `public/icon-dark.svg`, `public/*icon*.png`, `src/app/manifest.webmanifest/route.ts`, and the compatibility redirects under `src/app/icon.svg/` and `src/app/apple-touch-icon.svg/`
   - Exact static production icons and previews, one manifest implementation, and redirects that prevent legacy icon URLs from serving a stale second design.
+- `src/components/ken-visual.tsx`, `src/lib/taxonomy.ts`, and `public/category-icons/{dark,light}/*.svg`
+  - The live, theme-aware Ken category identity v2 renderer plus exact static dark/light reference exports, sharing the production spectrum perimeter and radial jewel while preserving dynamic category, stage, tier, and database-override semantics.
 - `src/app/tasks/*`
   - Redirect layer for legacy URLs.
 - `src/app/api/health/route.ts`
