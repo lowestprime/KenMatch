@@ -22,7 +22,7 @@ export function AdminVisitors({ visitors, stats }: { visitors: VisitorRecord[]; 
       </div>
       <div className="admin-table" role="table" aria-label="Unique visitors">
         <div className="admin-table-row is-header" role="row">
-          <span role="columnheader">Region</span>
+          <span role="columnheader">Country</span>
           <span role="columnheader">Views</span>
           <span role="columnheader">Account</span>
           <span role="columnheader">Last seen</span>
@@ -31,7 +31,7 @@ export function AdminVisitors({ visitors, stats }: { visitors: VisitorRecord[]; 
           <div key={visitor.id} className="admin-table-row" role="row">
             <span role="cell">
               <strong>{visitor.countryName ?? "Unknown"}</strong>
-              <small>{[visitor.city, visitor.region].filter(Boolean).join(", ") || "Approximate region unavailable"}</small>
+              <small>{visitor.countryCode ?? "Country unavailable"}</small>
             </span>
             <span role="cell">{visitor.pageViews}</span>
             <span role="cell">{visitor.accountCreated ? "Yes" : "No"}</span>
@@ -40,7 +40,7 @@ export function AdminVisitors({ visitors, stats }: { visitors: VisitorRecord[]; 
         ))}
       </div>
       <p className="text-xs" style={{ color: "var(--muted)" }}>
-        Showing the latest {visitors.length} visitors. Raw visitor hashes are intentionally not shown; this table is for operational awareness, not personal tracking.
+        Showing the latest {visitors.length} privacy-preserving visitor records. Only country-level geography is retained; this table is for operational awareness, not personal tracking.
       </p>
     </div>
   );

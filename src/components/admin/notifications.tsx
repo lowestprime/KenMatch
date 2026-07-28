@@ -43,7 +43,7 @@ export function AdminNotifications({
         />
         <ToggleRow
           name="notifyOnFirstVisit"
-          label="Email on first visit from a new unique IP"
+          label="Email on first visit from a new salted visitor signature"
           defaultChecked={settings.notifyOnFirstVisit}
         />
         <ToggleRow

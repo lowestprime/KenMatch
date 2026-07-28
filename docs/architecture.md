@@ -39,7 +39,7 @@
 - `src/app/verification/page.tsx`
   - Public identity-verification criteria and participation guidance.
 - `src/app/admin/page.tsx`
-  - Role-gated operations portal for visitors, notifications, verifications, roles, moderation, and audit log review.
+  - Role-gated operations portal for visitors, privacy-safe historical analytics, notification health, verifications, roles, moderation, and audit log review.
 - `public/icon-light.svg`, `public/icon-dark.svg`, `public/*icon*.png`, `src/app/manifest.webmanifest/route.ts`, and the compatibility redirects under `src/app/icon.svg/` and `src/app/apple-touch-icon.svg/`
   - Exact static production icons and previews, one manifest implementation, and redirects that prevent legacy icon URLs from serving a stale second design.
 - `src/components/ken-visual.tsx`, `src/lib/taxonomy.ts`, and `public/category-icons/{dark,light}/*.svg`
@@ -80,6 +80,8 @@ The main data logic lives in `src/lib/db.ts`.
 - email_tokens
 - bookmarks
 - visitors
+- visitor_daily_activity
+- notification_delivery_events
 - site_settings
 - audit_log
 - request_rate_limits
@@ -98,8 +100,10 @@ The main data logic lives in `src/lib/db.ts`.
 - `sponsorship_commitments` tracks projected, simulated, checkout-pending, and paid funding states separately from the immutable treasury ledger.
 - `profile_attestations` separates standing, review status, and sybil-risk signals from profile copy, while `src/lib/attestation.ts` converts that state into participation limits and voice caps.
 - `email_tokens` powers email verification and password reset links.
-- `visitors`, `site_settings`, and `audit_log` support owner/admin operations, visitor mapping, notification settings, online About-page editing, and durable audit trails.
-- `request_rate_limits` and `security_events` keep public-host abuse controls durable across restarts and deploys.
+- `visitors` retains the purpose-salted lifetime visitor signature and country-level state; `visitor_daily_activity` provides bounded daily aggregate history without raw IP, user-agent, or precise geography.
+- `notification_delivery_events` stores delivery outcome, transport source, purpose, recipient count, and time without recipients, subjects, or message content.
+- `site_settings` and `audit_log` support notification settings, online About-page editing, and durable redacted audit trails.
+- `request_rate_limits` and `security_events` keep public-host abuse controls durable across restarts and deploys using purpose-scoped salted network hashes rather than raw IP addresses.
 
 ## UI system
 
@@ -148,8 +152,10 @@ Admin audit history is fetched with `listAuditLogPage` in `src/lib/db.ts`. Filte
   - Owner-only online About / Contact editor.
 - `src/components/admin/*`
   - Admin and owner management surfaces.
+- `src/components/admin/historical-analytics.tsx`
+  - Owner/admin-only server-rendered traffic, account, country, and notification trends with equal previous-period comparisons and semantic table equivalents.
 - `src/components/visitor-map.tsx`
-  - Anonymized visitor geography display based on persisted Cloudflare request headers.
+  - Anonymized country-level visitor geography display based on Cloudflare country headers and deterministic country centroids.
 - `src/components/sponsor-form.tsx`
   - Public sponsorship intake with general, category, Ken, or safety-reserve restriction options.
 - `src/components/turnstile-widget.tsx`

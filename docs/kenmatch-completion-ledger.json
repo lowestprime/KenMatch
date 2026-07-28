@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-07-28T09:59:27.783Z",
+  "generated_at": "2026-07-28T10:46:49.514Z",
   "generator": "scripts/generate-completion-ledger.mjs",
   "repository": {
     "path": ".",
@@ -268,7 +268,7 @@
       "path": "PLANS.md",
       "line_count": 574,
       "heading_count": 44,
-      "sha256": "efd10b53666bcc7c7819c6204138b7995a8a2df4d77b2e9536803d7b4b530e6c",
+      "sha256": "25c45c06a6c6e91356188f57b01a8790e726f7644fd514175143a8629ea653ee",
       "extracted_requirements": 4,
       "historical_claims": 0,
       "reference_constraints": 0,
@@ -305,11 +305,11 @@
       "name": "docs/architecture.md",
       "authority": "current-repository",
       "path": "docs/architecture.md",
-      "line_count": 186,
+      "line_count": 192,
       "heading_count": 13,
-      "sha256": "6d540c323d15a34983867c3916ea57bd9782eeaf1d998f72cd611f016acd91f4",
+      "sha256": "a931d206d89f8e7b27079c9fcaa6f8c3fcb916a180f17cd2af8df8c4ec46be2c",
       "extracted_requirements": 0,
-      "historical_claims": 59,
+      "historical_claims": 62,
       "reference_constraints": 0,
       "status": "scanned",
       "note": ""
@@ -318,10 +318,10 @@
       "name": "docs/requirements-traceability.md",
       "authority": "current-repository",
       "path": "docs/requirements-traceability.md",
-      "line_count": 115,
+      "line_count": 118,
       "heading_count": 24,
-      "sha256": "1c11022cb12eddc00aacac9ca654c3660bb744ceb6f7db458a337382e1597421",
-      "extracted_requirements": 54,
+      "sha256": "c7f8694f4d6ffd39ed29fc0dbf2800c1ed9d95b509a57109000f24ed3e060154",
+      "extracted_requirements": 57,
       "historical_claims": 0,
       "reference_constraints": 0,
       "status": "scanned",
@@ -368,16 +368,16 @@
     }
   ],
   "summary": {
-    "candidate_requirements_extracted": 590,
-    "canonical_requirements": 501,
+    "candidate_requirements_extracted": 593,
+    "canonical_requirements": 504,
     "duplicate_backlinks_preserved": 89,
-    "source_claims": 199,
+    "source_claims": 202,
     "reference_constraints": 168,
     "status_counts": {
-      "IMPLEMENTED_UNVALIDATED": 231,
+      "IMPLEMENTED_UNVALIDATED": 236,
       "NOT_AUDITED": 253,
       "PARTIAL": 12,
-      "MISSING": 5
+      "MISSING": 3
     },
     "initial_gap_analysis": [
       {
@@ -482,15 +482,20 @@
         "src/app/faq/page.tsx:1",
         "src/components/visitor-map.tsx:1",
         "src/components/admin/visitors.tsx:1",
+        "src/components/admin/historical-analytics.tsx:1",
+        "src/lib/admin-analytics.ts:1",
         "src/lib/visitor.ts:1",
         "src/lib/db.ts:1",
+        "docs/admin-historical-analytics.md:1",
         "src/app/globals.css:1",
         "src/components/theme-toggle.tsx:1",
         "src/components/site-shell.tsx:1"
       ],
       "current_test_evidence": [
         "tests/test-auth.test.ts:1",
-        "tests/faq-contact.test.ts:1"
+        "tests/faq-contact.test.ts:1",
+        "tests/admin-analytics.test.ts:1",
+        "tests/privacy.test.ts:1"
       ],
       "current_live_evidence": [],
       "status": "IMPLEMENTED_UNVALIDATED",
@@ -517,7 +522,9 @@
       ],
       "test_ids": [
         "test-auth.test.ts",
-        "faq-contact.test.ts"
+        "faq-contact.test.ts",
+        "admin-analytics.test.ts",
+        "privacy.test.ts"
       ],
       "commits": [],
       "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
@@ -655,15 +662,20 @@
         "src/app/faq/page.tsx:1",
         "src/components/visitor-map.tsx:1",
         "src/components/admin/visitors.tsx:1",
+        "src/components/admin/historical-analytics.tsx:1",
+        "src/lib/admin-analytics.ts:1",
         "src/lib/visitor.ts:1",
         "src/lib/db.ts:1",
+        "docs/admin-historical-analytics.md:1",
         "src/app/globals.css:1",
         "src/components/theme-toggle.tsx:1",
         "src/components/site-shell.tsx:1"
       ],
       "current_test_evidence": [
         "tests/test-auth.test.ts:1",
-        "tests/faq-contact.test.ts:1"
+        "tests/faq-contact.test.ts:1",
+        "tests/admin-analytics.test.ts:1",
+        "tests/privacy.test.ts:1"
       ],
       "current_live_evidence": [],
       "status": "IMPLEMENTED_UNVALIDATED",
@@ -694,7 +706,9 @@
       ],
       "test_ids": [
         "test-auth.test.ts",
-        "faq-contact.test.ts"
+        "faq-contact.test.ts",
+        "admin-analytics.test.ts",
+        "privacy.test.ts"
       ],
       "commits": [],
       "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
@@ -735,7 +749,10 @@
         "docs/ranking-discovery.md:1",
         "src/components/visitor-map.tsx:1",
         "src/components/admin/visitors.tsx:1",
+        "src/components/admin/historical-analytics.tsx:1",
+        "src/lib/admin-analytics.ts:1",
         "src/lib/visitor.ts:1",
+        "docs/admin-historical-analytics.md:1",
         "src/lib/economics.ts:1",
         "src/app/economics/page.tsx:1",
         "src/components/sponsor-form.tsx:1",
@@ -750,6 +767,8 @@
         "tests/allocation.test.ts:1",
         "tests/attestation.test.ts:1",
         "tests/discovery.test.ts:1",
+        "tests/admin-analytics.test.ts:1",
+        "tests/privacy.test.ts:1",
         "tests/economics.test.ts:1"
       ],
       "current_live_evidence": [],
@@ -767,6 +786,8 @@
         "allocation.test.ts",
         "attestation.test.ts",
         "discovery.test.ts",
+        "admin-analytics.test.ts",
+        "privacy.test.ts",
         "economics.test.ts"
       ],
       "commits": [],
@@ -799,15 +820,20 @@
         "src/app/faq/page.tsx:1",
         "src/components/visitor-map.tsx:1",
         "src/components/admin/visitors.tsx:1",
+        "src/components/admin/historical-analytics.tsx:1",
+        "src/lib/admin-analytics.ts:1",
         "src/lib/visitor.ts:1",
         "src/lib/db.ts:1",
+        "docs/admin-historical-analytics.md:1",
         "src/app/globals.css:1",
         "src/components/theme-toggle.tsx:1",
         "src/components/site-shell.tsx:1"
       ],
       "current_test_evidence": [
         "tests/test-auth.test.ts:1",
-        "tests/faq-contact.test.ts:1"
+        "tests/faq-contact.test.ts:1",
+        "tests/admin-analytics.test.ts:1",
+        "tests/privacy.test.ts:1"
       ],
       "current_live_evidence": [],
       "status": "IMPLEMENTED_UNVALIDATED",
@@ -825,7 +851,9 @@
       ],
       "test_ids": [
         "test-auth.test.ts",
-        "faq-contact.test.ts"
+        "faq-contact.test.ts",
+        "admin-analytics.test.ts",
+        "privacy.test.ts"
       ],
       "commits": [],
       "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
@@ -953,8 +981,11 @@
         "docs/intake-review-operations.md:1",
         "src/components/visitor-map.tsx:1",
         "src/components/admin/visitors.tsx:1",
+        "src/components/admin/historical-analytics.tsx:1",
+        "src/lib/admin-analytics.ts:1",
         "src/lib/visitor.ts:1",
         "src/lib/db.ts:1",
+        "docs/admin-historical-analytics.md:1",
         "src/app/globals.css:1",
         "src/components/theme-toggle.tsx:1",
         "src/components/site-shell.tsx:1"
@@ -963,7 +994,9 @@
         "tests/test-auth.test.ts:1",
         "tests/faq-contact.test.ts:1",
         "tests/intake-review.test.ts:1",
-        "tests/review-database-contract.test.ts:1"
+        "tests/review-database-contract.test.ts:1",
+        "tests/admin-analytics.test.ts:1",
+        "tests/privacy.test.ts:1"
       ],
       "current_live_evidence": [],
       "status": "IMPLEMENTED_UNVALIDATED",
@@ -978,7 +1011,9 @@
         "test-auth.test.ts",
         "faq-contact.test.ts",
         "intake-review.test.ts",
-        "review-database-contract.test.ts"
+        "review-database-contract.test.ts",
+        "admin-analytics.test.ts",
+        "privacy.test.ts"
       ],
       "commits": [],
       "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
@@ -2185,28 +2220,35 @@
       "current_code_evidence": [
         "src/components/visitor-map.tsx:1",
         "src/components/admin/visitors.tsx:1",
+        "src/components/admin/historical-analytics.tsx:1",
+        "src/lib/admin-analytics.ts:1",
         "src/lib/visitor.ts:1",
         "src/lib/db.ts:1",
+        "docs/admin-historical-analytics.md:1",
         "src/proxy.ts:1",
         "src/lib/security.ts:1",
         "src/lib/session.ts:1",
         "src/app/api/stripe/webhook/route.ts:1"
       ],
       "current_test_evidence": [
+        "tests/admin-analytics.test.ts:1",
+        "tests/privacy.test.ts:1",
         "tests/test-auth.test.ts:1"
       ],
       "current_live_evidence": [],
-      "status": "MISSING",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under G-ANALYTICS.",
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
       "test_ids": [
+        "admin-analytics.test.ts",
+        "privacy.test.ts",
         "test-auth.test.ts"
       ],
       "commits": [],
-      "notes": "Initial gap audit found no implementation matching the required capability.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "G-ANALYTICS",
       "source_backlinks": [
         {
@@ -2220,7 +2262,7 @@
     {
       "id": "REQ-19DD1C9762CB",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 114; Treasury integrations",
+      "source_line_or_section": "line 117; Treasury integrations",
       "normalized_requirement": "Ensure the economics layer is production-shaped but still partly demo-backed because simulated runway remains part of the seeded public ledger.",
       "exact_short_excerpt": "The economics layer is production-shaped but still partly demo-backed because simulated runway remains part of the seeded public ledger.",
       "priority": "P0",
@@ -2251,7 +2293,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 114; Treasury integrations",
+          "source_line_or_section": "line 117; Treasury integrations",
           "authority": "current-repository"
         }
       ]
@@ -2471,7 +2513,7 @@
     {
       "id": "REQ-02263810873D",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 100; Public deployment and self-hosting readiness",
+      "source_line_or_section": "line 103; Public deployment and self-hosting readiness",
       "normalized_requirement": "Ensure synology-specific public-hosting guidance and hardening checklists live in docs/synology-nas-deploy.md and docs/public-security-hardening.md .",
       "exact_short_excerpt": "Synology-specific public-hosting guidance and hardening checklists live in docs/synology-nas-deploy.md and docs/public-security-hardening.md .",
       "priority": "P0",
@@ -2502,7 +2544,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 100; Public deployment and self-hosting readiness",
+          "source_line_or_section": "line 103; Public deployment and self-hosting readiness",
           "authority": "current-repository"
         }
       ]
@@ -3096,7 +3138,7 @@
     {
       "id": "REQ-132588D61B11",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 101; Public deployment and self-hosting readiness",
+      "source_line_or_section": "line 104; Public deployment and self-hosting readiness",
       "normalized_requirement": "Ensure synology NAS deployment instructions live in docs/synology-nas-deploy.md .",
       "exact_short_excerpt": "Synology NAS deployment instructions live in docs/synology-nas-deploy.md .",
       "priority": "P0",
@@ -3118,7 +3160,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 101; Public deployment and self-hosting readiness",
+          "source_line_or_section": "line 104; Public deployment and self-hosting readiness",
           "authority": "current-repository"
         }
       ]
@@ -3353,7 +3395,7 @@
     {
       "id": "REQ-CD72AF0E2CD5",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 97; Public deployment and self-hosting readiness",
+      "source_line_or_section": "line 100; Public deployment and self-hosting readiness",
       "normalized_requirement": "Ensure docker deployment lives in Dockerfile and docker-compose.synology.yml .",
       "exact_short_excerpt": "Docker deployment lives in Dockerfile and docker-compose.synology.yml .",
       "priority": "P0",
@@ -3375,7 +3417,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 97; Public deployment and self-hosting readiness",
+          "source_line_or_section": "line 100; Public deployment and self-hosting readiness",
           "authority": "current-repository"
         }
       ]
@@ -7568,15 +7610,21 @@
       "current_code_evidence": [
         "src/components/visitor-map.tsx:1",
         "src/components/admin/visitors.tsx:1",
+        "src/components/admin/historical-analytics.tsx:1",
+        "src/lib/admin-analytics.ts:1",
         "src/lib/visitor.ts:1",
         "src/lib/db.ts:1",
+        "docs/admin-historical-analytics.md:1",
         "src/app/globals.css:1",
         "src/components/theme-toggle.tsx:1",
         "src/components/site-shell.tsx:1"
       ],
-      "current_test_evidence": [],
+      "current_test_evidence": [
+        "tests/admin-analytics.test.ts:1",
+        "tests/privacy.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "MISSING",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under F-VISUAL-UX.",
       "acceptance_criteria": [
@@ -7599,9 +7647,12 @@
         "add indexes as needed;",
         "use accessible table equivalents and text summaries for charts."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "admin-analytics.test.ts",
+        "privacy.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial gap audit found no implementation matching the required capability.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "F-VISUAL-UX",
       "source_backlinks": [
         {
@@ -7623,10 +7674,16 @@
       "current_code_evidence": [
         "src/components/visitor-map.tsx:1",
         "src/components/admin/visitors.tsx:1",
+        "src/components/admin/historical-analytics.tsx:1",
+        "src/lib/admin-analytics.ts:1",
         "src/lib/visitor.ts:1",
-        "src/lib/db.ts:1"
+        "src/lib/db.ts:1",
+        "docs/admin-historical-analytics.md:1"
       ],
-      "current_test_evidence": [],
+      "current_test_evidence": [
+        "tests/admin-analytics.test.ts:1",
+        "tests/privacy.test.ts:1"
+      ],
       "current_live_evidence": [],
       "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
@@ -7634,7 +7691,10 @@
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "admin-analytics.test.ts",
+        "privacy.test.ts"
+      ],
       "commits": [],
       "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "G-ANALYTICS",
@@ -7662,13 +7722,18 @@
         "src/lib/db.ts:1",
         "src/components/visitor-map.tsx:1",
         "src/components/admin/visitors.tsx:1",
+        "src/components/admin/historical-analytics.tsx:1",
+        "src/lib/admin-analytics.ts:1",
         "src/lib/visitor.ts:1",
+        "docs/admin-historical-analytics.md:1",
         "src/lib/economics.ts:1",
         "src/app/economics/page.tsx:1",
         "src/components/sponsor-form.tsx:1"
       ],
       "current_test_evidence": [
         "tests/faq-contact.test.ts:1",
+        "tests/admin-analytics.test.ts:1",
+        "tests/privacy.test.ts:1",
         "tests/economics.test.ts:1"
       ],
       "current_live_evidence": [],
@@ -7680,6 +7745,8 @@
       ],
       "test_ids": [
         "faq-contact.test.ts",
+        "admin-analytics.test.ts",
+        "privacy.test.ts",
         "economics.test.ts"
       ],
       "commits": [],
@@ -7705,10 +7772,16 @@
       "current_code_evidence": [
         "src/components/visitor-map.tsx:1",
         "src/components/admin/visitors.tsx:1",
+        "src/components/admin/historical-analytics.tsx:1",
+        "src/lib/admin-analytics.ts:1",
         "src/lib/visitor.ts:1",
-        "src/lib/db.ts:1"
+        "src/lib/db.ts:1",
+        "docs/admin-historical-analytics.md:1"
       ],
-      "current_test_evidence": [],
+      "current_test_evidence": [
+        "tests/admin-analytics.test.ts:1",
+        "tests/privacy.test.ts:1"
+      ],
       "current_live_evidence": [],
       "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
@@ -7716,7 +7789,10 @@
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "admin-analytics.test.ts",
+        "privacy.test.ts"
+      ],
       "commits": [],
       "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "G-ANALYTICS",
@@ -14547,12 +14623,17 @@
         "docs/lifecycle-graphical-abstract.md:1",
         "src/components/visitor-map.tsx:1",
         "src/components/admin/visitors.tsx:1",
+        "src/components/admin/historical-analytics.tsx:1",
+        "src/lib/admin-analytics.ts:1",
         "src/lib/visitor.ts:1",
-        "src/lib/db.ts:1"
+        "src/lib/db.ts:1",
+        "docs/admin-historical-analytics.md:1"
       ],
       "current_test_evidence": [
         "tests/allocation.test.ts:1",
-        "tests/lifecycle-policy.test.ts:1"
+        "tests/lifecycle-policy.test.ts:1",
+        "tests/admin-analytics.test.ts:1",
+        "tests/privacy.test.ts:1"
       ],
       "current_live_evidence": [],
       "status": "IMPLEMENTED_UNVALIDATED",
@@ -14563,7 +14644,9 @@
       ],
       "test_ids": [
         "allocation.test.ts",
-        "lifecycle-policy.test.ts"
+        "lifecycle-policy.test.ts",
+        "admin-analytics.test.ts",
+        "privacy.test.ts"
       ],
       "commits": [],
       "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
@@ -14873,10 +14956,16 @@
       "current_code_evidence": [
         "src/components/visitor-map.tsx:1",
         "src/components/admin/visitors.tsx:1",
+        "src/components/admin/historical-analytics.tsx:1",
+        "src/lib/admin-analytics.ts:1",
         "src/lib/visitor.ts:1",
-        "src/lib/db.ts:1"
+        "src/lib/db.ts:1",
+        "docs/admin-historical-analytics.md:1"
       ],
-      "current_test_evidence": [],
+      "current_test_evidence": [
+        "tests/admin-analytics.test.ts:1",
+        "tests/privacy.test.ts:1"
+      ],
       "current_live_evidence": [],
       "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
@@ -14884,7 +14973,10 @@
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "admin-analytics.test.ts",
+        "privacy.test.ts"
+      ],
       "commits": [],
       "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "G-ANALYTICS",
@@ -14898,9 +14990,53 @@
       ]
     },
     {
+      "id": "REQ-2F5EC7606D5D",
+      "source_file": "docs/requirements-traceability.md",
+      "source_line_or_section": "line 94; Visitor telemetry and persistence resilience",
+      "normalized_requirement": "Ensure src/components/admin/historical-analytics.tsx renders dependency-free accessible SVG figures plus complete semantic table equivalents. It is queried only after the owner/admin role gate and is not exposed through a public endpoint.",
+      "exact_short_excerpt": "src/components/admin/historical-analytics.tsx renders dependency-free accessible SVG figures plus complete semantic table equivalents. It is queried only after the owner/admin role gate and is not exposed through a public endpoint.",
+      "priority": "P2",
+      "risk": "medium",
+      "current_code_evidence": [
+        "src/components/visitor-map.tsx:1",
+        "src/components/admin/visitors.tsx:1",
+        "src/components/admin/historical-analytics.tsx:1",
+        "src/lib/admin-analytics.ts:1",
+        "src/lib/visitor.ts:1",
+        "src/lib/db.ts:1",
+        "docs/admin-historical-analytics.md:1"
+      ],
+      "current_test_evidence": [
+        "tests/admin-analytics.test.ts:1",
+        "tests/privacy.test.ts:1"
+      ],
+      "current_live_evidence": [],
+      "status": "IMPLEMENTED_UNVALIDATED",
+      "superseded_by": null,
+      "implementation_plan": "Audit and implement under G-ANALYTICS.",
+      "acceptance_criteria": [
+        "The requirement is implemented or dispositioned with reproducible current evidence."
+      ],
+      "test_ids": [
+        "admin-analytics.test.ts",
+        "privacy.test.ts"
+      ],
+      "commits": [],
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
+      "workstream": "G-ANALYTICS",
+      "source_backlinks": [
+        {
+          "source_file": "docs/requirements-traceability.md",
+          "source_path": "docs/requirements-traceability.md",
+          "source_line_or_section": "line 94; Visitor telemetry and persistence resilience",
+          "authority": "current-repository"
+        }
+      ]
+    },
+    {
       "id": "REQ-3C4856E22183",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 93; Visitor telemetry and persistence resilience",
+      "source_line_or_section": "line 96; Visitor telemetry and persistence resilience",
       "normalized_requirement": "Ensure synology persistence and recovery steps are documented in docs/synology-nas-deploy.md ; live writes are stored outside the container image in the mounted data/ directory.",
       "exact_short_excerpt": "Synology persistence and recovery steps are documented in docs/synology-nas-deploy.md ; live writes are stored outside the container image in the mounted data/ directory.",
       "priority": "P2",
@@ -14922,7 +15058,95 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
+          "source_line_or_section": "line 96; Visitor telemetry and persistence resilience",
+          "authority": "current-repository"
+        }
+      ]
+    },
+    {
+      "id": "REQ-574F77A964C2",
+      "source_file": "docs/requirements-traceability.md",
+      "source_line_or_section": "line 93; Visitor telemetry and persistence resilience",
+      "normalized_requirement": "Ensure visitor daily activity and notification delivery events provide 400-day bounded history for traffic, accounts, country distribution, and delivery health. src/lib/db.ts performs server-side bucketing and equal previous-period comparisons.",
+      "exact_short_excerpt": "visitor daily activity and notification delivery events provide 400-day bounded history for traffic, accounts, country distribution, and delivery health. src/lib/db.ts performs server-side bucketing and equal previous-period comparisons.",
+      "priority": "P2",
+      "risk": "low",
+      "current_code_evidence": [
+        "src/components/visitor-map.tsx:1",
+        "src/components/admin/visitors.tsx:1",
+        "src/components/admin/historical-analytics.tsx:1",
+        "src/lib/admin-analytics.ts:1",
+        "src/lib/visitor.ts:1",
+        "src/lib/db.ts:1",
+        "docs/admin-historical-analytics.md:1"
+      ],
+      "current_test_evidence": [
+        "tests/admin-analytics.test.ts:1",
+        "tests/privacy.test.ts:1"
+      ],
+      "current_live_evidence": [],
+      "status": "IMPLEMENTED_UNVALIDATED",
+      "superseded_by": null,
+      "implementation_plan": "Audit and implement under G-ANALYTICS.",
+      "acceptance_criteria": [
+        "The requirement is implemented or dispositioned with reproducible current evidence."
+      ],
+      "test_ids": [
+        "admin-analytics.test.ts",
+        "privacy.test.ts"
+      ],
+      "commits": [],
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
+      "workstream": "G-ANALYTICS",
+      "source_backlinks": [
+        {
+          "source_file": "docs/requirements-traceability.md",
+          "source_path": "docs/requirements-traceability.md",
           "source_line_or_section": "line 93; Visitor telemetry and persistence resilience",
+          "authority": "current-repository"
+        }
+      ]
+    },
+    {
+      "id": "REQ-9C8EBED2F102",
+      "source_file": "docs/requirements-traceability.md",
+      "source_line_or_section": "line 91; Visitor telemetry and persistence resilience",
+      "normalized_requirement": "Ensure unique visitors are represented by a purpose-salted coarse signature and persisted in visitors through src/lib/visitor.ts ; raw IP addresses, user-agent strings, and precise geography are not retained.",
+      "exact_short_excerpt": "Unique visitors are represented by a purpose-salted coarse signature and persisted in visitors through src/lib/visitor.ts ; raw IP addresses, user-agent strings, and precise geography are not retained.",
+      "priority": "P2",
+      "risk": "low",
+      "current_code_evidence": [
+        "src/components/visitor-map.tsx:1",
+        "src/components/admin/visitors.tsx:1",
+        "src/components/admin/historical-analytics.tsx:1",
+        "src/lib/admin-analytics.ts:1",
+        "src/lib/visitor.ts:1",
+        "src/lib/db.ts:1",
+        "docs/admin-historical-analytics.md:1"
+      ],
+      "current_test_evidence": [
+        "tests/admin-analytics.test.ts:1",
+        "tests/privacy.test.ts:1"
+      ],
+      "current_live_evidence": [],
+      "status": "IMPLEMENTED_UNVALIDATED",
+      "superseded_by": null,
+      "implementation_plan": "Audit and implement under G-ANALYTICS.",
+      "acceptance_criteria": [
+        "The requirement is implemented or dispositioned with reproducible current evidence."
+      ],
+      "test_ids": [
+        "admin-analytics.test.ts",
+        "privacy.test.ts"
+      ],
+      "commits": [],
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
+      "workstream": "G-ANALYTICS",
+      "source_backlinks": [
+        {
+          "source_file": "docs/requirements-traceability.md",
+          "source_path": "docs/requirements-traceability.md",
+          "source_line_or_section": "line 91; Visitor telemetry and persistence resilience",
           "authority": "current-repository"
         }
       ]
@@ -14938,10 +15162,16 @@
       "current_code_evidence": [
         "src/components/visitor-map.tsx:1",
         "src/components/admin/visitors.tsx:1",
+        "src/components/admin/historical-analytics.tsx:1",
+        "src/lib/admin-analytics.ts:1",
         "src/lib/visitor.ts:1",
-        "src/lib/db.ts:1"
+        "src/lib/db.ts:1",
+        "docs/admin-historical-analytics.md:1"
       ],
-      "current_test_evidence": [],
+      "current_test_evidence": [
+        "tests/admin-analytics.test.ts:1",
+        "tests/privacy.test.ts:1"
+      ],
       "current_live_evidence": [],
       "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
@@ -14949,7 +15179,10 @@
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "admin-analytics.test.ts",
+        "privacy.test.ts"
+      ],
       "commits": [],
       "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "G-ANALYTICS",
@@ -14963,20 +15196,26 @@
       ]
     },
     {
-      "id": "REQ-DA61F53E4BA6",
+      "id": "REQ-ADE4DBACD369",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 91; Visitor telemetry and persistence resilience",
-      "normalized_requirement": "Ensure unique visitors are anonymized with a salted hash and persisted in visitors through src/lib/visitor.ts .",
-      "exact_short_excerpt": "Unique visitors are anonymized with a salted hash and persisted in visitors through src/lib/visitor.ts .",
+      "source_line_or_section": "line 95; Visitor telemetry and persistence resilience",
+      "normalized_requirement": "Ensure earlier lifetime traffic is never reconstructed into fabricated daily history; pre-upgrade gaps and unknown-country observations are stated directly. The complete measurement and retention contract is in docs/admin-historical-analytics.md .",
+      "exact_short_excerpt": "Earlier lifetime traffic is never reconstructed into fabricated daily history; pre-upgrade gaps and unknown-country observations are stated directly. The complete measurement and retention contract is in docs/admin-historical-analytics.md .",
       "priority": "P2",
-      "risk": "low",
+      "risk": "medium",
       "current_code_evidence": [
         "src/components/visitor-map.tsx:1",
         "src/components/admin/visitors.tsx:1",
+        "src/components/admin/historical-analytics.tsx:1",
+        "src/lib/admin-analytics.ts:1",
         "src/lib/visitor.ts:1",
-        "src/lib/db.ts:1"
+        "src/lib/db.ts:1",
+        "docs/admin-historical-analytics.md:1"
       ],
-      "current_test_evidence": [],
+      "current_test_evidence": [
+        "tests/admin-analytics.test.ts:1",
+        "tests/privacy.test.ts:1"
+      ],
       "current_live_evidence": [],
       "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
@@ -14984,7 +15223,10 @@
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "admin-analytics.test.ts",
+        "privacy.test.ts"
+      ],
       "commits": [],
       "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "G-ANALYTICS",
@@ -14992,7 +15234,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 91; Visitor telemetry and persistence resilience",
+          "source_line_or_section": "line 95; Visitor telemetry and persistence resilience",
           "authority": "current-repository"
         }
       ]
@@ -15330,7 +15572,7 @@
     {
       "id": "REQ-5E79D5B9E479",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 115; Treasury integrations",
+      "source_line_or_section": "line 118; Treasury integrations",
       "normalized_requirement": "Ensure live sponsor checkout is wired for Stripe Checkout plus webhook confirmation, but accounting exports, CRM sync, and broader payments operations are still future integrations.",
       "exact_short_excerpt": "Live sponsor checkout is wired for Stripe Checkout plus webhook confirmation, but accounting exports, CRM sync, and broader payments operations are still future integrations.",
       "priority": "P2",
@@ -15361,7 +15603,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 115; Treasury integrations",
+          "source_line_or_section": "line 118; Treasury integrations",
           "authority": "current-repository"
         }
       ]
@@ -16242,10 +16484,16 @@
       "current_code_evidence": [
         "src/components/visitor-map.tsx:1",
         "src/components/admin/visitors.tsx:1",
+        "src/components/admin/historical-analytics.tsx:1",
+        "src/lib/admin-analytics.ts:1",
         "src/lib/visitor.ts:1",
-        "src/lib/db.ts:1"
+        "src/lib/db.ts:1",
+        "docs/admin-historical-analytics.md:1"
       ],
-      "current_test_evidence": [],
+      "current_test_evidence": [
+        "tests/admin-analytics.test.ts:1",
+        "tests/privacy.test.ts:1"
+      ],
       "current_live_evidence": [],
       "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
@@ -16253,7 +16501,10 @@
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "admin-analytics.test.ts",
+        "privacy.test.ts"
+      ],
       "commits": [],
       "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "M-CROSS-CUTTING",
@@ -16558,7 +16809,7 @@
     {
       "id": "REQ-687791CB5B05",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 107; Internal naming",
+      "source_line_or_section": "line 110; Internal naming",
       "normalized_requirement": "Ensure some internal code and database identifiers still use task for compatibility and to avoid high-risk schema churn.",
       "exact_short_excerpt": "Some internal code and database identifiers still use task for compatibility and to avoid high-risk schema churn.",
       "priority": "P2",
@@ -16580,7 +16831,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 107; Internal naming",
+          "source_line_or_section": "line 110; Internal naming",
           "authority": "current-repository"
         }
       ]
@@ -16588,7 +16839,7 @@
     {
       "id": "REQ-6B6D5EB3206C",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 106; Internal naming",
+      "source_line_or_section": "line 109; Internal naming",
       "normalized_requirement": "Ensure the public product language is now Ken / Kens .",
       "exact_short_excerpt": "The public product language is now Ken / Kens .",
       "priority": "P2",
@@ -16610,7 +16861,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 106; Internal naming",
+          "source_line_or_section": "line 109; Internal naming",
           "authority": "current-repository"
         }
       ]
@@ -17718,10 +17969,16 @@
       "current_code_evidence": [
         "src/components/visitor-map.tsx:1",
         "src/components/admin/visitors.tsx:1",
+        "src/components/admin/historical-analytics.tsx:1",
+        "src/lib/admin-analytics.ts:1",
         "src/lib/visitor.ts:1",
-        "src/lib/db.ts:1"
+        "src/lib/db.ts:1",
+        "docs/admin-historical-analytics.md:1"
       ],
-      "current_test_evidence": [],
+      "current_test_evidence": [
+        "tests/admin-analytics.test.ts:1",
+        "tests/privacy.test.ts:1"
+      ],
       "current_live_evidence": [],
       "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
@@ -17788,7 +18045,10 @@
         "End with a concise implementation report containing: completion ledger, key files changed, validation commands and outcomes, assumptions/residual risks, and any exact minimal next step required for remaining blockers. \\r\\n\\r\\nPlease execute a rigorous, comprehensive and meticulous audit and optimization of all UI/UX elements in both desktop and mobile aspect ratios via a comprehensive optimal, iterative, browser-level automated validation and refinement sweep utilizing @browser-use etc. to comprehensively enhance and optimize EVERY SINGLE PAGE AND ELEMENT WITHIN THE VISUALLY RENDERED WEBSITE via the available agent-browser skill CLI (now installed, log below).",
         "REMOTE ORIGIN/MAIN IS NOW AVAILABLE AGAIN TOO, SO CHANGES CAN BE DIRECTLY SYNCED TO THE NAS REMOTE VIA GIT FROM THE ASSOCIATED SSH/SMB PROJECT FOLDER TO ENABLE SUBSEQUENT DEPLOYMENT/LAUNCH OF THE LATEST REVISIONS FROM THE NAS AND CORRESPONDING VISUAL AND PROGRAMMATIC EVALUATION.\\r\\n\\r\\nAccount Credentials for validation of Logged-In and Admin features:\\r\\nEMAIL: [REDACTED EMAIL]\\r\\nPASSWORD: Flagstance!0\\r\\n\\r\\n\\r\\n\\r\\nAMONG OTHER ISSUES/CONFLICTS/SUBOPTIMAL UX/UI IMPLEMENTATIONS YOU WILL ENCOUNTER DURING THE SWEEP, I HAVE ALREADY IDENTIFIED SEVERAL SPECIFIC ISSUES/SUBOPTIMAL IMPLEMENTATIONS/BUGS/ERRORS (SCREENSHOTS ATTACHED FOR A MAJORITY), INCLUDING BUT NOT LIMITED TO THE FOLLOWING, EACH AND EVERY SINGLE ONE OF WHICH MUST BE OPTIMALLY ADDRESSED AND CORRECTED IN ADDITION TO ANY AND ALL OTHER SUBOPTIMAL UX/UI INTEGRATIONS ENCOUNTERED IN THE CURRENT BUILD VIA YOUR DIRECT COMPREHENSIVE VISUAL INTERACTIVE/RESPONSIVE VALIDATION AND REFINEMENT PASS.\\r\\n\\r\\n MAXIMUM EFFORT, EXPERTISE AND SKILL;"
       ],
-      "test_ids": [],
+      "test_ids": [
+        "admin-analytics.test.ts",
+        "privacy.test.ts"
+      ],
       "commits": [],
       "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "B-FEED-RANKING-SEARCH",
@@ -18095,10 +18355,16 @@
       "current_code_evidence": [
         "src/components/visitor-map.tsx:1",
         "src/components/admin/visitors.tsx:1",
+        "src/components/admin/historical-analytics.tsx:1",
+        "src/lib/admin-analytics.ts:1",
         "src/lib/visitor.ts:1",
-        "src/lib/db.ts:1"
+        "src/lib/db.ts:1",
+        "docs/admin-historical-analytics.md:1"
       ],
-      "current_test_evidence": [],
+      "current_test_evidence": [
+        "tests/admin-analytics.test.ts:1",
+        "tests/privacy.test.ts:1"
+      ],
       "current_live_evidence": [],
       "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
@@ -18106,7 +18372,10 @@
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "admin-analytics.test.ts",
+        "privacy.test.ts"
+      ],
       "commits": [],
       "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "G-ANALYTICS",
@@ -18130,10 +18399,16 @@
       "current_code_evidence": [
         "src/components/visitor-map.tsx:1",
         "src/components/admin/visitors.tsx:1",
+        "src/components/admin/historical-analytics.tsx:1",
+        "src/lib/admin-analytics.ts:1",
         "src/lib/visitor.ts:1",
-        "src/lib/db.ts:1"
+        "src/lib/db.ts:1",
+        "docs/admin-historical-analytics.md:1"
       ],
-      "current_test_evidence": [],
+      "current_test_evidence": [
+        "tests/admin-analytics.test.ts:1",
+        "tests/privacy.test.ts:1"
+      ],
       "current_live_evidence": [],
       "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
@@ -18141,7 +18416,10 @@
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "admin-analytics.test.ts",
+        "privacy.test.ts"
+      ],
       "commits": [],
       "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "G-ANALYTICS",
@@ -18165,10 +18443,16 @@
       "current_code_evidence": [
         "src/components/visitor-map.tsx:1",
         "src/components/admin/visitors.tsx:1",
+        "src/components/admin/historical-analytics.tsx:1",
+        "src/lib/admin-analytics.ts:1",
         "src/lib/visitor.ts:1",
-        "src/lib/db.ts:1"
+        "src/lib/db.ts:1",
+        "docs/admin-historical-analytics.md:1"
       ],
-      "current_test_evidence": [],
+      "current_test_evidence": [
+        "tests/admin-analytics.test.ts:1",
+        "tests/privacy.test.ts:1"
+      ],
       "current_live_evidence": [],
       "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
@@ -18176,7 +18460,10 @@
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "admin-analytics.test.ts",
+        "privacy.test.ts"
+      ],
       "commits": [],
       "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "G-ANALYTICS",
@@ -18204,13 +18491,18 @@
         "src/lib/db.ts:1",
         "src/components/visitor-map.tsx:1",
         "src/components/admin/visitors.tsx:1",
+        "src/components/admin/historical-analytics.tsx:1",
+        "src/lib/admin-analytics.ts:1",
         "src/lib/visitor.ts:1",
+        "docs/admin-historical-analytics.md:1",
         "src/components/changelog-list.tsx:1",
         "src/app/about/page.tsx:1",
         "src/app/about/changelog/page.tsx:1"
       ],
       "current_test_evidence": [
-        "tests/faq-contact.test.ts:1"
+        "tests/faq-contact.test.ts:1",
+        "tests/admin-analytics.test.ts:1",
+        "tests/privacy.test.ts:1"
       ],
       "current_live_evidence": [],
       "status": "IMPLEMENTED_UNVALIDATED",
@@ -18279,7 +18571,9 @@
         "detail-page visual polish;"
       ],
       "test_ids": [
-        "faq-contact.test.ts"
+        "faq-contact.test.ts",
+        "admin-analytics.test.ts",
+        "privacy.test.ts"
       ],
       "commits": [],
       "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
@@ -21921,7 +22215,7 @@
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
       "source_line_or_section": "line 42; Route structure",
-      "exact_short_excerpt": "Role-gated operations portal for visitors, notifications, verifications, roles, moderation, and audit log review."
+      "exact_short_excerpt": "Role-gated operations portal for visitors, privacy-safe historical analytics, notification health, verifications, roles, moderation, and audit log review."
     },
     {
       "claim_type": "current_documentation_claim",
@@ -21950,223 +22244,241 @@
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 90; Why the model is split this way",
+      "source_line_or_section": "line 92; Why the model is split this way",
       "exact_short_excerpt": "votes and task pulse votes are separate so public signal does not collapse into scarce allocation voice."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 92; Why the model is split this way",
+      "source_line_or_section": "line 94; Why the model is split this way",
       "exact_short_excerpt": "ken submissions holds the private intake state for user-created Kens. Seeded demonstration Kens have no intake row, preserving their existing public behavior."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 93; Why the model is split this way",
+      "source_line_or_section": "line 95; Why the model is split this way",
       "exact_short_excerpt": "review events is an append-only, deduplicated decision history shared by Ken and category intake. Public and internal notes are stored separately."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 96; Why the model is split this way",
+      "source_line_or_section": "line 98; Why the model is split this way",
       "exact_short_excerpt": "/admin exposes bounded, filterable review queues; /account submission-reviews exposes only the submitter-safe history; /reviews publishes final explanations without private reviewer notes."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 98; Why the model is split this way",
+      "source_line_or_section": "line 100; Why the model is split this way",
       "exact_short_excerpt": "sponsorship commitments tracks projected, simulated, checkout-pending, and paid funding states separately from the immutable treasury ledger."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 99; Why the model is split this way",
+      "source_line_or_section": "line 101; Why the model is split this way",
       "exact_short_excerpt": "profile attestations separates standing, review status, and sybil-risk signals from profile copy, while src/lib/attestation.ts converts that state into participation limits and voice caps."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 101; Why the model is split this way",
-      "exact_short_excerpt": "visitors , site settings , and audit log support owner/admin operations, visitor mapping, notification settings, online About-page editing, and durable audit trails."
+      "source_line_or_section": "line 103; Why the model is split this way",
+      "exact_short_excerpt": "visitors retains the purpose-salted lifetime visitor signature and country-level state; visitor daily activity provides bounded daily aggregate history without raw IP, user-agent, or precise geography."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 122; Core UI pieces",
+      "source_line_or_section": "line 105; Why the model is split this way",
+      "exact_short_excerpt": "site settings and audit log support notification settings, online About-page editing, and durable redacted audit trails."
+    },
+    {
+      "claim_type": "current_documentation_claim",
+      "source_file": "docs/architecture.md",
+      "source_line_or_section": "line 126; Core UI pieces",
       "exact_short_excerpt": "Actual-height-gated reading progress for the five editorial long-form routes; it is intentionally absent from feed, submission, detail, account, and admin workflows."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 123; Core UI pieces",
+      "source_line_or_section": "line 127; Core UI pieces",
       "exact_short_excerpt": "src/components/kenmatch-mark.tsx"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 125; Core UI pieces",
+      "source_line_or_section": "line 129; Core UI pieces",
       "exact_short_excerpt": "src/components/ken-timing-strip.tsx"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 128; Core UI pieces",
+      "source_line_or_section": "line 132; Core UI pieces",
       "exact_short_excerpt": "Ken cards for the board and overview page."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 129; Core UI pieces",
+      "source_line_or_section": "line 133; Core UI pieces",
       "exact_short_excerpt": "src/components/task-pulse-panel.tsx"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 132; Core UI pieces",
+      "source_line_or_section": "line 136; Core UI pieces",
       "exact_short_excerpt": "Quadratic voice allocation panel with visible voice cap."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 137; Core UI pieces",
+      "source_line_or_section": "line 141; Core UI pieces",
       "exact_short_excerpt": "src/components/auth-panels.tsx"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 138; Core UI pieces",
+      "source_line_or_section": "line 142; Core UI pieces",
       "exact_short_excerpt": "Sign-in and sign-up UI."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 144; Core UI pieces",
+      "source_line_or_section": "line 148; Core UI pieces",
       "exact_short_excerpt": "Linked public profile surface for contributors referenced from Kens and comments; /people itself redirects to the Ken board rather than exposing a directory."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 147; Core UI pieces",
+      "source_line_or_section": "line 151; Core UI pieces",
       "exact_short_excerpt": "Admin audit history is fetched with listAuditLogPage in src/lib/db.ts . Filtering and pagination happen in SQL, metadata redaction is centralized in src/lib/audit-log.ts , and the admin renderer exposes complete event bodies through expandable/copyable detail…"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 149; Core UI pieces",
+      "source_line_or_section": "line 153; Core UI pieces",
       "exact_short_excerpt": "src/components/admin/"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 150; Core UI pieces",
+      "source_line_or_section": "line 154; Core UI pieces",
       "exact_short_excerpt": "Admin and owner management surfaces."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 151; Core UI pieces",
-      "exact_short_excerpt": "src/components/visitor-map.tsx"
-    },
-    {
-      "claim_type": "current_documentation_claim",
-      "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 152; Core UI pieces",
-      "exact_short_excerpt": "Anonymized visitor geography display based on persisted Cloudflare request headers."
-    },
-    {
-      "claim_type": "current_documentation_claim",
-      "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 153; Core UI pieces",
-      "exact_short_excerpt": "src/components/sponsor-form.tsx"
-    },
-    {
-      "claim_type": "current_documentation_claim",
-      "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 154; Core UI pieces",
-      "exact_short_excerpt": "Public sponsorship intake with general, category, Ken, or safety-reserve restriction options."
+      "source_line_or_section": "line 155; Core UI pieces",
+      "exact_short_excerpt": "src/components/admin/historical-analytics.tsx"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
       "source_line_or_section": "line 156; Core UI pieces",
+      "exact_short_excerpt": "Owner/admin-only server-rendered traffic, account, country, and notification trends with equal previous-period comparisons and semantic table equivalents."
+    },
+    {
+      "claim_type": "current_documentation_claim",
+      "source_file": "docs/architecture.md",
+      "source_line_or_section": "line 157; Core UI pieces",
+      "exact_short_excerpt": "src/components/visitor-map.tsx"
+    },
+    {
+      "claim_type": "current_documentation_claim",
+      "source_file": "docs/architecture.md",
+      "source_line_or_section": "line 158; Core UI pieces",
+      "exact_short_excerpt": "Anonymized country-level visitor geography display based on Cloudflare country headers and deterministic country centroids."
+    },
+    {
+      "claim_type": "current_documentation_claim",
+      "source_file": "docs/architecture.md",
+      "source_line_or_section": "line 159; Core UI pieces",
+      "exact_short_excerpt": "src/components/sponsor-form.tsx"
+    },
+    {
+      "claim_type": "current_documentation_claim",
+      "source_file": "docs/architecture.md",
+      "source_line_or_section": "line 160; Core UI pieces",
+      "exact_short_excerpt": "Public sponsorship intake with general, category, Ken, or safety-reserve restriction options."
+    },
+    {
+      "claim_type": "current_documentation_claim",
+      "source_file": "docs/architecture.md",
+      "source_line_or_section": "line 162; Core UI pieces",
       "exact_short_excerpt": "Optional Cloudflare Turnstile widget for higher-risk forms."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 160; Accounts and sign-in",
+      "source_line_or_section": "line 166; Accounts and sign-in",
       "exact_short_excerpt": "src/lib/session.ts reads and writes the signed-in account cookie."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 161; Accounts and sign-in",
+      "source_line_or_section": "line 167; Accounts and sign-in",
       "exact_short_excerpt": "src/app/actions.ts creates accounts, opens sign-ins, sends verification/reset email, enforces rate limits, and clears sign-ins."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 162; Accounts and sign-in",
+      "source_line_or_section": "line 168; Accounts and sign-in",
       "exact_short_excerpt": "src/lib/db.ts stores accounts, hashed session tokens, email tokens, profile state, and licensing-consent state."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 163; Accounts and sign-in",
+      "source_line_or_section": "line 169; Accounts and sign-in",
       "exact_short_excerpt": "src/lib/mail.ts dispatches SMTP-backed verification, password reset, and admin notification messages when SMTP is configured."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 168; Deployment model",
+      "source_line_or_section": "line 174; Deployment model",
       "exact_short_excerpt": "npm run build runs Next's experimental compile mode and then generate-env mode so the standalone artifact has its static environment inlined before Docker copies it; scripts/repair-next-route-chunks.mjs then verifies app-route chunk references and repairs sin…"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 169; Deployment model",
+      "source_line_or_section": "line 175; Deployment model",
       "exact_short_excerpt": "src/proxy.ts enforces host filtering, cross-site request blocking, and security headers for public deployments. Next.js 16 reports it as the app proxy/middleware boundary in production builds."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 171; Deployment model",
+      "source_line_or_section": "line 177; Deployment model",
       "exact_short_excerpt": "docker-compose.synology.yml mounts persistent app data, uses a read-only root filesystem, tmpfs for /tmp , and binds only to loopback."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 172; Deployment model",
+      "source_line_or_section": "line 178; Deployment model",
       "exact_short_excerpt": "docker-compose.synology.tunnel.yml adds a cloudflared sidecar option for Synology-hosted public deployments."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 177; Economics engine",
+      "source_line_or_section": "line 183; Economics engine",
       "exact_short_excerpt": "src/lib/economics.ts computes revenue stream summaries, treasury coverage, and the treasury governor split."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 178; Economics engine",
+      "source_line_or_section": "line 184; Economics engine",
       "exact_short_excerpt": "summarizeEconomics aggregates revenue streams, treasury entries, and sponsorship commitments into the EconomicsSummary used by public economics surfaces."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 179; Economics engine",
+      "source_line_or_section": "line 185; Economics engine",
       "exact_short_excerpt": "Revenue engines include enterprise , data-licensing , compute-arbitrage , sponsorship , and private-lane ."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 183; Seed data",
+      "source_line_or_section": "line 189; Seed data",
       "exact_short_excerpt": "src/lib/seed.ts holds realistic demo Kens and categories."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 184; Seed data",
+      "source_line_or_section": "line 190; Seed data",
       "exact_short_excerpt": "src/lib/seed-plus.ts adds attestation state, timing, audit updates, structured treasury entries, sponsor commitments, the private-lane revenue stream, and simulated model-outcome data."
     }
   ],

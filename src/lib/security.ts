@@ -3,7 +3,8 @@ import "server-only";
 import { headers } from "next/headers";
 
 import { consumeRateLimit, logSecurityEvent } from "@/lib/db";
-import { allowedHosts, env } from "@/lib/env";
+import { allowedHosts, env, visitorHashSalt } from "@/lib/env";
+import { hashPrivateIdentifier } from "@/lib/privacy";
 import {
   normalizeAuthority,
   normalizeHostname,
@@ -20,7 +21,6 @@ export interface RequestSecurityContext {
   secFetchSite: string;
   forwardedProto: string | null;
   ipAddress: string | null;
-  userAgent: string;
 }
 
 export async function getRequestSecurityContext(): Promise<RequestSecurityContext> {
@@ -40,7 +40,6 @@ export async function getRequestSecurityContext(): Promise<RequestSecurityContex
     secFetchSite: (headerStore.get("sec-fetch-site") ?? "").toLowerCase(),
     forwardedProto: headerStore.get("x-forwarded-proto"),
     ipAddress,
-    userAgent: headerStore.get("user-agent") ?? "",
   };
 }
 
@@ -52,7 +51,7 @@ export async function logAndRejectAbuse(context: RequestSecurityContext, reason:
   await logSecurityEvent({
     eventType: "abuse-rejected",
     detail: reason,
-    ipAddress: context.ipAddress,
+    networkIdentifier: context.ipAddress,
   });
   return "Request rejected.";
 }
@@ -143,16 +142,24 @@ export async function guardMutationRequest(input: {
       eventType: "honeypot-trip",
       detail: `${input.action}: hidden form field was filled`,
       actorId: input.actorId,
-      ipAddress: context.ipAddress,
+      networkIdentifier: context.ipAddress,
     });
     throw new Error("Request rejected.");
   }
 
   if (input.rateLimit) {
-    const identifier = [context.ipAddress ?? "unknown", ...(input.rateLimit.identifierParts ?? [])]
+    const rawIdentifier = [context.ipAddress ?? "unknown", ...(input.rateLimit.identifierParts ?? [])]
       .filter(Boolean)
       .join("|")
       .toLowerCase();
+    const identifier = hashPrivateIdentifier(
+      rawIdentifier,
+      `rate-limit:${input.rateLimit.scope}`,
+      visitorHashSalt,
+    );
+    if (!identifier) {
+      throw new Error("Unable to construct the abuse-prevention key.");
+    }
     const limitState = await consumeRateLimit({
       scope: input.rateLimit.scope,
       identifier,
@@ -164,7 +171,7 @@ export async function guardMutationRequest(input: {
         eventType: "rate-limit-hit",
         detail: `${input.action}: ${input.rateLimit.scope} exhausted until ${limitState.resetAt}`,
         actorId: input.actorId,
-        ipAddress: context.ipAddress,
+        networkIdentifier: context.ipAddress,
       });
       throw new Error("Too many attempts. Please wait a moment and try again.");
     }

@@ -88,8 +88,11 @@ This file maps the stable product requirements from `KenMatch_Conception.md` to 
 - User profile management, avatar customization, verification requests, and bookmarks are implemented in `src/app/account/page.tsx`, `src/components/profile-editor.tsx`, and `profiles` / `bookmarks`.
 
 ### Visitor telemetry and persistence resilience
-- Unique visitors are anonymized with a salted hash and persisted in `visitors` through `src/lib/visitor.ts`.
+- Unique visitors are represented by a purpose-salted coarse signature and persisted in `visitors` through `src/lib/visitor.ts`; raw IP addresses, user-agent strings, and precise geography are not retained.
 - The admin visitor map is rendered by `src/components/visitor-map.tsx` and uses Cloudflare geolocation request headers when present.
+- `visitor_daily_activity` and `notification_delivery_events` provide 400-day bounded history for traffic, accounts, country distribution, and delivery health. `src/lib/db.ts` performs server-side bucketing and equal previous-period comparisons.
+- `src/components/admin/historical-analytics.tsx` renders dependency-free accessible SVG figures plus complete semantic table equivalents. It is queried only after the owner/admin role gate and is not exposed through a public endpoint.
+- Earlier lifetime traffic is never reconstructed into fabricated daily history; pre-upgrade gaps and unknown-country observations are stated directly. The complete measurement and retention contract is in `docs/admin-historical-analytics.md`.
 - Synology persistence and recovery steps are documented in `docs/synology-nas-deploy.md`; live writes are stored outside the container image in the mounted `data/` directory.
 
 ### Public deployment and self-hosting readiness

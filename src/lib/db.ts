@@ -39,6 +39,15 @@ import {
   type AuditLogPage,
 } from "@/lib/audit-log";
 import {
+  analyticsBucketSql,
+  analyticsPeriod,
+  buildAnalyticsBuckets,
+  normalizeAnalyticsFilters,
+  VISITOR_ANALYTICS_RETENTION_DAYS,
+  type AdminHistoricalAnalytics,
+  type AnalyticsSummaryValues,
+} from "@/lib/admin-analytics";
+import {
   evaluateCategoryIntake,
   evaluateKenIntake,
   normalizeReviewText,
@@ -60,7 +69,7 @@ import {
   INSERT_REVIEW_EVENT_SQL,
   REVIEW_SCHEMA_STATEMENTS,
 } from "@/lib/review-schema";
-import { env, isAdminEmail, isOwnerEmail, canonicalOrigin, notificationEmails, ownerEmail, smtpConfigured } from "@/lib/env";
+import { env, isAdminEmail, isOwnerEmail, canonicalOrigin, notificationEmails, ownerEmail, smtpConfigured, visitorHashSalt } from "@/lib/env";
 import {
   seedCategories,
   seedCheckpoints,
@@ -152,6 +161,7 @@ import {
   redactKenSubmissionForPublic,
   redactReviewEventForPublic,
 } from "@/lib/review-redaction";
+import { hashPrivateIdentifier } from "@/lib/privacy";
 
 type DbRow = Record<string, Value>;
 
@@ -370,6 +380,25 @@ async function initializeDatabase() {
         lastSeenAt TEXT NOT NULL,
         pageViews INTEGER NOT NULL DEFAULT 1,
         accountCreated INTEGER NOT NULL DEFAULT 0
+      )`,
+      `CREATE TABLE IF NOT EXISTS visitor_daily_activity (
+        day TEXT NOT NULL,
+        visitorId TEXT NOT NULL,
+        countryCode TEXT,
+        countryName TEXT,
+        pageViews INTEGER NOT NULL DEFAULT 1,
+        firstSeenAt TEXT NOT NULL,
+        lastSeenAt TEXT NOT NULL,
+        PRIMARY KEY (day, visitorId),
+        FOREIGN KEY (visitorId) REFERENCES visitors(id) ON DELETE CASCADE
+      )`,
+      `CREATE TABLE IF NOT EXISTS notification_delivery_events (
+        id TEXT PRIMARY KEY,
+        purpose TEXT NOT NULL,
+        status TEXT NOT NULL,
+        transportSource TEXT NOT NULL,
+        recipientCount INTEGER NOT NULL DEFAULT 0,
+        createdAt TEXT NOT NULL
       )`,
       `CREATE TABLE IF NOT EXISTS site_settings (
         key TEXT PRIMARY KEY,
@@ -721,6 +750,11 @@ async function initializeDatabase() {
       "CREATE INDEX IF NOT EXISTS idx_email_tokens_purpose ON email_tokens(purpose)",
       "CREATE INDEX IF NOT EXISTS idx_visitors_firstSeenAt ON visitors(firstSeenAt)",
       "CREATE INDEX IF NOT EXISTS idx_visitors_countryCode ON visitors(countryCode)",
+      "CREATE INDEX IF NOT EXISTS idx_visitor_daily_activity_day ON visitor_daily_activity(day)",
+      "CREATE INDEX IF NOT EXISTS idx_visitor_daily_activity_country_day ON visitor_daily_activity(countryCode, day)",
+      "CREATE INDEX IF NOT EXISTS idx_notification_delivery_createdAt ON notification_delivery_events(createdAt)",
+      "CREATE INDEX IF NOT EXISTS idx_notification_delivery_status_createdAt ON notification_delivery_events(status, createdAt)",
+      "CREATE INDEX IF NOT EXISTS idx_accounts_createdAt ON accounts(createdAt)",
       "CREATE INDEX IF NOT EXISTS idx_audit_log_createdAt ON audit_log(createdAt)",
       "CREATE INDEX IF NOT EXISTS idx_audit_log_accountId ON audit_log(accountId)",
       "CREATE INDEX IF NOT EXISTS idx_audit_log_action_createdAt ON audit_log(action, createdAt)",
@@ -773,6 +807,12 @@ async function initializeDatabase() {
   await ensureColumn(client, "task_finance", "simulationSummary", "TEXT NOT NULL DEFAULT ''");
   await ensureColumn(client, "task_finance", "sampleOutcome", "TEXT NOT NULL DEFAULT ''");
   await ensureColumn(client, "task_finance", "sponsorAppeal", "TEXT NOT NULL DEFAULT ''");
+  await ensureColumn(client, "security_events", "networkHash", "TEXT");
+  await client.execute("UPDATE audit_log SET ipAddress = NULL WHERE ipAddress IS NOT NULL");
+  await client.execute("UPDATE contact_submissions SET ipAddress = NULL WHERE ipAddress IS NOT NULL");
+  await client.execute("UPDATE security_events SET ipAddress = NULL WHERE ipAddress IS NOT NULL");
+  await client.execute("UPDATE visitors SET region = NULL, city = NULL, latitude = NULL, longitude = NULL, userAgent = NULL WHERE region IS NOT NULL OR city IS NOT NULL OR latitude IS NOT NULL OR longitude IS NOT NULL OR userAgent IS NOT NULL");
+  await client.execute("DELETE FROM request_rate_limits WHERE identifier NOT LIKE 'sha256:%'");
   await client.execute("UPDATE profiles SET username = id WHERE username IS NULL OR trim(username) = ''");
   await client.execute("UPDATE accounts SET username = profileId WHERE username IS NULL OR trim(username) = ''");
   await client.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_accounts_username ON accounts(username) WHERE username IS NOT NULL");
@@ -4350,12 +4390,17 @@ export async function consumeRateLimit(input: {
 export async function logSecurityEvent(input: {
   eventType: string;
   detail: string;
-  ipAddress?: string | null;
+  networkIdentifier?: string | null;
   actorId?: string | null;
 }) {
+  const networkHash = hashPrivateIdentifier(
+    input.networkIdentifier,
+    "security-network",
+    visitorHashSalt,
+  );
   await execute(
-    "INSERT INTO security_events (id, eventType, ipAddress, actorId, detail, createdAt) VALUES (?, ?, ?, ?, ?, ?)",
-    [randomUUID(), input.eventType, input.ipAddress ?? null, input.actorId ?? null, input.detail, new Date().toISOString()],
+    "INSERT INTO security_events (id, eventType, networkHash, actorId, detail, createdAt) VALUES (?, ?, ?, ?, ?, ?)",
+    [randomUUID(), input.eventType, networkHash, input.actorId ?? null, input.detail, new Date().toISOString()],
   );
 }
 
@@ -4575,14 +4620,8 @@ function mapEmailToken(row: DbRow): EmailTokenRecord {
 function mapVisitor(row: DbRow): VisitorRecord {
   return {
     id: getString(row, "id"),
-    visitorHash: getString(row, "visitorHash"),
     countryCode: getNullableString(row, "countryCode"),
     countryName: getNullableString(row, "countryName"),
-    region: getNullableString(row, "region"),
-    city: getNullableString(row, "city"),
-    latitude: typeof row.latitude === "number" ? row.latitude : null,
-    longitude: typeof row.longitude === "number" ? row.longitude : null,
-    userAgent: getNullableString(row, "userAgent"),
     firstSeenAt: getString(row, "firstSeenAt"),
     lastSeenAt: getString(row, "lastSeenAt"),
     pageViews: getNumber(row, "pageViews"),
@@ -4794,31 +4833,47 @@ export async function recordVisitor(input: {
   visitorHash: string;
   countryCode: string | null;
   countryName: string | null;
-  region: string | null;
-  city: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  userAgent: string | null;
 }) {
-  const existing = await loadOne("SELECT * FROM visitors WHERE visitorHash = ? LIMIT 1", [input.visitorHash]);
+  const existing = await loadOne(
+    `SELECT id, countryCode, countryName, firstSeenAt, lastSeenAt, pageViews, accountCreated
+     FROM visitors
+     WHERE visitorHash = ?
+     LIMIT 1`,
+    [input.visitorHash],
+  );
   const now = new Date().toISOString();
   if (existing) {
     await execute(
-      "UPDATE visitors SET lastSeenAt = ?, pageViews = pageViews + 1 WHERE visitorHash = ?",
-      [now, input.visitorHash],
+      `UPDATE visitors
+       SET lastSeenAt = ?,
+           pageViews = pageViews + 1,
+           countryCode = COALESCE(countryCode, ?),
+           countryName = COALESCE(countryName, ?)
+       WHERE visitorHash = ?`,
+      [now, input.countryCode, input.countryName, input.visitorHash],
     );
-    return { isNew: false, record: mapVisitor(existing) };
+    await recordDailyVisitorActivity({
+      visitorId: getString(existing, "id"),
+      countryCode: getNullableString(existing, "countryCode") ?? input.countryCode,
+      countryName: getNullableString(existing, "countryName") ?? input.countryName,
+      firstSeenAt: getString(existing, "firstSeenAt"),
+      seenAt: now,
+    });
+    return {
+      isNew: false,
+      record: {
+        ...mapVisitor(existing),
+        countryCode: getNullableString(existing, "countryCode") ?? input.countryCode,
+        countryName: getNullableString(existing, "countryName") ?? input.countryName,
+        lastSeenAt: now,
+        pageViews: getNumber(existing, "pageViews") + 1,
+      },
+    };
   }
   const record: VisitorRecord = {
     id: randomUUID(),
-    visitorHash: input.visitorHash,
     countryCode: input.countryCode,
     countryName: input.countryName,
-    region: input.region,
-    city: input.city,
-    latitude: input.latitude,
-    longitude: input.longitude,
-    userAgent: input.userAgent,
     firstSeenAt: now,
     lastSeenAt: now,
     pageViews: 1,
@@ -4826,24 +4881,50 @@ export async function recordVisitor(input: {
   };
   await execute(
     `INSERT INTO visitors (
-      id, visitorHash, countryCode, countryName, region, city, latitude, longitude, userAgent,
-      firstSeenAt, lastSeenAt, pageViews, accountCreated
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0)`,
+      id, visitorHash, countryCode, countryName, firstSeenAt, lastSeenAt, pageViews, accountCreated
+    ) VALUES (?, ?, ?, ?, ?, ?, 1, 0)`,
     [
       record.id,
-      record.visitorHash,
+      input.visitorHash,
       record.countryCode,
       record.countryName,
-      record.region,
-      record.city,
-      record.latitude,
-      record.longitude,
-      record.userAgent,
       record.firstSeenAt,
       record.lastSeenAt,
     ],
   );
+  await recordDailyVisitorActivity({
+    visitorId: record.id,
+    countryCode: record.countryCode,
+    countryName: record.countryName,
+    firstSeenAt: now,
+    seenAt: now,
+  });
   return { isNew: true, record };
+}
+
+async function recordDailyVisitorActivity(input: {
+  visitorId: string;
+  countryCode: string | null;
+  countryName: string | null;
+  firstSeenAt: string;
+  seenAt: string;
+}) {
+  const day = input.seenAt.slice(0, 10);
+  await execute(
+    `INSERT INTO visitor_daily_activity (
+       day, visitorId, countryCode, countryName, pageViews, firstSeenAt, lastSeenAt
+     ) VALUES (?, ?, ?, ?, 1, ?, ?)
+     ON CONFLICT(day, visitorId) DO UPDATE SET
+       countryCode = COALESCE(visitor_daily_activity.countryCode, excluded.countryCode),
+       countryName = COALESCE(visitor_daily_activity.countryName, excluded.countryName),
+       pageViews = visitor_daily_activity.pageViews + 1,
+       lastSeenAt = excluded.lastSeenAt`,
+    [day, input.visitorId, input.countryCode, input.countryName, input.firstSeenAt, input.seenAt],
+  );
+  const cutoff = new Date(Date.parse(`${day}T00:00:00.000Z`) - VISITOR_ANALYTICS_RETENTION_DAYS * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+  await execute("DELETE FROM visitor_daily_activity WHERE day < ?", [cutoff]);
 }
 
 export async function markVisitorAccountCreated(visitorHash: string) {
@@ -4851,13 +4932,16 @@ export async function markVisitorAccountCreated(visitorHash: string) {
 }
 
 export async function listVisitors(limit = 1000) {
-  const rows = await loadRows("SELECT * FROM visitors ORDER BY lastSeenAt DESC LIMIT ?", [limit]);
+  const rows = await loadRows(
+    "SELECT id, countryCode, countryName, firstSeenAt, lastSeenAt, pageViews, accountCreated FROM visitors ORDER BY lastSeenAt DESC LIMIT ?",
+    [limit],
+  );
   return rows.map(mapVisitor);
 }
 
 export async function aggregateVisitorsByCountry(): Promise<VisitorAggregate[]> {
   const rows = await loadRows(
-    `SELECT countryCode, countryName, AVG(latitude) AS latitude, AVG(longitude) AS longitude,
+    `SELECT countryCode, countryName, NULL AS latitude, NULL AS longitude,
             COUNT(*) AS visitorCount, MAX(lastSeenAt) AS lastSeenAt
      FROM visitors
      WHERE countryCode IS NOT NULL
@@ -4903,6 +4987,257 @@ export async function getVisitorStats(): Promise<VisitorStats> {
       visitorCount: getNumber(row, "visitorCount"),
     })),
   };
+}
+
+function mapAnalyticsSummary(row: DbRow | null, newAccounts: number): AnalyticsSummaryValues {
+  const uniqueVisitors = row ? getNumber(row, "uniqueVisitors") : 0;
+  const firstTimeVisitors = row ? getNumber(row, "firstTimeVisitors") : 0;
+  return {
+    uniqueVisitors,
+    pageViews: row ? getNumber(row, "pageViews") : 0,
+    newAccounts,
+    countries: row ? getNumber(row, "countries") : 0,
+    firstTimeVisitors,
+    returningVisitors: Math.max(0, uniqueVisitors - firstTimeVisitors),
+    unknownCountryVisitors: row ? getNumber(row, "unknownCountryVisitors") : 0,
+  };
+}
+
+export async function getAdminHistoricalAnalytics(input: {
+  rangeDays?: number | string;
+  bucket?: string;
+} = {}): Promise<AdminHistoricalAnalytics> {
+  const filters = normalizeAnalyticsFilters(input);
+  const period = analyticsPeriod(filters.rangeDays);
+  const visitorBucket = analyticsBucketSql("day", filters.bucket);
+  const accountBucket = analyticsBucketSql("day", filters.bucket);
+  const notificationBucket = analyticsBucketSql("day", filters.bucket);
+  const summarySql = `SELECT
+      COUNT(DISTINCT visitorId) AS uniqueVisitors,
+      COALESCE(SUM(pageViews), 0) AS pageViews,
+      COUNT(DISTINCT CASE WHEN countryCode IS NOT NULL AND trim(countryCode) != '' THEN countryCode END) AS countries,
+      COUNT(DISTINCT CASE WHEN substr(firstSeenAt, 1, 10) BETWEEN ? AND ? THEN visitorId END) AS firstTimeVisitors,
+      COUNT(DISTINCT CASE WHEN countryCode IS NULL OR trim(countryCode) = '' THEN visitorId END) AS unknownCountryVisitors
+    FROM visitor_daily_activity
+    WHERE day BETWEEN ? AND ?`;
+
+  const [
+    visitorTrendRows,
+    accountTrendRows,
+    notificationTrendRows,
+    currentVisitorRow,
+    previousVisitorRow,
+    currentAccountRow,
+    previousAccountRow,
+    currentCountryRows,
+    previousCountryRows,
+    currentNotificationRow,
+    previousNotificationRow,
+    telemetryRow,
+  ] = await Promise.all([
+    loadRows(
+      `SELECT ${visitorBucket} AS bucket,
+              COUNT(DISTINCT visitorId) AS uniqueVisitors,
+              COALESCE(SUM(pageViews), 0) AS pageViews,
+              COUNT(DISTINCT CASE WHEN substr(firstSeenAt, 1, 10) = day THEN visitorId END) AS firstTimeVisitors,
+              COUNT(DISTINCT CASE WHEN countryCode IS NULL OR trim(countryCode) = '' THEN visitorId END) AS unknownCountryVisitors
+       FROM visitor_daily_activity
+       WHERE day BETWEEN ? AND ?
+       GROUP BY bucket
+       ORDER BY bucket ASC`,
+      [period.startDate, period.endDate],
+    ),
+    loadRows(
+      `WITH account_days AS (
+         SELECT substr(createdAt, 1, 10) AS day FROM accounts
+       )
+       SELECT ${accountBucket} AS bucket, COUNT(*) AS newAccounts
+       FROM account_days
+       WHERE day BETWEEN ? AND ?
+       GROUP BY bucket
+       ORDER BY bucket ASC`,
+      [period.startDate, period.endDate],
+    ),
+    loadRows(
+      `WITH notification_days AS (
+         SELECT substr(createdAt, 1, 10) AS day, status FROM notification_delivery_events
+       )
+       SELECT ${notificationBucket} AS bucket,
+              SUM(CASE WHEN status = 'sent' THEN 1 ELSE 0 END) AS sent,
+              SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) AS failed,
+              SUM(CASE WHEN status = 'not-configured' THEN 1 ELSE 0 END) AS skipped
+       FROM notification_days
+       WHERE day BETWEEN ? AND ?
+       GROUP BY bucket
+       ORDER BY bucket ASC`,
+      [period.startDate, period.endDate],
+    ),
+    loadOne(summarySql, [period.startDate, period.endDate, period.startDate, period.endDate]),
+    loadOne(summarySql, [
+      period.previousStartDate,
+      period.previousEndDate,
+      period.previousStartDate,
+      period.previousEndDate,
+    ]),
+    loadOne("SELECT COUNT(*) AS count FROM accounts WHERE substr(createdAt, 1, 10) BETWEEN ? AND ?", [
+      period.startDate,
+      period.endDate,
+    ]),
+    loadOne("SELECT COUNT(*) AS count FROM accounts WHERE substr(createdAt, 1, 10) BETWEEN ? AND ?", [
+      period.previousStartDate,
+      period.previousEndDate,
+    ]),
+    loadRows(
+      `SELECT COALESCE(countryCode, 'unknown') AS countryCode,
+              COALESCE(countryName, 'Unknown') AS countryName,
+              COUNT(DISTINCT visitorId) AS visitors,
+              COALESCE(SUM(pageViews), 0) AS pageViews,
+              MAX(lastSeenAt) AS lastSeenAt
+       FROM visitor_daily_activity
+       WHERE day BETWEEN ? AND ?
+       GROUP BY COALESCE(countryCode, 'unknown'), COALESCE(countryName, 'Unknown')
+       ORDER BY visitors DESC, countryName ASC`,
+      [period.startDate, period.endDate],
+    ),
+    loadRows(
+      `SELECT COALESCE(countryCode, 'unknown') AS countryCode,
+              COALESCE(countryName, 'Unknown') AS countryName,
+              COUNT(DISTINCT visitorId) AS visitors
+       FROM visitor_daily_activity
+       WHERE day BETWEEN ? AND ?
+       GROUP BY COALESCE(countryCode, 'unknown'), COALESCE(countryName, 'Unknown')`,
+      [period.previousStartDate, period.previousEndDate],
+    ),
+    loadOne(
+      `SELECT SUM(CASE WHEN status = 'sent' THEN 1 ELSE 0 END) AS sent,
+              SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) AS failed,
+              SUM(CASE WHEN status = 'not-configured' THEN 1 ELSE 0 END) AS skipped
+       FROM notification_delivery_events
+       WHERE substr(createdAt, 1, 10) BETWEEN ? AND ?`,
+      [period.startDate, period.endDate],
+    ),
+    loadOne(
+      `SELECT SUM(CASE WHEN status = 'sent' THEN 1 ELSE 0 END) AS sent,
+              SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) AS failed,
+              SUM(CASE WHEN status = 'not-configured' THEN 1 ELSE 0 END) AS skipped
+       FROM notification_delivery_events
+       WHERE substr(createdAt, 1, 10) BETWEEN ? AND ?`,
+      [period.previousStartDate, period.previousEndDate],
+    ),
+    loadOne(
+      `SELECT
+         (SELECT MIN(day) FROM visitor_daily_activity) AS collectionStartedAt,
+         (SELECT MAX(lastSeenAt) FROM visitor_daily_activity) AS latestActivityAt,
+         (SELECT MIN(firstSeenAt) FROM visitors) AS legacyVisitorStartedAt,
+         (SELECT MAX(createdAt) FROM notification_delivery_events) AS latestNotificationAt`,
+    ),
+  ]);
+
+  const current = mapAnalyticsSummary(currentVisitorRow, currentAccountRow ? getNumber(currentAccountRow, "count") : 0);
+  const previous = mapAnalyticsSummary(previousVisitorRow, previousAccountRow ? getNumber(previousAccountRow, "count") : 0);
+  const visitorByBucket = new Map(visitorTrendRows.map((row) => [getString(row, "bucket"), row]));
+  const accountsByBucket = new Map(accountTrendRows.map((row) => [getString(row, "bucket"), row]));
+  const notificationsByBucket = new Map(notificationTrendRows.map((row) => [getString(row, "bucket"), row]));
+  const points = buildAnalyticsBuckets(period, filters.bucket).map(({ key, label }) => {
+    const visitor = visitorByBucket.get(key);
+    const accounts = accountsByBucket.get(key);
+    const notifications = notificationsByBucket.get(key);
+    const uniqueVisitors = visitor ? getNumber(visitor, "uniqueVisitors") : 0;
+    const firstTimeVisitors = visitor ? getNumber(visitor, "firstTimeVisitors") : 0;
+    return {
+      key,
+      label,
+      uniqueVisitors,
+      pageViews: visitor ? getNumber(visitor, "pageViews") : 0,
+      newAccounts: accounts ? getNumber(accounts, "newAccounts") : 0,
+      firstTimeVisitors,
+      returningVisitors: Math.max(0, uniqueVisitors - firstTimeVisitors),
+      unknownCountryVisitors: visitor ? getNumber(visitor, "unknownCountryVisitors") : 0,
+      notificationsSent: notifications ? getNumber(notifications, "sent") : 0,
+      notificationsFailed: notifications ? getNumber(notifications, "failed") : 0,
+      notificationsSkipped: notifications ? getNumber(notifications, "skipped") : 0,
+    };
+  });
+
+  const countryMap = new Map<string, AdminHistoricalAnalytics["countries"][number]>();
+  for (const row of previousCountryRows) {
+    const countryCode = getString(row, "countryCode");
+    countryMap.set(countryCode, {
+      countryCode,
+      countryName: getString(row, "countryName"),
+      currentVisitors: 0,
+      previousVisitors: getNumber(row, "visitors"),
+      pageViews: 0,
+      share: 0,
+      lastSeenAt: null,
+    });
+  }
+  for (const row of currentCountryRows) {
+    const countryCode = getString(row, "countryCode");
+    countryMap.set(countryCode, {
+      countryCode,
+      countryName: getString(row, "countryName"),
+      currentVisitors: getNumber(row, "visitors"),
+      previousVisitors: countryMap.get(countryCode)?.previousVisitors ?? 0,
+      pageViews: getNumber(row, "pageViews"),
+      share: current.uniqueVisitors > 0 ? getNumber(row, "visitors") / current.uniqueVisitors : 0,
+      lastSeenAt: getNullableString(row, "lastSeenAt"),
+    });
+  }
+
+  const collectionStartedAt = telemetryRow ? getNullableString(telemetryRow, "collectionStartedAt") : null;
+  const legacyVisitorStartedAt = telemetryRow ? getNullableString(telemetryRow, "legacyVisitorStartedAt") : null;
+  return {
+    filters,
+    period,
+    points,
+    current,
+    previous,
+    countries: [...countryMap.values()].sort(
+      (left, right) => right.currentVisitors - left.currentVisitors || right.previousVisitors - left.previousVisitors || left.countryName.localeCompare(right.countryName),
+    ),
+    notificationHealth: {
+      sent: currentNotificationRow ? getNumber(currentNotificationRow, "sent") : 0,
+      failed: currentNotificationRow ? getNumber(currentNotificationRow, "failed") : 0,
+      skipped: currentNotificationRow ? getNumber(currentNotificationRow, "skipped") : 0,
+      previousSent: previousNotificationRow ? getNumber(previousNotificationRow, "sent") : 0,
+      previousFailed: previousNotificationRow ? getNumber(previousNotificationRow, "failed") : 0,
+      previousSkipped: previousNotificationRow ? getNumber(previousNotificationRow, "skipped") : 0,
+      latestAt: telemetryRow ? getNullableString(telemetryRow, "latestNotificationAt") : null,
+    },
+    telemetry: {
+      collectionStartedAt,
+      latestActivityAt: telemetryRow ? getNullableString(telemetryRow, "latestActivityAt") : null,
+      retainedDays: VISITOR_ANALYTICS_RETENTION_DAYS,
+      hasPreUpgradeGap: Boolean(
+        legacyVisitorStartedAt && (!collectionStartedAt || legacyVisitorStartedAt.slice(0, 10) < collectionStartedAt),
+      ),
+    },
+  };
+}
+
+export async function recordNotificationDelivery(input: {
+  purpose?: string;
+  status: "sent" | "failed" | "not-configured";
+  transportSource: "env" | "database" | "none";
+  recipientCount: number;
+}) {
+  const createdAt = new Date().toISOString();
+  await execute(
+    `INSERT INTO notification_delivery_events (
+       id, purpose, status, transportSource, recipientCount, createdAt
+     ) VALUES (?, ?, ?, ?, ?, ?)`,
+    [
+      randomUUID(),
+      (input.purpose ?? "transactional").trim().slice(0, 60) || "transactional",
+      input.status,
+      input.transportSource,
+      Math.max(0, Math.min(input.recipientCount, 100)),
+      createdAt,
+    ],
+  );
+  const cutoff = new Date(Date.now() - VISITOR_ANALYTICS_RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString();
+  await execute("DELETE FROM notification_delivery_events WHERE createdAt < ?", [cutoff]);
 }
 
 export async function listTaskIllustrations(): Promise<TaskIllustrationRecord[]> {
@@ -5103,8 +5438,6 @@ function mapContactSubmission(row: DbRow): ContactSubmissionRecord {
     attachmentCount: getNumber(row, "attachmentCount"),
     emailStatus: emailStatus === "sent" || emailStatus === "failed" ? emailStatus : "not-configured",
     emailError: getNullableString(row, "emailError"),
-    ipAddress: getNullableString(row, "ipAddress"),
-    userAgent: getNullableString(row, "userAgent"),
     createdAt: getString(row, "createdAt"),
   };
 }
@@ -5117,8 +5450,6 @@ export async function createContactSubmission(input: {
   attachments: Array<Pick<ContactAttachmentRecord, "fileName" | "mimeType" | "sizeBytes" | "contentBase64">>;
   emailStatus: ContactSubmissionRecord["emailStatus"];
   emailError?: string | null;
-  ipAddress?: string | null;
-  userAgent?: string | null;
 }) {
   const now = new Date().toISOString();
   const id = randomUUID();
@@ -5126,8 +5457,8 @@ export async function createContactSubmission(input: {
     [
       {
         sql: `INSERT INTO contact_submissions (
-          id, title, topic, replyEmail, bodyMarkdown, attachmentCount, emailStatus, emailError, ipAddress, userAgent, createdAt
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          id, title, topic, replyEmail, bodyMarkdown, attachmentCount, emailStatus, emailError, createdAt
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         args: [
           id,
           input.title.trim().slice(0, 140),
@@ -5137,8 +5468,6 @@ export async function createContactSubmission(input: {
           input.attachments.length,
           input.emailStatus,
           input.emailError?.slice(0, 500) ?? null,
-          input.ipAddress ?? null,
-          input.userAgent?.slice(0, 500) ?? null,
           now,
         ],
       },
@@ -5163,12 +5492,20 @@ export async function createContactSubmission(input: {
 }
 
 export async function listContactSubmissions(limit = 100): Promise<ContactSubmissionRecord[]> {
-  const rows = await loadRows("SELECT * FROM contact_submissions ORDER BY createdAt DESC LIMIT ?", [limit]);
+  const rows = await loadRows(
+    `SELECT id, title, topic, replyEmail, bodyMarkdown, attachmentCount, emailStatus, emailError, createdAt
+     FROM contact_submissions ORDER BY createdAt DESC LIMIT ?`,
+    [limit],
+  );
   return rows.map(mapContactSubmission);
 }
 
 export async function getContactSubmission(id: string): Promise<ContactSubmissionRecord | null> {
-  const row = await loadOne("SELECT * FROM contact_submissions WHERE id = ? LIMIT 1", [id]);
+  const row = await loadOne(
+    `SELECT id, title, topic, replyEmail, bodyMarkdown, attachmentCount, emailStatus, emailError, createdAt
+     FROM contact_submissions WHERE id = ? LIMIT 1`,
+    [id],
+  );
   if (!row) return null;
   const attachments = await loadRows(
     "SELECT * FROM contact_attachments WHERE submissionId = ? ORDER BY createdAt ASC",
@@ -5420,24 +5757,25 @@ export async function recordAudit(input: {
   action: string;
   detail: string;
   metadata?: Record<string, unknown> | null;
-  ipAddress?: string | null;
 }) {
   await execute(
-    "INSERT INTO audit_log (id, accountId, action, detail, metadata, ipAddress, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    "INSERT INTO audit_log (id, accountId, action, detail, metadata, createdAt) VALUES (?, ?, ?, ?, ?, ?)",
     [
       randomUUID(),
       input.accountId,
       input.action.slice(0, 80),
       input.detail,
       input.metadata ? JSON.stringify(input.metadata) : null,
-      input.ipAddress ?? null,
       new Date().toISOString(),
     ],
   );
 }
 
 export async function listAuditLog(limit = 200): Promise<AuditLogRecord[]> {
-  const rows = await loadRows("SELECT * FROM audit_log ORDER BY createdAt DESC LIMIT ?", [limit]);
+  const rows = await loadRows(
+    "SELECT id, accountId, action, detail, metadata, createdAt FROM audit_log ORDER BY createdAt DESC LIMIT ?",
+    [limit],
+  );
   return rows.map(mapAuditLogRecord);
 }
 
@@ -5448,7 +5786,6 @@ function mapAuditLogRecord(row: DbRow): AuditLogRecord {
     action: getString(row, "action"),
     detail: getString(row, "detail"),
     metadata: getNullableString(row, "metadata"),
-    ipAddress: getNullableString(row, "ipAddress"),
     createdAt: getString(row, "createdAt"),
   };
 }
@@ -5484,7 +5821,8 @@ export async function listAuditLogPage(input: {
   const totalPages = Math.max(1, Math.ceil(totalItems / requested.pageSize));
   const page = Math.min(requested.page, totalPages);
   const rows = await loadRows(
-    `SELECT * FROM audit_log${where} ORDER BY createdAt DESC, id DESC LIMIT ? OFFSET ?`,
+    `SELECT id, accountId, action, detail, metadata, createdAt
+     FROM audit_log${where} ORDER BY createdAt DESC, id DESC LIMIT ? OFFSET ?`,
     [...args, requested.pageSize, (page - 1) * requested.pageSize],
   );
 

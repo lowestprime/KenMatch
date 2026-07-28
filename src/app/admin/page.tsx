@@ -5,6 +5,7 @@ import { AdminAccounts } from "@/components/admin/accounts";
 import { AdminAuditFeed } from "@/components/admin/audit-feed";
 import { AdminCategoryProposals } from "@/components/admin/category-proposals";
 import { AdminCategoryVisuals } from "@/components/admin/category-visuals";
+import { AdminHistoricalAnalyticsPanel } from "@/components/admin/historical-analytics";
 import { AdminKenSubmissions } from "@/components/admin/ken-submissions";
 import { AdminNotifications } from "@/components/admin/notifications";
 import {
@@ -19,6 +20,7 @@ import { VisitorMap } from "@/components/visitor-map";
 import { listCategoryVisualSettings } from "@/lib/category-visual-settings";
 import {
   getAdminDashboard,
+  getAdminHistoricalAnalytics,
   getAdminNotificationSettings,
   listAuditLogPage,
   listCategoriesForReview,
@@ -44,6 +46,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   if (viewer.account.systemRole !== "owner" && viewer.account.systemRole !== "admin" && viewer.account.systemRole !== "moderator") {
     redirect("/");
   }
+  const isOwner = viewer.account.systemRole === "owner";
+  const isAdmin = isOwner || viewer.account.systemRole === "admin";
 
   const params = await searchParams;
   const scalarParams = Object.fromEntries(
@@ -66,7 +70,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     page: Number(paramValue(params, "kenPage")) || 1,
     pageSize: 10,
   };
-  const [dashboard, notifications, categoryVisuals, categoryQueue, kenQueue, categories, auditPage] = await Promise.all([
+  const [dashboard, notifications, categoryVisuals, categoryQueue, kenQueue, categories, auditPage, historicalAnalytics] = await Promise.all([
     getAdminDashboard(),
     getAdminNotificationSettings(),
     listCategoryVisualSettings(),
@@ -79,14 +83,18 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       page: paramValue(params, "auditPage"),
       pageSize: paramValue(params, "auditPageSize"),
     }),
+    isAdmin
+      ? getAdminHistoricalAnalytics({
+          rangeDays: paramValue(params, "analyticsRange"),
+          bucket: paramValue(params, "analyticsBucket"),
+        })
+      : Promise.resolve(null),
   ]);
   const [categoryEvents, kenEvents] = await Promise.all([
     listReviewEventsForQueue("category-proposal", categoryQueue.items.map((item) => item.id)),
     listReviewEventsForQueue("ken-submission", kenQueue.items.map((item) => item.id)),
   ]);
 
-  const isOwner = viewer.account.systemRole === "owner";
-  const isAdmin = isOwner || viewer.account.systemRole === "admin";
   const canEditAccounts = isOwner;
   const canModerate = true;
   const profileById = new Map(dashboard.profiles.map((profile) => [profile.id, profile]));
@@ -137,6 +145,14 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         </div>
       </section>
       </> : null}
+
+      {isAdmin && historicalAnalytics ? (
+        <AdminHistoricalAnalyticsPanel
+          data={historicalAnalytics}
+          smtp={dashboard.smtp}
+          params={scalarParams}
+        />
+      ) : null}
 
       {isAdmin ? <>
       <section className="section-grid" data-columns="2">

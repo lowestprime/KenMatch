@@ -486,7 +486,6 @@ export async function signUpAction(_: ActionState, formData: FormData): Promise<
       action: "auth.sign-up",
       detail: `Account created for ${parsed.data.email.toLowerCase()}`,
       metadata: { role: created.systemRole, country: visitorContext?.countryName ?? null },
-      ipAddress: visitorContext?.ipAddress ?? null,
     });
 
     const notificationSettings = await getAdminNotificationSettings();
@@ -496,7 +495,6 @@ export async function signUpAction(_: ActionState, formData: FormData): Promise<
         name: parsed.data.name,
         role: parsed.data.role,
         specialty: parsed.data.specialty,
-        ipAddress: visitorContext?.ipAddress ?? null,
         country: visitorContext?.countryName ?? null,
       });
       await sendMail({ to: notificationSettings.recipientEmails, ...notify });
@@ -667,9 +665,8 @@ async function readContactAttachments(formData: FormData) {
 }
 
 export async function contactOwnerAction(_: ActionState, formData: FormData): Promise<ActionState> {
-  let securityContext: Awaited<ReturnType<typeof guardMutationRequest>>;
   try {
-    securityContext = await guardMutationRequest({
+    await guardMutationRequest({
       action: "contact-owner",
       formData,
       requireTurnstile: turnstileConfigured(),
@@ -717,15 +714,12 @@ export async function contactOwnerAction(_: ActionState, formData: FormData): Pr
       attachments,
       emailStatus,
       emailError: emailResult.error ?? null,
-      ipAddress: securityContext.ipAddress,
-      userAgent: securityContext.userAgent,
     });
     await recordAudit({
       accountId: null,
       action: "contact.submitted",
       detail: `Contact submission ${submissionId}: ${parsed.data.topic}`,
       metadata: { emailStatus, attachmentCount: attachments.length },
-      ipAddress: securityContext.ipAddress,
     });
     revalidatePath("/faq");
     revalidatePath("/about");

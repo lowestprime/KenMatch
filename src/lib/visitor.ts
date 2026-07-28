@@ -13,14 +13,8 @@ import { buildVisitorNotificationEmail, sendMail } from "@/lib/mail";
 
 export interface VisitorContext {
   visitorHash: string;
-  ipAddress: string | null;
   countryCode: string | null;
   countryName: string | null;
-  region: string | null;
-  city: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  userAgent: string | null;
 }
 
 const COUNTRY_NAMES: Record<string, string> = {
@@ -90,10 +84,6 @@ export async function extractVisitorContext(): Promise<VisitorContext> {
     headerList.get("x-real-ip") ??
     null;
   const countryCode = headerList.get("cf-ipcountry");
-  const regionCode = headerList.get("cf-region") ?? headerList.get("cf-region-code");
-  const city = headerList.get("cf-ipcity") ?? null;
-  const latRaw = headerList.get("cf-iplatitude");
-  const lngRaw = headerList.get("cf-iplongitude");
   const userAgent = headerList.get("user-agent");
   const hashSource = `${ipAddress ?? "unknown"}|${userAgent ?? "unknown"}`;
   const visitorHash = createHash("sha256")
@@ -101,14 +91,8 @@ export async function extractVisitorContext(): Promise<VisitorContext> {
     .digest("hex");
   return {
     visitorHash,
-    ipAddress,
     countryCode: countryCode && countryCode !== "XX" ? countryCode : null,
     countryName: countryCode && countryCode !== "XX" ? COUNTRY_NAMES[countryCode] ?? countryCode : null,
-    region: regionCode ?? null,
-    city,
-    latitude: latRaw ? Number(latRaw) : null,
-    longitude: lngRaw ? Number(lngRaw) : null,
-    userAgent,
   };
 }
 
@@ -119,11 +103,6 @@ export async function trackVisitor(context?: VisitorContext) {
       visitorHash: resolved.visitorHash,
       countryCode: resolved.countryCode,
       countryName: resolved.countryName,
-      region: resolved.region,
-      city: resolved.city,
-      latitude: resolved.latitude,
-      longitude: resolved.longitude,
-      userAgent: resolved.userAgent,
     });
     if (result.isNew) {
       await recordAudit({
@@ -132,10 +111,7 @@ export async function trackVisitor(context?: VisitorContext) {
         detail: `Unique visitor observed${resolved.countryName ? ` from ${resolved.countryName}` : ""}.`,
         metadata: {
           country: resolved.countryName,
-          region: resolved.region,
-          city: resolved.city,
         },
-        ipAddress: resolved.ipAddress,
       });
       await notifyAdminsNewVisitor(resolved);
     }
@@ -153,9 +129,6 @@ async function notifyAdminsNewVisitor(context: VisitorContext) {
     if (settings.recipientEmails.length === 0) return;
     const payload = buildVisitorNotificationEmail({
       country: context.countryName,
-      region: context.region,
-      city: context.city,
-      userAgent: context.userAgent,
     });
     await sendMail({ to: settings.recipientEmails, ...payload });
   } catch (error) {

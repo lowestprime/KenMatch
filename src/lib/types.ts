@@ -288,14 +288,8 @@ export interface BookmarkRecord {
 
 export interface VisitorRecord {
   id: string;
-  visitorHash: string;
   countryCode: string | null;
   countryName: string | null;
-  region: string | null;
-  city: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  userAgent: string | null;
   firstSeenAt: string;
   lastSeenAt: string;
   pageViews: number;
@@ -398,8 +392,6 @@ export interface ContactSubmissionRecord {
   attachmentCount: number;
   emailStatus: "sent" | "not-configured" | "failed";
   emailError: string | null;
-  ipAddress: string | null;
-  userAgent: string | null;
   createdAt: string;
   attachments?: ContactAttachmentRecord[];
 }
@@ -460,7 +452,6 @@ export interface AuditLogRecord {
   action: string;
   detail: string;
   metadata: string | null;
-  ipAddress: string | null;
   createdAt: string;
 }
 

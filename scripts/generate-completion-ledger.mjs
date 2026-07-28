@@ -259,8 +259,16 @@ const evidenceRules = [
   },
   {
     match: /\b(visitor|analytics|country|map|chart)\b/i,
-    code: ["src/components/visitor-map.tsx", "src/components/admin/visitors.tsx", "src/lib/visitor.ts", "src/lib/db.ts"],
-    tests: [],
+    code: [
+      "src/components/visitor-map.tsx",
+      "src/components/admin/visitors.tsx",
+      "src/components/admin/historical-analytics.tsx",
+      "src/lib/admin-analytics.ts",
+      "src/lib/visitor.ts",
+      "src/lib/db.ts",
+      "docs/admin-historical-analytics.md",
+    ],
+    tests: ["tests/admin-analytics.test.ts", "tests/privacy.test.ts"],
   },
   {
     match: /\b(sponsor|funding|treasury|economics|coverage)\b/i,
@@ -313,7 +321,7 @@ const missingFeatureRules = [
   },
   {
     match: /\b(historical analytics|visitors by day|visitors by week|visitors by month|country distribution over time)\b/i,
-    absent: ["src/components/admin/visitor-analytics.tsx"],
+    absent: ["src/components/admin/historical-analytics.tsx", "src/lib/admin-analytics.ts"],
   },
   {
     match: /\b(appeal|recus|moderation threat model)\b/i,
@@ -853,10 +861,21 @@ async function attachEvidence(entries) {
           "tests/discovery.test.ts",
         ].every((file) => existsSync(path.join(repoRoot, file))) &&
         entry.current_test_evidence.some((evidence) => evidence?.startsWith("tests/discovery.test.ts"));
+      const analyticsReady =
+        /\b(visitor|analytics|country distribution|returning visitor|chart)\b/i.test(entry.normalized_requirement) &&
+        [
+          "src/components/admin/historical-analytics.tsx",
+          "src/lib/admin-analytics.ts",
+          "docs/admin-historical-analytics.md",
+          "tests/admin-analytics.test.ts",
+          "tests/privacy.test.ts",
+        ].every((file) => existsSync(path.join(repoRoot, file))) &&
+        entry.current_test_evidence.some((evidence) => evidence?.startsWith("tests/admin-analytics.test.ts"));
       const broadening =
         !glossaryReady &&
         !strategicFaqReady &&
         !discoveryReady &&
+        !analyticsReady &&
         /\b(complete|comprehensive|full lifecycle|historical|over time|pagination|100,?000|appeal|recus|threat model|scale-resilient|every route|all states|tier-2|tier-3)\b/i.test(
           entry.normalized_requirement,
         );
