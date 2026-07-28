@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-07-28T05:02:30.538Z",
+  "generated_at": "2026-07-28T05:53:33.963Z",
   "generator": "scripts/generate-completion-ledger.mjs",
   "repository": {
     "path": ".",
@@ -374,10 +374,10 @@
     "source_claims": 188,
     "reference_constraints": 168,
     "status_counts": {
-      "IMPLEMENTED_UNVALIDATED": 180,
-      "NOT_AUDITED": 272,
+      "IMPLEMENTED_UNVALIDATED": 206,
+      "NOT_AUDITED": 254,
       "PARTIAL": 11,
-      "MISSING": 22
+      "MISSING": 14
     },
     "initial_gap_analysis": [
       {
@@ -600,6 +600,9 @@
         "src/lib/faq.ts:1",
         "src/components/faq-explorer.tsx:1",
         "src/app/faq/page.tsx:1",
+        "src/lib/glossary.ts:1",
+        "src/components/glossary-explorer.tsx:1",
+        "src/app/glossary/page.tsx:1",
         "src/lib/economics.ts:1",
         "src/app/economics/page.tsx:1",
         "src/components/sponsor-form.tsx:1",
@@ -3814,18 +3817,26 @@
       "exact_short_excerpt": "Furthermore, how can this be optimally integrated and operationalized without modifying existing default ken submission auto-moderation, faint mechanisms or the minimally-sufficient Ken submission-readiness criteria?",
       "priority": "P1",
       "risk": "medium",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/faq.ts:1",
+        "src/components/faq-explorer.tsx:1",
+        "src/app/faq/page.tsx:1"
+      ],
+      "current_test_evidence": [
+        "tests/faq-contact.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "NOT_AUDITED",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under A-FAQ-GLOSSARY-TRUST.",
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "faq-contact.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "A-FAQ-GLOSSARY-TRUST",
       "source_backlinks": [
         {
@@ -3848,6 +3859,9 @@
         "src/lib/faq.ts:1",
         "src/components/faq-explorer.tsx:1",
         "src/app/faq/page.tsx:1",
+        "src/lib/glossary.ts:1",
+        "src/components/glossary-explorer.tsx:1",
+        "src/app/glossary/page.tsx:1",
         "src/components/task-board-filters.tsx:1",
         "src/components/search-field.tsx:1",
         "src/app/kens/page.tsx:1",
@@ -3859,7 +3873,7 @@
         "tests/faq-contact.test.ts:1"
       ],
       "current_live_evidence": [],
-      "status": "MISSING",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under A-FAQ-GLOSSARY-TRUST.",
       "acceptance_criteria": [
@@ -3869,7 +3883,7 @@
         "faq-contact.test.ts"
       ],
       "commits": [],
-      "notes": "Initial gap audit found no implementation matching the required capability.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "A-FAQ-GLOSSARY-TRUST",
       "source_backlinks": [
         {
@@ -3888,18 +3902,26 @@
       "exact_short_excerpt": "what novel value does KenMatch contribute to society?",
       "priority": "P1",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/faq.ts:1",
+        "src/components/faq-explorer.tsx:1",
+        "src/app/faq/page.tsx:1"
+      ],
+      "current_test_evidence": [
+        "tests/faq-contact.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "NOT_AUDITED",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under A-FAQ-GLOSSARY-TRUST.",
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "faq-contact.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "A-FAQ-GLOSSARY-TRUST",
       "source_backlinks": [
         {
@@ -3921,13 +3943,16 @@
       "current_code_evidence": [
         "src/lib/faq.ts:1",
         "src/components/faq-explorer.tsx:1",
-        "src/app/faq/page.tsx:1"
+        "src/app/faq/page.tsx:1",
+        "src/lib/glossary.ts:1",
+        "src/components/glossary-explorer.tsx:1",
+        "src/app/glossary/page.tsx:1"
       ],
       "current_test_evidence": [
         "tests/faq-contact.test.ts:1"
       ],
       "current_live_evidence": [],
-      "status": "MISSING",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under A-FAQ-GLOSSARY-TRUST.",
       "acceptance_criteria": [
@@ -3937,7 +3962,7 @@
         "faq-contact.test.ts"
       ],
       "commits": [],
-      "notes": "Initial gap audit found no implementation matching the required capability.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "A-FAQ-GLOSSARY-TRUST",
       "source_backlinks": [
         {
@@ -4082,18 +4107,26 @@
       "exact_short_excerpt": "how is kenmatch specifically unique and how does it differentiate itself from all other similar ideas, platforms, services, and websites?",
       "priority": "P1",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/faq.ts:1",
+        "src/components/faq-explorer.tsx:1",
+        "src/app/faq/page.tsx:1"
+      ],
+      "current_test_evidence": [
+        "tests/faq-contact.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "NOT_AUDITED",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under A-FAQ-GLOSSARY-TRUST.",
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "faq-contact.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "A-FAQ-GLOSSARY-TRUST",
       "source_backlinks": [
         {
@@ -4112,18 +4145,26 @@
       "exact_short_excerpt": "what is the most accurate technical classification of kenmatch's organizational structure and business model?",
       "priority": "P1",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/faq.ts:1",
+        "src/components/faq-explorer.tsx:1",
+        "src/app/faq/page.tsx:1"
+      ],
+      "current_test_evidence": [
+        "tests/faq-contact.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "NOT_AUDITED",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under A-FAQ-GLOSSARY-TRUST.",
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "faq-contact.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "A-FAQ-GLOSSARY-TRUST",
       "source_backlinks": [
         {
@@ -4143,12 +4184,16 @@
       "priority": "P1",
       "risk": "medium",
       "current_code_evidence": [
+        "src/lib/faq.ts:1",
+        "src/components/faq-explorer.tsx:1",
+        "src/app/faq/page.tsx:1",
         "src/lib/economics.ts:1",
         "src/app/economics/page.tsx:1",
         "src/components/sponsor-form.tsx:1",
         "src/lib/db.ts:1"
       ],
       "current_test_evidence": [
+        "tests/faq-contact.test.ts:1",
         "tests/economics.test.ts:1"
       ],
       "current_live_evidence": [],
@@ -4159,6 +4204,7 @@
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
       "test_ids": [
+        "faq-contact.test.ts",
         "economics.test.ts"
       ],
       "commits": [],
@@ -4181,10 +4227,16 @@
       "exact_short_excerpt": "Each term should support:",
       "priority": "P1",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/glossary.ts:1",
+        "src/components/glossary-explorer.tsx:1",
+        "src/app/glossary/page.tsx:1"
+      ],
+      "current_test_evidence": [
+        "tests/faq-contact.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "MISSING",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under A-FAQ-GLOSSARY-TRUST.",
       "acceptance_criteria": [
@@ -4200,9 +4252,11 @@
         "optional source/reference links;",
         "search keywords."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "faq-contact.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial gap audit found no implementation matching the required capability.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "A-FAQ-GLOSSARY-TRUST",
       "source_backlinks": [
         {
@@ -4221,18 +4275,26 @@
       "exact_short_excerpt": "why is kenmatch necessary?",
       "priority": "P1",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/faq.ts:1",
+        "src/components/faq-explorer.tsx:1",
+        "src/app/faq/page.tsx:1"
+      ],
+      "current_test_evidence": [
+        "tests/faq-contact.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "NOT_AUDITED",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under A-FAQ-GLOSSARY-TRUST.",
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "faq-contact.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "A-FAQ-GLOSSARY-TRUST",
       "source_backlinks": [
         {
@@ -4255,6 +4317,9 @@
         "src/lib/faq.ts:1",
         "src/components/faq-explorer.tsx:1",
         "src/app/faq/page.tsx:1",
+        "src/lib/glossary.ts:1",
+        "src/components/glossary-explorer.tsx:1",
+        "src/app/glossary/page.tsx:1",
         "src/components/task-board-filters.tsx:1",
         "src/components/search-field.tsx:1",
         "src/app/kens/page.tsx:1"
@@ -4300,18 +4365,26 @@
       "exact_short_excerpt": "what elements of ken are currently objectively, autonomously, and programmatically implemented, and which are subjectively assessed/implemented?",
       "priority": "P1",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/faq.ts:1",
+        "src/components/faq-explorer.tsx:1",
+        "src/app/faq/page.tsx:1"
+      ],
+      "current_test_evidence": [
+        "tests/faq-contact.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "NOT_AUDITED",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under A-FAQ-GLOSSARY-TRUST.",
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "faq-contact.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "A-FAQ-GLOSSARY-TRUST",
       "source_backlinks": [
         {
@@ -4330,18 +4403,26 @@
       "exact_short_excerpt": "Why should I personally use kenmatch? why should I make an account? what could I personally stand to benefit/gain from creating a kenmatch account and continuing to actively participate and engage with the platform? detailed rigorously justified and meticulou…",
       "priority": "P1",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/faq.ts:1",
+        "src/components/faq-explorer.tsx:1",
+        "src/app/faq/page.tsx:1"
+      ],
+      "current_test_evidence": [
+        "tests/faq-contact.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "NOT_AUDITED",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under A-FAQ-GLOSSARY-TRUST.",
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "faq-contact.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "A-FAQ-GLOSSARY-TRUST",
       "source_backlinks": [
         {
@@ -4360,18 +4441,26 @@
       "exact_short_excerpt": "why should any prospective user or backer trust any claims/assertions made regarding kenmatch, its potential, its outputs, its aims, or any other aspects of its premise idea, premise, implementation, and that is not already possible to achieve/replicate via a…",
       "priority": "P1",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/faq.ts:1",
+        "src/components/faq-explorer.tsx:1",
+        "src/app/faq/page.tsx:1"
+      ],
+      "current_test_evidence": [
+        "tests/faq-contact.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "NOT_AUDITED",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under A-FAQ-GLOSSARY-TRUST.",
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "faq-contact.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "A-FAQ-GLOSSARY-TRUST",
       "source_backlinks": [
         {
@@ -4390,18 +4479,26 @@
       "exact_short_excerpt": "how are KenMatch's operational, economic, and being actively fortified, addressed and refined?",
       "priority": "P1",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/faq.ts:1",
+        "src/components/faq-explorer.tsx:1",
+        "src/app/faq/page.tsx:1"
+      ],
+      "current_test_evidence": [
+        "tests/faq-contact.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "NOT_AUDITED",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under A-FAQ-GLOSSARY-TRUST.",
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "faq-contact.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "A-FAQ-GLOSSARY-TRUST",
       "source_backlinks": [
         {
@@ -4450,18 +4547,26 @@
       "exact_short_excerpt": "what are the closest equivalents to kenmatch as of today?",
       "priority": "P1",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/faq.ts:1",
+        "src/components/faq-explorer.tsx:1",
+        "src/app/faq/page.tsx:1"
+      ],
+      "current_test_evidence": [
+        "tests/faq-contact.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "NOT_AUDITED",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under A-FAQ-GLOSSARY-TRUST.",
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "faq-contact.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "A-FAQ-GLOSSARY-TRUST",
       "source_backlinks": [
         {
@@ -4483,13 +4588,16 @@
       "current_code_evidence": [
         "src/lib/faq.ts:1",
         "src/components/faq-explorer.tsx:1",
-        "src/app/faq/page.tsx:1"
+        "src/app/faq/page.tsx:1",
+        "src/lib/glossary.ts:1",
+        "src/components/glossary-explorer.tsx:1",
+        "src/app/glossary/page.tsx:1"
       ],
       "current_test_evidence": [
         "tests/faq-contact.test.ts:1"
       ],
       "current_live_evidence": [],
-      "status": "MISSING",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under A-FAQ-GLOSSARY-TRUST.",
       "acceptance_criteria": [
@@ -4499,7 +4607,7 @@
         "faq-contact.test.ts"
       ],
       "commits": [],
-      "notes": "Initial gap audit found no implementation matching the required capability.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "A-FAQ-GLOSSARY-TRUST",
       "source_backlinks": [
         {
@@ -4556,18 +4664,26 @@
       "exact_short_excerpt": "Implement a first-class, searchable, linkable glossary rather than burying definitions in prose.",
       "priority": "P1",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/glossary.ts:1",
+        "src/components/glossary-explorer.tsx:1",
+        "src/app/glossary/page.tsx:1"
+      ],
+      "current_test_evidence": [
+        "tests/faq-contact.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "MISSING",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under A-FAQ-GLOSSARY-TRUST.",
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "faq-contact.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial gap audit found no implementation matching the required capability.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "A-FAQ-GLOSSARY-TRUST",
       "source_backlinks": [
         {
@@ -4630,18 +4746,26 @@
       "exact_short_excerpt": "given kenmatch is similar to and inspired by reddit/stack-exchange/hacker news Crowdsourced Curation Collaborative Filtering content ordering logic, how will kenmatch maintain its existence, novelty, and resist capture by for profit conventional models copyin…",
       "priority": "P1",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/faq.ts:1",
+        "src/components/faq-explorer.tsx:1",
+        "src/app/faq/page.tsx:1"
+      ],
+      "current_test_evidence": [
+        "tests/faq-contact.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "NOT_AUDITED",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under A-FAQ-GLOSSARY-TRUST.",
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "faq-contact.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "A-FAQ-GLOSSARY-TRUST",
       "source_backlinks": [
         {
@@ -4660,18 +4784,26 @@
       "exact_short_excerpt": "does anything like kenmatch already exist?",
       "priority": "P1",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/faq.ts:1",
+        "src/components/faq-explorer.tsx:1",
+        "src/app/faq/page.tsx:1"
+      ],
+      "current_test_evidence": [
+        "tests/faq-contact.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "NOT_AUDITED",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under A-FAQ-GLOSSARY-TRUST.",
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "faq-contact.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "A-FAQ-GLOSSARY-TRUST",
       "source_backlinks": [
         {
@@ -4690,18 +4822,26 @@
       "exact_short_excerpt": "similar to point given KenMatch's direct reliance and dependence on frontier LLM / AI companies' models for agentic long-horizon compute to resolve/generate ken-associated product/content,",
       "priority": "P1",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/faq.ts:1",
+        "src/components/faq-explorer.tsx:1",
+        "src/app/faq/page.tsx:1"
+      ],
+      "current_test_evidence": [
+        "tests/faq-contact.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "NOT_AUDITED",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under A-FAQ-GLOSSARY-TRUST.",
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "faq-contact.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "A-FAQ-GLOSSARY-TRUST",
       "source_backlinks": [
         {
@@ -4720,18 +4860,26 @@
       "exact_short_excerpt": "does kenmatch have any competitors?",
       "priority": "P1",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/faq.ts:1",
+        "src/components/faq-explorer.tsx:1",
+        "src/app/faq/page.tsx:1"
+      ],
+      "current_test_evidence": [
+        "tests/faq-contact.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "NOT_AUDITED",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under A-FAQ-GLOSSARY-TRUST.",
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "faq-contact.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "A-FAQ-GLOSSARY-TRUST",
       "source_backlinks": [
         {
@@ -4750,18 +4898,26 @@
       "exact_short_excerpt": "how are incentives for prospective users and backers/funders specifically operationalized, implemented, enforced, maintained and ensured/guaranteed?",
       "priority": "P1",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/faq.ts:1",
+        "src/components/faq-explorer.tsx:1",
+        "src/app/faq/page.tsx:1"
+      ],
+      "current_test_evidence": [
+        "tests/faq-contact.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "NOT_AUDITED",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under A-FAQ-GLOSSARY-TRUST.",
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "faq-contact.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "A-FAQ-GLOSSARY-TRUST",
       "source_backlinks": [
         {
@@ -4780,18 +4936,26 @@
       "exact_short_excerpt": "when/under what conditions are longer running kens technically / operationally / and programmatically terminated prior to meeting their respective allocated long-horizon maximum/upper-bound compute runtime?",
       "priority": "P1",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/faq.ts:1",
+        "src/components/faq-explorer.tsx:1",
+        "src/app/faq/page.tsx:1"
+      ],
+      "current_test_evidence": [
+        "tests/faq-contact.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "NOT_AUDITED",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under A-FAQ-GLOSSARY-TRUST.",
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "faq-contact.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "A-FAQ-GLOSSARY-TRUST",
       "source_backlinks": [
         {
@@ -4810,18 +4974,26 @@
       "exact_short_excerpt": "which companies are most likely to partner with kenmatch in the near- / long-term and why?",
       "priority": "P1",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/faq.ts:1",
+        "src/components/faq-explorer.tsx:1",
+        "src/app/faq/page.tsx:1"
+      ],
+      "current_test_evidence": [
+        "tests/faq-contact.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "NOT_AUDITED",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under A-FAQ-GLOSSARY-TRUST.",
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "faq-contact.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "A-FAQ-GLOSSARY-TRUST",
       "source_backlinks": [
         {
@@ -4840,18 +5012,26 @@
       "exact_short_excerpt": "how is the output of Ken Quality ensured/enforced?",
       "priority": "P1",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/faq.ts:1",
+        "src/components/faq-explorer.tsx:1",
+        "src/app/faq/page.tsx:1"
+      ],
+      "current_test_evidence": [
+        "tests/faq-contact.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "NOT_AUDITED",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under A-FAQ-GLOSSARY-TRUST.",
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "faq-contact.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "A-FAQ-GLOSSARY-TRUST",
       "source_backlinks": [
         {
@@ -4870,10 +5050,16 @@
       "exact_short_excerpt": "Cover at least:",
       "priority": "P1",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/glossary.ts:1",
+        "src/components/glossary-explorer.tsx:1",
+        "src/app/glossary/page.tsx:1"
+      ],
+      "current_test_evidence": [
+        "tests/faq-contact.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "MISSING",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under A-FAQ-GLOSSARY-TRUST.",
       "acceptance_criteria": [
@@ -4909,9 +5095,11 @@
         "audit log;",
         "evidence provenance."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "faq-contact.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial gap audit found no implementation matching the required capability.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "A-FAQ-GLOSSARY-TRUST",
       "source_backlinks": [
         {
@@ -4933,13 +5121,16 @@
       "current_code_evidence": [
         "src/lib/faq.ts:1",
         "src/components/faq-explorer.tsx:1",
-        "src/app/faq/page.tsx:1"
+        "src/app/faq/page.tsx:1",
+        "src/lib/glossary.ts:1",
+        "src/components/glossary-explorer.tsx:1",
+        "src/app/glossary/page.tsx:1"
       ],
       "current_test_evidence": [
         "tests/faq-contact.test.ts:1"
       ],
       "current_live_evidence": [],
-      "status": "MISSING",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under A-FAQ-GLOSSARY-TRUST.",
       "acceptance_criteria": [
@@ -4953,7 +5144,7 @@
         "faq-contact.test.ts"
       ],
       "commits": [],
-      "notes": "Initial gap audit found no implementation matching the required capability.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "A-FAQ-GLOSSARY-TRUST",
       "source_backlinks": [
         {
@@ -6045,8 +6236,14 @@
       "exact_short_excerpt": "Submitted Ken review queue?",
       "priority": "P1",
       "risk": "medium",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/faq.ts:1",
+        "src/components/faq-explorer.tsx:1",
+        "src/app/faq/page.tsx:1"
+      ],
+      "current_test_evidence": [
+        "tests/faq-contact.test.ts:1"
+      ],
       "current_live_evidence": [],
       "status": "MISSING",
       "superseded_by": null,
@@ -6054,7 +6251,9 @@
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "faq-contact.test.ts"
+      ],
       "commits": [],
       "notes": "Initial gap audit found no implementation matching the required capability.",
       "workstream": "C-REVIEW-WORKFLOWS",
@@ -11670,10 +11869,16 @@
       "exact_short_excerpt": "Include the current evidence model for:",
       "priority": "P1",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/product-truth.ts:1",
+        "src/components/product-truth-matrix.tsx:1",
+        "src/app/faq/page.tsx:1"
+      ],
+      "current_test_evidence": [
+        "tests/faq-contact.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "MISSING",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under M-CROSS-CUTTING.",
       "acceptance_criteria": [
@@ -11687,9 +11892,11 @@
         "data collection;",
         "persistence and backups."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "faq-contact.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial gap audit found no implementation matching the required capability.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "M-CROSS-CUTTING",
       "source_backlinks": [
         {

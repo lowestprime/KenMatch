@@ -12,7 +12,7 @@ import { getHomeData } from "@/lib/db";
 import { KEN_DEFINITION } from "@/lib/faq";
 import { getViewerProfileId } from "@/lib/session";
 import { categoryFilterHref, laneFilterHref } from "@/lib/taxonomy";
-import type { AllocationTier, RequestedTier } from "@/lib/types";
+import type { AllocationTier } from "@/lib/types";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 
 export default async function HomePage() {

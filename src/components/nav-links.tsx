@@ -11,6 +11,7 @@ const nav = [
   { href: "/economics", label: "Backing" },
   { href: "/about", label: "About" },
   { href: "/faq", label: "FAQ" },
+  { href: "/glossary", label: "Glossary" },
   { href: "/account", label: "Account" },
 ];
 

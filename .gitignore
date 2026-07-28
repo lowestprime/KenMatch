@@ -13,6 +13,8 @@ coverage/
 .npm-cache/
 .volta/
 deploy-backups/
+.playwright-cli/
+output/playwright/
 
 # Python
 __pycache__/

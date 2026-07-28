@@ -275,6 +275,11 @@ export interface FAQEntry {
   answer: string;
   category: "basics" | "participation" | "allocation" | "backing" | "safety" | "privacy" | "operations";
   keywords: string[];
+  sources?: Array<{
+    label: string;
+    url: string;
+    retrievedAt: string;
+  }>;
 }
 
 export interface ContactAttachmentRecord {

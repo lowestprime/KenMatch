@@ -24,6 +24,7 @@ const primaryNav = [
   { href: "/economics", label: "Backing" },
   { href: "/about", label: "About" },
   { href: "/faq", label: "FAQ" },
+  { href: "/glossary", label: "Glossary" },
 ];
 
 export async function SiteShell({ viewer, children }: { viewer: ViewerSession | null; children: React.ReactNode }) {
@@ -59,7 +60,7 @@ export async function SiteShell({ viewer, children }: { viewer: ViewerSession | 
           </div>
         </div>
       </header>
-      <main id="main-content" className="site-main">{children}</main>
+      <main id="main-content" className="site-main" tabIndex={-1}>{children}</main>
       <footer className="site-footer">
         <div className="site-footer-inner">
           <div className="site-footer-top">
@@ -71,6 +72,7 @@ export async function SiteShell({ viewer, children }: { viewer: ViewerSession | 
               <Link className="footer-badge" href="/discuss">Discuss</Link>
               <Link className="footer-badge" href="/profiles">Profiles</Link>
               <Link className="footer-badge" href="/faq#contact">Contact</Link>
+              <Link className="footer-badge" href="/glossary">Glossary</Link>
               <Link className="footer-badge" href="/about#changelog">Changelog</Link>
               <a className="footer-badge" href="https://github.com/lowestprime/KenMatch" target="_blank" rel="noopener noreferrer">GitHub</a>
             </div>

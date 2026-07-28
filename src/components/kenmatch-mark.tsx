@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export function KenMatchMark({
   className = "",
   variant = "auto",
@@ -41,8 +43,24 @@ export function KenMatchMark({
         .kenmatch-mark-dark .kenmatch-mark-image-dark,
         .kenmatch-mark-oled .kenmatch-mark-image-dark{display:block;}
       `}</style>
-      <img className="kenmatch-mark-image kenmatch-mark-image-light" src="/icon-light.svg?v=a4ef921360a0" alt="" draggable={false} decoding="async" />
-      <img className="kenmatch-mark-image kenmatch-mark-image-dark" src="/icon-dark.svg?v=a4ef921360a0" alt="" draggable={false} decoding="async" />
+      <Image
+        className="kenmatch-mark-image kenmatch-mark-image-light"
+        src="/icon-light.svg?v=a4ef921360a0"
+        alt=""
+        width={128}
+        height={128}
+        draggable={false}
+        unoptimized
+      />
+      <Image
+        className="kenmatch-mark-image kenmatch-mark-image-dark"
+        src="/icon-dark.svg?v=a4ef921360a0"
+        alt=""
+        width={128}
+        height={128}
+        draggable={false}
+        unoptimized
+      />
     </span>
   );
 }

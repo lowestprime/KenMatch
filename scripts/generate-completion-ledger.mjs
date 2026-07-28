@@ -180,6 +180,26 @@ const evidenceRules = [
     tests: ["tests/faq-contact.test.ts"],
   },
   {
+    match:
+      /\b(answer publicly and accurately|closest equivalents|differentiat|novel public value|why (?:is )?kenmatch necessary|partner candidates?|clone(?:s|d)? the idea|provider dependency|direct reliance and dependence on frontier|crowdsourced curation collaborative filtering|operationally and economically|trust kenmatch|make an account|incentives? implemented|organizational and business-model|funding or compute capacity|quality of a ken|long-running ken stop|objective.{0,30}human judgment|discovery remain reliable|submitted ken enter a review queue|volunteer moderators?)\b/i,
+    code: ["src/lib/faq.ts", "src/components/faq-explorer.tsx", "src/app/faq/page.tsx"],
+    tests: ["tests/faq-contact.test.ts"],
+  },
+  {
+    match: /\b(glossary|operational definition|plain definition)\b/i,
+    code: ["src/lib/glossary.ts", "src/components/glossary-explorer.tsx", "src/app/glossary/page.tsx"],
+    tests: ["tests/faq-contact.test.ts"],
+  },
+  {
+    match: /\b(trust surface|implementation-status transparency|product truth|what works now)\b/i,
+    code: [
+      "src/lib/product-truth.ts",
+      "src/components/product-truth-matrix.tsx",
+      "src/app/faq/page.tsx",
+    ],
+    tests: ["tests/faq-contact.test.ts"],
+  },
+  {
     match: /\b(contact|feedback|attachment|smtp)\b/i,
     code: ["src/lib/contact.ts", "src/components/contact-form.tsx", "src/lib/mail.ts", "src/lib/db.ts"],
     tests: ["tests/faq-contact.test.ts"],
@@ -273,7 +293,7 @@ const missingFeatureRules = [
   },
   {
     match: /\b(trust surface|implementation-status transparency|how it works route)\b/i,
-    absent: ["src/lib/product-status.ts"],
+    absent: ["src/lib/product-truth.ts", "src/components/product-truth-matrix.tsx"],
   },
   {
     match: /\b(graphical abstract)\b/i,
@@ -780,7 +800,23 @@ async function attachEvidence(entries) {
       entry.status = "MISSING";
       entry.notes = "Initial gap audit found no implementation matching the required capability.";
     } else if (entry.current_code_evidence.length > 0) {
+      const glossaryReady =
+        /\bglossary\b/i.test(entry.normalized_requirement) &&
+        [
+          "src/lib/glossary.ts",
+          "src/components/glossary-explorer.tsx",
+          "src/app/glossary/page.tsx",
+        ].every((file) => existsSync(path.join(repoRoot, file))) &&
+        entry.current_test_evidence.some((evidence) => evidence?.startsWith("tests/faq-contact.test.ts"));
+      const strategicFaqReady =
+        /\b(closest equivalents|differentiat|novel public value|clone|provider|resilien|trust|incentive|classification|funding|quality|terminated|objective|discovery|review queue|moderator)\b/i.test(
+          entry.normalized_requirement,
+        ) &&
+        entry.current_code_evidence.some((evidence) => evidence?.startsWith("src/lib/faq.ts")) &&
+        entry.current_test_evidence.some((evidence) => evidence?.startsWith("tests/faq-contact.test.ts"));
       const broadening =
+        !glossaryReady &&
+        !strategicFaqReady &&
         /\b(complete|comprehensive|full lifecycle|historical|over time|pagination|100,?000|appeal|recus|threat model|scale-resilient|every route|all states|tier-2|tier-3)\b/i.test(
           entry.normalized_requirement,
         );
