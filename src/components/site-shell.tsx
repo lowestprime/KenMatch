@@ -73,6 +73,7 @@ export async function SiteShell({ viewer, children }: { viewer: ViewerSession | 
               <Link className="footer-badge" href="/profiles">Profiles</Link>
               <Link className="footer-badge" href="/faq#contact">Contact</Link>
               <Link className="footer-badge" href="/glossary">Glossary</Link>
+              <Link className="footer-badge" href="/reviews">Review outcomes</Link>
               <Link className="footer-badge" href="/about#changelog">Changelog</Link>
               <a className="footer-badge" href="https://github.com/lowestprime/KenMatch" target="_blank" rel="noopener noreferrer">GitHub</a>
             </div>

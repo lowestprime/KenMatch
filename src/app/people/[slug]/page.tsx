@@ -27,7 +27,8 @@ export default async function ProfilePage({
   const profiles = await listProfiles();
   const profile = profiles.find((p) => p.id === slug || p.username === slug) ?? profiles.find((p) => p.name.toLowerCase().replace(/\s+/g, "-") === slug);
   if (!profile) notFound();
-  const [data, viewer] = await Promise.all([getProfilePageData(profile.id), getViewerSession()]);
+  const viewer = await getViewerSession();
+  const data = await getProfilePageData(profile.id, viewer?.profile.id);
   if (!data) notFound();
   const summary = data.summary;
   if (!summary) notFound();

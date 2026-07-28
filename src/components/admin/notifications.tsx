@@ -57,6 +57,16 @@ export function AdminNotifications({
           defaultChecked={settings.notifyOnProposal}
         />
         <ToggleRow
+          name="notifyOnCategoryProposal"
+          label="Email when a new category is proposed"
+          defaultChecked={settings.notifyOnCategoryProposal}
+        />
+        <ToggleRow
+          name="notifyOnReviewDecision"
+          label="Email submitters when review outcomes change"
+          defaultChecked={settings.notifyOnReviewDecision}
+        />
+        <ToggleRow
           name="dailyDigest"
           label="Send daily digest summary"
           defaultChecked={settings.dailyDigest}

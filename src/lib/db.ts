@@ -33,6 +33,28 @@ import {
   normalizeMarketplacePageSize,
   normalizeMarketplaceQuery,
 } from "@/lib/discovery";
+import {
+  evaluateCategoryIntake,
+  evaluateKenIntake,
+  normalizeReviewText,
+  normalizedReviewSlug,
+  parseIntakeResult,
+  type CategoryIntakeResult,
+  type KenIntakeResult,
+} from "@/lib/intake-review";
+import {
+  assertReviewActionAuthorized,
+  decisionNeedsPublicReason,
+  isSameFinalDecision,
+  isReviewerRole,
+  nextReviewStatus,
+  type ReviewAction,
+} from "@/lib/review-policy";
+import {
+  INSERT_APPROVED_CATEGORY_SQL,
+  INSERT_REVIEW_EVENT_SQL,
+  REVIEW_SCHEMA_STATEMENTS,
+} from "@/lib/review-schema";
 import { env, isAdminEmail, isOwnerEmail, canonicalOrigin, notificationEmails, ownerEmail, smtpConfigured } from "@/lib/env";
 import {
   seedCategories,
@@ -83,12 +105,17 @@ import type {
   HomepageMetrics,
   MaintenanceState,
   MarketplaceFilters,
+  KenSubmissionRecord,
   ProfileAttestationRecord,
   ProfileLink,
   ProfileRecord,
   ProfileSummary,
   RevenueStreamRecord,
   RevenueStreamSummary,
+  ReviewEntityType,
+  ReviewEventAction,
+  ReviewEventRecord,
+  ReviewQueuePage,
   RunUpdateRecord,
   SearchResultItem,
   SessionRecord,
@@ -115,6 +142,11 @@ import { FAQ_ENTRIES } from "@/lib/faq";
 import { laneVisuals } from "@/lib/taxonomy";
 import { configEncryptionAvailable, decryptConfigSecret, encryptConfigSecret } from "@/lib/config-crypto";
 import { TEST_AUTH_USERS, type TestAuthMode } from "@/lib/test-auth";
+import {
+  redactCategoryProposalForSubmitter,
+  redactKenSubmissionForPublic,
+  redactReviewEventForPublic,
+} from "@/lib/review-redaction";
 
 type DbRow = Record<string, Value>;
 
@@ -385,7 +417,13 @@ async function initializeDatabase() {
         exampleKens TEXT NOT NULL,
         reviewStatus TEXT NOT NULL DEFAULT 'pending',
         reviewNote TEXT,
+        internalReviewNote TEXT,
         reviewedBy TEXT,
+        assigneeAccountId TEXT,
+        mergedCategoryId TEXT,
+        intakeResultJson TEXT NOT NULL DEFAULT '{}',
+        reviewedAt TEXT,
+        firstApprovalBy TEXT,
         createdAt TEXT NOT NULL,
         updatedAt TEXT NOT NULL,
         FOREIGN KEY (proposerProfileId) REFERENCES profiles(id)
@@ -414,6 +452,7 @@ async function initializeDatabase() {
         FOREIGN KEY (categoryId) REFERENCES categories(id),
         FOREIGN KEY (proposerId) REFERENCES profiles(id)
       )`,
+      ...REVIEW_SCHEMA_STATEMENTS,
       `CREATE TABLE IF NOT EXISTS task_finance (
         taskId TEXT PRIMARY KEY,
         qualityBondCredits INTEGER NOT NULL,
@@ -705,6 +744,13 @@ async function initializeDatabase() {
   await ensureColumn(client, "profiles", "verificationRequestedAt", "TEXT");
   await ensureColumn(client, "profiles", "verificationNote", "TEXT");
   await ensureColumn(client, "categories", "symbolKey", "TEXT NOT NULL DEFAULT ''");
+  await ensureColumn(client, "category_proposals", "internalReviewNote", "TEXT");
+  await ensureColumn(client, "category_proposals", "assigneeAccountId", "TEXT");
+  await ensureColumn(client, "category_proposals", "mergedCategoryId", "TEXT");
+  await ensureColumn(client, "category_proposals", "intakeResultJson", "TEXT NOT NULL DEFAULT '{}'");
+  await ensureColumn(client, "category_proposals", "reviewedAt", "TEXT");
+  await ensureColumn(client, "category_proposals", "firstApprovalBy", "TEXT");
+  await client.execute("CREATE INDEX IF NOT EXISTS idx_category_proposals_assignee ON category_proposals(assigneeAccountId, reviewStatus, updatedAt)");
   await ensureColumn(client, "revenue_streams", "publicBenefitCovenant", "TEXT NOT NULL DEFAULT ''");
   await ensureColumn(client, "revenue_streams", "openDeliverableBoundary", "TEXT NOT NULL DEFAULT ''");
   await ensureColumn(client, "revenue_streams", "contributorDividendPercent", "INTEGER NOT NULL DEFAULT 0");
@@ -1628,9 +1674,59 @@ function mapCategoryProposal(row: DbRow): CategoryProposalRecord {
     exampleKens: parseList(row.exampleKens),
     reviewStatus: getString(row, "reviewStatus") as CategoryProposalRecord["reviewStatus"],
     reviewNote: getNullableString(row, "reviewNote"),
+    internalReviewNote: getNullableString(row, "internalReviewNote"),
     reviewedBy: getNullableString(row, "reviewedBy"),
+    assigneeAccountId: getNullableString(row, "assigneeAccountId"),
+    mergedCategoryId: getNullableString(row, "mergedCategoryId"),
+    intakeResultJson: getString(row, "intakeResultJson") || "{}",
+    reviewedAt: getNullableString(row, "reviewedAt"),
+    firstApprovalBy: getNullableString(row, "firstApprovalBy"),
     createdAt: getString(row, "createdAt"),
     updatedAt: getString(row, "updatedAt"),
+  };
+}
+
+function mapKenSubmission(row: DbRow): KenSubmissionRecord {
+  return {
+    id: getString(row, "id"),
+    taskId: getString(row, "taskId"),
+    taskSlug: getString(row, "taskSlug"),
+    taskTitle: getString(row, "taskTitle"),
+    taskSummary: getString(row, "taskSummary"),
+    proposerProfileId: getString(row, "proposerProfileId"),
+    proposerName: getNullableString(row, "proposerName"),
+    requestedTier: getString(row, "requestedTier") as KenSubmissionRecord["requestedTier"],
+    estimatedTier: getString(row, "estimatedTier") as KenSubmissionRecord["estimatedTier"],
+    intakeStatus: getString(row, "intakeStatus") as KenSubmissionRecord["intakeStatus"],
+    intakeResultJson: getString(row, "intakeResultJson") || "{}",
+    riskFlags: parseList(row.riskFlags),
+    reviewNote: getNullableString(row, "reviewNote"),
+    internalReviewNote: getNullableString(row, "internalReviewNote"),
+    assigneeAccountId: getNullableString(row, "assigneeAccountId"),
+    mergedTaskId: getNullableString(row, "mergedTaskId"),
+    firstApprovalBy: getNullableString(row, "firstApprovalBy"),
+    submittedAt: getString(row, "submittedAt"),
+    assignedAt: getNullableString(row, "assignedAt"),
+    reviewedAt: getNullableString(row, "reviewedAt"),
+    updatedAt: getString(row, "updatedAt"),
+  };
+}
+
+function mapReviewEvent(row: DbRow): ReviewEventRecord {
+  return {
+    id: getString(row, "id"),
+    entityType: getString(row, "entityType") as ReviewEventRecord["entityType"],
+    entityId: getString(row, "entityId"),
+    action: getString(row, "action") as ReviewEventRecord["action"],
+    fromStatus: getNullableString(row, "fromStatus"),
+    toStatus: getNullableString(row, "toStatus"),
+    actorAccountId: getNullableString(row, "actorAccountId"),
+    actorName: getNullableString(row, "actorName"),
+    publicNote: getNullableString(row, "publicNote"),
+    internalNote: getNullableString(row, "internalNote"),
+    metadataJson: getNullableString(row, "metadataJson"),
+    isPublic: getNumber(row, "isPublic") > 0,
+    createdAt: getString(row, "createdAt"),
   };
 }
 const loadTasks = () => loadRows("SELECT * FROM tasks ORDER BY createdAt DESC").then((rows) => rows.map(mapTask));
@@ -1650,13 +1746,22 @@ const loadRevenueStreams = () => loadRows("SELECT * FROM revenue_streams ORDER B
 const loadTreasuryEntries = () => loadRows("SELECT * FROM treasury_entries ORDER BY createdAt DESC").then((rows) => rows.map(mapTreasuryEntry));
 const loadSponsorshipCommitments = () =>
   loadRows("SELECT * FROM sponsorship_commitments ORDER BY updatedAt DESC, createdAt DESC").then((rows) => rows.map(mapSponsorshipCommitment));
-const loadCategoryProposals = () =>
-  loadRows(
-    `SELECT category_proposals.*, profiles.name AS proposerName
-     FROM category_proposals
-     LEFT JOIN profiles ON profiles.id = category_proposals.proposerProfileId
-     ORDER BY category_proposals.updatedAt DESC, category_proposals.createdAt DESC`,
-  ).then((rows) => rows.map(mapCategoryProposal));
+export async function listCategoriesForReview() {
+  return loadCategories();
+}
+
+const kenSubmissionSelect = `
+  SELECT
+    submission.*,
+    task.slug AS taskSlug,
+    task.title AS taskTitle,
+    task.summary AS taskSummary,
+    task.riskFlags,
+    profile.name AS proposerName
+  FROM ken_submissions submission
+  JOIN tasks task ON task.id = submission.taskId
+  LEFT JOIN profiles profile ON profile.id = submission.proposerProfileId
+`;
 
 async function findProfileById(profileId: string) {
   const row = await loadOne("SELECT * FROM profiles WHERE id = ? LIMIT 1", [profileId]);
@@ -1822,8 +1927,11 @@ function sortTasks(tasks: TaskSummary[]) {
   });
 }
 
-async function hydrate(viewerProfileId?: string | null) {
-  const [profiles, profileAttestations, categories, tasks, finances, illustrations, votes, pulseVotes, comments, commentVotes, runs, taskTimings, runUpdates, checkpoints, checkpointGates, governance, revenueStreams, treasuryEntries, sponsorshipCommitments, bookmarks, accounts] =
+async function hydrate(
+  viewerProfileId?: string | null,
+  options: { includeUnapprovedSubmissions?: boolean } = {},
+) {
+  const [profiles, profileAttestations, categories, allTasks, finances, illustrations, votes, pulseVotes, comments, commentVotes, runs, taskTimings, runUpdates, checkpoints, checkpointGates, governance, revenueStreams, treasuryEntries, sponsorshipCommitments, bookmarks, accounts, submissionVisibilityRows] =
     await Promise.all([
       loadProfiles(),
       loadProfileAttestations(),
@@ -1846,10 +1954,19 @@ async function hydrate(viewerProfileId?: string | null) {
       loadSponsorshipCommitments(),
       viewerProfileId ? loadBookmarksForProfile(viewerProfileId) : Promise.resolve<BookmarkRecord[]>([]),
       loadAccounts(),
+      loadRows("SELECT taskId, intakeStatus FROM ken_submissions"),
     ]);
 
   const bookmarkSet = new Set(bookmarks.map((bookmark) => bookmark.taskId));
   const accountByProfile = new Map(accounts.map((account) => [account.profileId, account]));
+  const unpublishedTaskIds = new Set(
+    submissionVisibilityRows
+      .filter((row) => getString(row, "intakeStatus") !== "approved")
+      .map((row) => getString(row, "taskId")),
+  );
+  const tasks = options.includeUnapprovedSubmissions
+    ? allTasks
+    : allTasks.filter((task) => !unpublishedTaskIds.has(task.id));
 
   const voteByTask = new Map<string, VoteRecord[]>();
   const voteByProfile = new Map<string, VoteRecord[]>();
@@ -1869,7 +1986,7 @@ async function hydrate(viewerProfileId?: string | null) {
   const profileSummaries: ProfileSummary[] = profiles.map((profile) => {
     const castVotes = voteByProfile.get(profile.id) ?? [];
     const voteCreditsSpent = spentCredits(castVotes);
-    const bondedCredits = activeBondedCredits(profile.id, tasks, finances);
+    const bondedCredits = activeBondedCredits(profile.id, allTasks, finances);
     const spent = voteCreditsSpent + bondedCredits;
     const attestation = attestationMap.get(profile.id);
     const createdAt = profile.createdAt ?? new Date().toISOString();
@@ -2249,8 +2366,10 @@ const marketplaceCommonTableExpressions = `
         COALESCE(vote.totalVotes, 0) AS totalVotes
       FROM tasks task
       LEFT JOIN vote_stats vote ON vote.taskId = task.id
+      LEFT JOIN ken_submissions submission ON submission.taskId = task.id
       WHERE task.stage NOT IN ('review', 'blocked')
         AND task.safetyStatus NOT IN ('pending', 'blocked')
+        AND (submission.id IS NULL OR submission.intakeStatus = 'approved')
         AND COALESCE(vote.totalVotes, 0) > 0
     ) eligible
   ),
@@ -2337,6 +2456,8 @@ const marketplaceCommonTableExpressions = `
     LEFT JOIN task_finance finance ON finance.taskId = task.id
     LEFT JOIN task_timings timing ON timing.taskId = task.id
     LEFT JOIN task_illustrations illustration ON illustration.taskId = task.id
+    LEFT JOIN ken_submissions submission ON submission.taskId = task.id
+    WHERE submission.id IS NULL OR submission.intakeStatus = 'approved'
   )
 `;
 
@@ -2641,7 +2762,21 @@ export async function getMarketplaceData(viewerProfileId: string | null | undefi
 }
 
 export async function getTaskDetail(slug: string, viewerProfileId?: string | null): Promise<TaskDetail | null> {
-  const snapshot = await hydrate(viewerProfileId);
+  const submissionRow = await loadOne(`${kenSubmissionSelect} WHERE task.slug = ? LIMIT 1`, [slug]);
+  const submission = submissionRow ? mapKenSubmission(submissionRow) : null;
+  let includeUnapproved = false;
+  let includePrivateReviewEvents = false;
+  if (submission && submission.intakeStatus !== "approved") {
+    if (!viewerProfileId) return null;
+    const accountRow = await loadOne("SELECT * FROM accounts WHERE profileId = ? LIMIT 1", [viewerProfileId]);
+    const account = accountRow ? mapAccount(accountRow) : null;
+    const isProposer = submission.proposerProfileId === viewerProfileId;
+    const isReviewer = account ? isReviewerRole(account.systemRole) : false;
+    if (!isProposer && !isReviewer) return null;
+    includeUnapproved = true;
+    includePrivateReviewEvents = isReviewer;
+  }
+  const snapshot = await hydrate(viewerProfileId, { includeUnapprovedSubmissions: includeUnapproved });
   const task = snapshot.tasks.find((candidate) => candidate.slug === slug);
   if (!task) {
     return null;
@@ -2658,6 +2793,15 @@ export async function getTaskDetail(slug: string, viewerProfileId?: string | nul
     governanceEvents: snapshot.governanceByTask.get(task.id) ?? [],
     comments: snapshot.discussionFor(task.id),
     runUpdates: snapshot.runUpdatesByTask.get(task.id) ?? [],
+    intakeReview: submission
+      ? {
+          submission: includePrivateReviewEvents
+            ? submission
+            : redactKenSubmissionForPublic(submission),
+          events: await listReviewEvents("ken-submission", submission.id, includePrivateReviewEvents),
+          canParticipate: submission.intakeStatus === "approved",
+        }
+      : null,
   };
 }
 
@@ -2997,6 +3141,251 @@ export interface CreateProposalInput {
   dataValueNote: string;
 }
 
+export interface ReviewQueueFilters {
+  status?: string;
+  assignee?: string;
+  query?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface ReviewActorInput {
+  accountId: string;
+  profileId: string;
+  role: SystemRole;
+}
+
+function reviewEventStatement(input: {
+  dedupeKey: string;
+  entityType: ReviewEntityType;
+  entityId: string;
+  action: ReviewEventAction;
+  fromStatus?: string | null;
+  toStatus?: string | null;
+  actorAccountId?: string | null;
+  publicNote?: string | null;
+  internalNote?: string | null;
+  metadata?: Record<string, unknown> | null;
+  isPublic?: boolean;
+  createdAt: string;
+}): InStatement {
+  return {
+    sql: INSERT_REVIEW_EVENT_SQL,
+    args: [
+      randomUUID(),
+      input.dedupeKey,
+      input.entityType,
+      input.entityId,
+      input.action,
+      input.fromStatus ?? null,
+      input.toStatus ?? null,
+      input.actorAccountId ?? null,
+      input.publicNote?.slice(0, 2000) ?? null,
+      input.internalNote?.slice(0, 4000) ?? null,
+      input.metadata ? JSON.stringify(input.metadata).slice(0, 12_000) : null,
+      input.isPublic ? 1 : 0,
+      input.createdAt,
+    ],
+  };
+}
+
+function normalizeQueuePage(value: number | undefined) {
+  return Number.isInteger(value) && Number(value) > 0 ? Number(value) : 1;
+}
+
+function normalizeQueuePageSize(value: number | undefined) {
+  if (!Number.isInteger(value) || Number(value) <= 0) return 12;
+  return Math.min(Number(value), 50);
+}
+
+async function reviewStatusCounts(table: "category_proposals" | "ken_submissions", statusColumn: "reviewStatus" | "intakeStatus") {
+  const rows = await loadRows(`SELECT ${statusColumn} AS status, COUNT(*) AS count FROM ${table} GROUP BY ${statusColumn}`);
+  return Object.fromEntries(rows.map((row) => [getString(row, "status"), getNumber(row, "count")]));
+}
+
+export async function listCategoryProposalQueue(
+  filters: ReviewQueueFilters = {},
+): Promise<ReviewQueuePage<CategoryProposalRecord>> {
+  const pageSize = normalizeQueuePageSize(filters.pageSize);
+  const requestedPage = normalizeQueuePage(filters.page);
+  const conditions: string[] = [];
+  const args: Value[] = [];
+  if (filters.status && filters.status !== "all") {
+    conditions.push("proposal.reviewStatus = ?");
+    args.push(filters.status);
+  }
+  if (filters.assignee && filters.assignee !== "all") {
+    conditions.push(filters.assignee === "unassigned" ? "proposal.assigneeAccountId IS NULL" : "proposal.assigneeAccountId = ?");
+    if (filters.assignee !== "unassigned") args.push(filters.assignee);
+  }
+  if (filters.query?.trim()) {
+    conditions.push("LOWER(proposal.name || ' ' || proposal.description || ' ' || proposal.publicBenefit) LIKE ? ESCAPE '!'");
+    args.push(`%${escapeLikePattern(filters.query.trim().toLowerCase())}%`);
+  }
+  const where = conditions.length > 0 ? conditions.join(" AND ") : "1 = 1";
+  const [countRow, counts] = await Promise.all([
+    loadOne(`SELECT COUNT(*) AS count FROM category_proposals proposal WHERE ${where}`, args),
+    reviewStatusCounts("category_proposals", "reviewStatus"),
+  ]);
+  const totalItems = countRow ? getNumber(countRow, "count") : 0;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const page = Math.min(requestedPage, totalPages);
+  const rows = await loadRows(
+    `SELECT proposal.*, profile.name AS proposerName
+     FROM category_proposals proposal
+     LEFT JOIN profiles profile ON profile.id = proposal.proposerProfileId
+     WHERE ${where}
+     ORDER BY
+       CASE proposal.reviewStatus
+         WHEN 'appealed' THEN 0
+         WHEN 'held' THEN 1
+         WHEN 'second-review' THEN 2
+         WHEN 'pending' THEN 3
+         WHEN 'needs-revision' THEN 4
+         ELSE 5
+       END,
+       proposal.updatedAt ASC,
+       proposal.id ASC
+     LIMIT ? OFFSET ?`,
+    [...args, pageSize, (page - 1) * pageSize],
+  );
+  return { items: rows.map(mapCategoryProposal), page, pageSize, totalItems, totalPages, counts };
+}
+
+export async function listKenSubmissionQueue(
+  filters: ReviewQueueFilters = {},
+): Promise<ReviewQueuePage<KenSubmissionRecord>> {
+  const pageSize = normalizeQueuePageSize(filters.pageSize);
+  const requestedPage = normalizeQueuePage(filters.page);
+  const conditions: string[] = [];
+  const args: Value[] = [];
+  if (filters.status && filters.status !== "all") {
+    conditions.push("submission.intakeStatus = ?");
+    args.push(filters.status);
+  }
+  if (filters.assignee && filters.assignee !== "all") {
+    conditions.push(filters.assignee === "unassigned" ? "submission.assigneeAccountId IS NULL" : "submission.assigneeAccountId = ?");
+    if (filters.assignee !== "unassigned") args.push(filters.assignee);
+  }
+  if (filters.query?.trim()) {
+    conditions.push("LOWER(task.title || ' ' || task.summary || ' ' || task.publicBenefit) LIKE ? ESCAPE '!'");
+    args.push(`%${escapeLikePattern(filters.query.trim().toLowerCase())}%`);
+  }
+  const where = conditions.length > 0 ? conditions.join(" AND ") : "1 = 1";
+  const [countRow, counts] = await Promise.all([
+    loadOne(
+      `SELECT COUNT(*) AS count
+       FROM ken_submissions submission
+       JOIN tasks task ON task.id = submission.taskId
+       WHERE ${where}`,
+      args,
+    ),
+    reviewStatusCounts("ken_submissions", "intakeStatus"),
+  ]);
+  const totalItems = countRow ? getNumber(countRow, "count") : 0;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const page = Math.min(requestedPage, totalPages);
+  const rows = await loadRows(
+    `${kenSubmissionSelect}
+     WHERE ${where}
+     ORDER BY
+       CASE submission.intakeStatus
+         WHEN 'appealed' THEN 0
+         WHEN 'held' THEN 1
+         WHEN 'second-review' THEN 2
+         WHEN 'pending' THEN 3
+         WHEN 'needs-revision' THEN 4
+         ELSE 5
+       END,
+       submission.updatedAt ASC,
+       submission.id ASC
+     LIMIT ? OFFSET ?`,
+    [...args, pageSize, (page - 1) * pageSize],
+  );
+  return { items: rows.map(mapKenSubmission), page, pageSize, totalItems, totalPages, counts };
+}
+
+export async function listReviewEvents(
+  entityType: ReviewEntityType,
+  entityId: string,
+  includePrivate = false,
+) {
+  const rows = await loadRows(
+    `SELECT event.*, profile.name AS actorName
+     FROM review_events event
+     LEFT JOIN accounts account ON account.id = event.actorAccountId
+     LEFT JOIN profiles profile ON profile.id = account.profileId
+     WHERE event.entityType = ? AND event.entityId = ? ${includePrivate ? "" : "AND event.isPublic = 1"}
+     ORDER BY event.createdAt ASC, event.id ASC`,
+    [entityType, entityId],
+  );
+  return rows.map((row) => {
+    const event = mapReviewEvent(row);
+    return includePrivate ? event : redactReviewEventForPublic(event);
+  });
+}
+
+export async function listReviewEventsForQueue(
+  entityType: ReviewEntityType,
+  entityIds: string[],
+) {
+  if (entityIds.length === 0) return {} as Record<string, ReviewEventRecord[]>;
+  const placeholders = entityIds.map(() => "?").join(", ");
+  const rows = await loadRows(
+    `SELECT event.*, profile.name AS actorName
+     FROM review_events event
+     LEFT JOIN accounts account ON account.id = event.actorAccountId
+     LEFT JOIN profiles profile ON profile.id = account.profileId
+     WHERE event.entityType = ? AND event.entityId IN (${placeholders})
+     ORDER BY event.createdAt ASC, event.id ASC`,
+    [entityType, ...entityIds],
+  );
+  const grouped: Record<string, ReviewEventRecord[]> = Object.fromEntries(
+    entityIds.map((entityId) => [entityId, []]),
+  );
+  for (const row of rows) {
+    const event = mapReviewEvent(row);
+    grouped[event.entityId]?.push(event);
+  }
+  return grouped;
+}
+
+export async function listPublicReviewOutcomes(limit = 100) {
+  const rows = await loadRows(
+    `SELECT
+       event.*,
+       profile.name AS actorName,
+       COALESCE(category_proposal.name, task.title, event.entityId) AS entityLabel,
+       category_proposal.slug AS categorySlug,
+       task.slug AS taskSlug
+     FROM review_events event
+     LEFT JOIN accounts account ON account.id = event.actorAccountId
+     LEFT JOIN profiles profile ON profile.id = account.profileId
+     LEFT JOIN category_proposals category_proposal
+       ON event.entityType = 'category-proposal' AND category_proposal.id = event.entityId
+     LEFT JOIN ken_submissions submission
+       ON event.entityType = 'ken-submission' AND submission.id = event.entityId
+     LEFT JOIN tasks task ON task.id = submission.taskId
+     WHERE event.isPublic = 1
+       AND event.action IN ('revision-requested', 'held', 'approved', 'merged', 'rejected', 'appeal-resolved')
+     ORDER BY event.createdAt DESC, event.id DESC
+     LIMIT ?`,
+    [Math.min(Math.max(limit, 1), 250)],
+  );
+  return rows.map((row) => {
+    const event = redactReviewEventForPublic(mapReviewEvent(row));
+    return {
+      ...event,
+      entityLabel: getString(row, "entityLabel"),
+      href: getNullableString(row, "taskSlug")
+        ? `/kens/${getString(row, "taskSlug")}`
+        : getNullableString(row, "categorySlug")
+          ? `/kens?category=${encodeURIComponent(getString(row, "categorySlug"))}`
+          : "/reviews",
+    };
+  });
+}
+
 export async function createCategoryProposal(input: {
   name: string;
   description: string;
@@ -3007,75 +3396,304 @@ export async function createCategoryProposal(input: {
   if (!profile) {
     throw new Error("Contributor profile not found.");
   }
-
-  const now = new Date().toISOString();
-  const base = slugify(input.name) || randomUUID().slice(0, 8);
-  let slug = base;
-  let iteration = 2;
-  while (await loadOne("SELECT id FROM categories WHERE slug = ? UNION SELECT id FROM category_proposals WHERE slug = ? LIMIT 1", [slug, slug])) {
-    slug = `${base}-${iteration}`;
-    iteration += 1;
+  if (new Set(input.exampleKens.map((item) => normalizeReviewText(item)).filter(Boolean)).size < 2) {
+    throw new Error("Provide at least two distinct example Kens.");
   }
 
-  await execute(
-    `INSERT INTO category_proposals (
-      id, proposerProfileId, name, slug, description, publicBenefit, exampleKens,
-      reviewStatus, reviewNote, reviewedBy, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', NULL, NULL, ?, ?)`,
+  const now = new Date().toISOString();
+  const slug = normalizedReviewSlug(input.name) || randomUUID().slice(0, 8);
+  const existingCategory = await loadOne("SELECT id, name FROM categories WHERE slug = ? LIMIT 1", [slug]);
+  if (existingCategory) {
+    throw new Error(`A category named ${getString(existingCategory, "name")} already uses this normalized name. Propose a boundary change instead.`);
+  }
+  const existingProposal = await loadOne(
+    `SELECT id FROM category_proposals
+     WHERE slug = ? AND reviewStatus NOT IN ('rejected', 'merged')
+     LIMIT 1`,
+    [slug],
+  );
+  if (existingProposal) {
+    throw new Error("An active proposal already uses this normalized category name.");
+  }
+  const [categories, proposals] = await Promise.all([
+    loadCategories(),
+    loadRows(
+      "SELECT id, name, description FROM category_proposals WHERE reviewStatus NOT IN ('rejected', 'merged')",
+    ),
+  ]);
+  const intake = evaluateCategoryIntake(input, [
+    ...categories.map((category) => ({ id: category.id, name: category.name, description: category.description })),
+    ...proposals.map((proposal) => ({
+      id: getString(proposal, "id"),
+      name: getString(proposal, "name"),
+      description: getString(proposal, "description"),
+    })),
+  ]);
+  const proposalId = randomUUID();
+  await batch(
     [
-      randomUUID(),
-      proposerId,
-      input.name.trim().slice(0, 80),
-      slug,
-      input.description.trim().slice(0, 800),
-      input.publicBenefit.trim().slice(0, 800),
-      serializeList(input.exampleKens.slice(0, 8)),
-      now,
-      now,
+      {
+        sql: `INSERT INTO category_proposals (
+          id, proposerProfileId, name, slug, description, publicBenefit, exampleKens,
+          reviewStatus, reviewNote, internalReviewNote, reviewedBy, assigneeAccountId,
+          mergedCategoryId, intakeResultJson, reviewedAt, firstApprovalBy, createdAt, updatedAt
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', NULL, NULL, NULL, NULL, NULL, ?, NULL, NULL, ?, ?)`,
+        args: [
+          proposalId,
+          proposerId,
+          input.name.trim().slice(0, 80),
+          slug,
+          input.description.trim().slice(0, 800),
+          input.publicBenefit.trim().slice(0, 800),
+          serializeList(input.exampleKens.slice(0, 8)),
+          JSON.stringify(intake),
+          now,
+          now,
+        ],
+      },
+      reviewEventStatement({
+        dedupeKey: `category-proposal:${proposalId}:submitted`,
+        entityType: "category-proposal",
+        entityId: proposalId,
+        action: "submitted",
+        toStatus: "pending",
+        publicNote: "Category proposal entered review.",
+        isPublic: false,
+        createdAt: now,
+      }),
+      reviewEventStatement({
+        dedupeKey: `category-proposal:${proposalId}:automated-check:v1`,
+        entityType: "category-proposal",
+        entityId: proposalId,
+        action: "automated-check",
+        fromStatus: "pending",
+        toStatus: "pending",
+        metadata: { intake },
+        isPublic: false,
+        createdAt: now,
+      }),
     ],
+    "write",
   );
 
   return slug;
 }
 
-export async function decideCategoryProposal(
-  proposalId: string,
-  reviewStatus: CategoryProposalRecord["reviewStatus"],
-  reviewNote: string | null,
-  reviewedBy: string,
+const finalReviewStatuses = new Set(["approved", "merged", "rejected"]);
+
+function reviewEventAction(action: ReviewAction, toStatus: string): ReviewEventAction {
+  if (action === "request-revision") return "revision-requested";
+  if (action === "hold") return "held";
+  if (action === "approve") return toStatus === "second-review" ? "approval-proposed" : "approved";
+  if (action === "merge") return "merged";
+  if (action === "reject") return "rejected";
+  if (action === "recuse") return "recused";
+  if (action === "assign") return "assigned";
+  if (action === "appeal") return "appealed";
+  return "appeal-resolved";
+}
+
+async function validateReviewActor(
+  actor: ReviewActorInput,
+  action: ReviewAction,
+  proposerProfileId: string,
+  entityType: ReviewEntityType,
+  entityId: string,
 ) {
-  const row = await loadOne("SELECT * FROM category_proposals WHERE id = ? LIMIT 1", [proposalId]);
+  const account = await findAccountById(actor.accountId);
+  if (
+    !account
+    || account.profileId !== actor.profileId
+    || account.systemRole !== actor.role
+    || !isReviewerRole(account.systemRole)
+  ) {
+    throw new Error("Reviewer session is no longer authorized.");
+  }
+  const recusal = await loadOne(
+    `SELECT id FROM review_events
+     WHERE entityType = ? AND entityId = ? AND action = 'recused' AND actorAccountId = ?
+     LIMIT 1`,
+    [entityType, entityId, actor.accountId],
+  );
+  assertReviewActionAuthorized({
+    role: actor.role,
+    action,
+    actorProfileId: actor.profileId,
+    proposerProfileId,
+    actorPreviouslyRecused: Boolean(recusal),
+  });
+}
+
+async function validateAssignee(accountId: string, proposerProfileId: string) {
+  const account = await findAccountById(accountId);
+  if (!account || !isReviewerRole(account.systemRole)) {
+    throw new Error("Choose an active moderator, administrator, or owner as assignee.");
+  }
+  if (account.profileId === proposerProfileId) {
+    throw new Error("A submission cannot be assigned to its proposer.");
+  }
+  return account;
+}
+
+export async function reviewCategoryProposal(input: {
+  proposalId: string;
+  action: Exclude<ReviewAction, "appeal">;
+  publicNote?: string | null;
+  internalNote?: string | null;
+  targetAssigneeAccountId?: string | null;
+  mergeCategoryId?: string | null;
+  actor: ReviewActorInput;
+}) {
+  const row = await loadOne("SELECT * FROM category_proposals WHERE id = ? LIMIT 1", [input.proposalId]);
   if (!row) throw new Error("Category proposal not found.");
   const proposal = mapCategoryProposal(row);
-  const now = new Date().toISOString();
-
-  if (reviewStatus === "approved") {
-    await batch(
-      [
-        {
-          sql: `INSERT INTO categories (id, slug, name, description, thesis)
-            VALUES (?, ?, ?, ?, ?)
-            ON CONFLICT(id) DO UPDATE SET
-              slug = excluded.slug,
-              name = excluded.name,
-              description = excluded.description,
-              thesis = excluded.thesis`,
-          args: [proposal.slug, proposal.slug, proposal.name, proposal.description, proposal.publicBenefit],
-        },
-        {
-          sql: "UPDATE category_proposals SET reviewStatus = ?, reviewNote = ?, reviewedBy = ?, updatedAt = ? WHERE id = ?",
-          args: [reviewStatus, reviewNote, reviewedBy, now, proposalId],
-        },
-      ],
-      "write",
-    );
-    return;
+  await validateReviewActor(
+    input.actor,
+    input.action,
+    proposal.proposerProfileId,
+    "category-proposal",
+    proposal.id,
+  );
+  if (
+    proposal.assigneeAccountId
+    && proposal.assigneeAccountId !== input.actor.accountId
+    && input.actor.role !== "owner"
+    && input.action !== "assign"
+    && !(proposal.reviewStatus === "second-review" && input.action === "approve")
+  ) {
+    throw new Error("This proposal is assigned to another reviewer. Reassign it or ask the owner to override.");
   }
 
-  await execute(
-    "UPDATE category_proposals SET reviewStatus = ?, reviewNote = ?, reviewedBy = ?, updatedAt = ? WHERE id = ?",
-    [reviewStatus, reviewNote, reviewedBy, now, proposalId],
+  const publicNote = input.publicNote?.trim().slice(0, 2000) || null;
+  const internalNote = input.internalNote?.trim().slice(0, 4000) || null;
+  if (decisionNeedsPublicReason(input.action) && !publicNote) {
+    throw new Error("Add a public reason for this review decision.");
+  }
+  if (finalReviewStatuses.has(proposal.reviewStatus)) {
+    const sameFinalDecision = isSameFinalDecision(proposal.reviewStatus, input.action);
+    if (sameFinalDecision) {
+      return {
+        changed: false,
+        status: proposal.reviewStatus,
+        proposerProfileId: proposal.proposerProfileId,
+        label: proposal.name,
+      };
+    }
+    throw new Error("This proposal already has a final outcome. An appeal is required before another decision.");
+  }
+
+  const now = new Date().toISOString();
+  let toStatus = proposal.reviewStatus;
+  let assigneeAccountId = proposal.assigneeAccountId;
+  let mergedCategoryId = proposal.mergedCategoryId;
+  let firstApprovalBy = proposal.firstApprovalBy;
+  const statements: InStatement[] = [];
+
+  if (input.action === "assign") {
+    if (!input.targetAssigneeAccountId) throw new Error("Choose a reviewer to assign.");
+    await validateAssignee(input.targetAssigneeAccountId, proposal.proposerProfileId);
+    assigneeAccountId = input.targetAssigneeAccountId;
+  } else if (input.action === "recuse") {
+    if (assigneeAccountId === input.actor.accountId) assigneeAccountId = null;
+  } else if (input.action === "merge") {
+    if (!input.mergeCategoryId) throw new Error("Choose the existing category to merge into.");
+    const target = await loadOne("SELECT id FROM categories WHERE id = ? LIMIT 1", [input.mergeCategoryId]);
+    if (!target) throw new Error("The merge target category was not found.");
+    mergedCategoryId = input.mergeCategoryId;
+    toStatus = "merged";
+  } else if (input.action === "approve") {
+    const collision = await loadOne(
+      "SELECT id, name FROM categories WHERE (slug = ? OR lower(trim(name)) = lower(trim(?))) AND id != ? LIMIT 1",
+      [proposal.slug, proposal.name, proposal.slug],
+    );
+    if (collision) {
+      throw new Error(`A matching category already exists (${getString(collision, "name")}). Merge this proposal instead.`);
+    }
+    const intake = parseIntakeResult<CategoryIntakeResult>(proposal.intakeResultJson, {
+      version: 1,
+      outcome: "review",
+      checks: [],
+      similarityHints: [],
+      normalizedName: normalizeReviewText(proposal.name),
+      normalizedSlug: proposal.slug,
+    });
+    const highRisk = intake.checks.some((checkItem) => checkItem.id === "safety-language" && checkItem.level === "attention");
+    toStatus = nextReviewStatus("approve", {
+      highRisk,
+      firstApprovalBy,
+      actorAccountId: input.actor.accountId,
+    });
+    if (toStatus === "second-review" && !firstApprovalBy) {
+      firstApprovalBy = input.actor.accountId;
+    }
+    if (toStatus === "approved") {
+      statements.push({
+        sql: INSERT_APPROVED_CATEGORY_SQL,
+        args: [proposal.slug, proposal.slug, proposal.name, proposal.description, proposal.publicBenefit, proposal.slug],
+      });
+    }
+  } else {
+    toStatus = nextReviewStatus(input.action);
+  }
+
+  const eventAction = reviewEventAction(input.action, toStatus);
+  const reviewedAt = input.action === "assign" || input.action === "recuse" ? proposal.reviewedAt : now;
+  statements.push(
+    {
+      sql: `UPDATE category_proposals
+            SET reviewStatus = ?, reviewNote = COALESCE(?, reviewNote),
+                internalReviewNote = COALESCE(?, internalReviewNote), reviewedBy = ?,
+                assigneeAccountId = ?, mergedCategoryId = ?, reviewedAt = ?,
+                firstApprovalBy = ?, updatedAt = ?
+            WHERE id = ?`,
+      args: [
+        toStatus,
+        publicNote,
+        internalNote,
+        input.actor.accountId,
+        assigneeAccountId,
+        mergedCategoryId,
+        reviewedAt,
+        firstApprovalBy,
+        now,
+        proposal.id,
+      ],
+    },
+    reviewEventStatement({
+      dedupeKey: [
+        "category-proposal",
+        proposal.id,
+        eventAction,
+        proposal.reviewStatus,
+        toStatus,
+        input.actor.accountId,
+        assigneeAccountId ?? "",
+        mergedCategoryId ?? "",
+      ].join(":"),
+      entityType: "category-proposal",
+      entityId: proposal.id,
+      action: eventAction,
+      fromStatus: proposal.reviewStatus,
+      toStatus,
+      actorAccountId: input.actor.accountId,
+      publicNote,
+      internalNote,
+      metadata: {
+        assigneeAccountId,
+        mergedCategoryId,
+        requiresSecondReview: toStatus === "second-review",
+      },
+      isPublic: Boolean(publicNote) && eventAction !== "assigned" && eventAction !== "recused",
+      createdAt: now,
+    }),
   );
+  await batch(statements, "write");
+  return {
+    changed: toStatus !== proposal.reviewStatus || assigneeAccountId !== proposal.assigneeAccountId,
+    status: toStatus,
+    proposerProfileId: proposal.proposerProfileId,
+    label: proposal.name,
+  };
 }
 
 export async function createProposal(input: CreateProposalInput, proposerId: string) {
@@ -3105,6 +3723,16 @@ export async function createProposal(input: CreateProposalInput, proposerId: str
 
   const slug = await uniqueSlug("tasks", input.title);
   const now = new Date().toISOString();
+  const existingTasks = await loadRows("SELECT id, title, summary FROM tasks ORDER BY createdAt DESC LIMIT 1000");
+  const intake = evaluateKenIntake(
+    input,
+    existingTasks.map((task) => ({
+      id: getString(task, "id"),
+      title: getString(task, "title"),
+      summary: getString(task, "summary"),
+    })),
+  );
+  const submissionId = randomUUID();
 
   await batch(
     [
@@ -3163,22 +3791,353 @@ export async function createProposal(input: CreateProposalInput, proposerId: str
         args: [slug, null, null, null, 0, "planned", "Waiting for review, public signal, and allocation.", now],
       },
       {
-        sql: "INSERT INTO governance_events (id, taskId, house, title, decision, outcome, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        sql: `INSERT INTO ken_submissions (
+          id, taskId, proposerProfileId, requestedTier, estimatedTier, intakeStatus, intakeResultJson,
+          reviewNote, internalReviewNote, assigneeAccountId, mergedTaskId, firstApprovalBy,
+          submittedAt, assignedAt, reviewedAt, updatedAt
+        ) VALUES (?, ?, ?, ?, ?, 'pending', ?, NULL, NULL, NULL, NULL, NULL, ?, NULL, NULL, ?)`,
         args: [
-          randomUUID(),
+          submissionId,
           slug,
-          "safety-council",
-          "Queued for safety review",
-          "New Ken entered the public intake queue. It can collect signal, comments, and quadratic support immediately, but execution remains gated until safety review and checkpoint policy are set.",
-          "Visible on the public board with its quality bond locked until the review state changes.",
+          proposerId,
+          input.requestedTier,
+          intake.estimatedTier,
+          JSON.stringify(intake),
+          now,
           now,
         ],
       },
+      reviewEventStatement({
+        dedupeKey: `ken-submission:${submissionId}:submitted`,
+        entityType: "ken-submission",
+        entityId: submissionId,
+        action: "submitted",
+        toStatus: "pending",
+        publicNote: "Ken entered the private intake queue.",
+        isPublic: false,
+        createdAt: now,
+      }),
+      reviewEventStatement({
+        dedupeKey: `ken-submission:${submissionId}:automated-check:v1`,
+        entityType: "ken-submission",
+        entityId: submissionId,
+        action: "automated-check",
+        fromStatus: "pending",
+        toStatus: "pending",
+        metadata: { intake },
+        isPublic: false,
+        createdAt: now,
+      }),
     ],
     "write",
   );
 
   return slug;
+}
+
+export async function reviewKenSubmission(input: {
+  submissionId: string;
+  action: Exclude<ReviewAction, "appeal">;
+  publicNote?: string | null;
+  internalNote?: string | null;
+  targetAssigneeAccountId?: string | null;
+  mergeTaskId?: string | null;
+  actor: ReviewActorInput;
+}) {
+  const row = await loadOne(`${kenSubmissionSelect} WHERE submission.id = ? LIMIT 1`, [input.submissionId]);
+  if (!row) throw new Error("Ken submission not found.");
+  const submission = mapKenSubmission(row);
+  await validateReviewActor(
+    input.actor,
+    input.action,
+    submission.proposerProfileId,
+    "ken-submission",
+    submission.id,
+  );
+  if (
+    submission.assigneeAccountId
+    && submission.assigneeAccountId !== input.actor.accountId
+    && input.actor.role !== "owner"
+    && input.action !== "assign"
+    && !(submission.intakeStatus === "second-review" && input.action === "approve")
+  ) {
+    throw new Error("This Ken is assigned to another reviewer. Reassign it or ask the owner to override.");
+  }
+
+  const publicNote = input.publicNote?.trim().slice(0, 2000) || null;
+  const internalNote = input.internalNote?.trim().slice(0, 4000) || null;
+  if (decisionNeedsPublicReason(input.action) && !publicNote) {
+    throw new Error("Add a public reason for this review decision.");
+  }
+  if (finalReviewStatuses.has(submission.intakeStatus)) {
+    const sameFinalDecision = isSameFinalDecision(submission.intakeStatus, input.action);
+    if (sameFinalDecision) {
+      return {
+        changed: false,
+        status: submission.intakeStatus,
+        taskSlug: submission.taskSlug,
+        proposerProfileId: submission.proposerProfileId,
+        label: submission.taskTitle,
+      };
+    }
+    throw new Error("This Ken already has a final outcome. The submitter must appeal before another decision.");
+  }
+
+  const now = new Date().toISOString();
+  let toStatus = submission.intakeStatus;
+  let assigneeAccountId = submission.assigneeAccountId;
+  let mergedTaskId = submission.mergedTaskId;
+  let firstApprovalBy = submission.firstApprovalBy;
+  const statements: InStatement[] = [];
+
+  if (input.action === "assign") {
+    if (!input.targetAssigneeAccountId) throw new Error("Choose a reviewer to assign.");
+    await validateAssignee(input.targetAssigneeAccountId, submission.proposerProfileId);
+    assigneeAccountId = input.targetAssigneeAccountId;
+  } else if (input.action === "recuse") {
+    if (assigneeAccountId === input.actor.accountId) assigneeAccountId = null;
+  } else if (input.action === "merge") {
+    if (!input.mergeTaskId || input.mergeTaskId === submission.taskId) {
+      throw new Error("Choose a different existing Ken to merge into.");
+    }
+    const target = await loadOne(
+      `SELECT task.id
+       FROM tasks task
+       LEFT JOIN ken_submissions target_submission ON target_submission.taskId = task.id
+       WHERE task.id = ?
+         AND (target_submission.id IS NULL OR target_submission.intakeStatus = 'approved')
+       LIMIT 1`,
+      [input.mergeTaskId],
+    );
+    if (!target) throw new Error("The merge target must be an existing public Ken.");
+    mergedTaskId = input.mergeTaskId;
+    toStatus = "merged";
+  } else if (input.action === "approve") {
+    const intake = parseIntakeResult<KenIntakeResult>(submission.intakeResultJson, {
+      version: 1,
+      outcome: "review",
+      checks: [],
+      similarityHints: [],
+      estimatedTier: submission.estimatedTier,
+      scopeMismatch: submission.estimatedTier !== submission.requestedTier,
+      highRisk: true,
+    });
+    toStatus = nextReviewStatus("approve", {
+      highRisk: intake.highRisk,
+      firstApprovalBy,
+      actorAccountId: input.actor.accountId,
+    });
+    if (toStatus === "second-review" && !firstApprovalBy) {
+      firstApprovalBy = input.actor.accountId;
+    }
+    if (toStatus === "approved") {
+      statements.push(
+        {
+          sql: "UPDATE tasks SET stage = 'voting', safetyStatus = 'approved', backend = ? WHERE id = ?",
+          args: ["Awaiting allocation and execution routing", submission.taskId],
+        },
+        {
+          sql: `INSERT INTO governance_events (id, taskId, house, title, decision, outcome, createdAt)
+                VALUES (?, ?, 'safety-council', ?, ?, ?, ?)`,
+          args: [
+            randomUUID(),
+            submission.taskId,
+            "Intake review approved",
+            publicNote ?? "The submission met the published intake requirements.",
+            "The Ken is now public and can receive pulse, comments, and scarce voice.",
+            now,
+          ],
+        },
+      );
+    }
+  } else {
+    toStatus = nextReviewStatus(input.action);
+  }
+
+  const eventAction = reviewEventAction(input.action, toStatus);
+  const reviewedAt = input.action === "assign" || input.action === "recuse" ? submission.reviewedAt : now;
+  const assignedAt =
+    input.action === "assign" && assigneeAccountId !== submission.assigneeAccountId
+      ? now
+      : submission.assignedAt;
+  statements.push(
+    {
+      sql: `UPDATE ken_submissions
+            SET intakeStatus = ?, reviewNote = COALESCE(?, reviewNote),
+                internalReviewNote = COALESCE(?, internalReviewNote),
+                assigneeAccountId = ?, mergedTaskId = ?, firstApprovalBy = ?,
+                assignedAt = ?, reviewedAt = ?, updatedAt = ?
+            WHERE id = ?`,
+      args: [
+        toStatus,
+        publicNote,
+        internalNote,
+        assigneeAccountId,
+        mergedTaskId,
+        firstApprovalBy,
+        assignedAt,
+        reviewedAt,
+        now,
+        submission.id,
+      ],
+    },
+    reviewEventStatement({
+      dedupeKey: [
+        "ken-submission",
+        submission.id,
+        eventAction,
+        submission.intakeStatus,
+        toStatus,
+        input.actor.accountId,
+        assigneeAccountId ?? "",
+        mergedTaskId ?? "",
+      ].join(":"),
+      entityType: "ken-submission",
+      entityId: submission.id,
+      action: eventAction,
+      fromStatus: submission.intakeStatus,
+      toStatus,
+      actorAccountId: input.actor.accountId,
+      publicNote,
+      internalNote,
+      metadata: {
+        assigneeAccountId,
+        mergedTaskId,
+        requestedTier: submission.requestedTier,
+        estimatedTier: submission.estimatedTier,
+        requiresSecondReview: toStatus === "second-review",
+      },
+      isPublic: Boolean(publicNote) && eventAction !== "assigned" && eventAction !== "recused",
+      createdAt: now,
+    }),
+  );
+  await batch(statements, "write");
+  return {
+    changed: toStatus !== submission.intakeStatus || assigneeAccountId !== submission.assigneeAccountId,
+    status: toStatus,
+    taskSlug: submission.taskSlug,
+    proposerProfileId: submission.proposerProfileId,
+    label: submission.taskTitle,
+  };
+}
+
+export async function appealReviewDecision(input: {
+  entityType: ReviewEntityType;
+  entityId: string;
+  proposerProfileId: string;
+  publicNote: string;
+}) {
+  const note = input.publicNote.trim().slice(0, 2000);
+  if (note.length < 20) throw new Error("Explain the factual basis for the appeal.");
+  const now = new Date().toISOString();
+
+  if (input.entityType === "category-proposal") {
+    const row = await loadOne("SELECT * FROM category_proposals WHERE id = ? LIMIT 1", [input.entityId]);
+    if (!row) throw new Error("Category proposal not found.");
+    const proposal = mapCategoryProposal(row);
+    if (proposal.proposerProfileId !== input.proposerProfileId) throw new Error("Only the proposer can appeal this decision.");
+    if (!["rejected", "merged"].includes(proposal.reviewStatus)) {
+      throw new Error("Only a rejected or merged category outcome can be appealed.");
+    }
+    await batch([
+      {
+        sql: `UPDATE category_proposals
+              SET reviewStatus = 'appealed', reviewNote = ?, reviewedBy = NULL,
+                  assigneeAccountId = NULL, firstApprovalBy = NULL, updatedAt = ?
+              WHERE id = ?`,
+        args: [note, now, proposal.id],
+      },
+      reviewEventStatement({
+        dedupeKey: `category-proposal:${proposal.id}:appealed:${proposal.updatedAt}`,
+        entityType: "category-proposal",
+        entityId: proposal.id,
+        action: "appealed",
+        fromStatus: proposal.reviewStatus,
+        toStatus: "appealed",
+        publicNote: note,
+        isPublic: true,
+        createdAt: now,
+      }),
+    ]);
+    return;
+  }
+
+  const row = await loadOne(`${kenSubmissionSelect} WHERE submission.id = ? LIMIT 1`, [input.entityId]);
+  if (!row) throw new Error("Ken submission not found.");
+  const submission = mapKenSubmission(row);
+  if (submission.proposerProfileId !== input.proposerProfileId) throw new Error("Only the submitter can appeal this decision.");
+  if (!["rejected", "merged"].includes(submission.intakeStatus)) {
+    throw new Error("Only a rejected or merged Ken outcome can be appealed.");
+  }
+  await batch([
+    {
+      sql: `UPDATE ken_submissions
+            SET intakeStatus = 'appealed', reviewNote = ?, assigneeAccountId = NULL,
+                firstApprovalBy = NULL, updatedAt = ?
+            WHERE id = ?`,
+      args: [note, now, submission.id],
+    },
+    reviewEventStatement({
+      dedupeKey: `ken-submission:${submission.id}:appealed:${submission.updatedAt}`,
+      entityType: "ken-submission",
+      entityId: submission.id,
+      action: "appealed",
+      fromStatus: submission.intakeStatus,
+      toStatus: "appealed",
+      publicNote: note,
+      isPublic: true,
+      createdAt: now,
+    }),
+  ]);
+}
+
+export async function listMyReviewSubmissions(profileId: string) {
+  const [categoryRows, kenRows, eventRows] = await Promise.all([
+    loadRows(
+      `SELECT proposal.*, profile.name AS proposerName
+       FROM category_proposals proposal
+       LEFT JOIN profiles profile ON profile.id = proposal.proposerProfileId
+       WHERE proposal.proposerProfileId = ?
+       ORDER BY proposal.updatedAt DESC`,
+      [profileId],
+    ),
+    loadRows(`${kenSubmissionSelect} WHERE submission.proposerProfileId = ? ORDER BY submission.updatedAt DESC`, [profileId]),
+    loadRows(
+      `SELECT event.*, profile.name AS actorName
+       FROM review_events event
+       LEFT JOIN accounts account ON account.id = event.actorAccountId
+       LEFT JOIN profiles profile ON profile.id = account.profileId
+       WHERE event.isPublic = 1
+         AND (
+           (event.entityType = 'category-proposal' AND event.entityId IN (
+             SELECT id FROM category_proposals WHERE proposerProfileId = ?
+           ))
+           OR
+           (event.entityType = 'ken-submission' AND event.entityId IN (
+             SELECT id FROM ken_submissions WHERE proposerProfileId = ?
+           ))
+         )
+       ORDER BY event.createdAt ASC, event.id ASC`,
+      [profileId, profileId],
+    ),
+  ]);
+  return {
+    categories: categoryRows.map(mapCategoryProposal).map(redactCategoryProposalForSubmitter),
+    kens: kenRows.map(mapKenSubmission).map(redactKenSubmissionForPublic),
+    events: eventRows.map(mapReviewEvent).map(redactReviewEventForPublic),
+  };
+}
+
+async function findKenSubmissionForTask(taskId: string) {
+  const row = await loadOne(`${kenSubmissionSelect} WHERE submission.taskId = ? LIMIT 1`, [taskId]);
+  return row ? mapKenSubmission(row) : null;
+}
+
+async function assertTaskPublishedForParticipation(taskId: string) {
+  const submission = await findKenSubmissionForTask(taskId);
+  if (submission && submission.intakeStatus !== "approved") {
+    throw new Error("This Ken is still in intake review and cannot receive public participation yet.");
+  }
 }
 
 export async function saveVote(taskId: string, profileId: string, voteCount: number, rationale: string) {
@@ -3193,6 +4152,7 @@ export async function saveVote(taskId: string, profileId: string, voteCount: num
   if (task.stage === "blocked" || task.safetyStatus === "blocked") {
     throw new Error("Blocked Kens cannot receive quadratic support.");
   }
+  await assertTaskPublishedForParticipation(taskId);
 
   const snapshot = await hydrate(profileId);
   if (!snapshot.viewer) {
@@ -3232,6 +4192,7 @@ export async function saveTaskPulse(taskId: string, profileId: string, value: -1
   if (task.stage === "blocked" || task.safetyStatus === "blocked") {
     throw new Error("Blocked Kens stay visible, but public voting is frozen.");
   }
+  await assertTaskPublishedForParticipation(taskId);
 
   const snapshot = await hydrate(profileId);
   if (!snapshot.viewer) {
@@ -3268,6 +4229,7 @@ export async function createComment(input: {
   if (!(await findTaskById(input.taskId))) {
     throw new Error("Ken not found.");
   }
+  await assertTaskPublishedForParticipation(input.taskId);
 
   const snapshot = await hydrate(input.profileId);
   if (!snapshot.viewer) {
@@ -3296,10 +4258,11 @@ export async function createComment(input: {
 }
 
 export async function saveCommentVote(commentId: string, profileId: string, value: -1 | 0 | 1) {
-  const comment = await loadOne("SELECT id FROM comments WHERE id = ? LIMIT 1", [commentId]);
+  const comment = await loadOne("SELECT id, taskId FROM comments WHERE id = ? LIMIT 1", [commentId]);
   if (!comment) {
     throw new Error("Comment not found.");
   }
+  await assertTaskPublishedForParticipation(getString(comment, "taskId"));
 
   const snapshot = await hydrate(profileId);
   if (!snapshot.viewer) {
@@ -3706,6 +4669,11 @@ export async function findAccountByEmailExported(email: string) {
 
 export async function findAccountByIdExported(accountId: string) {
   return findAccountById(accountId);
+}
+
+export async function findAccountByProfileIdExported(profileId: string) {
+  const row = await loadOne("SELECT * FROM accounts WHERE profileId = ? LIMIT 1", [profileId]);
+  return row ? mapAccount(row) : null;
 }
 
 export async function updateProfileDetails(
@@ -4209,6 +5177,8 @@ const DEFAULT_NOTIFICATION_SETTINGS: AdminNotificationSettings = {
   notifyOnFirstVisit: true,
   notifyOnVerificationRequest: true,
   notifyOnProposal: true,
+  notifyOnCategoryProposal: true,
+  notifyOnReviewDecision: true,
   dailyDigest: false,
   updatedAt: new Date(0).toISOString(),
 };
@@ -4226,6 +5196,8 @@ export async function getAdminNotificationSettings(): Promise<AdminNotificationS
       notifyOnFirstVisit: parsed.notifyOnFirstVisit ?? true,
       notifyOnVerificationRequest: parsed.notifyOnVerificationRequest ?? true,
       notifyOnProposal: parsed.notifyOnProposal ?? true,
+      notifyOnCategoryProposal: parsed.notifyOnCategoryProposal ?? true,
+      notifyOnReviewDecision: parsed.notifyOnReviewDecision ?? true,
       dailyDigest: parsed.dailyDigest ?? false,
       updatedAt: record.updatedAt,
     };
@@ -4480,7 +5452,6 @@ export async function getAdminDashboard() {
     visitors,
     visitorStats,
     countryAggregates,
-    categoryProposals,
     maintenance,
     changelog,
     smtp,
@@ -4494,7 +5465,6 @@ export async function getAdminDashboard() {
     listVisitors(500),
     getVisitorStats(),
     aggregateVisitorsByCountry(),
-    loadCategoryProposals(),
     getMaintenanceState(),
     listChangelogEntries(true, 12),
     getAdminSmtpSettings(),
@@ -4509,7 +5479,6 @@ export async function getAdminDashboard() {
     visitors,
     visitorStats,
     countryAggregates,
-    categoryProposals,
     maintenance,
     changelog,
     smtp,
@@ -4518,8 +5487,14 @@ export async function getAdminDashboard() {
   };
 }
 
-export async function getProfilePageData(profileId: string) {
-  const [profile, snapshot] = await Promise.all([findProfileById(profileId), hydrate(profileId)]);
+export async function getProfilePageData(profileId: string, viewerProfileId?: string | null) {
+  const [profile, snapshot, privateReviews] = await Promise.all([
+    findProfileById(profileId),
+    hydrate(viewerProfileId),
+    viewerProfileId === profileId
+      ? listMyReviewSubmissions(profileId)
+      : Promise.resolve(null),
+  ]);
   if (!profile) return null;
   const summary = snapshot.profiles.find((candidate) => candidate.id === profileId) ?? null;
   const ownTasks = snapshot.tasks.filter((task) => task.proposerId === profileId);
@@ -4531,6 +5506,7 @@ export async function getProfilePageData(profileId: string) {
     ownTasks,
     bookmarkedTasks,
     accountSystemRole: account?.systemRole ?? "contributor",
+    privateReviews,
   };
 }
 
@@ -4603,6 +5579,7 @@ export async function searchIndex(viewerProfileId?: string | null): Promise<Sear
     { id: "economics", type: "page", title: "Economics", subtitle: "Treasury, revenue engines, sponsorship pools.", url: "/economics" },
     { id: "about", type: "page", title: "About / Contact", subtitle: "Creator, mission, and contact info.", url: "/about" },
     { id: "faq", type: "page", title: "FAQ", subtitle: "What Kens are and how KenMatch works.", url: "/faq" },
+    { id: "reviews", type: "page", title: "Public review outcomes", subtitle: "Reason-coded Ken and category intake decisions.", url: "/reviews" },
     { id: "changelog", type: "page", title: "Changelog", subtitle: "Significant product, data, and operations updates.", url: "/about#changelog" },
   );
   return items;

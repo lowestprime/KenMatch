@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-07-28T06:28:30.930Z",
+  "generated_at": "2026-07-28T08:20:44.300Z",
   "generator": "scripts/generate-completion-ledger.mjs",
   "repository": {
     "path": ".",
@@ -253,11 +253,11 @@
       "name": "README.md",
       "authority": "current-repository",
       "path": "README.md",
-      "line_count": 303,
+      "line_count": 305,
       "heading_count": 24,
-      "sha256": "4982ac974e016e0307709dd6b9f0db090479542722727f8a03c792b3f56a5d57",
+      "sha256": "f4cfba3e305345a935a1dc7ee3f8769c45db3e67cf58a05471f2095673a5ca86",
       "extracted_requirements": 0,
-      "historical_claims": 61,
+      "historical_claims": 63,
       "reference_constraints": 0,
       "status": "scanned",
       "note": ""
@@ -266,9 +266,9 @@
       "name": "PLANS.md",
       "authority": "current-repository",
       "path": "PLANS.md",
-      "line_count": 541,
-      "heading_count": 41,
-      "sha256": "99aca8e061f7589d68b771a5fdb35e36f72bc1fe873896c7a8a8ad5a00efd9a2",
+      "line_count": 574,
+      "heading_count": 44,
+      "sha256": "045a9b21d86b4c11c45efc8c141c272cde0175a1f9363b2489c3ca71b3d43590",
       "extracted_requirements": 4,
       "historical_claims": 0,
       "reference_constraints": 0,
@@ -305,11 +305,11 @@
       "name": "docs/architecture.md",
       "authority": "current-repository",
       "path": "docs/architecture.md",
-      "line_count": 173,
+      "line_count": 178,
       "heading_count": 13,
-      "sha256": "5dd7aec98ac28ceb03d55a874afc72dcc49ddad75727f056bb081dad710187e0",
+      "sha256": "3362d6c7e7044f655596dd277ec42dd23d830bd7f4527d2f5a5fbd9021e3fc8f",
       "extracted_requirements": 0,
-      "historical_claims": 52,
+      "historical_claims": 55,
       "reference_constraints": 0,
       "status": "scanned",
       "note": ""
@@ -318,10 +318,10 @@
       "name": "docs/requirements-traceability.md",
       "authority": "current-repository",
       "path": "docs/requirements-traceability.md",
-      "line_count": 98,
-      "heading_count": 22,
-      "sha256": "dc538efb694808fda7754e3f74ba6eced478e7e79e3d803626d336ed15c38ffa",
-      "extracted_requirements": 43,
+      "line_count": 106,
+      "heading_count": 23,
+      "sha256": "c72288a914fc362b2ec50af163014e63722c9718a945a3cc97c1dc80d49df451",
+      "extracted_requirements": 49,
       "historical_claims": 0,
       "reference_constraints": 0,
       "status": "scanned",
@@ -368,16 +368,16 @@
     }
   ],
   "summary": {
-    "candidate_requirements_extracted": 579,
-    "canonical_requirements": 490,
+    "candidate_requirements_extracted": 585,
+    "canonical_requirements": 496,
     "duplicate_backlinks_preserved": 89,
-    "source_claims": 190,
+    "source_claims": 195,
     "reference_constraints": 168,
     "status_counts": {
-      "IMPLEMENTED_UNVALIDATED": 215,
-      "NOT_AUDITED": 254,
-      "PARTIAL": 9,
-      "MISSING": 12
+      "IMPLEMENTED_UNVALIDATED": 226,
+      "NOT_AUDITED": 251,
+      "PARTIAL": 11,
+      "MISSING": 8
     },
     "initial_gap_analysis": [
       {
@@ -938,6 +938,15 @@
         "src/lib/faq.ts:1",
         "src/components/faq-explorer.tsx:1",
         "src/app/faq/page.tsx:1",
+        "src/lib/intake-review.ts:1",
+        "src/lib/review-policy.ts:1",
+        "src/lib/review-schema.ts:1",
+        "src/components/admin/ken-submissions.tsx:1",
+        "src/components/admin/category-proposals.tsx:1",
+        "src/components/submission-review-status.tsx:1",
+        "src/app/reviews/page.tsx:1",
+        "docs/moderation-threat-model.md:1",
+        "docs/intake-review-operations.md:1",
         "src/components/visitor-map.tsx:1",
         "src/components/admin/visitors.tsx:1",
         "src/lib/visitor.ts:1",
@@ -948,7 +957,9 @@
       ],
       "current_test_evidence": [
         "tests/test-auth.test.ts:1",
-        "tests/faq-contact.test.ts:1"
+        "tests/faq-contact.test.ts:1",
+        "tests/intake-review.test.ts:1",
+        "tests/review-database-contract.test.ts:1"
       ],
       "current_live_evidence": [],
       "status": "IMPLEMENTED_UNVALIDATED",
@@ -961,7 +972,9 @@
       ],
       "test_ids": [
         "test-auth.test.ts",
-        "faq-contact.test.ts"
+        "faq-contact.test.ts",
+        "intake-review.test.ts",
+        "review-database-contract.test.ts"
       ],
       "commits": [],
       "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
@@ -1698,18 +1711,34 @@
       "exact_short_excerpt": "reject production data paths;",
       "priority": "P0",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/intake-review.ts:1",
+        "src/lib/review-policy.ts:1",
+        "src/lib/review-schema.ts:1",
+        "src/components/admin/ken-submissions.tsx:1",
+        "src/components/admin/category-proposals.tsx:1",
+        "src/components/submission-review-status.tsx:1",
+        "src/app/reviews/page.tsx:1",
+        "docs/moderation-threat-model.md:1",
+        "docs/intake-review-operations.md:1"
+      ],
+      "current_test_evidence": [
+        "tests/intake-review.test.ts:1",
+        "tests/review-database-contract.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "NOT_AUDITED",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under C-REVIEW-WORKFLOWS.",
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "intake-review.test.ts",
+        "review-database-contract.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "C-REVIEW-WORKFLOWS",
       "source_backlinks": [
         {
@@ -2183,7 +2212,7 @@
     {
       "id": "REQ-19DD1C9762CB",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 97; Treasury integrations",
+      "source_line_or_section": "line 105; Treasury integrations",
       "normalized_requirement": "Ensure the economics layer is production-shaped but still partly demo-backed because simulated runway remains part of the seeded public ledger.",
       "exact_short_excerpt": "The economics layer is production-shaped but still partly demo-backed because simulated runway remains part of the seeded public ledger.",
       "priority": "P0",
@@ -2214,7 +2243,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 97; Treasury integrations",
+          "source_line_or_section": "line 105; Treasury integrations",
           "authority": "current-repository"
         }
       ]
@@ -2434,7 +2463,7 @@
     {
       "id": "REQ-02263810873D",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 83; Public deployment and self-hosting readiness",
+      "source_line_or_section": "line 91; Public deployment and self-hosting readiness",
       "normalized_requirement": "Ensure synology-specific public-hosting guidance and hardening checklists live in docs/synology-nas-deploy.md and docs/public-security-hardening.md .",
       "exact_short_excerpt": "Synology-specific public-hosting guidance and hardening checklists live in docs/synology-nas-deploy.md and docs/public-security-hardening.md .",
       "priority": "P0",
@@ -2465,7 +2494,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 83; Public deployment and self-hosting readiness",
+          "source_line_or_section": "line 91; Public deployment and self-hosting readiness",
           "authority": "current-repository"
         }
       ]
@@ -3059,7 +3088,7 @@
     {
       "id": "REQ-132588D61B11",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 84; Public deployment and self-hosting readiness",
+      "source_line_or_section": "line 92; Public deployment and self-hosting readiness",
       "normalized_requirement": "Ensure synology NAS deployment instructions live in docs/synology-nas-deploy.md .",
       "exact_short_excerpt": "Synology NAS deployment instructions live in docs/synology-nas-deploy.md .",
       "priority": "P0",
@@ -3081,7 +3110,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 84; Public deployment and self-hosting readiness",
+          "source_line_or_section": "line 92; Public deployment and self-hosting readiness",
           "authority": "current-repository"
         }
       ]
@@ -3316,7 +3345,7 @@
     {
       "id": "REQ-CD72AF0E2CD5",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 80; Public deployment and self-hosting readiness",
+      "source_line_or_section": "line 88; Public deployment and self-hosting readiness",
       "normalized_requirement": "Ensure docker deployment lives in Dockerfile and docker-compose.synology.yml .",
       "exact_short_excerpt": "Docker deployment lives in Dockerfile and docker-compose.synology.yml .",
       "priority": "P0",
@@ -3338,7 +3367,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 80; Public deployment and self-hosting readiness",
+          "source_line_or_section": "line 88; Public deployment and self-hosting readiness",
           "authority": "current-repository"
         }
       ]
@@ -6235,18 +6264,34 @@
       "exact_short_excerpt": "Audit whether a newly submitted Ken currently becomes public immediately, enters a review state, or has ambiguous behavior. Implement an explicit, transparent queue if the current flow does not satisfy the requirement.",
       "priority": "P1",
       "risk": "medium",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/intake-review.ts:1",
+        "src/lib/review-policy.ts:1",
+        "src/lib/review-schema.ts:1",
+        "src/components/admin/ken-submissions.tsx:1",
+        "src/components/admin/category-proposals.tsx:1",
+        "src/components/submission-review-status.tsx:1",
+        "src/app/reviews/page.tsx:1",
+        "docs/moderation-threat-model.md:1",
+        "docs/intake-review-operations.md:1"
+      ],
+      "current_test_evidence": [
+        "tests/intake-review.test.ts:1",
+        "tests/review-database-contract.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "NOT_AUDITED",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under C-REVIEW-WORKFLOWS.",
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "intake-review.test.ts",
+        "review-database-contract.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "C-REVIEW-WORKFLOWS",
       "source_backlinks": [
         {
@@ -6295,10 +6340,23 @@
       "exact_short_excerpt": "The queue should support:",
       "priority": "P1",
       "risk": "medium",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/intake-review.ts:1",
+        "src/lib/review-policy.ts:1",
+        "src/lib/review-schema.ts:1",
+        "src/components/admin/ken-submissions.tsx:1",
+        "src/components/admin/category-proposals.tsx:1",
+        "src/components/submission-review-status.tsx:1",
+        "src/app/reviews/page.tsx:1",
+        "docs/moderation-threat-model.md:1",
+        "docs/intake-review-operations.md:1"
+      ],
+      "current_test_evidence": [
+        "tests/intake-review.test.ts:1",
+        "tests/review-database-contract.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "MISSING",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under C-REVIEW-WORKFLOWS.",
       "acceptance_criteria": [
@@ -6319,9 +6377,12 @@
         "notification hooks;",
         "role and authorization tests."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "intake-review.test.ts",
+        "review-database-contract.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial gap audit found no implementation matching the required capability.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "C-REVIEW-WORKFLOWS",
       "source_backlinks": [
         {
@@ -6343,23 +6404,36 @@
       "current_code_evidence": [
         "src/lib/faq.ts:1",
         "src/components/faq-explorer.tsx:1",
-        "src/app/faq/page.tsx:1"
+        "src/app/faq/page.tsx:1",
+        "src/lib/intake-review.ts:1",
+        "src/lib/review-policy.ts:1",
+        "src/lib/review-schema.ts:1",
+        "src/components/admin/ken-submissions.tsx:1",
+        "src/components/admin/category-proposals.tsx:1",
+        "src/components/submission-review-status.tsx:1",
+        "src/app/reviews/page.tsx:1",
+        "docs/moderation-threat-model.md:1",
+        "docs/intake-review-operations.md:1"
       ],
       "current_test_evidence": [
-        "tests/faq-contact.test.ts:1"
+        "tests/faq-contact.test.ts:1",
+        "tests/intake-review.test.ts:1",
+        "tests/review-database-contract.test.ts:1"
       ],
       "current_live_evidence": [],
-      "status": "MISSING",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under C-REVIEW-WORKFLOWS.",
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
       "test_ids": [
-        "faq-contact.test.ts"
+        "faq-contact.test.ts",
+        "intake-review.test.ts",
+        "review-database-contract.test.ts"
       ],
       "commits": [],
-      "notes": "Initial gap audit found no implementation matching the required capability.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "C-REVIEW-WORKFLOWS",
       "source_backlinks": [
         {
@@ -6379,15 +6453,25 @@
       "priority": "P1",
       "risk": "medium",
       "current_code_evidence": [
+        "src/lib/intake-review.ts:1",
+        "src/lib/review-policy.ts:1",
+        "src/lib/review-schema.ts:1",
+        "src/components/admin/ken-submissions.tsx:1",
+        "src/components/admin/category-proposals.tsx:1",
+        "src/components/submission-review-status.tsx:1",
+        "src/app/reviews/page.tsx:1",
+        "docs/moderation-threat-model.md:1",
+        "docs/intake-review-operations.md:1",
         "src/lib/taxonomy.ts:1",
         "src/components/filter-chip-link.tsx:1",
         "src/components/category-proposal-form.tsx:1",
-        "src/components/admin/category-proposals.tsx:1",
         "src/lib/allocation-policy.ts:1",
         "src/lib/types.ts:1",
         "src/components/ken-timing-strip.tsx:1"
       ],
       "current_test_evidence": [
+        "tests/intake-review.test.ts:1",
+        "tests/review-database-contract.test.ts:1",
         "tests/taxonomy.test.ts:1",
         "tests/category-symbol-assets.test.ts:1",
         "tests/allocation.test.ts:1"
@@ -6400,6 +6484,8 @@
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
       "test_ids": [
+        "intake-review.test.ts",
+        "review-database-contract.test.ts",
         "taxonomy.test.ts",
         "category-symbol-assets.test.ts",
         "allocation.test.ts"
@@ -6425,16 +6511,26 @@
       "priority": "P1",
       "risk": "low",
       "current_code_evidence": [
+        "src/lib/intake-review.ts:1",
+        "src/lib/review-policy.ts:1",
+        "src/lib/review-schema.ts:1",
+        "src/components/admin/ken-submissions.tsx:1",
+        "src/components/admin/category-proposals.tsx:1",
+        "src/components/submission-review-status.tsx:1",
+        "src/app/reviews/page.tsx:1",
+        "docs/moderation-threat-model.md:1",
+        "docs/intake-review-operations.md:1",
         "src/lib/taxonomy.ts:1",
         "src/components/filter-chip-link.tsx:1",
         "src/components/category-proposal-form.tsx:1",
-        "src/components/admin/category-proposals.tsx:1",
         "src/proxy.ts:1",
         "src/lib/security.ts:1",
         "src/lib/session.ts:1",
         "src/app/api/stripe/webhook/route.ts:1"
       ],
       "current_test_evidence": [
+        "tests/intake-review.test.ts:1",
+        "tests/review-database-contract.test.ts:1",
         "tests/taxonomy.test.ts:1",
         "tests/category-symbol-assets.test.ts:1",
         "tests/test-auth.test.ts:1"
@@ -6447,6 +6543,8 @@
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
       "test_ids": [
+        "intake-review.test.ts",
+        "review-database-contract.test.ts",
         "taxonomy.test.ts",
         "category-symbol-assets.test.ts",
         "test-auth.test.ts"
@@ -6471,18 +6569,34 @@
       "exact_short_excerpt": "push/merge only according to repository policy and only after release gates pass.",
       "priority": "P1",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/intake-review.ts:1",
+        "src/lib/review-policy.ts:1",
+        "src/lib/review-schema.ts:1",
+        "src/components/admin/ken-submissions.tsx:1",
+        "src/components/admin/category-proposals.tsx:1",
+        "src/components/submission-review-status.tsx:1",
+        "src/app/reviews/page.tsx:1",
+        "docs/moderation-threat-model.md:1",
+        "docs/intake-review-operations.md:1"
+      ],
+      "current_test_evidence": [
+        "tests/intake-review.test.ts:1",
+        "tests/review-database-contract.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "NOT_AUDITED",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under C-REVIEW-WORKFLOWS.",
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "intake-review.test.ts",
+        "review-database-contract.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "C-REVIEW-WORKFLOWS",
       "source_backlinks": [
         {
@@ -6605,18 +6719,34 @@
       "exact_short_excerpt": "Add role-boundary tests, authorization tests, audit-log tests, conflict/recusal tests, and appeal-state tests.",
       "priority": "P1",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/intake-review.ts:1",
+        "src/lib/review-policy.ts:1",
+        "src/lib/review-schema.ts:1",
+        "src/components/admin/ken-submissions.tsx:1",
+        "src/components/admin/category-proposals.tsx:1",
+        "src/components/submission-review-status.tsx:1",
+        "src/app/reviews/page.tsx:1",
+        "docs/moderation-threat-model.md:1",
+        "docs/intake-review-operations.md:1"
+      ],
+      "current_test_evidence": [
+        "tests/intake-review.test.ts:1",
+        "tests/review-database-contract.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "MISSING",
+      "status": "PARTIAL",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under D-MODERATION.",
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "intake-review.test.ts",
+        "review-database-contract.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial gap audit found no implementation matching the required capability.",
+      "notes": "Related implementation exists, but the requested end-to-end scope is broader than current evidence.",
       "workstream": "D-MODERATION",
       "source_backlinks": [
         {
@@ -11643,18 +11773,34 @@
       "exact_short_excerpt": "add moderation threat model and role boundaries;",
       "priority": "P1",
       "risk": "medium",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/intake-review.ts:1",
+        "src/lib/review-policy.ts:1",
+        "src/lib/review-schema.ts:1",
+        "src/components/admin/ken-submissions.tsx:1",
+        "src/components/admin/category-proposals.tsx:1",
+        "src/components/submission-review-status.tsx:1",
+        "src/app/reviews/page.tsx:1",
+        "docs/moderation-threat-model.md:1",
+        "docs/intake-review-operations.md:1"
+      ],
+      "current_test_evidence": [
+        "tests/intake-review.test.ts:1",
+        "tests/review-database-contract.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "MISSING",
+      "status": "PARTIAL",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under M-CROSS-CUTTING.",
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "intake-review.test.ts",
+        "review-database-contract.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial gap audit found no implementation matching the required capability.",
+      "notes": "Related implementation exists, but the requested end-to-end scope is broader than current evidence.",
       "workstream": "M-CROSS-CUTTING",
       "source_backlinks": [
         {
@@ -12601,7 +12747,7 @@
     {
       "id": "REQ-D1DE9DBC5045",
       "source_file": "PLANS.md",
-      "source_line_or_section": "line 21; Status model",
+      "source_line_or_section": "line 54; Status model",
       "normalized_requirement": "Ensure pARTIAL: some implementation exists but audit/completion is still required",
       "exact_short_excerpt": "PARTIAL: some implementation exists but audit/completion is still required",
       "priority": "P1",
@@ -12623,7 +12769,7 @@
         {
           "source_file": "PLANS.md",
           "source_path": "PLANS.md",
-          "source_line_or_section": "line 21; Status model",
+          "source_line_or_section": "line 54; Status model",
           "authority": "current-repository"
         }
       ]
@@ -13199,7 +13345,7 @@
     {
       "id": "REQ-004CC12322DA",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 49; Scale-safe feed ranking and discovery",
+      "source_line_or_section": "line 57; Scale-safe feed ranking and discovery",
       "normalized_requirement": "Ensure the public contract and limits are maintained in docs/ranking-discovery.md .",
       "exact_short_excerpt": "The public contract and limits are maintained in docs/ranking-discovery.md .",
       "priority": "P2",
@@ -13235,7 +13381,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 49; Scale-safe feed ranking and discovery",
+          "source_line_or_section": "line 57; Scale-safe feed ranking and discovery",
           "authority": "current-repository"
         }
       ]
@@ -13356,7 +13502,7 @@
     {
       "id": "REQ-300C1AD38953",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 42; Public discussion with ranking and replies",
+      "source_line_or_section": "line 50; Public discussion with ranking and replies",
       "normalized_requirement": "Ensure created timestamps are displayed directly in the public thread UI.",
       "exact_short_excerpt": "Created timestamps are displayed directly in the public thread UI.",
       "priority": "P2",
@@ -13378,7 +13524,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 42; Public discussion with ranking and replies",
+          "source_line_or_section": "line 50; Public discussion with ranking and replies",
           "authority": "current-repository"
         }
       ]
@@ -13386,7 +13532,7 @@
     {
       "id": "REQ-47B0C3031D4F",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 48; Scale-safe feed ranking and discovery",
+      "source_line_or_section": "line 56; Scale-safe feed ranking and discovery",
       "normalized_requirement": "Ensure tests/discovery.test.ts exercises exact ties, concentrated proposers, coordinated untrusted pulse, sparse categories, old checkpoint evidence, blocked work, and 100,000 synthetic Kens.",
       "exact_short_excerpt": "tests/discovery.test.ts exercises exact ties, concentrated proposers, coordinated untrusted pulse, sparse categories, old checkpoint evidence, blocked work, and 100,000 synthetic Kens.",
       "priority": "P2",
@@ -13424,7 +13570,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 48; Scale-safe feed ranking and discovery",
+          "source_line_or_section": "line 56; Scale-safe feed ranking and discovery",
           "authority": "current-repository"
         }
       ]
@@ -13506,7 +13652,7 @@
     {
       "id": "REQ-85741A91A194",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 46; Scale-safe feed ranking and discovery",
+      "source_line_or_section": "line 54; Scale-safe feed ranking and discovery",
       "normalized_requirement": "Ensure src/lib/discovery.ts defines canonical filter URLs, reason labels, trusted-pulse ordering, freshness/evidence bands, and proposer/category diversity.",
       "exact_short_excerpt": "src/lib/discovery.ts defines canonical filter URLs, reason labels, trusted-pulse ordering, freshness/evidence bands, and proposer/category diversity.",
       "priority": "P2",
@@ -13553,7 +13699,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 46; Scale-safe feed ranking and discovery",
+          "source_line_or_section": "line 54; Scale-safe feed ranking and discovery",
           "authority": "current-repository"
         }
       ]
@@ -13561,7 +13707,7 @@
     {
       "id": "REQ-934BCF3F8B2F",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 41; Public discussion with ranking and replies",
+      "source_line_or_section": "line 49; Public discussion with ranking and replies",
       "normalized_requirement": "Ensure threaded comments with voting are implemented in src/components/discussion-thread.tsx and persisted in comments and comment votes in src/lib/db.ts .",
       "exact_short_excerpt": "Threaded comments with voting are implemented in src/components/discussion-thread.tsx and persisted in comments and comment votes in src/lib/db.ts .",
       "priority": "P2",
@@ -13583,7 +13729,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 41; Public discussion with ranking and replies",
+          "source_line_or_section": "line 49; Public discussion with ranking and replies",
           "authority": "current-repository"
         }
       ]
@@ -13591,7 +13737,7 @@
     {
       "id": "REQ-A1ED9765D866",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 47; Scale-safe feed ranking and discovery",
+      "source_line_or_section": "line 55; Scale-safe feed ranking and discovery",
       "normalized_requirement": "Ensure src/lib/db.ts filters, aggregates, ranks, and pages in SQLite/libSQL instead of hydrating the repository-wide corpus for /kens .",
       "exact_short_excerpt": "src/lib/db.ts filters, aggregates, ranks, and pages in SQLite/libSQL instead of hydrating the repository-wide corpus for /kens .",
       "priority": "P2",
@@ -13613,7 +13759,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 47; Scale-safe feed ranking and discovery",
+          "source_line_or_section": "line 55; Scale-safe feed ranking and discovery",
           "authority": "current-repository"
         }
       ]
@@ -13707,6 +13853,53 @@
       ]
     },
     {
+      "id": "REQ-DFFB5497A714",
+      "source_file": "docs/requirements-traceability.md",
+      "source_line_or_section": "line 38; Transparent category and Ken intake",
+      "normalized_requirement": "Ensure pending user-created Kens are excluded from feed, search, profiles, ranking, pulse, comments, and voice allocation. The proposer and authorized reviewers retain a private detail route.",
+      "exact_short_excerpt": "Pending user-created Kens are excluded from feed, search, profiles, ranking, pulse, comments, and voice allocation. The proposer and authorized reviewers retain a private detail route.",
+      "priority": "P2",
+      "risk": "medium",
+      "current_code_evidence": [
+        "src/components/task-board-filters.tsx:1",
+        "src/components/search-field.tsx:1",
+        "src/app/kens/page.tsx:1",
+        "src/lib/allocation.ts:1",
+        "src/lib/allocation-policy.ts:1",
+        "src/lib/discovery.ts:1",
+        "src/lib/db.ts:1",
+        "docs/ranking-discovery.md:1"
+      ],
+      "current_test_evidence": [
+        "tests/discovery.test.ts:1",
+        "tests/allocation.test.ts:1",
+        "tests/attestation.test.ts:1"
+      ],
+      "current_live_evidence": [],
+      "status": "IMPLEMENTED_UNVALIDATED",
+      "superseded_by": null,
+      "implementation_plan": "Audit and implement under B-FEED-RANKING-SEARCH.",
+      "acceptance_criteria": [
+        "The requirement is implemented or dispositioned with reproducible current evidence."
+      ],
+      "test_ids": [
+        "discovery.test.ts",
+        "allocation.test.ts",
+        "attestation.test.ts"
+      ],
+      "commits": [],
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
+      "workstream": "B-FEED-RANKING-SEARCH",
+      "source_backlinks": [
+        {
+          "source_file": "docs/requirements-traceability.md",
+          "source_path": "docs/requirements-traceability.md",
+          "source_line_or_section": "line 38; Transparent category and Ken intake",
+          "authority": "current-repository"
+        }
+      ]
+    },
+    {
       "id": "REQ-E3E2C9A39209",
       "source_file": "KenMatch_DeepWiki.md",
       "source_line_or_section": "line 2780; Allocation and Attestation",
@@ -13753,7 +13946,7 @@
     {
       "id": "REQ-EAB6C477FF67",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 68; Account recovery, email verification, notifications, and admin operations",
+      "source_line_or_section": "line 76; Account recovery, email verification, notifications, and admin operations",
       "normalized_requirement": "Ensure email verification and forgot-password flows are implemented in src/app/actions.ts , src/lib/db.ts , src/lib/mail.ts , src/app/forgot-password/page.tsx , src/app/reset/page.tsx , and src/app/verify/page.tsx .",
       "exact_short_excerpt": "Email verification and forgot-password flows are implemented in src/app/actions.ts , src/lib/db.ts , src/lib/mail.ts , src/app/forgot-password/page.tsx , src/app/reset/page.tsx , and src/app/verify/page.tsx .",
       "priority": "P2",
@@ -13783,7 +13976,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 68; Account recovery, email verification, notifications, and admin operations",
+          "source_line_or_section": "line 76; Account recovery, email verification, notifications, and admin operations",
           "authority": "current-repository"
         }
       ]
@@ -13791,7 +13984,7 @@
     {
       "id": "REQ-F44212CF7CEA",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 45; Scale-safe feed ranking and discovery",
+      "source_line_or_section": "line 53; Scale-safe feed ranking and discovery",
       "normalized_requirement": "Ensure src/lib/allocation.ts retains deterministic category-local lane allocation and an ID tie-break; money is not an input.",
       "exact_short_excerpt": "src/lib/allocation.ts retains deterministic category-local lane allocation and an ID tie-break; money is not an input.",
       "priority": "P2",
@@ -13835,7 +14028,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 45; Scale-safe feed ranking and discovery",
+          "source_line_or_section": "line 53; Scale-safe feed ranking and discovery",
           "authority": "current-repository"
         }
       ]
@@ -13886,6 +14079,247 @@
           "source_file": "KenMatch_Conception.md",
           "source_path": "KenMatch_Conception.md",
           "source_line_or_section": "line 237; Recommended long-form description",
+          "authority": "current-repository"
+        }
+      ]
+    },
+    {
+      "id": "REQ-2591A2CEE2DC",
+      "source_file": "docs/requirements-traceability.md",
+      "source_line_or_section": "line 39; Transparent category and Ken intake",
+      "normalized_requirement": "Ensure src/lib/review-policy.ts limits moderators to triage, requires admin/owner authority for final outcomes, rejects own-submission decisions, makes recusal durable, and requires two distinct privileged approvals for high-risk publication.",
+      "exact_short_excerpt": "src/lib/review-policy.ts limits moderators to triage, requires admin/owner authority for final outcomes, rejects own-submission decisions, makes recusal durable, and requires two distinct privileged approvals for high-risk publication.",
+      "priority": "P2",
+      "risk": "medium",
+      "current_code_evidence": [],
+      "current_test_evidence": [],
+      "current_live_evidence": [],
+      "status": "NOT_AUDITED",
+      "superseded_by": null,
+      "implementation_plan": "Audit and implement under C-REVIEW-WORKFLOWS.",
+      "acceptance_criteria": [
+        "The requirement is implemented or dispositioned with reproducible current evidence."
+      ],
+      "test_ids": [],
+      "commits": [],
+      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "workstream": "C-REVIEW-WORKFLOWS",
+      "source_backlinks": [
+        {
+          "source_file": "docs/requirements-traceability.md",
+          "source_path": "docs/requirements-traceability.md",
+          "source_line_or_section": "line 39; Transparent category and Ken intake",
+          "authority": "current-repository"
+        }
+      ]
+    },
+    {
+      "id": "REQ-3252EF37A146",
+      "source_file": "docs/requirements-traceability.md",
+      "source_line_or_section": "line 41; Transparent category and Ken intake",
+      "normalized_requirement": "Ensure browser evidence covers private-to-public transitions, normalized category collisions, idempotent approval, and distinct-account high-risk quorum. Contract tests cover deterministic intake, authorization, conflict, recusal, event deduplication, and category uniqueness.",
+      "exact_short_excerpt": "Browser evidence covers private-to-public transitions, normalized category collisions, idempotent approval, and distinct-account high-risk quorum. Contract tests cover deterministic intake, authorization, conflict, recusal, event deduplication, and category u…",
+      "priority": "P2",
+      "risk": "low",
+      "current_code_evidence": [
+        "src/lib/taxonomy.ts:1",
+        "src/components/filter-chip-link.tsx:1",
+        "src/components/category-proposal-form.tsx:1",
+        "src/components/admin/category-proposals.tsx:1"
+      ],
+      "current_test_evidence": [
+        "tests/taxonomy.test.ts:1",
+        "tests/category-symbol-assets.test.ts:1"
+      ],
+      "current_live_evidence": [],
+      "status": "IMPLEMENTED_UNVALIDATED",
+      "superseded_by": null,
+      "implementation_plan": "Audit and implement under C-REVIEW-WORKFLOWS.",
+      "acceptance_criteria": [
+        "The requirement is implemented or dispositioned with reproducible current evidence."
+      ],
+      "test_ids": [
+        "taxonomy.test.ts",
+        "category-symbol-assets.test.ts"
+      ],
+      "commits": [],
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
+      "workstream": "C-REVIEW-WORKFLOWS",
+      "source_backlinks": [
+        {
+          "source_file": "docs/requirements-traceability.md",
+          "source_path": "docs/requirements-traceability.md",
+          "source_line_or_section": "line 41; Transparent category and Ken intake",
+          "authority": "current-repository"
+        }
+      ]
+    },
+    {
+      "id": "REQ-6717126AF773",
+      "source_file": "docs/requirements-traceability.md",
+      "source_line_or_section": "line 40; Transparent category and Ken intake",
+      "normalized_requirement": "Ensure /admin , /account submission-reviews , and /reviews provide role-appropriate queue, submitter, and public-outcome views. Private reviewer notes never enter submitter or public projections.",
+      "exact_short_excerpt": "/admin , /account submission-reviews , and /reviews provide role-appropriate queue, submitter, and public-outcome views. Private reviewer notes never enter submitter or public projections.",
+      "priority": "P2",
+      "risk": "low",
+      "current_code_evidence": [
+        "src/lib/intake-review.ts:1",
+        "src/lib/review-policy.ts:1",
+        "src/lib/review-schema.ts:1",
+        "src/components/admin/ken-submissions.tsx:1",
+        "src/components/admin/category-proposals.tsx:1",
+        "src/components/submission-review-status.tsx:1",
+        "src/app/reviews/page.tsx:1",
+        "docs/moderation-threat-model.md:1",
+        "docs/intake-review-operations.md:1"
+      ],
+      "current_test_evidence": [
+        "tests/intake-review.test.ts:1",
+        "tests/review-database-contract.test.ts:1"
+      ],
+      "current_live_evidence": [],
+      "status": "IMPLEMENTED_UNVALIDATED",
+      "superseded_by": null,
+      "implementation_plan": "Audit and implement under C-REVIEW-WORKFLOWS.",
+      "acceptance_criteria": [
+        "The requirement is implemented or dispositioned with reproducible current evidence."
+      ],
+      "test_ids": [
+        "intake-review.test.ts",
+        "review-database-contract.test.ts"
+      ],
+      "commits": [],
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
+      "workstream": "C-REVIEW-WORKFLOWS",
+      "source_backlinks": [
+        {
+          "source_file": "docs/requirements-traceability.md",
+          "source_path": "docs/requirements-traceability.md",
+          "source_line_or_section": "line 40; Transparent category and Ken intake",
+          "authority": "current-repository"
+        }
+      ]
+    },
+    {
+      "id": "REQ-81D39C1992BC",
+      "source_file": "docs/requirements-traceability.md",
+      "source_line_or_section": "line 37; Transparent category and Ken intake",
+      "normalized_requirement": "Ensure ken submissions , enriched category proposals , and append-only review events preserve status, assignment, timestamps, public reasons, private notes, merge targets, appeals, and immutable transition history.",
+      "exact_short_excerpt": "ken submissions , enriched category proposals , and append-only review events preserve status, assignment, timestamps, public reasons, private notes, merge targets, appeals, and immutable transition history.",
+      "priority": "P2",
+      "risk": "medium",
+      "current_code_evidence": [
+        "src/lib/intake-review.ts:1",
+        "src/lib/review-policy.ts:1",
+        "src/lib/review-schema.ts:1",
+        "src/components/admin/ken-submissions.tsx:1",
+        "src/components/admin/category-proposals.tsx:1",
+        "src/components/submission-review-status.tsx:1",
+        "src/app/reviews/page.tsx:1",
+        "docs/moderation-threat-model.md:1",
+        "docs/intake-review-operations.md:1",
+        "src/lib/taxonomy.ts:1",
+        "src/components/filter-chip-link.tsx:1",
+        "src/components/category-proposal-form.tsx:1"
+      ],
+      "current_test_evidence": [
+        "tests/intake-review.test.ts:1",
+        "tests/review-database-contract.test.ts:1",
+        "tests/taxonomy.test.ts:1",
+        "tests/category-symbol-assets.test.ts:1"
+      ],
+      "current_live_evidence": [],
+      "status": "IMPLEMENTED_UNVALIDATED",
+      "superseded_by": null,
+      "implementation_plan": "Audit and implement under C-REVIEW-WORKFLOWS.",
+      "acceptance_criteria": [
+        "The requirement is implemented or dispositioned with reproducible current evidence."
+      ],
+      "test_ids": [
+        "intake-review.test.ts",
+        "review-database-contract.test.ts",
+        "taxonomy.test.ts",
+        "category-symbol-assets.test.ts"
+      ],
+      "commits": [],
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
+      "workstream": "C-REVIEW-WORKFLOWS",
+      "source_backlinks": [
+        {
+          "source_file": "docs/requirements-traceability.md",
+          "source_path": "docs/requirements-traceability.md",
+          "source_line_or_section": "line 37; Transparent category and Ken intake",
+          "authority": "current-repository"
+        }
+      ]
+    },
+    {
+      "id": "REQ-AA2EEC1A06EB",
+      "source_file": "docs/requirements-traceability.md",
+      "source_line_or_section": "line 42; Transparent category and Ken intake",
+      "normalized_requirement": "Ensure src/components/ken-timing-strip.tsx and src/app/kens/[slug]/page.tsx render the countdown, elapsed time, progress, and run audit updates.",
+      "exact_short_excerpt": "src/components/ken-timing-strip.tsx and src/app/kens/[slug]/page.tsx render the countdown, elapsed time, progress, and run audit updates.",
+      "priority": "P2",
+      "risk": "low",
+      "current_code_evidence": [],
+      "current_test_evidence": [],
+      "current_live_evidence": [],
+      "status": "NOT_AUDITED",
+      "superseded_by": null,
+      "implementation_plan": "Audit and implement under C-REVIEW-WORKFLOWS.",
+      "acceptance_criteria": [
+        "The requirement is implemented or dispositioned with reproducible current evidence."
+      ],
+      "test_ids": [],
+      "commits": [],
+      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "workstream": "C-REVIEW-WORKFLOWS",
+      "source_backlinks": [
+        {
+          "source_file": "docs/requirements-traceability.md",
+          "source_path": "docs/requirements-traceability.md",
+          "source_line_or_section": "line 42; Transparent category and Ken intake",
+          "authority": "current-repository"
+        }
+      ]
+    },
+    {
+      "id": "REQ-D02F8508C13E",
+      "source_file": "docs/requirements-traceability.md",
+      "source_line_or_section": "line 36; Transparent category and Ken intake",
+      "normalized_requirement": "Ensure src/lib/intake-review.ts records deterministic boundary, readiness, similarity, lane, and bounded risk checks at submission.",
+      "exact_short_excerpt": "src/lib/intake-review.ts records deterministic boundary, readiness, similarity, lane, and bounded risk checks at submission.",
+      "priority": "P2",
+      "risk": "medium",
+      "current_code_evidence": [
+        "src/lib/taxonomy.ts:1",
+        "src/components/filter-chip-link.tsx:1",
+        "src/components/category-proposal-form.tsx:1",
+        "src/components/admin/category-proposals.tsx:1"
+      ],
+      "current_test_evidence": [
+        "tests/taxonomy.test.ts:1",
+        "tests/category-symbol-assets.test.ts:1"
+      ],
+      "current_live_evidence": [],
+      "status": "IMPLEMENTED_UNVALIDATED",
+      "superseded_by": null,
+      "implementation_plan": "Audit and implement under C-REVIEW-WORKFLOWS.",
+      "acceptance_criteria": [
+        "The requirement is implemented or dispositioned with reproducible current evidence."
+      ],
+      "test_ids": [
+        "taxonomy.test.ts",
+        "category-symbol-assets.test.ts"
+      ],
+      "commits": [],
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
+      "workstream": "C-REVIEW-WORKFLOWS",
+      "source_backlinks": [
+        {
+          "source_file": "docs/requirements-traceability.md",
+          "source_path": "docs/requirements-traceability.md",
+          "source_line_or_section": "line 36; Transparent category and Ken intake",
           "authority": "current-repository"
         }
       ]
@@ -13981,36 +14415,6 @@
       ]
     },
     {
-      "id": "REQ-AA2EEC1A06EB",
-      "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 34; Partial achievement, early completion, and incremental audit trail",
-      "normalized_requirement": "Ensure src/components/ken-timing-strip.tsx and src/app/kens/[slug]/page.tsx render the countdown, elapsed time, progress, and run audit updates.",
-      "exact_short_excerpt": "src/components/ken-timing-strip.tsx and src/app/kens/[slug]/page.tsx render the countdown, elapsed time, progress, and run audit updates.",
-      "priority": "P2",
-      "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
-      "current_live_evidence": [],
-      "status": "NOT_AUDITED",
-      "superseded_by": null,
-      "implementation_plan": "Audit and implement under E-LIFECYCLE.",
-      "acceptance_criteria": [
-        "The requirement is implemented or dispositioned with reproducible current evidence."
-      ],
-      "test_ids": [],
-      "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
-      "workstream": "E-LIFECYCLE",
-      "source_backlinks": [
-        {
-          "source_file": "docs/requirements-traceability.md",
-          "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 34; Partial achievement, early completion, and incremental audit trail",
-          "authority": "current-repository"
-        }
-      ]
-    },
-    {
       "id": "REQ-AFB7D29C7F4C",
       "source_file": "KenMatch_DeepWiki.md",
       "source_line_or_section": "line 821; Modeling the Ken Lifecycle",
@@ -14081,7 +14485,7 @@
     {
       "id": "REQ-6393723D9C9A",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 63; Modern public-facing interface and theming",
+      "source_line_or_section": "line 71; Modern public-facing interface and theming",
       "normalized_requirement": "Ensure light and true-black OLED themes are implemented in src/components/theme-toggle.tsx , src/app/layout.tsx , and src/app/globals.css .",
       "exact_short_excerpt": "Light and true-black OLED themes are implemented in src/components/theme-toggle.tsx , src/app/layout.tsx , and src/app/globals.css .",
       "priority": "P2",
@@ -14107,7 +14511,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 63; Modern public-facing interface and theming",
+          "source_line_or_section": "line 71; Modern public-facing interface and theming",
           "authority": "current-repository"
         }
       ]
@@ -14115,7 +14519,7 @@
     {
       "id": "REQ-B84F80E823C8",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 65; Modern public-facing interface and theming",
+      "source_line_or_section": "line 73; Modern public-facing interface and theming",
       "normalized_requirement": "Ensure ken category identity is implemented by the inline, theme-aware renderer in src/components/ken-visual.tsx , static palette assignments in src/lib/taxonomy.ts , database-backed color overrides, and repository-tracked reference exports under public/category-icons/ .",
       "exact_short_excerpt": "Ken category identity is implemented by the inline, theme-aware renderer in src/components/ken-visual.tsx , static palette assignments in src/lib/taxonomy.ts , database-backed color overrides, and repository-tracked reference exports under public/category-ico…",
       "priority": "P2",
@@ -14155,7 +14559,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 65; Modern public-facing interface and theming",
+          "source_line_or_section": "line 73; Modern public-facing interface and theming",
           "authority": "current-repository"
         }
       ]
@@ -14163,7 +14567,7 @@
     {
       "id": "REQ-DE8026761B24",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 62; Modern public-facing interface and theming",
+      "source_line_or_section": "line 70; Modern public-facing interface and theming",
       "normalized_requirement": "Ensure responsive shell, compact sticky header, and visual system live in src/components/site-shell.tsx and src/app/globals.css .",
       "exact_short_excerpt": "Responsive shell, compact sticky header, and visual system live in src/components/site-shell.tsx and src/app/globals.css .",
       "priority": "P2",
@@ -14189,7 +14593,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 62; Modern public-facing interface and theming",
+          "source_line_or_section": "line 70; Modern public-facing interface and theming",
           "authority": "current-repository"
         }
       ]
@@ -14197,7 +14601,7 @@
     {
       "id": "REQ-0A886F1FC17F",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 69; Account recovery, email verification, notifications, and admin operations",
+      "source_line_or_section": "line 77; Account recovery, email verification, notifications, and admin operations",
       "normalized_requirement": "Ensure owner/admin notifications for signup, first visitor, verification requests, and Ken submissions are configurable from src/app/admin/page.tsx and persisted in site settings .",
       "exact_short_excerpt": "Owner/admin notifications for signup, first visitor, verification requests, and Ken submissions are configurable from src/app/admin/page.tsx and persisted in site settings .",
       "priority": "P2",
@@ -14224,7 +14628,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 69; Account recovery, email verification, notifications, and admin operations",
+          "source_line_or_section": "line 77; Account recovery, email verification, notifications, and admin operations",
           "authority": "current-repository"
         }
       ]
@@ -14232,7 +14636,7 @@
     {
       "id": "REQ-3C4856E22183",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 76; Visitor telemetry and persistence resilience",
+      "source_line_or_section": "line 84; Visitor telemetry and persistence resilience",
       "normalized_requirement": "Ensure synology persistence and recovery steps are documented in docs/synology-nas-deploy.md ; live writes are stored outside the container image in the mounted data/ directory.",
       "exact_short_excerpt": "Synology persistence and recovery steps are documented in docs/synology-nas-deploy.md ; live writes are stored outside the container image in the mounted data/ directory.",
       "priority": "P2",
@@ -14254,7 +14658,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 76; Visitor telemetry and persistence resilience",
+          "source_line_or_section": "line 84; Visitor telemetry and persistence resilience",
           "authority": "current-repository"
         }
       ]
@@ -14262,7 +14666,7 @@
     {
       "id": "REQ-ADE3FA65E29A",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 75; Visitor telemetry and persistence resilience",
+      "source_line_or_section": "line 83; Visitor telemetry and persistence resilience",
       "normalized_requirement": "Ensure the admin visitor map is rendered by src/components/visitor-map.tsx and uses Cloudflare geolocation request headers when present.",
       "exact_short_excerpt": "The admin visitor map is rendered by src/components/visitor-map.tsx and uses Cloudflare geolocation request headers when present.",
       "priority": "P2",
@@ -14289,7 +14693,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 75; Visitor telemetry and persistence resilience",
+          "source_line_or_section": "line 83; Visitor telemetry and persistence resilience",
           "authority": "current-repository"
         }
       ]
@@ -14297,7 +14701,7 @@
     {
       "id": "REQ-DA61F53E4BA6",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 74; Visitor telemetry and persistence resilience",
+      "source_line_or_section": "line 82; Visitor telemetry and persistence resilience",
       "normalized_requirement": "Ensure unique visitors are anonymized with a salted hash and persisted in visitors through src/lib/visitor.ts .",
       "exact_short_excerpt": "Unique visitors are anonymized with a salted hash and persisted in visitors through src/lib/visitor.ts .",
       "priority": "P2",
@@ -14324,7 +14728,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 74; Visitor telemetry and persistence resilience",
+          "source_line_or_section": "line 82; Visitor telemetry and persistence resilience",
           "authority": "current-repository"
         }
       ]
@@ -14662,7 +15066,7 @@
     {
       "id": "REQ-5E79D5B9E479",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 98; Treasury integrations",
+      "source_line_or_section": "line 106; Treasury integrations",
       "normalized_requirement": "Ensure live sponsor checkout is wired for Stripe Checkout plus webhook confirmation, but accounting exports, CRM sync, and broader payments operations are still future integrations.",
       "exact_short_excerpt": "Live sponsor checkout is wired for Stripe Checkout plus webhook confirmation, but accounting exports, CRM sync, and broader payments operations are still future integrations.",
       "priority": "P2",
@@ -14693,7 +15097,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 98; Treasury integrations",
+          "source_line_or_section": "line 106; Treasury integrations",
           "authority": "current-repository"
         }
       ]
@@ -14701,7 +15105,7 @@
     {
       "id": "REQ-687DE08DB576",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 54; Funding, treasury, and commercialization split",
+      "source_line_or_section": "line 62; Funding, treasury, and commercialization split",
       "normalized_requirement": "Ensure supporting summary logic in src/lib/economics.ts distinguishes committed support from projected support, simulated runway, restricted funding, and safety reserve coverage so optimistic sponsorship does not masquerade as committed treasury support.",
       "exact_short_excerpt": "Supporting summary logic in src/lib/economics.ts distinguishes committed support from projected support, simulated runway, restricted funding, and safety reserve coverage so optimistic sponsorship does not masquerade as committed treasury support.",
       "priority": "P2",
@@ -14732,7 +15136,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 54; Funding, treasury, and commercialization split",
+          "source_line_or_section": "line 62; Funding, treasury, and commercialization split",
           "authority": "current-repository"
         }
       ]
@@ -14740,7 +15144,7 @@
     {
       "id": "REQ-A1D79AC6D3F7",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 55; Funding, treasury, and commercialization split",
+      "source_line_or_section": "line 63; Funding, treasury, and commercialization split",
       "normalized_requirement": "Ensure public rendering is implemented on src/app/economics/page.tsx .",
       "exact_short_excerpt": "Public rendering is implemented on src/app/economics/page.tsx .",
       "priority": "P2",
@@ -14771,7 +15175,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 55; Funding, treasury, and commercialization split",
+          "source_line_or_section": "line 63; Funding, treasury, and commercialization split",
           "authority": "current-repository"
         }
       ]
@@ -14779,7 +15183,7 @@
     {
       "id": "REQ-C728B6B35A4F",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 52; Funding, treasury, and commercialization split",
+      "source_line_or_section": "line 60; Funding, treasury, and commercialization split",
       "normalized_requirement": "Ensure ken finance metadata is stored in task finance .",
       "exact_short_excerpt": "Ken finance metadata is stored in task finance .",
       "priority": "P2",
@@ -14801,7 +15205,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 52; Funding, treasury, and commercialization split",
+          "source_line_or_section": "line 60; Funding, treasury, and commercialization split",
           "authority": "current-repository"
         }
       ]
@@ -14809,7 +15213,7 @@
     {
       "id": "REQ-D77D2CCBCE33",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 53; Funding, treasury, and commercialization split",
+      "source_line_or_section": "line 61; Funding, treasury, and commercialization split",
       "normalized_requirement": "Ensure revenue streams, sponsor commitments, and treasury ledger data live in revenue streams , sponsorship commitments , and treasury entries .",
       "exact_short_excerpt": "Revenue streams, sponsor commitments, and treasury ledger data live in revenue streams , sponsorship commitments , and treasury entries .",
       "priority": "P2",
@@ -14840,7 +15244,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 53; Funding, treasury, and commercialization split",
+          "source_line_or_section": "line 61; Funding, treasury, and commercialization split",
           "authority": "current-repository"
         }
       ]
@@ -14887,7 +15291,7 @@
     {
       "id": "REQ-767454288DBF",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 64; Modern public-facing interface and theming",
+      "source_line_or_section": "line 72; Modern public-facing interface and theming",
       "normalized_requirement": "Ensure product icon and favicon support are implemented through the exact static assets in public/ , src/components/kenmatch-mark.tsx , the single manifest handler at src/app/manifest.webmanifest/route.ts , and compatibility redirects for the legacy SVG endpoints.",
       "exact_short_excerpt": "Product icon and favicon support are implemented through the exact static assets in public/ , src/components/kenmatch-mark.tsx , the single manifest handler at src/app/manifest.webmanifest/route.ts , and compatibility redirects for the legacy SVG endpoints.",
       "priority": "P2",
@@ -14918,7 +15322,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 64; Modern public-facing interface and theming",
+          "source_line_or_section": "line 72; Modern public-facing interface and theming",
           "authority": "current-repository"
         }
       ]
@@ -15712,7 +16116,7 @@
     {
       "id": "REQ-4FDB4A4691D0",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 71; Account recovery, email verification, notifications, and admin operations",
+      "source_line_or_section": "line 79; Account recovery, email verification, notifications, and admin operations",
       "normalized_requirement": "Ensure user profile management, avatar customization, verification requests, and bookmarks are implemented in src/app/account/page.tsx , src/components/profile-editor.tsx , and profiles / bookmarks .",
       "exact_short_excerpt": "User profile management, avatar customization, verification requests, and bookmarks are implemented in src/app/account/page.tsx , src/components/profile-editor.tsx , and profiles / bookmarks .",
       "priority": "P2",
@@ -15734,7 +16138,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 71; Account recovery, email verification, notifications, and admin operations",
+          "source_line_or_section": "line 79; Account recovery, email verification, notifications, and admin operations",
           "authority": "current-repository"
         }
       ]
@@ -15816,7 +16220,7 @@
     {
       "id": "REQ-611B34D068A6",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 38; Visible blocked work and transparent governance",
+      "source_line_or_section": "line 46; Visible blocked work and transparent governance",
       "normalized_requirement": "Ensure ken-level governance logs are rendered once, without duplication, on src/app/kens/[slug]/page.tsx .",
       "exact_short_excerpt": "Ken-level governance logs are rendered once, without duplication, on src/app/kens/[slug]/page.tsx .",
       "priority": "P2",
@@ -15838,7 +16242,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 38; Visible blocked work and transparent governance",
+          "source_line_or_section": "line 46; Visible blocked work and transparent governance",
           "authority": "current-repository"
         }
       ]
@@ -15890,7 +16294,7 @@
     {
       "id": "REQ-687791CB5B05",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 90; Internal naming",
+      "source_line_or_section": "line 98; Internal naming",
       "normalized_requirement": "Ensure some internal code and database identifiers still use task for compatibility and to avoid high-risk schema churn.",
       "exact_short_excerpt": "Some internal code and database identifiers still use task for compatibility and to avoid high-risk schema churn.",
       "priority": "P2",
@@ -15912,7 +16316,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 90; Internal naming",
+          "source_line_or_section": "line 98; Internal naming",
           "authority": "current-repository"
         }
       ]
@@ -15920,7 +16324,7 @@
     {
       "id": "REQ-6B6D5EB3206C",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 89; Internal naming",
+      "source_line_or_section": "line 97; Internal naming",
       "normalized_requirement": "Ensure the public product language is now Ken / Kens .",
       "exact_short_excerpt": "The public product language is now Ken / Kens .",
       "priority": "P2",
@@ -15942,7 +16346,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 89; Internal naming",
+          "source_line_or_section": "line 97; Internal naming",
           "authority": "current-repository"
         }
       ]
@@ -16158,7 +16562,7 @@
     {
       "id": "REQ-A81CCEB6C0A7",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 70; Account recovery, email verification, notifications, and admin operations",
+      "source_line_or_section": "line 78; Account recovery, email verification, notifications, and admin operations",
       "normalized_requirement": "Ensure the owner-editable About / Contact page is implemented on src/app/about/page.tsx , src/components/about-editor.tsx , and site settings .",
       "exact_short_excerpt": "The owner-editable About / Contact page is implemented on src/app/about/page.tsx , src/components/about-editor.tsx , and site settings .",
       "priority": "P2",
@@ -16189,7 +16593,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 70; Account recovery, email verification, notifications, and admin operations",
+          "source_line_or_section": "line 78; Account recovery, email verification, notifications, and admin operations",
           "authority": "current-repository"
         }
       ]
@@ -16285,7 +16689,7 @@
     {
       "id": "REQ-BC2B6FE0FD45",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 37; Visible blocked work and transparent governance",
+      "source_line_or_section": "line 45; Visible blocked work and transparent governance",
       "normalized_requirement": "Ensure blocked Kens are preserved in the seeded data and shown on src/app/governance/page.tsx .",
       "exact_short_excerpt": "Blocked Kens are preserved in the seeded data and shown on src/app/governance/page.tsx .",
       "priority": "P2",
@@ -16307,7 +16711,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 37; Visible blocked work and transparent governance",
+          "source_line_or_section": "line 45; Visible blocked work and transparent governance",
           "authority": "current-repository"
         }
       ]
@@ -16381,7 +16785,7 @@
     {
       "id": "REQ-C52B8273B455",
       "source_file": "PLANS.md",
-      "source_line_or_section": "line 25; Status model",
+      "source_line_or_section": "line 58; Status model",
       "normalized_requirement": "Ensure nOT APPLICABLE: explicitly ruled out after audit",
       "exact_short_excerpt": "NOT APPLICABLE: explicitly ruled out after audit",
       "priority": "P2",
@@ -16403,13 +16807,13 @@
         {
           "source_file": "PLANS.md",
           "source_path": "PLANS.md",
-          "source_line_or_section": "line 25; Status model",
+          "source_line_or_section": "line 58; Status model",
           "authority": "current-repository"
         },
         {
           "source_file": "PLANS.md",
           "source_path": "PLANS.md",
-          "source_line_or_section": "line 353; Completion ledger",
+          "source_line_or_section": "line 386; Completion ledger",
           "authority": "current-repository"
         }
       ]
@@ -16417,7 +16821,7 @@
     {
       "id": "REQ-D159B1CE04B3",
       "source_file": "PLANS.md",
-      "source_line_or_section": "line 30; Active task",
+      "source_line_or_section": "line 63; Active task",
       "normalized_requirement": "Ensure status: IN PROGRESS (2026-04-28 launch-readiness continuation: maintenance, changelog, SMTP config, Ken illustration persistence, admin summaries, and seed-board replacement)",
       "exact_short_excerpt": "Status: IN PROGRESS (2026-04-28 launch-readiness continuation: maintenance, changelog, SMTP config, Ken illustration persistence, admin summaries, and seed-board replacement)",
       "priority": "P2",
@@ -16451,7 +16855,7 @@
         {
           "source_file": "PLANS.md",
           "source_path": "PLANS.md",
-          "source_line_or_section": "line 30; Active task",
+          "source_line_or_section": "line 63; Active task",
           "authority": "current-repository"
         }
       ]
@@ -17227,12 +17631,23 @@
       "priority": "P3",
       "risk": "high",
       "current_code_evidence": [
+        "src/lib/intake-review.ts:1",
+        "src/lib/review-policy.ts:1",
+        "src/lib/review-schema.ts:1",
+        "src/components/admin/ken-submissions.tsx:1",
+        "src/components/admin/category-proposals.tsx:1",
+        "src/components/submission-review-status.tsx:1",
+        "src/app/reviews/page.tsx:1",
+        "docs/moderation-threat-model.md:1",
+        "docs/intake-review-operations.md:1",
         "src/proxy.ts:1",
         "src/lib/security.ts:1",
         "src/lib/session.ts:1",
         "src/app/api/stripe/webhook/route.ts:1"
       ],
       "current_test_evidence": [
+        "tests/intake-review.test.ts:1",
+        "tests/review-database-contract.test.ts:1",
         "tests/test-auth.test.ts:1"
       ],
       "current_live_evidence": [],
@@ -17243,6 +17658,8 @@
         "I do not currently have access to the kenmatch GitHub remote origin/main and I host and deploy kenmatch from my synology NAS directory: /volume2/docker ssd/kenmatch . Please analyze every single line below and within the attached remote kenmatch project folder files, then rigorously justify and provide/directly implement the absolute optimal approach to merge your latest commits to the NAS kenmatch project folder and deploy the rebuilt latest updates WITHOUT using the typical kenmatch GitHub remote origin/main intermediate."
       ],
       "test_ids": [
+        "intake-review.test.ts",
+        "review-database-contract.test.ts",
         "test-auth.test.ts"
       ],
       "commits": [],
@@ -17295,10 +17712,23 @@
       "exact_short_excerpt": "c2a648d Merge pull request 13 from lowestprime/codex/public-ui-audit-20260426",
       "priority": "P3",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/intake-review.ts:1",
+        "src/lib/review-policy.ts:1",
+        "src/lib/review-schema.ts:1",
+        "src/components/admin/ken-submissions.tsx:1",
+        "src/components/admin/category-proposals.tsx:1",
+        "src/components/submission-review-status.tsx:1",
+        "src/app/reviews/page.tsx:1",
+        "docs/moderation-threat-model.md:1",
+        "docs/intake-review-operations.md:1"
+      ],
+      "current_test_evidence": [
+        "tests/intake-review.test.ts:1",
+        "tests/review-database-contract.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "NOT_AUDITED",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under C-REVIEW-WORKFLOWS.",
       "acceptance_criteria": [
@@ -17312,9 +17742,12 @@
         "c2a648d Merge pull request 13 from lowestprime/codex/public-ui-audit-20260426",
         "Live returns 200 on / , /api/health , /kens , /submit , /economics , /governance , /about , /favicon.ico , /apple-icon.png , /og-image.p"
       ],
-      "test_ids": [],
+      "test_ids": [
+        "intake-review.test.ts",
+        "review-database-contract.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "C-REVIEW-WORKFLOWS",
       "source_backlinks": [
         {
@@ -20858,252 +21291,264 @@
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
       "source_line_or_section": "line 174; ✨ Features",
-      "exact_short_excerpt": "Economics and treasury views with committed versus projected support, sponsor pools, restricted funding, simulated runway, safety reserve coverage, and sponsor covenant details."
+      "exact_short_excerpt": "Private intake gates for user-submitted Kens and categories, with deterministic advisory checks, bounded reviewer queues, reason-coded public outcomes, appeals, and append-only history."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
       "source_line_or_section": "line 175; ✨ Features",
-      "exact_short_excerpt": "Governance view with blocked Kens, attestation state, enforceable participation limits, review timing, and visible decision logs."
+      "exact_short_excerpt": "Moderator powers are limited to triage; final publish, merge, or reject actions require admin/owner authority, and high-risk publication requires two distinct privileged reviewers."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
       "source_line_or_section": "line 176; ✨ Features",
-      "exact_short_excerpt": "Security headers, host filtering, request-origin checks, structured rate limits, optional Turnstile verification, and public-safe health checks."
+      "exact_short_excerpt": "Economics and treasury views with committed versus projected support, sponsor pools, restricted funding, simulated runway, safety reserve coverage, and sponsor covenant details."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
       "source_line_or_section": "line 177; ✨ Features",
+      "exact_short_excerpt": "Governance view with blocked Kens, attestation state, enforceable participation limits, review timing, and visible decision logs."
+    },
+    {
+      "claim_type": "current_documentation_claim",
+      "source_file": "README.md",
+      "source_line_or_section": "line 178; ✨ Features",
+      "exact_short_excerpt": "Security headers, host filtering, request-origin checks, structured rate limits, optional Turnstile verification, and public-safe health checks."
+    },
+    {
+      "claim_type": "current_documentation_claim",
+      "source_file": "README.md",
+      "source_line_or_section": "line 179; ✨ Features",
       "exact_short_excerpt": "Standalone Next.js Docker build, non-root container runtime, loopback-only Synology deployment, and public-hosting guidance for Cloudflare Tunnel or equivalent origin shielding."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 200; 🔡 Environment",
+      "source_line_or_section": "line 202; 🔡 Environment",
       "exact_short_excerpt": "DATABASE URL : leave empty for the local file database, or point it at remote libSQL."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 201; 🔡 Environment",
+      "source_line_or_section": "line 203; 🔡 Environment",
       "exact_short_excerpt": "DATABASE AUTH TOKEN : auth token for remote libSQL."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 202; 🔡 Environment",
+      "source_line_or_section": "line 204; 🔡 Environment",
       "exact_short_excerpt": "KENMATCH DB FILE : local fallback database path."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 204; 🔡 Environment",
+      "source_line_or_section": "line 206; 🔡 Environment",
       "exact_short_excerpt": "KENMATCH SESSION DAYS : sign-in lifetime in days."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 210; 🔡 Environment",
+      "source_line_or_section": "line 212; 🔡 Environment",
       "exact_short_excerpt": "KENMATCH ADMIN EMAILS : comma-separated admin account emails."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 211; 🔡 Environment",
+      "source_line_or_section": "line 213; 🔡 Environment",
       "exact_short_excerpt": "KENMATCH NOTIFICATION EMAILS : comma-separated alert recipients for signup, visitor, verification, and Ken events."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 212; 🔡 Environment",
+      "source_line_or_section": "line 214; 🔡 Environment",
       "exact_short_excerpt": "KENMATCH SMTP HOST / KENMATCH SMTP PORT / KENMATCH SMTP USER / KENMATCH SMTP PASS / KENMATCH SMTP SECURE / KENMATCH SMTP FROM : SMTP settings for verification, reset, and admin notification email dispatch."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 213; 🔡 Environment",
+      "source_line_or_section": "line 215; 🔡 Environment",
       "exact_short_excerpt": "KENMATCH CONFIG ENCRYPTION KEY : stable server-side encryption key required before owner-managed SMTP passwords can be stored from /admin . Environment SMTP values always take priority."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 214; 🔡 Environment",
+      "source_line_or_section": "line 216; 🔡 Environment",
       "exact_short_excerpt": "KENMATCH MAINTENANCE MODE / KENMATCH MAINTENANCE MESSAGE / KENMATCH MAINTENANCE EXPECTED RETURN : emergency maintenance override. Admins can also control database-backed maintenance mode from /admin ."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 215; 🔡 Environment",
+      "source_line_or_section": "line 217; 🔡 Environment",
       "exact_short_excerpt": "KENMATCH VISITOR HASH SALT : server-only salt for unique visitor deduplication."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 218; 🔡 Environment",
+      "source_line_or_section": "line 220; 🔡 Environment",
       "exact_short_excerpt": "NEXT PUBLIC TURNSTILE SITE KEY / KENMATCH TURNSTILE SECRET KEY : optional Cloudflare Turnstile keys for public forms."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 237; 🚀 Deployment",
+      "source_line_or_section": "line 239; 🚀 Deployment",
       "exact_short_excerpt": "npm run build runs Next's compile build mode followed by generate-env mode, then verifies that every app-route chunk referenced by the standalone server exists under .next/static before Docker copies the artifact."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 240; 🚀 Deployment",
+      "source_line_or_section": "line 242; 🚀 Deployment",
       "exact_short_excerpt": "docker-compose.synology.yml mounts persistent local data, keeps the container read-only except for /app/data , and binds the app to 127.0.0.1:3000 ."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 241; 🚀 Deployment",
+      "source_line_or_section": "line 243; 🚀 Deployment",
       "exact_short_excerpt": "docker-compose.synology.tunnel.yml adds a cloudflared sidecar for a direct Cloudflare Tunnel deployment from Synology."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 243; 🚀 Deployment",
+      "source_line_or_section": "line 245; 🚀 Deployment",
       "exact_short_excerpt": "For local development, KenMatch constructs a file-backed SQLite-compatible database via libSQL."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 244; 🚀 Deployment",
+      "source_line_or_section": "line 246; 🚀 Deployment",
       "exact_short_excerpt": "For public deployment, DATABASE URL and DATABASE AUTH TOKEN can be specified for managed remote libSQL database integration."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 245; 🚀 Deployment",
+      "source_line_or_section": "line 247; 🚀 Deployment",
       "exact_short_excerpt": "Security headers, host filtering, and mutation-origin checks live in src/proxy.ts, which Next.js 16 reports as the app proxy/middleware boundary during production builds."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 246; 🚀 Deployment",
+      "source_line_or_section": "line 248; 🚀 Deployment",
       "exact_short_excerpt": "The allocation and feed-discovery contract, scale boundary, adversarial cases, and deliberate limits are documented in docs/ranking-discovery.md."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 247; 🚀 Deployment",
+      "source_line_or_section": "line 249; 🚀 Deployment",
       "exact_short_excerpt": "For public Synology NAS deployment, read docs/synology-nas-deploy.md and docs/public-security-hardening.md before exposing the service."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 251; 🛣️ Main Routes",
+      "source_line_or_section": "line 253; 🛣️ Main Routes",
       "exact_short_excerpt": "/ overview and featured Kens"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 252; 🛣️ Main Routes",
+      "source_line_or_section": "line 254; 🛣️ Main Routes",
       "exact_short_excerpt": "/kens public Ken board"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 253; 🛣️ Main Routes",
+      "source_line_or_section": "line 255; 🛣️ Main Routes",
       "exact_short_excerpt": "/kens/[slug] Ken detail, timing, voting, audit, and comments"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 254; 🛣️ Main Routes",
+      "source_line_or_section": "line 256; 🛣️ Main Routes",
       "exact_short_excerpt": "/submit Ken submission"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 255; 🛣️ Main Routes",
+      "source_line_or_section": "line 257; 🛣️ Main Routes",
       "exact_short_excerpt": "/governance governance, attestation, and blocked Kens"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 256; 🛣️ Main Routes",
+      "source_line_or_section": "line 258; 🛣️ Main Routes",
       "exact_short_excerpt": "/economics treasury and revenue logic"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 257; 🛣️ Main Routes",
+      "source_line_or_section": "line 259; 🛣️ Main Routes",
       "exact_short_excerpt": "/auth sign-in and account creation"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 260; 🛣️ Main Routes",
+      "source_line_or_section": "line 262; 🛣️ Main Routes",
       "exact_short_excerpt": "/people/[slug] linked public profile surface for contributors referenced from Kens, comments, and account cards"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 264; 🛣️ Main Routes",
+      "source_line_or_section": "line 266; 🛣️ Main Routes",
       "exact_short_excerpt": "/admin owner/admin/moderator operations portal"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 271; 🗺️ Repository Map",
+      "source_line_or_section": "line 273; 🗺️ Repository Map",
       "exact_short_excerpt": "src/components public UI, timing display, voting, comments, sponsor intake, auth, and shell"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 273; 🗺️ Repository Map",
+      "source_line_or_section": "line 275; 🗺️ Repository Map",
       "exact_short_excerpt": "src/lib/db.ts database schema, seeding, hydration, account persistence, funding ledger, rate limits, and write flows"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 274; 🗺️ Repository Map",
+      "source_line_or_section": "line 276; 🗺️ Repository Map",
       "exact_short_excerpt": "src/lib/illustrations.ts upload validation for admin-managed Ken illustrations"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 275; 🗺️ Repository Map",
+      "source_line_or_section": "line 277; 🗺️ Repository Map",
       "exact_short_excerpt": "src/lib/security.ts form hardening, origin checks, rate-limit integration, and Turnstile verification"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 276; 🗺️ Repository Map",
+      "source_line_or_section": "line 278; 🗺️ Repository Map",
       "exact_short_excerpt": "src/lib/stripe.ts optional hosted sponsor checkout wiring"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 280; 🗺️ Repository Map",
+      "source_line_or_section": "line 282; 🗺️ Repository Map",
       "exact_short_excerpt": "docs/synology-nas-deploy.md Synology NAS deployment guide"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 281; 🗺️ Repository Map",
+      "source_line_or_section": "line 283; 🗺️ Repository Map",
       "exact_short_excerpt": "docs/public-security-hardening.md public-hosting security checklist"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 282; 🗺️ Repository Map",
+      "source_line_or_section": "line 284; 🗺️ Repository Map",
       "exact_short_excerpt": "cloudflared/config.yml.example Cloudflare Tunnel example configuration for NAS deployments"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 286; 📝 Notes",
+      "source_line_or_section": "line 288; 📝 Notes",
       "exact_short_excerpt": "The default local deployment uses a file-backed libSQL database. For public internet deployment, use a managed remote libSQL instance when possible."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "README.md",
-      "source_line_or_section": "line 287; 📝 Notes",
+      "source_line_or_section": "line 289; 📝 Notes",
       "exact_short_excerpt": "The included Synology compose file is intentionally loopback-only. Put Cloudflare Tunnel or another reverse proxy in front of it instead of exposing the container directly."
     },
     {
@@ -21235,187 +21680,205 @@
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 91; Why the model is split this way",
-      "exact_short_excerpt": "sponsorship commitments tracks projected, simulated, checkout-pending, and paid funding states separately from the immutable treasury ledger."
+      "source_line_or_section": "line 90; Why the model is split this way",
+      "exact_short_excerpt": "ken submissions holds the private intake state for user-created Kens. Seeded demonstration Kens have no intake row, preserving their existing public behavior."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 92; Why the model is split this way",
-      "exact_short_excerpt": "profile attestations separates standing, review status, and sybil-risk signals from profile copy, while src/lib/attestation.ts converts that state into participation limits and voice caps."
+      "source_line_or_section": "line 91; Why the model is split this way",
+      "exact_short_excerpt": "review events is an append-only, deduplicated decision history shared by Ken and category intake. Public and internal notes are stored separately."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
       "source_line_or_section": "line 94; Why the model is split this way",
+      "exact_short_excerpt": "/admin exposes bounded, filterable review queues; /account submission-reviews exposes only the submitter-safe history; /reviews publishes final explanations without private reviewer notes."
+    },
+    {
+      "claim_type": "current_documentation_claim",
+      "source_file": "docs/architecture.md",
+      "source_line_or_section": "line 96; Why the model is split this way",
+      "exact_short_excerpt": "sponsorship commitments tracks projected, simulated, checkout-pending, and paid funding states separately from the immutable treasury ledger."
+    },
+    {
+      "claim_type": "current_documentation_claim",
+      "source_file": "docs/architecture.md",
+      "source_line_or_section": "line 97; Why the model is split this way",
+      "exact_short_excerpt": "profile attestations separates standing, review status, and sybil-risk signals from profile copy, while src/lib/attestation.ts converts that state into participation limits and voice caps."
+    },
+    {
+      "claim_type": "current_documentation_claim",
+      "source_file": "docs/architecture.md",
+      "source_line_or_section": "line 99; Why the model is split this way",
       "exact_short_excerpt": "visitors , site settings , and audit log support owner/admin operations, visitor mapping, notification settings, online About-page editing, and durable audit trails."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 112; Core UI pieces",
+      "source_line_or_section": "line 117; Core UI pieces",
       "exact_short_excerpt": "src/components/kenmatch-mark.tsx"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 114; Core UI pieces",
+      "source_line_or_section": "line 119; Core UI pieces",
       "exact_short_excerpt": "src/components/ken-timing-strip.tsx"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 117; Core UI pieces",
+      "source_line_or_section": "line 122; Core UI pieces",
       "exact_short_excerpt": "Ken cards for the board and overview page."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 118; Core UI pieces",
+      "source_line_or_section": "line 123; Core UI pieces",
       "exact_short_excerpt": "src/components/task-pulse-panel.tsx"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 121; Core UI pieces",
+      "source_line_or_section": "line 126; Core UI pieces",
       "exact_short_excerpt": "Quadratic voice allocation panel with visible voice cap."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 126; Core UI pieces",
+      "source_line_or_section": "line 131; Core UI pieces",
       "exact_short_excerpt": "src/components/auth-panels.tsx"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 127; Core UI pieces",
+      "source_line_or_section": "line 132; Core UI pieces",
       "exact_short_excerpt": "Sign-in and sign-up UI."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 133; Core UI pieces",
+      "source_line_or_section": "line 138; Core UI pieces",
       "exact_short_excerpt": "Linked public profile surface for contributors referenced from Kens and comments; /people itself redirects to the Ken board rather than exposing a directory."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 136; Core UI pieces",
+      "source_line_or_section": "line 141; Core UI pieces",
       "exact_short_excerpt": "src/components/admin/"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 137; Core UI pieces",
+      "source_line_or_section": "line 142; Core UI pieces",
       "exact_short_excerpt": "Admin and owner management surfaces."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 138; Core UI pieces",
+      "source_line_or_section": "line 143; Core UI pieces",
       "exact_short_excerpt": "src/components/visitor-map.tsx"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 139; Core UI pieces",
+      "source_line_or_section": "line 144; Core UI pieces",
       "exact_short_excerpt": "Anonymized visitor geography display based on persisted Cloudflare request headers."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 140; Core UI pieces",
+      "source_line_or_section": "line 145; Core UI pieces",
       "exact_short_excerpt": "src/components/sponsor-form.tsx"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 141; Core UI pieces",
+      "source_line_or_section": "line 146; Core UI pieces",
       "exact_short_excerpt": "Public sponsorship intake with general, category, Ken, or safety-reserve restriction options."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 143; Core UI pieces",
+      "source_line_or_section": "line 148; Core UI pieces",
       "exact_short_excerpt": "Optional Cloudflare Turnstile widget for higher-risk forms."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 147; Accounts and sign-in",
+      "source_line_or_section": "line 152; Accounts and sign-in",
       "exact_short_excerpt": "src/lib/session.ts reads and writes the signed-in account cookie."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 148; Accounts and sign-in",
+      "source_line_or_section": "line 153; Accounts and sign-in",
       "exact_short_excerpt": "src/app/actions.ts creates accounts, opens sign-ins, sends verification/reset email, enforces rate limits, and clears sign-ins."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 149; Accounts and sign-in",
+      "source_line_or_section": "line 154; Accounts and sign-in",
       "exact_short_excerpt": "src/lib/db.ts stores accounts, hashed session tokens, email tokens, profile state, and licensing-consent state."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 150; Accounts and sign-in",
+      "source_line_or_section": "line 155; Accounts and sign-in",
       "exact_short_excerpt": "src/lib/mail.ts dispatches SMTP-backed verification, password reset, and admin notification messages when SMTP is configured."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 155; Deployment model",
+      "source_line_or_section": "line 160; Deployment model",
       "exact_short_excerpt": "npm run build runs Next's experimental compile mode and then generate-env mode so the standalone artifact has its static environment inlined before Docker copies it; scripts/repair-next-route-chunks.mjs then verifies app-route chunk references and repairs sin…"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 156; Deployment model",
+      "source_line_or_section": "line 161; Deployment model",
       "exact_short_excerpt": "src/proxy.ts enforces host filtering, cross-site request blocking, and security headers for public deployments. Next.js 16 reports it as the app proxy/middleware boundary in production builds."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 158; Deployment model",
+      "source_line_or_section": "line 163; Deployment model",
       "exact_short_excerpt": "docker-compose.synology.yml mounts persistent app data, uses a read-only root filesystem, tmpfs for /tmp , and binds only to loopback."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 159; Deployment model",
+      "source_line_or_section": "line 164; Deployment model",
       "exact_short_excerpt": "docker-compose.synology.tunnel.yml adds a cloudflared sidecar option for Synology-hosted public deployments."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 164; Economics engine",
+      "source_line_or_section": "line 169; Economics engine",
       "exact_short_excerpt": "src/lib/economics.ts computes revenue stream summaries, treasury coverage, and the treasury governor split."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 165; Economics engine",
+      "source_line_or_section": "line 170; Economics engine",
       "exact_short_excerpt": "summarizeEconomics aggregates revenue streams, treasury entries, and sponsorship commitments into the EconomicsSummary used by public economics surfaces."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 166; Economics engine",
+      "source_line_or_section": "line 171; Economics engine",
       "exact_short_excerpt": "Revenue engines include enterprise , data-licensing , compute-arbitrage , sponsorship , and private-lane ."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 170; Seed data",
+      "source_line_or_section": "line 175; Seed data",
       "exact_short_excerpt": "src/lib/seed.ts holds realistic demo Kens and categories."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 171; Seed data",
+      "source_line_or_section": "line 176; Seed data",
       "exact_short_excerpt": "src/lib/seed-plus.ts adds attestation state, timing, audit updates, structured treasury entries, sponsor commitments, the private-lane revenue stream, and simulated model-outcome data."
     }
   ],

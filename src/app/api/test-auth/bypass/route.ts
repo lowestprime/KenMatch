@@ -9,6 +9,7 @@ import {
 } from "@/lib/test-auth";
 import { ACTIVE_SESSION_COOKIE, sessionCookieOptions } from "@/lib/session";
 import { env } from "@/lib/env";
+import { trustedRouteOrigin } from "@/lib/request-origin";
 
 export const dynamic = "force-dynamic";
 
@@ -93,7 +94,15 @@ export async function POST(request: NextRequest) {
     detail: `Local-only test auth bypass for ${TEST_AUTH_USERS[mode].email}.`,
   });
 
-  const destination = new URL(mode === "admin" ? "/admin" : "/account", request.nextUrl.origin);
+  const routeOrigin = trustedRouteOrigin({
+    forwardedHost: request.headers.get("x-forwarded-host"),
+    host: request.headers.get("host"),
+    forwardedProto: request.headers.get("x-forwarded-proto"),
+    fallbackProtocol: request.nextUrl.protocol,
+    production: false,
+  });
+  if (!routeOrigin) return unavailable();
+  const destination = new URL(mode === "admin" ? "/admin" : "/account", routeOrigin);
   const response = NextResponse.redirect(destination, 303);
   response.cookies.set(ACTIVE_SESSION_COOKIE, session.token, sessionCookieOptions(env.KENMATCH_SESSION_DAYS * 24 * 60 * 60));
   response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");

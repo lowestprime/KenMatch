@@ -21,6 +21,10 @@ export default async function KenDetailPage({ params }: { params: Promise<{ slug
   if (!task) {
     notFound();
   }
+  const intakeBlocked = Boolean(task.intakeReview && !task.intakeReview.canParticipate);
+  const participationMessage = intakeBlocked
+    ? `This Ken is ${task.intakeReview?.submission.intakeStatus.replaceAll("-", " ")} in intake and cannot receive public participation yet.`
+    : publicParticipationMessage;
 
   return (
     <div className="page-stack">
@@ -52,6 +56,44 @@ export default async function KenDetailPage({ params }: { params: Promise<{ slug
           ))}
         </div>
       </section>
+
+      {task.intakeReview ? (
+        <section className="panel grid gap-4" aria-labelledby="intake-review-heading">
+          <div className="category-review-head">
+            <div>
+              <div className="eyebrow">Transparent intake record</div>
+              <h2 id="intake-review-heading" className="font-display text-2xl font-semibold text-foreground">Submission review</h2>
+            </div>
+            <span className={`status-chip is-${task.intakeReview.submission.intakeStatus}`}>
+              {task.intakeReview.submission.intakeStatus.replaceAll("-", " ")}
+            </span>
+          </div>
+          <div className="review-lane-summary">
+            <span>Requested <strong>{task.intakeReview.submission.requestedTier}</strong></span>
+            <span>Scope estimate <strong>{task.intakeReview.submission.estimatedTier}</strong></span>
+            <span>{task.intakeReview.submission.assigneeAccountId ? "Reviewer assigned" : "Awaiting assignment"}</span>
+          </div>
+          {task.intakeReview.submission.reviewNote ? (
+            <p className="admin-hint"><strong>Public review note:</strong> {task.intakeReview.submission.reviewNote}</p>
+          ) : null}
+          {intakeBlocked ? (
+            <p className="text-sm leading-7 text-muted">
+              This private detail record is visible only to its submitter and authorized reviewers. It does not appear in search, profiles, ranking, pulse, or public feed results until approved.
+            </p>
+          ) : null}
+          <details className="review-history">
+            <summary>Public review history ({task.intakeReview.events.filter((event) => event.isPublic).length})</summary>
+            <ol className="review-history-list">
+              {task.intakeReview.events.filter((event) => event.isPublic).map((event) => (
+                <li key={event.id}>
+                  <div><strong>{event.action.replaceAll("-", " ")}</strong><span>{formatDateTime(event.createdAt)}</span></div>
+                  {event.publicNote ? <p>{event.publicNote}</p> : null}
+                </li>
+              ))}
+            </ol>
+          </details>
+        </section>
+      ) : null}
 
       <section className="detail-layout">
         <div className="space-y-6">
@@ -148,8 +190,8 @@ export default async function KenDetailPage({ params }: { params: Promise<{ slug
             taskId={task.id}
             slug={task.slug}
             comments={task.comments}
-            disabled={!viewerProfile?.canComment}
-            disabledMessage={publicParticipationMessage}
+            disabled={intakeBlocked || !viewerProfile?.canComment}
+            disabledMessage={participationMessage}
           />
         </div>
 
@@ -160,8 +202,8 @@ export default async function KenDetailPage({ params }: { params: Promise<{ slug
             userPulse={task.userTaskPulse}
             positivePulseCount={task.positivePulseCount}
             negativePulseCount={task.negativePulseCount}
-            disabled={!viewerProfile?.canPulse}
-            disabledMessage={publicParticipationMessage}
+            disabled={intakeBlocked || !viewerProfile?.canPulse}
+            disabledMessage={participationMessage}
           />
           <VotePanel
             taskId={task.id}
@@ -169,8 +211,8 @@ export default async function KenDetailPage({ params }: { params: Promise<{ slug
             initialVotes={task.userVotes}
             availableCredits={viewerProfile?.availableCredits ?? 0}
             totalCredits={viewerProfile?.effectiveVoiceCredits ?? 0}
-            disabled={!viewerProfile?.canAllocateVoice}
-            disabledMessage={publicParticipationMessage}
+            disabled={intakeBlocked || !viewerProfile?.canAllocateVoice}
+            disabledMessage={participationMessage}
           />
 
           <div className="panel space-y-4">

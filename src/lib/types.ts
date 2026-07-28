@@ -79,8 +79,48 @@ export type EmailTokenPurpose = (typeof emailTokenPurposes)[number];
 export const verificationStatuses = ["none", "pending", "approved", "rejected"] as const;
 export type VerificationStatus = (typeof verificationStatuses)[number];
 
-export const categoryProposalStatuses = ["pending", "approved", "rejected"] as const;
+export const categoryProposalStatuses = [
+  "pending",
+  "needs-revision",
+  "held",
+  "second-review",
+  "approved",
+  "merged",
+  "rejected",
+  "appealed",
+] as const;
 export type CategoryProposalStatus = (typeof categoryProposalStatuses)[number];
+
+export const kenSubmissionStatuses = [
+  "pending",
+  "needs-revision",
+  "held",
+  "second-review",
+  "approved",
+  "merged",
+  "rejected",
+  "appealed",
+] as const;
+export type KenSubmissionStatus = (typeof kenSubmissionStatuses)[number];
+
+export const reviewEntityTypes = ["category-proposal", "ken-submission"] as const;
+export type ReviewEntityType = (typeof reviewEntityTypes)[number];
+
+export const reviewEventActions = [
+  "submitted",
+  "automated-check",
+  "assigned",
+  "recused",
+  "revision-requested",
+  "held",
+  "approval-proposed",
+  "approved",
+  "merged",
+  "rejected",
+  "appealed",
+  "appeal-resolved",
+] as const;
+export type ReviewEventAction = (typeof reviewEventActions)[number];
 
 export interface CategoryRecord {
   id: string;
@@ -102,9 +142,64 @@ export interface CategoryProposalRecord {
   exampleKens: string[];
   reviewStatus: CategoryProposalStatus;
   reviewNote: string | null;
+  internalReviewNote: string | null;
   reviewedBy: string | null;
+  assigneeAccountId: string | null;
+  mergedCategoryId: string | null;
+  intakeResultJson: string;
+  reviewedAt: string | null;
+  firstApprovalBy: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface KenSubmissionRecord {
+  id: string;
+  taskId: string;
+  taskSlug: string;
+  taskTitle: string;
+  taskSummary: string;
+  proposerProfileId: string;
+  proposerName: string | null;
+  requestedTier: RequestedTier;
+  estimatedTier: RequestedTier;
+  intakeStatus: KenSubmissionStatus;
+  intakeResultJson: string;
+  riskFlags: string[];
+  reviewNote: string | null;
+  internalReviewNote: string | null;
+  assigneeAccountId: string | null;
+  mergedTaskId: string | null;
+  firstApprovalBy: string | null;
+  submittedAt: string;
+  assignedAt: string | null;
+  reviewedAt: string | null;
+  updatedAt: string;
+}
+
+export interface ReviewEventRecord {
+  id: string;
+  entityType: ReviewEntityType;
+  entityId: string;
+  action: ReviewEventAction;
+  fromStatus: string | null;
+  toStatus: string | null;
+  actorAccountId: string | null;
+  actorName: string | null;
+  publicNote: string | null;
+  internalNote: string | null;
+  metadataJson: string | null;
+  isPublic: boolean;
+  createdAt: string;
+}
+
+export interface ReviewQueuePage<T> {
+  items: T[];
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+  counts: Record<string, number>;
 }
 
 export interface ProfileRecord {
@@ -231,6 +326,8 @@ export interface AdminNotificationSettings {
   notifyOnFirstVisit: boolean;
   notifyOnVerificationRequest: boolean;
   notifyOnProposal: boolean;
+  notifyOnCategoryProposal: boolean;
+  notifyOnReviewDecision: boolean;
   dailyDigest: boolean;
   updatedAt: string;
 }
@@ -660,6 +757,11 @@ export interface TaskDetail extends TaskSummary {
   governanceEvents: GovernanceEventRecord[];
   comments: DiscussionComment[];
   runUpdates: RunUpdateRecord[];
+  intakeReview: {
+    submission: KenSubmissionRecord;
+    events: ReviewEventRecord[];
+    canParticipate: boolean;
+  } | null;
 }
 
 export interface CategorySummary extends CategoryRecord {

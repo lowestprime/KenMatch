@@ -73,7 +73,7 @@ export function ProposalForm({ categories, disabled }: { categories: Array<{ slu
       <AbuseGuardFields action="submit-ken" siteKey={turnstileSiteKey} />
       <div className="flex flex-col gap-3 border-t border-border pt-5 sm:flex-row sm:items-center sm:justify-between">
         <p className="max-w-2xl text-sm leading-7 text-muted">
-          New Kens start in public review with a locked bond, visible timestamps, public comments, and checkpoint-gated execution. Launch happens only after review, ranking, and release conditions are in place.
+          New Kens enter a private, timestamped intake queue with a locked bond. They become visible for public pulse, comments, and scarce voice only after review approval; every public-facing outcome keeps a reason-coded history in your Account dashboard.
         </p>
         <button type="submit" disabled={disabled || isPending} className="cta-primary">
           {isPending ? "Submitting Ken" : "Submit Ken for review"}

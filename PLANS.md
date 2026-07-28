@@ -15,6 +15,39 @@ This task is not just a UI refresh. It combines:
 This file is not a substitute for implementation.
 If active, it must stay current as the work progresses.
 
+## Active completion program — 2026-07-27
+
+- Task title: Comprehensive product completion, governance, ranking resilience, and deterministic visual archive
+- Source of truth: the July 27, 2026 completion program and its generated claim/constraint ledger
+- Branch: `codex/kenmatch-completion-visual-archive-20260727`
+- Status: IN PROGRESS
+- Last updated: 2026-07-27
+
+### Current evidence
+
+| Workstream | Status | Current evidence |
+| --- | --- | --- |
+| A. Product truth, FAQ, and glossary | DONE | Searchable/deep-linkable FAQ, strategic sourced entries, product-truth matrix, glossary route, JSON-LD, unit tests, build, and local browser checks |
+| B. Bounded discovery and feed resilience | DONE | Deterministic aggregation and pagination, URL-driven filters, reset behavior, supporting indexes, 100,000-row fixture checks, unit tests, build, and local browser checks |
+| C. Deterministic intake review | DONE | Private pre-publication intake, deterministic checks, collision handling, category creation, proposer status, reviewer queue, append-only history, unit/database tests, and signed-in/signed-out browser checks |
+| D. Transparent moderation and dual control | DONE | Role-scoped triage/final actions, durable recusals, conflict rules, two-person high-risk approval, public outcome history, private notes, idempotent transitions, and independent-reviewer browser checks |
+| Auth transition integrity | DONE | Authority-preserving request-origin checks, exact-host redirects, shared immediate sign-out on desktop/mobile, redirect-sentinel handling, focused tests, and zero-console-error browser checks |
+| E. Lifecycle graphical abstract | IN PROGRESS | Canonical lifecycle model and responsive accessible visual integration still required |
+| F. Theme and long-page system | TODO | Light/OLED computed-style baseline, route-wide overflow review, long-page rhythm, reading progress, and audit-log controls remain |
+| G. Historical admin analytics | TODO | Time-series aggregation, comparisons, telemetry health, retention documentation, and accessible chart/table surfaces remain |
+| H. Technical SEO and launch strategy | TODO | Route audit, metadata/schema verification, current-intent research, and marketing/community documents remain |
+| I. Capacity and output resilience | TODO | Capacity state machine, stop-reason model, output-quality contract, and objective/subjective decision matrix remain |
+| J. Deterministic visual archive | TODO | Read-only/live and snapshot-lab harness, provenance, route/state inventories, screenshots, diagnostics, artifacts, retention, and runbook remain |
+| K. Final validation and release evidence | TODO | Full matrix validation, archive review, deployment, live parity, and final ledger disposition remain |
+
+### Completion controls
+
+- `scripts/generate-completion-ledger.mjs` regenerates the auditable claim and constraint inventory.
+- `docs/kenmatch-completion-ledger.json` is the machine-readable state record.
+- `docs/kenmatch-completion-ledger.md` is the reviewer-facing state record.
+- A workstream moves to DONE only after its implementation, focused tests, project checks, and direct UI or artifact evidence are all recorded.
+- The earlier April plan below remains historical context. Its workstream letters are not aliases for the July completion program.
+
 ## Status model
 Allowed statuses:
 - TODO: not yet audited or implemented

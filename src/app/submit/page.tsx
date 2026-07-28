@@ -63,7 +63,7 @@ export default async function SubmitPage() {
       ) : (
         <div className="panel space-y-4">
           <div className="font-display text-2xl font-semibold text-foreground">Sign in required</div>
-          <p className="text-sm leading-7 text-muted">Submitting a Ken creates a public review record and a bond-backed accountability trail, so anonymous intake is intentionally disabled.</p>
+          <p className="text-sm leading-7 text-muted">Submitting a Ken creates a private intake record and a bond-backed accountability trail. Approval creates the public voting record, so anonymous intake is intentionally disabled.</p>
           <Link href="/auth" className="cta-primary inline-flex">Sign in or create account</Link>
         </div>
       )}

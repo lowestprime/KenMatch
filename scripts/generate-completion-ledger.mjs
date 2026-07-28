@@ -205,6 +205,22 @@ const evidenceRules = [
     tests: ["tests/faq-contact.test.ts"],
   },
   {
+    match:
+      /\b(category proposal|submitted[- ]ken|ken intake|review queue|needs revision|second review|approve|reject|merge|appeal|recus|moderation threat model|conflict of interest|reviewer)\b/i,
+    code: [
+      "src/lib/intake-review.ts",
+      "src/lib/review-policy.ts",
+      "src/lib/review-schema.ts",
+      "src/components/admin/ken-submissions.tsx",
+      "src/components/admin/category-proposals.tsx",
+      "src/components/submission-review-status.tsx",
+      "src/app/reviews/page.tsx",
+      "docs/moderation-threat-model.md",
+      "docs/intake-review-operations.md",
+    ],
+    tests: ["tests/intake-review.test.ts", "tests/review-database-contract.test.ts"],
+  },
+  {
     match: /\b(category|taxonomy|lane|tier|symbol)\b/i,
     code: [
       "src/lib/taxonomy.ts",
@@ -287,7 +303,7 @@ const missingFeatureRules = [
   },
   {
     match: /\bsubmitted[- ]ken review|ken intake|review queue\b/i,
-    absent: ["src/components/admin/task-submissions.tsx"],
+    absent: ["src/components/admin/ken-submissions.tsx", "src/lib/review-policy.ts"],
   },
   {
     match: /\b(historical analytics|visitors by day|visitors by week|visitors by month|country distribution over time)\b/i,
@@ -295,7 +311,7 @@ const missingFeatureRules = [
   },
   {
     match: /\b(appeal|recus|moderation threat model)\b/i,
-    absent: ["src/lib/moderation-policy.ts"],
+    absent: ["src/lib/review-policy.ts", "docs/moderation-threat-model.md"],
   },
   {
     match: /\b(trust surface|implementation-status transparency|how it works route)\b/i,

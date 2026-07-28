@@ -171,6 +171,8 @@ The allocation problem is practical: compute, review time, and operational atten
 - Universal sitewide search, mobile navigation drawer, bookmark/share affordances, and linked public profile surfaces.
 - Ken timing metadata: created and updated timestamps, launch countdown, submission age, compute usage, remaining runtime window, and completion state.
 - Incremental run audit history for partial delivery, early completion, and checkpoint-by-checkpoint evidence notes.
+- Private intake gates for user-submitted Kens and categories, with deterministic advisory checks, bounded reviewer queues, reason-coded public outcomes, appeals, and append-only history.
+- Moderator powers are limited to triage; final publish, merge, or reject actions require admin/owner authority, and high-risk publication requires two distinct privileged reviewers.
 - Economics and treasury views with committed versus projected support, sponsor pools, restricted funding, simulated runway, safety reserve coverage, and sponsor covenant details.
 - Governance view with blocked Kens, attestation state, enforceable participation limits, review timing, and visible decision logs.
 - Security headers, host filtering, request-origin checks, structured rate limits, optional Turnstile verification, and public-safe health checks.

@@ -1,5 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import {
+  normalizeAuthority,
+  normalizeHostname,
+  normalizeOrigin,
+  trustedRequestOrigin,
+} from "@/lib/request-origin";
+
 const isDevelopment = process.env.NODE_ENV !== "production";
 const trustedFetchSites = new Set(["same-origin", "same-site", "none", ""]);
 const allowedHosts = (process.env.KENMATCH_ALLOWED_HOSTS ?? "")
@@ -8,30 +15,17 @@ const allowedHosts = (process.env.KENMATCH_ALLOWED_HOSTS ?? "")
   .filter(Boolean);
 const internalHealthHosts = new Set(["127.0.0.1", "localhost", "0.0.0.0", "::1", "[::1]", "kenmatch", "kenmatch-demo"]);
 
-function normalizeHost(value: string | null) {
-  const raw = (value ?? "").trim().toLowerCase();
-  if (raw === "::1") return raw;
-  if (raw.startsWith("[")) {
-    const end = raw.indexOf("]");
-    if (end !== -1) return raw.slice(0, end + 1);
-  }
-  return raw.replace(/:\d+$/, "");
-}
-
-function normalizeHostWithPort(value: string | null) {
-  return (value ?? "").trim().toLowerCase();
-}
-
 function isInternalHealthRequest(path: string, host: string) {
   return path === "/api/health" && internalHealthHosts.has(host);
 }
 
 function expectedOrigin(request: NextRequest, host: string) {
-  if (process.env.KENMATCH_PUBLIC_ORIGIN) {
-    return process.env.KENMATCH_PUBLIC_ORIGIN.toLowerCase();
-  }
-
-  return `${request.nextUrl.protocol}//${host}`;
+  return trustedRequestOrigin({
+    authority: host,
+    forwardedProto: request.nextUrl.protocol.replace(/:$/, ""),
+    publicOrigin: process.env.KENMATCH_PUBLIC_ORIGIN,
+    production: !isDevelopment,
+  });
 }
 
 function redirectToCanonicalHttps(request: NextRequest, host: string, path: string) {
@@ -43,7 +37,7 @@ function redirectToCanonicalHttps(request: NextRequest, host: string, path: stri
   } catch {
     canonical = new URL("https://kmat.ch");
   }
-  const canonicalHost = normalizeHost(canonical.host);
+  const canonicalHost = normalizeHostname(canonical.host);
 
   if (host === canonicalHost) {
     return null;
@@ -83,8 +77,8 @@ function applySecurityHeaders(response: NextResponse) {
       "base-uri 'self'",
       "form-action 'self'",
       "object-src 'none'",
-      "upgrade-insecure-requests",
-    ].join("; "),
+      isDevelopment ? "" : "upgrade-insecure-requests",
+    ].filter(Boolean).join("; "),
   );
   return response;
 }
@@ -102,8 +96,8 @@ function blockRequest(request: NextRequest, status: number, body: string, reason
 export function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const hostHeader = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
-  const host = normalizeHost(hostHeader);
-  const hostWithPort = normalizeHostWithPort(hostHeader);
+  const host = normalizeHostname(hostHeader);
+  const hostWithPort = normalizeAuthority(hostHeader);
   const internalHealthRequest = isInternalHealthRequest(path, host);
 
   if (!internalHealthRequest && allowedHosts.length && host && !allowedHosts.includes(host)) {
@@ -128,7 +122,7 @@ export function proxy(request: NextRequest) {
       }
 
       const origin = request.headers.get("origin");
-      if (origin && hostWithPort && origin.toLowerCase() !== expectedOrigin(request, hostWithPort)) {
+      if (origin && hostWithPort && normalizeOrigin(origin) !== expectedOrigin(request, hostWithPort)) {
         return blockRequest(request, 403, "Origin mismatch.", "origin does not match expected origin for host");
       }
     }

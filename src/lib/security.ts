@@ -4,11 +4,18 @@ import { headers } from "next/headers";
 
 import { consumeRateLimit, logSecurityEvent } from "@/lib/db";
 import { allowedHosts, env } from "@/lib/env";
+import {
+  normalizeAuthority,
+  normalizeHostname,
+  normalizeOrigin,
+  trustedRequestOrigin,
+} from "@/lib/request-origin";
 
 const trustedFetchSites = new Set(["same-origin", "same-site", "none", ""]);
 
 export interface RequestSecurityContext {
   host: string;
+  authority: string;
   origin: string | null;
   secFetchSite: string;
   forwardedProto: string | null;
@@ -16,22 +23,10 @@ export interface RequestSecurityContext {
   userAgent: string;
 }
 
-function normalizeHost(value: string | null | undefined) {
-  return (value ?? "").trim().toLowerCase().replace(/:\d+$/, "");
-}
-
-function trustedOriginForHost(host: string, forwardedProto: string | null) {
-  if (env.KENMATCH_PUBLIC_ORIGIN) {
-    return env.KENMATCH_PUBLIC_ORIGIN.toLowerCase();
-  }
-
-  const protocol = (forwardedProto ?? (env.NODE_ENV === "production" ? "https" : "http")).toLowerCase();
-  return `${protocol}://${host}`;
-}
-
 export async function getRequestSecurityContext(): Promise<RequestSecurityContext> {
   const headerStore = await headers();
-  const host = normalizeHost(headerStore.get("x-forwarded-host") ?? headerStore.get("host"));
+  const rawHost = headerStore.get("x-forwarded-host") ?? headerStore.get("host");
+  const host = normalizeHostname(rawHost);
   const forwardedFor = headerStore.get("cf-connecting-ip")
     ?? headerStore.get("x-real-ip")
     ?? headerStore.get("x-forwarded-for")
@@ -40,6 +35,7 @@ export async function getRequestSecurityContext(): Promise<RequestSecurityContex
 
   return {
     host,
+    authority: normalizeAuthority(rawHost),
     origin: headerStore.get("origin"),
     secFetchSite: (headerStore.get("sec-fetch-site") ?? "").toLowerCase(),
     forwardedProto: headerStore.get("x-forwarded-proto"),
@@ -75,8 +71,13 @@ async function assertSameOrigin(context: RequestSecurityContext) {
   await assertAllowedHost(context);
 
   if (context.origin) {
-    const trustedOrigin = trustedOriginForHost(context.host, context.forwardedProto);
-    if (context.origin.toLowerCase() !== trustedOrigin) {
+    const trustedOrigin = trustedRequestOrigin({
+      authority: context.authority,
+      forwardedProto: context.forwardedProto,
+      publicOrigin: env.KENMATCH_PUBLIC_ORIGIN,
+      production: env.NODE_ENV === "production",
+    });
+    if (!trustedOrigin || normalizeOrigin(context.origin) !== trustedOrigin) {
       throw new Error(await logAndRejectAbuse(context, "Origin did not match trusted origin for host."));
     }
     return;

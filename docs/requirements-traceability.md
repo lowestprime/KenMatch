@@ -31,6 +31,14 @@ This file maps the stable product requirements from `KenMatch_Conception.md` to 
 
 ### Partial achievement, early completion, and incremental audit trail
 - `task_timings` and `run_updates` in `src/lib/db.ts` model launch windows, compute used, completion mode, and incremental evidence.
+
+### Transparent category and Ken intake
+- `src/lib/intake-review.ts` records deterministic boundary, readiness, similarity, lane, and bounded risk checks at submission.
+- `ken_submissions`, enriched `category_proposals`, and append-only `review_events` preserve status, assignment, timestamps, public reasons, private notes, merge targets, appeals, and immutable transition history.
+- Pending user-created Kens are excluded from feed, search, profiles, ranking, pulse, comments, and voice allocation. The proposer and authorized reviewers retain a private detail route.
+- `src/lib/review-policy.ts` limits moderators to triage, requires admin/owner authority for final outcomes, rejects own-submission decisions, makes recusal durable, and requires two distinct privileged approvals for high-risk publication.
+- `/admin`, `/account#submission-reviews`, and `/reviews` provide role-appropriate queue, submitter, and public-outcome views. Private reviewer notes never enter submitter or public projections.
+- Browser evidence covers private-to-public transitions, normalized category collisions, idempotent approval, and distinct-account high-risk quorum. Contract tests cover deterministic intake, authorization, conflict, recusal, event deduplication, and category uniqueness.
 - `src/components/ken-timing-strip.tsx` and `src/app/kens/[slug]/page.tsx` render the countdown, elapsed time, progress, and run audit updates.
 
 ### Visible blocked work and transparent governance
