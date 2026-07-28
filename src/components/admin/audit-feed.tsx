@@ -1,80 +1,146 @@
-"use client";
+import Link from "next/link";
 
-import { useMemo, useState } from "react";
-
-import type { AuditLogRecord } from "@/lib/types";
+import { CopyTextButton } from "@/components/copy-text-button";
+import {
+  AUDIT_PAGE_SIZES,
+  formatAuditMetadata,
+  summarizeAuditDetail,
+  type AuditLogPage,
+} from "@/lib/audit-log";
 
 function formatWhen(iso: string) {
   try {
-    return new Date(iso).toLocaleString();
+    return new Intl.DateTimeFormat("en", {
+      dateStyle: "medium",
+      timeStyle: "short",
+      timeZone: "UTC",
+    }).format(new Date(iso));
   } catch {
     return iso;
   }
 }
 
-export function AdminAuditFeed({ entries }: { entries: AuditLogRecord[] }) {
-  const [query, setQuery] = useState("");
-  const [action, setAction] = useState("all");
-  const [limit, setLimit] = useState(25);
-  const actions = useMemo(() => ["all", ...Array.from(new Set(entries.map((entry) => entry.action))).sort()], [entries]);
-  const filtered = useMemo(() => {
-    const needle = query.trim().toLowerCase();
-    return entries
-      .filter((entry) => action === "all" || entry.action === action)
-      .filter((entry) => {
-        if (!needle) return true;
-        return `${entry.action} ${entry.detail} ${redactMetadata(entry.metadata)}`.toLowerCase().includes(needle);
-      })
-      .slice(0, limit);
-  }, [action, entries, limit, query]);
-  if (entries.length === 0) {
-    return <p style={{ color: "var(--muted)" }}>No audit events yet.</p>;
+function buildHref(params: Record<string, string>, updates: Record<string, string | null>) {
+  const next = new URLSearchParams(params);
+  for (const [key, value] of Object.entries(updates)) {
+    if (!value) next.delete(key);
+    else next.set(key, value);
   }
+  const query = next.toString();
+  return `/admin${query ? `?${query}` : ""}#audit-log`;
+}
+
+export function AdminAuditFeed({
+  data,
+  params,
+}: {
+  data: AuditLogPage;
+  params: Record<string, string>;
+}) {
+  const preservedParams = Object.entries(params).filter(([key]) => !key.startsWith("audit"));
   return (
     <div className="grid gap-3">
-      <div className="admin-filter-row">
+      <form className="admin-filter-row" action="/admin#audit-log">
+        {preservedParams.map(([key, value]) => <input key={key} type="hidden" name={key} value={value} />)}
         <label className="field-label">
-          <span>Filter</span>
-          <input className="field" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search action or detail" />
+          <span>Search events</span>
+          <input
+            className="field"
+            type="search"
+            name="auditQ"
+            defaultValue={data.filters.query}
+            placeholder="Action, detail, or metadata"
+          />
         </label>
         <label className="field-label">
           <span>Action</span>
-          <select className="field" value={action} onChange={(event) => setAction(event.target.value)}>
-            {actions.map((value) => <option key={value} value={value}>{value}</option>)}
+          <select className="field" name="auditAction" defaultValue={data.filters.action}>
+            <option value="all">All actions</option>
+            {data.actions.map((action) => <option key={action} value={action}>{action}</option>)}
           </select>
         </label>
         <label className="field-label">
-          <span>Limit</span>
-          <select className="field" value={limit} onChange={(event) => setLimit(Number(event.target.value))}>
-            {[10, 25, 50, 100].map((value) => <option key={value} value={value}>{value}</option>)}
+          <span>Rows per page</span>
+          <select className="field" name="auditPageSize" defaultValue={data.pageSize}>
+            {AUDIT_PAGE_SIZES.map((value) => <option key={value} value={value}>{value}</option>)}
           </select>
         </label>
+        <button className="cta-secondary cta-compact" type="submit">Apply audit filters</button>
+        <Link
+          className="cta-secondary cta-compact"
+          href={buildHref(Object.fromEntries(preservedParams), {
+            auditQ: null,
+            auditAction: null,
+            auditPage: null,
+            auditPageSize: null,
+          })}
+        >
+          Reset audit filters
+        </Link>
+      </form>
+
+      {data.items.length === 0 ? (
+        <p style={{ color: "var(--muted)" }}>No audit events match these filters.</p>
+      ) : (
+        <ul className="admin-audit-list">
+          {data.items.map((entry) => {
+            const metadata = formatAuditMetadata(entry.metadata);
+            const detail = summarizeAuditDetail(entry.detail);
+            return (
+              <li key={entry.id} className="audit-card">
+                <div className="audit-card-heading">
+                  <strong>{entry.action}</strong>
+                  <time dateTime={entry.createdAt}>{formatWhen(entry.createdAt)} UTC</time>
+                </div>
+                <p className="audit-card-detail">{detail.preview}</p>
+                {detail.collapsed ? (
+                  <details className="audit-detail-disclosure">
+                    <summary>View full event detail</summary>
+                    <div className="audit-metadata-toolbar">
+                      <CopyTextButton value={detail.full} label="Copy detail" />
+                    </div>
+                    <pre>{detail.full}</pre>
+                  </details>
+                ) : null}
+                {metadata ? (
+                  <details className="audit-metadata">
+                    <summary>View redacted metadata</summary>
+                    <div className="audit-metadata-toolbar">
+                      <CopyTextButton value={metadata} label="Copy metadata" />
+                    </div>
+                    <pre>{metadata}</pre>
+                  </details>
+                ) : null}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      <div className="marketplace-pagination" aria-label="Audit log pages">
+        {data.page > 1 ? (
+          <Link
+            className="cta-secondary cta-compact"
+            href={buildHref(params, { auditPage: String(data.page - 1) })}
+          >
+            Previous
+          </Link>
+        ) : <span />}
+        <span className="marketplace-page-status">
+          Page {data.page} of {data.totalPages} · {data.totalItems} events
+        </span>
+        {data.page < data.totalPages ? (
+          <Link
+            className="cta-secondary cta-compact"
+            href={buildHref(params, { auditPage: String(data.page + 1) })}
+          >
+            Next
+          </Link>
+        ) : <span />}
       </div>
-      <ul className="admin-audit-list grid gap-2">
-      {filtered.map((entry) => (
-        <li key={entry.id} className="audit-card">
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <strong>{entry.action}</strong>
-            <span className="text-xs" style={{ color: "var(--muted)" }}>
-              {formatWhen(entry.createdAt)}
-            </span>
-          </div>
-          <p style={{ color: "var(--ink-muted)", fontSize: "0.86rem" }}>{entry.detail}</p>
-          {entry.metadata ? (
-            <p style={{ color: "var(--muted)", fontSize: "0.72rem", fontFamily: "var(--font-mono)" }}>{redactMetadata(entry.metadata)}</p>
-          ) : null}
-        </li>
-      ))}
-      </ul>
-      <p className="text-xs" style={{ color: "var(--muted)" }}>{filtered.length} of {entries.length} events shown. Metadata is redacted before display.</p>
+      <p className="text-xs" style={{ color: "var(--muted)" }}>
+        Secret-bearing fields and email addresses are redacted at the server boundary. Long event bodies and metadata remain complete, expandable, and copyable.
+      </p>
     </div>
   );
-}
-
-function redactMetadata(value: string | null) {
-  if (!value) return "";
-  return value
-    .replace(/"?(token|password|secret|pass|authorization|cookie)"?\s*:\s*"[^"]*"/gi, '"$1":"[redacted]"')
-    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "[email]")
-    .slice(0, 700);
 }

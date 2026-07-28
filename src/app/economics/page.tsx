@@ -40,7 +40,7 @@ export default async function EconomicsPage() {
   const liveCheckoutEnabled = stripeEnabled();
 
   return (
-    <div className="page-stack">
+    <div className="page-stack long-reading-route">
       <section className="panel hero-panel card-sheen space-y-5">
         <div className="eyebrow">Funding and treasury</div>
         <h1 className="max-w-4xl font-display text-4xl font-semibold text-foreground sm:text-5xl">

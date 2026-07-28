@@ -21,7 +21,7 @@ If active, it must stay current as the work progresses.
 - Source of truth: the July 27, 2026 completion program and its generated claim/constraint ledger
 - Branch: `codex/kenmatch-completion-visual-archive-20260727`
 - Status: IN PROGRESS
-- Last updated: 2026-07-27
+- Last updated: 2026-07-28
 
 ### Current evidence
 
@@ -33,7 +33,7 @@ If active, it must stay current as the work progresses.
 | D. Transparent moderation and dual control | DONE | Role-scoped triage/final actions, durable recusals, conflict rules, two-person high-risk approval, public outcome history, private notes, idempotent transitions, and independent-reviewer browser checks |
 | Auth transition integrity | DONE | Authority-preserving request-origin checks, exact-host redirects, shared immediate sign-out on desktop/mobile, redirect-sentinel handling, focused tests, and zero-console-error browser checks |
 | E. Lifecycle graphical abstract | DONE | Canonical eight-stage model; interactive Overview/Governance map; Ken-detail progression; keyboard, screen-reader, Light/OLED, 320 px, forced-color, reduced-motion, and print/PDF evidence |
-| F. Theme and long-page system | TODO | Light/OLED computed-style baseline, route-wide overflow review, long-page rhythm, reading progress, and audit-log controls remain |
+| F. Theme and long-page system | DONE | Before/after computed styles and screenshots; centralized neutral Light/true-black OLED tokens; fixed breakpoint typography; 28-route overflow sweep; actual-height reading progress; server-filtered/paginated, expandable audit history; focused tests and browser evidence |
 | G. Historical admin analytics | TODO | Time-series aggregation, comparisons, telemetry health, retention documentation, and accessible chart/table surfaces remain |
 | H. Technical SEO and launch strategy | TODO | Route audit, metadata/schema verification, current-intent research, and marketing/community documents remain |
 | I. Capacity and output resilience | TODO | Capacity state machine, stop-reason model, output-quality contract, and objective/subjective decision matrix remain |

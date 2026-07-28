@@ -42,7 +42,7 @@ export default async function GovernancePage() {
   const { governance, blockedTasks, categories, profiles } = await getGovernanceData(viewerProfileId);
 
   return (
-    <div className="page-stack">
+    <div className="page-stack long-reading-route">
       <section className="panel space-y-4 hero-panel">
         <div className="eyebrow">Governance and safety</div>
         <h1 className="font-display text-4xl font-semibold text-foreground">Public board roles, visible review states, and accountable participation</h1>

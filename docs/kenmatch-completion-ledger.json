@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-07-28T09:10:43.065Z",
+  "generated_at": "2026-07-28T09:59:27.783Z",
   "generator": "scripts/generate-completion-ledger.mjs",
   "repository": {
     "path": ".",
@@ -268,7 +268,7 @@
       "path": "PLANS.md",
       "line_count": 574,
       "heading_count": 44,
-      "sha256": "749ffc106d26b7b1e131e6aa37348740c4a71e0d838181c2091141284945b115",
+      "sha256": "efd10b53666bcc7c7819c6204138b7995a8a2df4d77b2e9536803d7b4b530e6c",
       "extracted_requirements": 4,
       "historical_claims": 0,
       "reference_constraints": 0,
@@ -305,11 +305,11 @@
       "name": "docs/architecture.md",
       "authority": "current-repository",
       "path": "docs/architecture.md",
-      "line_count": 180,
+      "line_count": 186,
       "heading_count": 13,
-      "sha256": "a0d7ccb72f77d814a400f07d57f1cf67cd0a9b3d980a696ede73d39955ee476e",
+      "sha256": "6d540c323d15a34983867c3916ea57bd9782eeaf1d998f72cd611f016acd91f4",
       "extracted_requirements": 0,
-      "historical_claims": 57,
+      "historical_claims": 59,
       "reference_constraints": 0,
       "status": "scanned",
       "note": ""
@@ -318,10 +318,10 @@
       "name": "docs/requirements-traceability.md",
       "authority": "current-repository",
       "path": "docs/requirements-traceability.md",
-      "line_count": 112,
+      "line_count": 115,
       "heading_count": 24,
-      "sha256": "8a86830e269a54b7f53cc30af9ef55097aa4f1f17249b04ce8ea4cfe6aeb0b31",
-      "extracted_requirements": 52,
+      "sha256": "1c11022cb12eddc00aacac9ca654c3660bb744ceb6f7db458a337382e1597421",
+      "extracted_requirements": 54,
       "historical_claims": 0,
       "reference_constraints": 0,
       "status": "scanned",
@@ -368,14 +368,14 @@
     }
   ],
   "summary": {
-    "candidate_requirements_extracted": 588,
-    "canonical_requirements": 499,
+    "candidate_requirements_extracted": 590,
+    "canonical_requirements": 501,
     "duplicate_backlinks_preserved": 89,
-    "source_claims": 197,
+    "source_claims": 199,
     "reference_constraints": 168,
     "status_counts": {
-      "IMPLEMENTED_UNVALIDATED": 230,
-      "NOT_AUDITED": 252,
+      "IMPLEMENTED_UNVALIDATED": 231,
+      "NOT_AUDITED": 253,
       "PARTIAL": 12,
       "MISSING": 5
     },
@@ -2220,7 +2220,7 @@
     {
       "id": "REQ-19DD1C9762CB",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 111; Treasury integrations",
+      "source_line_or_section": "line 114; Treasury integrations",
       "normalized_requirement": "Ensure the economics layer is production-shaped but still partly demo-backed because simulated runway remains part of the seeded public ledger.",
       "exact_short_excerpt": "The economics layer is production-shaped but still partly demo-backed because simulated runway remains part of the seeded public ledger.",
       "priority": "P0",
@@ -2251,7 +2251,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 111; Treasury integrations",
+          "source_line_or_section": "line 114; Treasury integrations",
           "authority": "current-repository"
         }
       ]
@@ -2471,7 +2471,7 @@
     {
       "id": "REQ-02263810873D",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 97; Public deployment and self-hosting readiness",
+      "source_line_or_section": "line 100; Public deployment and self-hosting readiness",
       "normalized_requirement": "Ensure synology-specific public-hosting guidance and hardening checklists live in docs/synology-nas-deploy.md and docs/public-security-hardening.md .",
       "exact_short_excerpt": "Synology-specific public-hosting guidance and hardening checklists live in docs/synology-nas-deploy.md and docs/public-security-hardening.md .",
       "priority": "P0",
@@ -2502,7 +2502,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 97; Public deployment and self-hosting readiness",
+          "source_line_or_section": "line 100; Public deployment and self-hosting readiness",
           "authority": "current-repository"
         }
       ]
@@ -3096,7 +3096,7 @@
     {
       "id": "REQ-132588D61B11",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 98; Public deployment and self-hosting readiness",
+      "source_line_or_section": "line 101; Public deployment and self-hosting readiness",
       "normalized_requirement": "Ensure synology NAS deployment instructions live in docs/synology-nas-deploy.md .",
       "exact_short_excerpt": "Synology NAS deployment instructions live in docs/synology-nas-deploy.md .",
       "priority": "P0",
@@ -3118,7 +3118,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 98; Public deployment and self-hosting readiness",
+          "source_line_or_section": "line 101; Public deployment and self-hosting readiness",
           "authority": "current-repository"
         }
       ]
@@ -3353,7 +3353,7 @@
     {
       "id": "REQ-CD72AF0E2CD5",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 94; Public deployment and self-hosting readiness",
+      "source_line_or_section": "line 97; Public deployment and self-hosting readiness",
       "normalized_requirement": "Ensure docker deployment lives in Dockerfile and docker-compose.synology.yml .",
       "exact_short_excerpt": "Docker deployment lives in Dockerfile and docker-compose.synology.yml .",
       "priority": "P0",
@@ -3375,7 +3375,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 94; Public deployment and self-hosting readiness",
+          "source_line_or_section": "line 97; Public deployment and self-hosting readiness",
           "authority": "current-repository"
         }
       ]
@@ -13885,6 +13885,36 @@
       ]
     },
     {
+      "id": "REQ-DBD24D2D89B9",
+      "source_file": "docs/requirements-traceability.md",
+      "source_line_or_section": "line 80; Modern public-facing interface and theming",
+      "normalized_requirement": "Ensure admin audit history uses server-side filtering and pagination in src/lib/db.ts , structured redaction in src/lib/audit-log.ts , and expandable/copyable full metadata in src/components/admin/audit-feed.tsx .",
+      "exact_short_excerpt": "Admin audit history uses server-side filtering and pagination in src/lib/db.ts , structured redaction in src/lib/audit-log.ts , and expandable/copyable full metadata in src/components/admin/audit-feed.tsx .",
+      "priority": "P2",
+      "risk": "low",
+      "current_code_evidence": [],
+      "current_test_evidence": [],
+      "current_live_evidence": [],
+      "status": "NOT_AUDITED",
+      "superseded_by": null,
+      "implementation_plan": "Audit and implement under B-FEED-RANKING-SEARCH.",
+      "acceptance_criteria": [
+        "The requirement is implemented or dispositioned with reproducible current evidence."
+      ],
+      "test_ids": [],
+      "commits": [],
+      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "workstream": "B-FEED-RANKING-SEARCH",
+      "source_backlinks": [
+        {
+          "source_file": "docs/requirements-traceability.md",
+          "source_path": "docs/requirements-traceability.md",
+          "source_line_or_section": "line 80; Modern public-facing interface and theming",
+          "authority": "current-repository"
+        }
+      ]
+    },
+    {
       "id": "REQ-DFFB5497A714",
       "source_file": "docs/requirements-traceability.md",
       "source_line_or_section": "line 44; Transparent category and Ken intake",
@@ -13978,7 +14008,7 @@
     {
       "id": "REQ-EAB6C477FF67",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 82; Account recovery, email verification, notifications, and admin operations",
+      "source_line_or_section": "line 85; Account recovery, email verification, notifications, and admin operations",
       "normalized_requirement": "Ensure email verification and forgot-password flows are implemented in src/app/actions.ts , src/lib/db.ts , src/lib/mail.ts , src/app/forgot-password/page.tsx , src/app/reset/page.tsx , and src/app/verify/page.tsx .",
       "exact_short_excerpt": "Email verification and forgot-password flows are implemented in src/app/actions.ts , src/lib/db.ts , src/lib/mail.ts , src/app/forgot-password/page.tsx , src/app/reset/page.tsx , and src/app/verify/page.tsx .",
       "priority": "P2",
@@ -14008,7 +14038,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 82; Account recovery, email verification, notifications, and admin operations",
+          "source_line_or_section": "line 85; Account recovery, email verification, notifications, and admin operations",
           "authority": "current-repository"
         }
       ]
@@ -14683,6 +14713,40 @@
       ]
     },
     {
+      "id": "REQ-03B1FF408449",
+      "source_file": "docs/requirements-traceability.md",
+      "source_line_or_section": "line 78; Modern public-facing interface and theming",
+      "normalized_requirement": "Ensure semantic theme tokens have one owner in src/app/globals.css ; Light uses a cool-neutral daytime field and OLED retains a true-black base. Baseline and final computed-style, overflow, and screenshot evidence are recorded in docs/visual-system-and-long-page-audit.md .",
+      "exact_short_excerpt": "Semantic theme tokens have one owner in src/app/globals.css ; Light uses a cool-neutral daytime field and OLED retains a true-black base. Baseline and final computed-style, overflow, and screenshot evidence are recorded in docs/visual-system-and-long-page-aud…",
+      "priority": "P2",
+      "risk": "low",
+      "current_code_evidence": [
+        "src/app/globals.css:1",
+        "src/components/theme-toggle.tsx:1",
+        "src/components/site-shell.tsx:1"
+      ],
+      "current_test_evidence": [],
+      "current_live_evidence": [],
+      "status": "IMPLEMENTED_UNVALIDATED",
+      "superseded_by": null,
+      "implementation_plan": "Audit and implement under F-VISUAL-UX.",
+      "acceptance_criteria": [
+        "The requirement is implemented or dispositioned with reproducible current evidence."
+      ],
+      "test_ids": [],
+      "commits": [],
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
+      "workstream": "F-VISUAL-UX",
+      "source_backlinks": [
+        {
+          "source_file": "docs/requirements-traceability.md",
+          "source_path": "docs/requirements-traceability.md",
+          "source_line_or_section": "line 78; Modern public-facing interface and theming",
+          "authority": "current-repository"
+        }
+      ]
+    },
+    {
       "id": "REQ-6393723D9C9A",
       "source_file": "docs/requirements-traceability.md",
       "source_line_or_section": "line 77; Modern public-facing interface and theming",
@@ -14719,7 +14783,7 @@
     {
       "id": "REQ-B84F80E823C8",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 79; Modern public-facing interface and theming",
+      "source_line_or_section": "line 82; Modern public-facing interface and theming",
       "normalized_requirement": "Ensure ken category identity is implemented by the inline, theme-aware renderer in src/components/ken-visual.tsx , static palette assignments in src/lib/taxonomy.ts , database-backed color overrides, and repository-tracked reference exports under public/category-icons/ .",
       "exact_short_excerpt": "Ken category identity is implemented by the inline, theme-aware renderer in src/components/ken-visual.tsx , static palette assignments in src/lib/taxonomy.ts , database-backed color overrides, and repository-tracked reference exports under public/category-ico…",
       "priority": "P2",
@@ -14759,7 +14823,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 79; Modern public-facing interface and theming",
+          "source_line_or_section": "line 82; Modern public-facing interface and theming",
           "authority": "current-repository"
         }
       ]
@@ -14801,7 +14865,7 @@
     {
       "id": "REQ-0A886F1FC17F",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 83; Account recovery, email verification, notifications, and admin operations",
+      "source_line_or_section": "line 86; Account recovery, email verification, notifications, and admin operations",
       "normalized_requirement": "Ensure owner/admin notifications for signup, first visitor, verification requests, and Ken submissions are configurable from src/app/admin/page.tsx and persisted in site settings .",
       "exact_short_excerpt": "Owner/admin notifications for signup, first visitor, verification requests, and Ken submissions are configurable from src/app/admin/page.tsx and persisted in site settings .",
       "priority": "P2",
@@ -14828,7 +14892,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 83; Account recovery, email verification, notifications, and admin operations",
+          "source_line_or_section": "line 86; Account recovery, email verification, notifications, and admin operations",
           "authority": "current-repository"
         }
       ]
@@ -14836,7 +14900,7 @@
     {
       "id": "REQ-3C4856E22183",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 90; Visitor telemetry and persistence resilience",
+      "source_line_or_section": "line 93; Visitor telemetry and persistence resilience",
       "normalized_requirement": "Ensure synology persistence and recovery steps are documented in docs/synology-nas-deploy.md ; live writes are stored outside the container image in the mounted data/ directory.",
       "exact_short_excerpt": "Synology persistence and recovery steps are documented in docs/synology-nas-deploy.md ; live writes are stored outside the container image in the mounted data/ directory.",
       "priority": "P2",
@@ -14858,7 +14922,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 90; Visitor telemetry and persistence resilience",
+          "source_line_or_section": "line 93; Visitor telemetry and persistence resilience",
           "authority": "current-repository"
         }
       ]
@@ -14866,7 +14930,7 @@
     {
       "id": "REQ-ADE3FA65E29A",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 89; Visitor telemetry and persistence resilience",
+      "source_line_or_section": "line 92; Visitor telemetry and persistence resilience",
       "normalized_requirement": "Ensure the admin visitor map is rendered by src/components/visitor-map.tsx and uses Cloudflare geolocation request headers when present.",
       "exact_short_excerpt": "The admin visitor map is rendered by src/components/visitor-map.tsx and uses Cloudflare geolocation request headers when present.",
       "priority": "P2",
@@ -14893,7 +14957,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 89; Visitor telemetry and persistence resilience",
+          "source_line_or_section": "line 92; Visitor telemetry and persistence resilience",
           "authority": "current-repository"
         }
       ]
@@ -14901,7 +14965,7 @@
     {
       "id": "REQ-DA61F53E4BA6",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 88; Visitor telemetry and persistence resilience",
+      "source_line_or_section": "line 91; Visitor telemetry and persistence resilience",
       "normalized_requirement": "Ensure unique visitors are anonymized with a salted hash and persisted in visitors through src/lib/visitor.ts .",
       "exact_short_excerpt": "Unique visitors are anonymized with a salted hash and persisted in visitors through src/lib/visitor.ts .",
       "priority": "P2",
@@ -14928,7 +14992,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 88; Visitor telemetry and persistence resilience",
+          "source_line_or_section": "line 91; Visitor telemetry and persistence resilience",
           "authority": "current-repository"
         }
       ]
@@ -15266,7 +15330,7 @@
     {
       "id": "REQ-5E79D5B9E479",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 112; Treasury integrations",
+      "source_line_or_section": "line 115; Treasury integrations",
       "normalized_requirement": "Ensure live sponsor checkout is wired for Stripe Checkout plus webhook confirmation, but accounting exports, CRM sync, and broader payments operations are still future integrations.",
       "exact_short_excerpt": "Live sponsor checkout is wired for Stripe Checkout plus webhook confirmation, but accounting exports, CRM sync, and broader payments operations are still future integrations.",
       "priority": "P2",
@@ -15297,7 +15361,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 112; Treasury integrations",
+          "source_line_or_section": "line 115; Treasury integrations",
           "authority": "current-repository"
         }
       ]
@@ -15491,7 +15555,7 @@
     {
       "id": "REQ-767454288DBF",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 78; Modern public-facing interface and theming",
+      "source_line_or_section": "line 81; Modern public-facing interface and theming",
       "normalized_requirement": "Ensure product icon and favicon support are implemented through the exact static assets in public/ , src/components/kenmatch-mark.tsx , the single manifest handler at src/app/manifest.webmanifest/route.ts , and compatibility redirects for the legacy SVG endpoints.",
       "exact_short_excerpt": "Product icon and favicon support are implemented through the exact static assets in public/ , src/components/kenmatch-mark.tsx , the single manifest handler at src/app/manifest.webmanifest/route.ts , and compatibility redirects for the legacy SVG endpoints.",
       "priority": "P2",
@@ -15522,7 +15586,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 78; Modern public-facing interface and theming",
+          "source_line_or_section": "line 81; Modern public-facing interface and theming",
           "authority": "current-repository"
         }
       ]
@@ -16316,7 +16380,7 @@
     {
       "id": "REQ-4FDB4A4691D0",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 85; Account recovery, email verification, notifications, and admin operations",
+      "source_line_or_section": "line 88; Account recovery, email verification, notifications, and admin operations",
       "normalized_requirement": "Ensure user profile management, avatar customization, verification requests, and bookmarks are implemented in src/app/account/page.tsx , src/components/profile-editor.tsx , and profiles / bookmarks .",
       "exact_short_excerpt": "User profile management, avatar customization, verification requests, and bookmarks are implemented in src/app/account/page.tsx , src/components/profile-editor.tsx , and profiles / bookmarks .",
       "priority": "P2",
@@ -16338,7 +16402,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 85; Account recovery, email verification, notifications, and admin operations",
+          "source_line_or_section": "line 88; Account recovery, email verification, notifications, and admin operations",
           "authority": "current-repository"
         }
       ]
@@ -16494,7 +16558,7 @@
     {
       "id": "REQ-687791CB5B05",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 104; Internal naming",
+      "source_line_or_section": "line 107; Internal naming",
       "normalized_requirement": "Ensure some internal code and database identifiers still use task for compatibility and to avoid high-risk schema churn.",
       "exact_short_excerpt": "Some internal code and database identifiers still use task for compatibility and to avoid high-risk schema churn.",
       "priority": "P2",
@@ -16516,7 +16580,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 104; Internal naming",
+          "source_line_or_section": "line 107; Internal naming",
           "authority": "current-repository"
         }
       ]
@@ -16524,7 +16588,7 @@
     {
       "id": "REQ-6B6D5EB3206C",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 103; Internal naming",
+      "source_line_or_section": "line 106; Internal naming",
       "normalized_requirement": "Ensure the public product language is now Ken / Kens .",
       "exact_short_excerpt": "The public product language is now Ken / Kens .",
       "priority": "P2",
@@ -16546,7 +16610,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 103; Internal naming",
+          "source_line_or_section": "line 106; Internal naming",
           "authority": "current-repository"
         }
       ]
@@ -16762,7 +16826,7 @@
     {
       "id": "REQ-A81CCEB6C0A7",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 84; Account recovery, email verification, notifications, and admin operations",
+      "source_line_or_section": "line 87; Account recovery, email verification, notifications, and admin operations",
       "normalized_requirement": "Ensure the owner-editable About / Contact page is implemented on src/app/about/page.tsx , src/components/about-editor.tsx , and site settings .",
       "exact_short_excerpt": "The owner-editable About / Contact page is implemented on src/app/about/page.tsx , src/components/about-editor.tsx , and site settings .",
       "priority": "P2",
@@ -16793,7 +16857,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 84; Account recovery, email verification, notifications, and admin operations",
+          "source_line_or_section": "line 87; Account recovery, email verification, notifications, and admin operations",
           "authority": "current-repository"
         }
       ]
@@ -21928,169 +21992,181 @@
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 119; Core UI pieces",
+      "source_line_or_section": "line 122; Core UI pieces",
+      "exact_short_excerpt": "Actual-height-gated reading progress for the five editorial long-form routes; it is intentionally absent from feed, submission, detail, account, and admin workflows."
+    },
+    {
+      "claim_type": "current_documentation_claim",
+      "source_file": "docs/architecture.md",
+      "source_line_or_section": "line 123; Core UI pieces",
       "exact_short_excerpt": "src/components/kenmatch-mark.tsx"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 121; Core UI pieces",
+      "source_line_or_section": "line 125; Core UI pieces",
       "exact_short_excerpt": "src/components/ken-timing-strip.tsx"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 124; Core UI pieces",
+      "source_line_or_section": "line 128; Core UI pieces",
       "exact_short_excerpt": "Ken cards for the board and overview page."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 125; Core UI pieces",
+      "source_line_or_section": "line 129; Core UI pieces",
       "exact_short_excerpt": "src/components/task-pulse-panel.tsx"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 128; Core UI pieces",
+      "source_line_or_section": "line 132; Core UI pieces",
       "exact_short_excerpt": "Quadratic voice allocation panel with visible voice cap."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 133; Core UI pieces",
+      "source_line_or_section": "line 137; Core UI pieces",
       "exact_short_excerpt": "src/components/auth-panels.tsx"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 134; Core UI pieces",
+      "source_line_or_section": "line 138; Core UI pieces",
       "exact_short_excerpt": "Sign-in and sign-up UI."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 140; Core UI pieces",
+      "source_line_or_section": "line 144; Core UI pieces",
       "exact_short_excerpt": "Linked public profile surface for contributors referenced from Kens and comments; /people itself redirects to the Ken board rather than exposing a directory."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 143; Core UI pieces",
+      "source_line_or_section": "line 147; Core UI pieces",
+      "exact_short_excerpt": "Admin audit history is fetched with listAuditLogPage in src/lib/db.ts . Filtering and pagination happen in SQL, metadata redaction is centralized in src/lib/audit-log.ts , and the admin renderer exposes complete event bodies through expandable/copyable detail…"
+    },
+    {
+      "claim_type": "current_documentation_claim",
+      "source_file": "docs/architecture.md",
+      "source_line_or_section": "line 149; Core UI pieces",
       "exact_short_excerpt": "src/components/admin/"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 144; Core UI pieces",
+      "source_line_or_section": "line 150; Core UI pieces",
       "exact_short_excerpt": "Admin and owner management surfaces."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 145; Core UI pieces",
+      "source_line_or_section": "line 151; Core UI pieces",
       "exact_short_excerpt": "src/components/visitor-map.tsx"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 146; Core UI pieces",
+      "source_line_or_section": "line 152; Core UI pieces",
       "exact_short_excerpt": "Anonymized visitor geography display based on persisted Cloudflare request headers."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 147; Core UI pieces",
+      "source_line_or_section": "line 153; Core UI pieces",
       "exact_short_excerpt": "src/components/sponsor-form.tsx"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 148; Core UI pieces",
+      "source_line_or_section": "line 154; Core UI pieces",
       "exact_short_excerpt": "Public sponsorship intake with general, category, Ken, or safety-reserve restriction options."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 150; Core UI pieces",
+      "source_line_or_section": "line 156; Core UI pieces",
       "exact_short_excerpt": "Optional Cloudflare Turnstile widget for higher-risk forms."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 154; Accounts and sign-in",
+      "source_line_or_section": "line 160; Accounts and sign-in",
       "exact_short_excerpt": "src/lib/session.ts reads and writes the signed-in account cookie."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 155; Accounts and sign-in",
+      "source_line_or_section": "line 161; Accounts and sign-in",
       "exact_short_excerpt": "src/app/actions.ts creates accounts, opens sign-ins, sends verification/reset email, enforces rate limits, and clears sign-ins."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 156; Accounts and sign-in",
+      "source_line_or_section": "line 162; Accounts and sign-in",
       "exact_short_excerpt": "src/lib/db.ts stores accounts, hashed session tokens, email tokens, profile state, and licensing-consent state."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 157; Accounts and sign-in",
+      "source_line_or_section": "line 163; Accounts and sign-in",
       "exact_short_excerpt": "src/lib/mail.ts dispatches SMTP-backed verification, password reset, and admin notification messages when SMTP is configured."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 162; Deployment model",
+      "source_line_or_section": "line 168; Deployment model",
       "exact_short_excerpt": "npm run build runs Next's experimental compile mode and then generate-env mode so the standalone artifact has its static environment inlined before Docker copies it; scripts/repair-next-route-chunks.mjs then verifies app-route chunk references and repairs sin…"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 163; Deployment model",
+      "source_line_or_section": "line 169; Deployment model",
       "exact_short_excerpt": "src/proxy.ts enforces host filtering, cross-site request blocking, and security headers for public deployments. Next.js 16 reports it as the app proxy/middleware boundary in production builds."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 165; Deployment model",
+      "source_line_or_section": "line 171; Deployment model",
       "exact_short_excerpt": "docker-compose.synology.yml mounts persistent app data, uses a read-only root filesystem, tmpfs for /tmp , and binds only to loopback."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 166; Deployment model",
+      "source_line_or_section": "line 172; Deployment model",
       "exact_short_excerpt": "docker-compose.synology.tunnel.yml adds a cloudflared sidecar option for Synology-hosted public deployments."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 171; Economics engine",
+      "source_line_or_section": "line 177; Economics engine",
       "exact_short_excerpt": "src/lib/economics.ts computes revenue stream summaries, treasury coverage, and the treasury governor split."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 172; Economics engine",
+      "source_line_or_section": "line 178; Economics engine",
       "exact_short_excerpt": "summarizeEconomics aggregates revenue streams, treasury entries, and sponsorship commitments into the EconomicsSummary used by public economics surfaces."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 173; Economics engine",
+      "source_line_or_section": "line 179; Economics engine",
       "exact_short_excerpt": "Revenue engines include enterprise , data-licensing , compute-arbitrage , sponsorship , and private-lane ."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 177; Seed data",
+      "source_line_or_section": "line 183; Seed data",
       "exact_short_excerpt": "src/lib/seed.ts holds realistic demo Kens and categories."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 178; Seed data",
+      "source_line_or_section": "line 184; Seed data",
       "exact_short_excerpt": "src/lib/seed-plus.ts adds attestation state, timing, audit updates, structured treasury entries, sponsor commitments, the private-lane revenue stream, and simulated model-outcome data."
     }
   ],

@@ -20,6 +20,7 @@ import { listCategoryVisualSettings } from "@/lib/category-visual-settings";
 import {
   getAdminDashboard,
   getAdminNotificationSettings,
+  listAuditLogPage,
   listCategoriesForReview,
   listCategoryProposalQueue,
   listKenSubmissionQueue,
@@ -45,6 +46,12 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   }
 
   const params = await searchParams;
+  const scalarParams = Object.fromEntries(
+    Object.entries(params).flatMap(([key, value]) => {
+      const scalar = Array.isArray(value) ? value[0] : value;
+      return scalar === undefined ? [] : [[key, scalar]];
+    }),
+  );
   const categoryFilters = {
     status: paramValue(params, "categoryStatus") || "pending",
     assignee: paramValue(params, "categoryAssignee") || "all",
@@ -59,13 +66,19 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     page: Number(paramValue(params, "kenPage")) || 1,
     pageSize: 10,
   };
-  const [dashboard, notifications, categoryVisuals, categoryQueue, kenQueue, categories] = await Promise.all([
+  const [dashboard, notifications, categoryVisuals, categoryQueue, kenQueue, categories, auditPage] = await Promise.all([
     getAdminDashboard(),
     getAdminNotificationSettings(),
     listCategoryVisualSettings(),
     listCategoryProposalQueue(categoryFilters),
     listKenSubmissionQueue(kenFilters),
     listCategoriesForReview(),
+    listAuditLogPage({
+      query: paramValue(params, "auditQ"),
+      action: paramValue(params, "auditAction"),
+      page: paramValue(params, "auditPage"),
+      pageSize: paramValue(params, "auditPageSize"),
+    }),
   ]);
   const [categoryEvents, kenEvents] = await Promise.all([
     listReviewEventsForQueue("category-proposal", categoryQueue.items.map((item) => item.id)),
@@ -263,16 +276,16 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
         </section>
       ) : null}
 
-      {isAdmin ? <section className="section-grid" data-columns="2">
-        <div className="panel grid gap-3 admin-compact-panel">
+      {isAdmin ? <>
+        <section className="panel grid gap-3 admin-compact-panel">
           <h2>Unique visitors</h2>
           <AdminVisitors visitors={dashboard.visitors.slice(0, 32)} stats={dashboard.visitorStats} />
-        </div>
-        <div className="panel grid gap-3 admin-compact-panel">
+        </section>
+        <section id="audit-log" className="panel grid gap-3 scroll-mt-28">
           <h2>Audit log</h2>
-          <AdminAuditFeed entries={dashboard.recentAudit} />
-        </div>
-      </section> : null}
+          <AdminAuditFeed data={auditPage} params={scalarParams} />
+        </section>
+      </> : null}
 
       <section className="panel grid gap-3">
         <h2>Quick links</h2>

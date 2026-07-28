@@ -34,6 +34,11 @@ import {
   normalizeMarketplaceQuery,
 } from "@/lib/discovery";
 import {
+  escapeAuditLikePattern,
+  normalizeAuditLogFilters,
+  type AuditLogPage,
+} from "@/lib/audit-log";
+import {
   evaluateCategoryIntake,
   evaluateKenIntake,
   normalizeReviewText,
@@ -718,6 +723,7 @@ async function initializeDatabase() {
       "CREATE INDEX IF NOT EXISTS idx_visitors_countryCode ON visitors(countryCode)",
       "CREATE INDEX IF NOT EXISTS idx_audit_log_createdAt ON audit_log(createdAt)",
       "CREATE INDEX IF NOT EXISTS idx_audit_log_accountId ON audit_log(accountId)",
+      "CREATE INDEX IF NOT EXISTS idx_audit_log_action_createdAt ON audit_log(action, createdAt)",
     ],
     "write",
   );
@@ -5422,8 +5428,8 @@ export async function recordAudit(input: {
       randomUUID(),
       input.accountId,
       input.action.slice(0, 80),
-      input.detail.slice(0, 1000),
-      input.metadata ? JSON.stringify(input.metadata).slice(0, 4000) : null,
+      input.detail,
+      input.metadata ? JSON.stringify(input.metadata) : null,
       input.ipAddress ?? null,
       new Date().toISOString(),
     ],
@@ -5432,7 +5438,11 @@ export async function recordAudit(input: {
 
 export async function listAuditLog(limit = 200): Promise<AuditLogRecord[]> {
   const rows = await loadRows("SELECT * FROM audit_log ORDER BY createdAt DESC LIMIT ?", [limit]);
-  return rows.map((row) => ({
+  return rows.map(mapAuditLogRecord);
+}
+
+function mapAuditLogRecord(row: DbRow): AuditLogRecord {
+  return {
     id: getString(row, "id"),
     accountId: getNullableString(row, "accountId"),
     action: getString(row, "action"),
@@ -5440,7 +5450,53 @@ export async function listAuditLog(limit = 200): Promise<AuditLogRecord[]> {
     metadata: getNullableString(row, "metadata"),
     ipAddress: getNullableString(row, "ipAddress"),
     createdAt: getString(row, "createdAt"),
-  }));
+  };
+}
+
+export async function listAuditLogPage(input: {
+  query?: string;
+  action?: string;
+  page?: number | string;
+  pageSize?: number | string;
+} = {}): Promise<AuditLogPage> {
+  const requested = normalizeAuditLogFilters(input);
+  const clauses: string[] = [];
+  const args: Value[] = [];
+
+  if (requested.action !== "all") {
+    clauses.push("action = ?");
+    args.push(requested.action);
+  }
+  if (requested.query) {
+    const pattern = `%${escapeAuditLikePattern(requested.query.toLowerCase())}%`;
+    clauses.push(
+      "(LOWER(action) LIKE ? ESCAPE '!' OR LOWER(detail) LIKE ? ESCAPE '!' OR LOWER(COALESCE(metadata, '')) LIKE ? ESCAPE '!')",
+    );
+    args.push(pattern, pattern, pattern);
+  }
+
+  const where = clauses.length > 0 ? ` WHERE ${clauses.join(" AND ")}` : "";
+  const [countRows, actionRows] = await Promise.all([
+    loadRows(`SELECT COUNT(*) AS count FROM audit_log${where}`, args),
+    loadRows("SELECT DISTINCT action FROM audit_log ORDER BY action ASC"),
+  ]);
+  const totalItems = getCount(countRows);
+  const totalPages = Math.max(1, Math.ceil(totalItems / requested.pageSize));
+  const page = Math.min(requested.page, totalPages);
+  const rows = await loadRows(
+    `SELECT * FROM audit_log${where} ORDER BY createdAt DESC, id DESC LIMIT ? OFFSET ?`,
+    [...args, requested.pageSize, (page - 1) * requested.pageSize],
+  );
+
+  return {
+    items: rows.map(mapAuditLogRecord),
+    actions: actionRows.map((row) => getString(row, "action")).filter(Boolean),
+    filters: { ...requested, page },
+    page,
+    pageSize: requested.pageSize,
+    totalItems,
+    totalPages,
+  };
 }
 
 export async function getAdminDashboard() {
@@ -5448,7 +5504,6 @@ export async function getAdminDashboard() {
     accounts,
     profiles,
     pendingVerifications,
-    recentAudit,
     visitors,
     visitorStats,
     countryAggregates,
@@ -5461,7 +5516,6 @@ export async function getAdminDashboard() {
     loadAccounts(),
     loadProfiles(),
     loadRows("SELECT * FROM profiles WHERE verificationStatus = 'pending' ORDER BY verificationRequestedAt ASC").then((rows) => rows.map(mapProfile)),
-    listAuditLog(50),
     listVisitors(500),
     getVisitorStats(),
     aggregateVisitorsByCountry(),
@@ -5475,7 +5529,6 @@ export async function getAdminDashboard() {
     accounts,
     profiles,
     pendingVerifications,
-    recentAudit,
     visitors,
     visitorStats,
     countryAggregates,

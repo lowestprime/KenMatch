@@ -75,6 +75,9 @@ This file maps the stable product requirements from `KenMatch_Conception.md` to 
 ### Modern public-facing interface and theming
 - Responsive shell, compact sticky header, and visual system live in `src/components/site-shell.tsx` and `src/app/globals.css`.
 - Light and true-black OLED themes are implemented in `src/components/theme-toggle.tsx`, `src/app/layout.tsx`, and `src/app/globals.css`.
+- Semantic theme tokens have one owner in `src/app/globals.css`; Light uses a cool-neutral daytime field and OLED retains a true-black base. Baseline and final computed-style, overflow, and screenshot evidence are recorded in `docs/visual-system-and-long-page-audit.md`.
+- Editorial long routes opt into the actual-height-gated `src/components/reading-progress.tsx`; task-oriented routes retain normal document scrolling without a progress indicator.
+- Admin audit history uses server-side filtering and pagination in `src/lib/db.ts`, structured redaction in `src/lib/audit-log.ts`, and expandable/copyable full metadata in `src/components/admin/audit-feed.tsx`.
 - Product icon and favicon support are implemented through the exact static assets in `public/`, `src/components/kenmatch-mark.tsx`, the single manifest handler at `src/app/manifest.webmanifest/route.ts`, and compatibility redirects for the legacy SVG endpoints.
 - Ken category identity is implemented by the inline, theme-aware renderer in `src/components/ken-visual.tsx`, static palette assignments in `src/lib/taxonomy.ts`, database-backed color overrides, and repository-tracked reference exports under `public/category-icons/`.
 

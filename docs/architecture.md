@@ -105,6 +105,8 @@ The main data logic lives in `src/lib/db.ts`.
 
 The visual system is centered in `src/app/globals.css`.
 
+`globals.css` is the single owner of semantic Light/OLED palette tokens. `src/components/release-polish-styles.tsx`, `release-hardening-styles.tsx`, and `community-polish-styles.tsx` contain component structure only and must not redefine the page, panel, ink, line, or accent systems. Generic panels are opaque, low-cost surfaces; blur is reserved for functional overlay layers. The evidence and route matrix for this decision are recorded in `docs/visual-system-and-long-page-audit.md`.
+
 ### Themes
 
 - `light`
@@ -116,6 +118,8 @@ The theme toggle writes only `light` or `oled` to `localStorage`. The layout boo
 
 - `src/components/site-shell.tsx`
   - Compact sticky header, brand, navigation, participation state display, and footer.
+- `src/components/reading-progress.tsx`
+  - Actual-height-gated reading progress for the five editorial long-form routes; it is intentionally absent from feed, submission, detail, account, and admin workflows.
 - `src/components/kenmatch-mark.tsx`
   - Product mark used in the header, footer, and generated icon family.
 - `src/components/ken-timing-strip.tsx`
@@ -139,6 +143,8 @@ The theme toggle writes only `light` or `oled` to `localStorage`. The layout boo
 - `src/app/people/[slug]/page.tsx`
   - Linked public profile surface for contributors referenced from Kens and comments; `/people` itself redirects to the Ken board rather than exposing a directory.
 - `src/components/about-editor.tsx`
+
+Admin audit history is fetched with `listAuditLogPage` in `src/lib/db.ts`. Filtering and pagination happen in SQL, metadata redaction is centralized in `src/lib/audit-log.ts`, and the admin renderer exposes complete event bodies through expandable/copyable details instead of a fixed-height nested scroller.
   - Owner-only online About / Contact editor.
 - `src/components/admin/*`
   - Admin and owner management surfaces.

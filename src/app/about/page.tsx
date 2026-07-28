@@ -27,7 +27,7 @@ export default async function AboutPage() {
     : null;
 
   return (
-    <div className="page-stack">
+    <div className="page-stack long-reading-route">
       <section className="panel hero-panel about-hero">
         <div className="about-hero-copy">
           <span className="eyebrow">{about.heroEyebrow}</span>

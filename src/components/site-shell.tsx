@@ -8,6 +8,7 @@ import { VisitorBeacon } from "@/components/visitor-beacon";
 import { MobileNav } from "@/components/mobile-nav";
 import { PrimaryNav } from "@/components/primary-nav";
 import { ProfileMenu } from "@/components/profile-menu";
+import { ReadingProgress } from "@/components/reading-progress";
 import { ReleasePolishStyles } from "@/components/release-polish-styles";
 import { CommunityPolishStyles } from "@/components/community-polish-styles";
 import { ReleaseHardeningStyles } from "@/components/release-hardening-styles";
@@ -41,8 +42,7 @@ export async function SiteShell({ viewer, children }: { viewer: ViewerSession | 
       <a href="#main-content" className="skip-link">Skip to content</a>
       <VisitorBeacon />
       <HeaderScrollController />
-      <div className="ambient ambient-a" />
-      <div className="ambient ambient-b" />
+      <ReadingProgress />
       <header className="site-header">
         <div className="site-header-inner">
           <div className="site-brand-row">
