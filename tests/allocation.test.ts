@@ -47,6 +47,24 @@ test("buildCategoryRankings ranks only eligible tasks and keeps blocked work out
   assert.deepEqual(rankings.get("epsilon"), { rank: null, tier: "blocked" });
 });
 
+test("buildCategoryRankings uses id as the final deterministic tie-break", () => {
+  const shared = {
+    categoryId: "open",
+    title: "Same title",
+    createdAt: "2026-03-01T00:00:00.000Z",
+    totalVotes: 5,
+    stage: "voting" as const,
+    safetyStatus: "approved" as const,
+  };
+  const rankings = buildCategoryRankings([
+    { ...shared, id: "ken-z" },
+    { ...shared, id: "ken-a" },
+  ]);
+
+  assert.equal(rankings.get("ken-a")?.rank, 1);
+  assert.equal(rankings.get("ken-z")?.rank, 2);
+});
+
 test("allocation policy documents replenishment, awards, lanes, and lifecycle", () => {
   assert.equal(INITIAL_ALLOCATION_CREDITS, 3);
   assert.equal(MONTHLY_REPLENISHMENT_CREDITS, 3);

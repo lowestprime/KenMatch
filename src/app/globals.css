@@ -417,6 +417,35 @@ html[data-theme="dark"] .task-card {
   justify-content: space-between;
   gap: 0.6rem;
 }
+.marketplace-pagination {
+  display: grid;
+  grid-template-columns: minmax(6rem, 1fr) auto minmax(6rem, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+}
+.marketplace-pagination > :last-child { justify-self: end; }
+.marketplace-page-status {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: center;
+}
+.task-discovery-reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.48rem;
+}
+.task-discovery-reasons span {
+  border: 1px solid color-mix(in srgb, var(--accent-strong) 35%, var(--line));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent-soft) 38%, transparent);
+  color: var(--ink);
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.25;
+  padding: 0.24rem 0.5rem;
+}
 .hero-panel {
   position: relative;
   overflow: hidden;
@@ -715,6 +744,31 @@ textarea.field { resize: vertical; min-height: 4.5rem; }
   flex-wrap: wrap;
   align-items: end;
   gap: 0.85rem;
+}
+.filter-actions {
+  display: flex;
+  min-width: 8.5rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.42rem;
+  padding-bottom: 0.05rem;
+}
+.filter-reset {
+  min-height: 2.65rem;
+  white-space: nowrap;
+}
+.filter-reset:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+.filter-live-state {
+  min-height: 1rem;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  line-height: 1;
+  text-transform: uppercase;
 }
 .auth-switcher {
   display: inline-flex;

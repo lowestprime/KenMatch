@@ -41,6 +41,13 @@ This file maps the stable product requirements from `KenMatch_Conception.md` to 
 - Threaded comments with voting are implemented in `src/components/discussion-thread.tsx` and persisted in `comments` and `comment_votes` in `src/lib/db.ts`.
 - Created timestamps are displayed directly in the public thread UI.
 
+### Scale-safe feed ranking and discovery
+- `src/lib/allocation.ts` retains deterministic category-local lane allocation and an ID tie-break; money is not an input.
+- `src/lib/discovery.ts` defines canonical filter URLs, reason labels, trusted-pulse ordering, freshness/evidence bands, and proposer/category diversity.
+- `src/lib/db.ts` filters, aggregates, ranks, and pages in SQLite/libSQL instead of hydrating the repository-wide corpus for `/kens`.
+- `tests/discovery.test.ts` exercises exact ties, concentrated proposers, coordinated untrusted pulse, sparse categories, old checkpoint evidence, blocked work, and 100,000 synthetic Kens.
+- The public contract and limits are maintained in `docs/ranking-discovery.md`.
+
 ### Funding, treasury, and commercialization split
 - Ken finance metadata is stored in `task_finance`.
 - Revenue streams, sponsor commitments, and treasury ledger data live in `revenue_streams`, `sponsorship_commitments`, and `treasury_entries`.

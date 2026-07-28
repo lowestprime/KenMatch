@@ -26,6 +26,13 @@ import {
   } from "@/lib/allocation";
 import { summarizeEconomics,
   summarizeRevenueStream } from "@/lib/economics";
+import {
+  DEFAULT_MARKETPLACE_PAGE_SIZE,
+  getDiscoveryReasons,
+  normalizeMarketplacePage,
+  normalizeMarketplacePageSize,
+  normalizeMarketplaceQuery,
+} from "@/lib/discovery";
 import { env, isAdminEmail, isOwnerEmail, canonicalOrigin, notificationEmails, ownerEmail, smtpConfigured } from "@/lib/env";
 import {
   seedCategories,
@@ -644,13 +651,21 @@ async function initializeDatabase() {
       "CREATE INDEX IF NOT EXISTS idx_votes_profileId ON votes(profileId)",
       "CREATE INDEX IF NOT EXISTS idx_votes_taskId ON votes(taskId)",
       "CREATE INDEX IF NOT EXISTS idx_tasks_categoryId ON tasks(categoryId)",
+      "CREATE INDEX IF NOT EXISTS idx_tasks_discovery ON tasks(stage, safetyStatus, categoryId, createdAt, id)",
+      "CREATE INDEX IF NOT EXISTS idx_tasks_category_discovery ON tasks(categoryId, stage, safetyStatus, createdAt, id)",
+      "CREATE INDEX IF NOT EXISTS idx_votes_task_signal ON votes(taskId, voteCount, updatedAt)",
       "CREATE INDEX IF NOT EXISTS idx_category_proposals_status ON category_proposals(reviewStatus)",
       "CREATE INDEX IF NOT EXISTS idx_category_proposals_proposer ON category_proposals(proposerProfileId)",
       "CREATE INDEX IF NOT EXISTS idx_comments_taskId ON comments(taskId)",
+      "CREATE INDEX IF NOT EXISTS idx_comments_task_activity ON comments(taskId, createdAt)",
       "CREATE INDEX IF NOT EXISTS idx_comment_votes_commentId ON comment_votes(commentId)",
       "CREATE INDEX IF NOT EXISTS idx_run_updates_taskId ON run_updates(taskId)",
+      "CREATE INDEX IF NOT EXISTS idx_run_updates_task_activity ON run_updates(taskId, createdAt)",
+      "CREATE INDEX IF NOT EXISTS idx_checkpoints_task_status ON checkpoints(taskId, status, dueAt)",
+      "CREATE INDEX IF NOT EXISTS idx_governance_events_task_activity ON governance_events(taskId, createdAt)",
       "CREATE INDEX IF NOT EXISTS idx_sessions_tokenHash ON sessions(tokenHash)",
       "CREATE INDEX IF NOT EXISTS idx_task_pulse_votes_taskId ON task_pulse_votes(taskId)",
+      "CREATE INDEX IF NOT EXISTS idx_task_pulse_votes_signal ON task_pulse_votes(taskId, value, updatedAt)",
       "CREATE INDEX IF NOT EXISTS idx_sponsorship_commitments_status ON sponsorship_commitments(status)",
       "CREATE INDEX IF NOT EXISTS idx_changelog_entries_visible ON changelog_entries(visible, entryDate)",
       "CREATE INDEX IF NOT EXISTS idx_contact_submissions_createdAt ON contact_submissions(createdAt)",
@@ -2168,41 +2183,460 @@ export async function getHomeData(viewerProfileId?: string | null) {
   };
 }
 
-export async function getMarketplaceData(viewerProfileId: string | null | undefined, filters: MarketplaceFilters) {
-  const snapshot = await hydrate(viewerProfileId);
-  const query = filters.query?.trim().toLowerCase() ?? "";
+const marketplaceCommonTableExpressions = `
+  WITH
+  vote_stats AS (
+    SELECT
+      taskId,
+      COALESCE(SUM(voteCount), 0) AS totalVotes,
+      COUNT(*) AS supporterCount,
+      MAX(updatedAt) AS lastVoteAt
+    FROM votes
+    GROUP BY taskId
+  ),
+  pulse_stats AS (
+    SELECT
+      pulse.taskId,
+      COALESCE(SUM(pulse.value), 0) AS taskPulseScore,
+      COUNT(*) AS taskPulseVotes,
+      COALESCE(SUM(CASE WHEN pulse.value > 0 THEN 1 ELSE 0 END), 0) AS positivePulseCount,
+      COALESCE(SUM(CASE WHEN pulse.value < 0 THEN 1 ELSE 0 END), 0) AS negativePulseCount,
+      COALESCE(SUM(CASE
+        WHEN attest.status = 'verified' AND attest.sybilRisk = 'low' THEN pulse.value
+        ELSE 0
+      END), 0) AS trustedPulseScore,
+      MAX(pulse.updatedAt) AS lastPulseAt
+    FROM task_pulse_votes pulse
+    LEFT JOIN profile_attestations attest ON attest.profileId = pulse.profileId
+    GROUP BY pulse.taskId
+  ),
+  comment_stats AS (
+    SELECT taskId, COUNT(*) AS discussionCount, MAX(createdAt) AS lastCommentAt
+    FROM comments
+    GROUP BY taskId
+  ),
+  update_stats AS (
+    SELECT taskId, COUNT(*) AS updateCount, MAX(createdAt) AS lastUpdateAt
+    FROM run_updates
+    GROUP BY taskId
+  ),
+  checkpoint_stats AS (
+    SELECT
+      taskId,
+      COALESCE(SUM(CASE WHEN status = 'complete' THEN 1 ELSE 0 END), 0) AS completedCheckpointCount
+    FROM checkpoints
+    GROUP BY taskId
+  ),
+  governance_stats AS (
+    SELECT taskId, MAX(createdAt) AS lastGovernanceAt
+    FROM governance_events
+    WHERE taskId IS NOT NULL
+    GROUP BY taskId
+  ),
+  eligible_rankings AS (
+    SELECT
+      eligible.id,
+      ROW_NUMBER() OVER (
+        PARTITION BY eligible.categoryId
+        ORDER BY eligible.totalVotes DESC, eligible.createdAt ASC, eligible.title COLLATE NOCASE ASC, eligible.id ASC
+      ) AS categoryRank
+    FROM (
+      SELECT
+        task.id,
+        task.categoryId,
+        task.createdAt,
+        task.title,
+        COALESCE(vote.totalVotes, 0) AS totalVotes
+      FROM tasks task
+      LEFT JOIN vote_stats vote ON vote.taskId = task.id
+      WHERE task.stage NOT IN ('review', 'blocked')
+        AND task.safetyStatus NOT IN ('pending', 'blocked')
+        AND COALESCE(vote.totalVotes, 0) > 0
+    ) eligible
+  ),
+  marketplace_base AS (
+    SELECT
+      task.*,
+      category.name AS categoryName,
+      category.slug AS categorySlug,
+      COALESCE(NULLIF(category.symbolKey, ''), category.slug, 'default') AS categorySymbolKey,
+      CASE
+        WHEN profile.showRealName = 0 AND profile.username IS NOT NULL AND trim(profile.username) <> ''
+          THEN '@' || profile.username
+        ELSE COALESCE(profile.name, 'Unknown proposer')
+      END AS proposerName,
+      COALESCE(vote.totalVotes, 0) AS totalVotes,
+      COALESCE(vote.supporterCount, 0) AS supporterCount,
+      ranking.categoryRank AS categoryRank,
+      CASE
+        WHEN task.stage = 'blocked' OR task.safetyStatus = 'blocked' THEN 'blocked'
+        WHEN ranking.categoryRank BETWEEN 1 AND 3 THEN 'months'
+        WHEN ranking.categoryRank BETWEEN 4 AND 10 THEN 'weeks'
+        WHEN ranking.categoryRank BETWEEN 11 AND 100 THEN 'days'
+        ELSE 'queued'
+      END AS allocatedTier,
+      COALESCE(pulse.taskPulseScore, 0) AS taskPulseScore,
+      COALESCE(pulse.taskPulseVotes, 0) AS taskPulseVotes,
+      COALESCE(pulse.positivePulseCount, 0) AS positivePulseCount,
+      COALESCE(pulse.negativePulseCount, 0) AS negativePulseCount,
+      COALESCE(pulse.trustedPulseScore, 0) AS trustedPulseScore,
+      COALESCE(comment.discussionCount, 0) AS discussionCount,
+      COALESCE(update_summary.updateCount, 0) AS updateCount,
+      COALESCE(checkpoint.completedCheckpointCount, 0) AS completedCheckpointCount,
+      (
+        SELECT update_item.label
+        FROM run_updates update_item
+        WHERE update_item.taskId = task.id
+        ORDER BY update_item.createdAt DESC, update_item.id ASC
+        LIMIT 1
+      ) AS latestUpdateLabel,
+      MAX(
+        task.createdAt,
+        COALESCE(timing.updatedAt, ''),
+        COALESCE(vote.lastVoteAt, ''),
+        COALESCE(pulse.lastPulseAt, ''),
+        COALESCE(comment.lastCommentAt, ''),
+        COALESCE(update_summary.lastUpdateAt, ''),
+        COALESCE(governance.lastGovernanceAt, '')
+      ) AS lastActivityAt,
+      finance.taskId AS financeTaskId,
+      finance.qualityBondCredits,
+      finance.sponsorPoolUsd,
+      finance.checkpointApprovalTarget,
+      finance.enterprisePackaging,
+      finance.dataValueNote,
+      finance.sandboxCapitalUsd,
+      finance.sandboxApiSpendUsd,
+      finance.sandboxPilotUsers,
+      finance.modelLineup,
+      finance.simulationSummary,
+      finance.sampleOutcome,
+      finance.sponsorAppeal,
+      timing.taskId AS timingTaskId,
+      timing.launchAt,
+      timing.startedAt,
+      timing.expectedMaxEndAt,
+      timing.computeHoursUsed,
+      timing.completionMode,
+      timing.completionSummary,
+      illustration.taskId AS illustrationTaskId,
+      illustration.url AS illustrationUrl,
+      illustration.altText AS illustrationAlt,
+      illustration.source AS illustrationSource,
+      illustration.updatedAt AS illustrationUpdatedAt
+    FROM tasks task
+    JOIN categories category ON category.id = task.categoryId
+    LEFT JOIN profiles profile ON profile.id = task.proposerId
+    LEFT JOIN vote_stats vote ON vote.taskId = task.id
+    LEFT JOIN pulse_stats pulse ON pulse.taskId = task.id
+    LEFT JOIN comment_stats comment ON comment.taskId = task.id
+    LEFT JOIN update_stats update_summary ON update_summary.taskId = task.id
+    LEFT JOIN checkpoint_stats checkpoint ON checkpoint.taskId = task.id
+    LEFT JOIN governance_stats governance ON governance.taskId = task.id
+    LEFT JOIN eligible_rankings ranking ON ranking.id = task.id
+    LEFT JOIN task_finance finance ON finance.taskId = task.id
+    LEFT JOIN task_timings timing ON timing.taskId = task.id
+    LEFT JOIN task_illustrations illustration ON illustration.taskId = task.id
+  )
+`;
+
+function escapeLikePattern(value: string) {
+  return value.replaceAll("!", "!!").replaceAll("%", "!%").replaceAll("_", "!_");
+}
+
+function buildMarketplaceFilterClause(filters: ReturnType<typeof normalizeMarketplaceQuery>) {
+  const conditions: string[] = [];
+  const args: Value[] = [];
+
+  if (filters.query) {
+    conditions.push(`LOWER(
+      title || ' ' || summary || ' ' || problem || ' ' || whyNow || ' ' || publicBenefit || ' '
+      || categoryName || ' ' || COALESCE(enterprisePackaging, '') || ' ' || COALESCE(dataValueNote, '') || ' '
+      || COALESCE(simulationSummary, '') || ' ' || COALESCE(sampleOutcome, '') || ' '
+      || COALESCE(sponsorAppeal, '') || ' ' || COALESCE(modelLineup, '')
+    ) LIKE ? ESCAPE '!'`);
+    args.push(`%${escapeLikePattern(filters.query.toLowerCase())}%`);
+  }
+  if (filters.category !== "all") {
+    conditions.push("categorySlug = ?");
+    args.push(filters.category);
+  }
+  if (filters.tier !== "all") {
+    conditions.push("allocatedTier = ?");
+    args.push(filters.tier);
+  }
+  if (filters.stage !== "all") {
+    conditions.push("stage = ?");
+    args.push(filters.stage);
+  }
+
   return {
-    viewer: snapshot.viewer,
-    categories: snapshot.categories,
-    tasks: snapshot.tasks.filter((task) => {
-      if (query) {
-        const haystack = [
-          task.title,
-          task.summary,
-          task.problem,
-          task.categoryName,
-          task.enterprisePackaging,
-          task.dataValueNote,
-          task.simulationSummary,
-          task.sampleOutcome,
-          task.sponsorAppeal,
-          ...task.modelLineup,
-        ].join(" ").toLowerCase();
-        if (!haystack.includes(query)) {
-          return false;
-        }
-      }
-      if (filters.category && filters.category !== "all" && task.categorySlug !== filters.category) {
-        return false;
-      }
-      if (filters.tier && filters.tier !== "all" && task.allocatedTier !== filters.tier) {
-        return false;
-      }
-      if (filters.stage && filters.stage !== "all" && task.stage !== filters.stage) {
-        return false;
-      }
-      return true;
-    }),
+    sql: conditions.length > 0 ? conditions.join(" AND ") : "1 = 1",
+    args,
+  };
+}
+
+const marketplaceDiscoveryBaseOrder = `
+  discoveryBand ASC,
+  stageWeight DESC,
+  completedCheckpointCount DESC,
+  totalVotes DESC,
+  supporterCount DESC,
+  trustedPulseScore DESC,
+  positivePulseCount DESC,
+  lastActivityAt DESC,
+  id ASC
+`;
+
+function marketplaceOrderBy(sort: ReturnType<typeof normalizeMarketplaceQuery>["sort"]) {
+  switch (sort) {
+    case "pulse":
+      return "trustedPulseScore DESC, positivePulseCount DESC, taskPulseScore DESC, taskPulseVotes DESC, totalVotes DESC, lastActivityAt DESC, id ASC";
+    case "voice":
+      return "totalVotes DESC, supporterCount DESC, categoryRank ASC, lastActivityAt DESC, id ASC";
+    case "recent":
+      return "lastActivityAt DESC, id ASC";
+    case "newest":
+      return "createdAt DESC, id ASC";
+    case "active":
+      return `
+        CASE WHEN discoveryBand < 4 THEN 0 ELSE 1 END ASC,
+        CASE WHEN discoveryBand < 4 THEN proposerSlot ELSE 2147483647 END ASC,
+        CASE
+          WHEN discoveryBand >= 4 THEN 2147483647
+          WHEN categorySlot > 3 THEN 3
+          ELSE categorySlot
+        END ASC,
+        CASE WHEN discoveryBand < 4 THEN bandSlot ELSE 2147483647 END ASC,
+        discoveryBand ASC,
+        categorySlot ASC,
+        stageWeight DESC,
+        completedCheckpointCount DESC,
+        totalVotes DESC,
+        trustedPulseScore DESC,
+        lastActivityAt DESC,
+        id ASC
+      `;
+  }
+}
+
+function mapMarketplaceTask(row: DbRow): TaskSummary {
+  const task = mapTask(row);
+  const hasFinance = getNullableString(row, "financeTaskId") !== null;
+  const hasTiming = getNullableString(row, "timingTaskId") !== null;
+  const hasIllustration = getNullableString(row, "illustrationTaskId") !== null;
+  const totalVotes = getNumber(row, "totalVotes");
+  const taskPulseScore = getNumber(row, "taskPulseScore");
+  const taskPulseVotes = getNumber(row, "taskPulseVotes");
+  const positivePulseCount = getNumber(row, "positivePulseCount");
+  const negativePulseCount = getNumber(row, "negativePulseCount");
+  const trustedPulseScore = getNumber(row, "trustedPulseScore");
+  const supporterCount = getNumber(row, "supporterCount");
+  const discussionCount = getNumber(row, "discussionCount");
+  const updateCount = getNumber(row, "updateCount");
+  const completedCheckpointCount = getNumber(row, "completedCheckpointCount");
+  const categoryRank = row.categoryRank === null || row.categoryRank === undefined ? null : getNumber(row, "categoryRank");
+  const allocatedTier = getString(row, "allocatedTier") as TaskSummary["allocatedTier"];
+  const lastActivityAt = getString(row, "lastActivityAt") || task.createdAt;
+
+  const summary: TaskSummary = {
+    ...task,
+    ...(hasFinance
+      ? mapTaskFinance({ ...row, taskId: row.financeTaskId })
+      : {
+          taskId: task.id,
+          qualityBondCredits: tierDefaults[task.requestedTier].bond,
+          sponsorPoolUsd: 0,
+          checkpointApprovalTarget: tierDefaults[task.requestedTier].checkpointTarget,
+          enterprisePackaging: "Public output first, with an optional service version for groups that need support.",
+          dataValueNote: "Corrections and audit traces remain useful public-good inputs.",
+          sandboxCapitalUsd: 0,
+          sandboxApiSpendUsd: 0,
+          sandboxPilotUsers: 0,
+          modelLineup: [],
+          simulationSummary: "",
+          sampleOutcome: "",
+          sponsorAppeal: "",
+        }),
+    categoryName: getString(row, "categoryName"),
+    categorySlug: getString(row, "categorySlug"),
+    categorySymbolKey: getString(row, "categorySymbolKey"),
+    proposerName: getString(row, "proposerName"),
+    totalVotes,
+    supporterCount,
+    categoryRank,
+    allocatedTier,
+    userVotes: 0,
+    userCost: 0,
+    taskPulseScore,
+    taskPulseVotes,
+    positivePulseCount,
+    negativePulseCount,
+    userTaskPulse: 0,
+    discussionCount,
+    bondStatus: task.stage === "review" || task.stage === "blocked" ? "watch" : "secure",
+    launchAt: hasTiming ? getNullableString(row, "launchAt") : null,
+    startedAt: hasTiming ? getNullableString(row, "startedAt") : null,
+    expectedMaxEndAt: hasTiming ? getNullableString(row, "expectedMaxEndAt") : null,
+    computeHoursUsed: hasTiming ? getNumber(row, "computeHoursUsed") : 0,
+    completionMode: hasTiming
+      ? getString(row, "completionMode") as TaskTimingRecord["completionMode"]
+      : task.stage === "blocked" ? "blocked" : "planned",
+    completionSummary: hasTiming
+      ? getString(row, "completionSummary")
+      : task.stage === "blocked" ? "Blocked before launch." : "Waiting for review and allocation.",
+    lastActivityAt,
+    updateCount,
+    latestUpdateLabel: getNullableString(row, "latestUpdateLabel"),
+    bookmarked: false,
+    illustrationUrl: hasIllustration ? getNullableString(row, "illustrationUrl") : null,
+    illustrationAlt: hasIllustration ? getNullableString(row, "illustrationAlt") : null,
+    illustrationSource: hasIllustration
+      ? getString(row, "illustrationSource") as TaskIllustrationRecord["source"]
+      : "deterministic",
+    illustrationUpdatedAt: hasIllustration ? getNullableString(row, "illustrationUpdatedAt") : null,
+    completedCheckpointCount,
+    trustedPulseScore,
+  };
+
+  summary.discoveryReasons = getDiscoveryReasons({
+    id: summary.id,
+    proposerId: summary.proposerId,
+    categoryId: summary.categoryId,
+    createdAt: summary.createdAt,
+    lastActivityAt: summary.lastActivityAt,
+    stage: summary.stage,
+    safetyStatus: summary.safetyStatus,
+    totalVotes: summary.totalVotes,
+    supporterCount: summary.supporterCount,
+    taskPulseScore: summary.taskPulseScore,
+    taskPulseVotes: summary.taskPulseVotes,
+    positivePulseCount: summary.positivePulseCount,
+    negativePulseCount: summary.negativePulseCount,
+    trustedPulseScore,
+    completedCheckpointCount,
+    updateCount: summary.updateCount,
+    categoryRank: summary.categoryRank,
+  });
+
+  return summary;
+}
+
+async function applyMarketplaceViewerState(tasks: TaskSummary[], viewerProfileId?: string | null) {
+  if (!viewerProfileId || tasks.length === 0) {
+    return tasks;
+  }
+
+  const placeholders = tasks.map(() => "?").join(", ");
+  const taskIds = tasks.map((task) => task.id);
+  const [viewerVotes, viewerPulses, bookmarks] = await Promise.all([
+    loadRows(`SELECT * FROM votes WHERE profileId = ? AND taskId IN (${placeholders})`, [viewerProfileId, ...taskIds]),
+    loadRows(`SELECT * FROM task_pulse_votes WHERE profileId = ? AND taskId IN (${placeholders})`, [viewerProfileId, ...taskIds]),
+    loadRows(`SELECT * FROM bookmarks WHERE profileId = ? AND taskId IN (${placeholders})`, [viewerProfileId, ...taskIds]),
+  ]);
+
+  const votesByTask = new Map(viewerVotes.map((row) => [getString(row, "taskId"), getNumber(row, "voteCount")]));
+  const pulseByTask = new Map(viewerPulses.map((row) => [getString(row, "taskId"), getNumber(row, "value")]));
+  const bookmarkedTaskIds = new Set(bookmarks.map((row) => getString(row, "taskId")));
+
+  return tasks.map((task) => {
+    const userVotes = votesByTask.get(task.id) ?? 0;
+    return {
+      ...task,
+      userVotes,
+      userCost: quadraticCost(userVotes),
+      userTaskPulse: pulseByTask.get(task.id) ?? 0,
+      bookmarked: bookmarkedTaskIds.has(task.id),
+    };
+  });
+}
+
+export async function getMarketplaceData(viewerProfileId: string | null | undefined, filters: MarketplaceFilters) {
+  const normalized = normalizeMarketplaceQuery(filters);
+  const pageSize = normalizeMarketplacePageSize(filters.pageSize ?? DEFAULT_MARKETPLACE_PAGE_SIZE);
+  const filter = buildMarketplaceFilterClause(normalized);
+  const filteredCtes = `
+    ${marketplaceCommonTableExpressions},
+    marketplace_filtered AS (
+      SELECT
+        marketplace_base.*,
+        CASE
+          WHEN stage = 'blocked' OR safetyStatus = 'blocked' THEN 5
+          WHEN stage = 'review' OR safetyStatus = 'pending' THEN 4
+          WHEN completedCheckpointCount > 0 OR updateCount > 0 THEN 0
+          WHEN julianday('now') - julianday(createdAt) <= 30 AND supporterCount <= 2 THEN 1
+          WHEN categoryRank = 1 THEN 2
+          ELSE 3
+        END AS discoveryBand,
+        CASE stage
+          WHEN 'running' THEN 5
+          WHEN 'scheduled' THEN 4
+          WHEN 'voting' THEN 3
+          WHEN 'shipped' THEN 2
+          WHEN 'review' THEN 1
+          ELSE 0
+        END AS stageWeight
+      FROM marketplace_base
+      WHERE ${filter.sql}
+    )
+  `;
+
+  const [countRow, categories, viewer] = await Promise.all([
+    loadOne(
+      `${filteredCtes}
+       SELECT
+         COUNT(*) AS count,
+         COALESCE(SUM(CASE WHEN stage IN ('running', 'scheduled') THEN 1 ELSE 0 END), 0) AS activeCount,
+         COALESCE(SUM(CASE WHEN sandboxCapitalUsd > 0 THEN 1 ELSE 0 END), 0) AS demoCount,
+         COALESCE(SUM(CASE WHEN stage = 'shipped' THEN 1 ELSE 0 END), 0) AS shippedCount
+       FROM marketplace_filtered`,
+      filter.args,
+    ),
+    loadCategories(),
+    viewerProfileId ? findProfileById(viewerProfileId) : Promise.resolve(null),
+  ]);
+
+  const totalResults = countRow ? getNumber(countRow, "count") : 0;
+  const totalPages = Math.max(1, Math.ceil(totalResults / pageSize));
+  const requestedPage = normalizeMarketplacePage(normalized.page);
+  const page = Math.min(requestedPage, totalPages);
+  const offset = (page - 1) * pageSize;
+  const orderBy = marketplaceOrderBy(normalized.sort);
+  const rows = await loadRows(
+    `${filteredCtes},
+     marketplace_diversified AS (
+       SELECT
+         marketplace_filtered.*,
+         ROW_NUMBER() OVER (PARTITION BY proposerId ORDER BY ${marketplaceDiscoveryBaseOrder}) AS proposerSlot,
+         ROW_NUMBER() OVER (PARTITION BY categoryId ORDER BY ${marketplaceDiscoveryBaseOrder}) AS categorySlot,
+         ROW_NUMBER() OVER (PARTITION BY discoveryBand ORDER BY ${marketplaceDiscoveryBaseOrder}) AS bandSlot
+       FROM marketplace_filtered
+     )
+     SELECT *
+     FROM marketplace_diversified
+     ORDER BY ${orderBy}
+     LIMIT ? OFFSET ?`,
+    [...filter.args, pageSize, offset],
+  );
+  const tasks = await applyMarketplaceViewerState(rows.map(mapMarketplaceTask), viewerProfileId);
+
+  return {
+    viewer,
+    categories,
+    tasks,
+    pageInfo: {
+      page,
+      pageSize,
+      totalResults,
+      totalPages,
+      hasPreviousPage: page > 1,
+      hasNextPage: page < totalPages,
+    },
+    resultCounts: {
+      active: countRow ? getNumber(countRow, "activeCount") : 0,
+      withDemos: countRow ? getNumber(countRow, "demoCount") : 0,
+      shipped: countRow ? getNumber(countRow, "shippedCount") : 0,
+    },
   };
 }
 

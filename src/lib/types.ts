@@ -627,6 +627,9 @@ export interface TaskSummary extends TaskRecord, TaskFinanceRecord {
   illustrationAlt: string | null;
   illustrationSource: KenIllustrationSource;
   illustrationUpdatedAt: string | null;
+  completedCheckpointCount?: number;
+  trustedPulseScore?: number;
+  discoveryReasons?: DiscoveryReason[];
 }
 
 export interface CheckpointDetail extends CheckpointRecord, CheckpointGateRecord {}
@@ -711,10 +714,39 @@ export interface MarketplaceFilters {
   tier?: AllocationTier | "all";
   stage?: TaskStage | "all";
   sort?: SortOption;
+  page?: number;
+  pageSize?: number;
 }
 
 export const sortOptions = ["active", "pulse", "voice", "recent", "newest"] as const;
 export type SortOption = (typeof sortOptions)[number];
+
+export const discoveryReasons = [
+  "checkpoint-momentum",
+  "new-under-reviewed",
+  "category-leader",
+  "high-voice",
+  "broad-pulse",
+  "active-run",
+  "under-review",
+  "blocked",
+] as const;
+export type DiscoveryReason = (typeof discoveryReasons)[number];
+
+export interface MarketplacePageInfo {
+  page: number;
+  pageSize: number;
+  totalResults: number;
+  totalPages: number;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
+}
+
+export interface MarketplaceResultCounts {
+  active: number;
+  withDemos: number;
+  shipped: number;
+}
 
 export interface SearchResultItem {
   id: string;

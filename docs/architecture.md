@@ -15,7 +15,9 @@
 - `src/app/page.tsx`
   - Overview page with featured Kens, funding snapshot, governance preview, and contributor sample.
 - `src/app/kens/page.tsx`
-  - Public board with search, category, lane, and status filters.
+  - Bounded public board with search, category, lane, status, sort, reset, and page controls.
+- `src/lib/discovery.ts` and the marketplace CTEs in `src/lib/db.ts`
+  - Canonical filter URLs, deterministic reason-labeled discovery, proposer/category diversity, stable tie-breaks, bounded SQL pagination, and viewer-state loading restricted to the selected page.
 - `src/app/kens/[slug]/page.tsx`
   - Ken detail view with timing metadata, launch window, compute progression, audit timeline, comments, governance log, and funding context.
 - `src/app/submit/page.tsx`

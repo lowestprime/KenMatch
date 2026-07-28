@@ -352,7 +352,7 @@ export const FAQ_ENTRIES: FAQEntry[] = [
     category: "allocation",
     question: "How should discovery remain reliable when Ken volume grows?",
     answer:
-      "Eligibility, quality, popularity, scarce voice, freshness, and discovery must remain separate. The canonical lane order stays deterministic and category-local, while discovery can use bounded pages, stable cursors, transparent reason labels, controlled freshness opportunities, proposer/category diversity, and periodic resurfacing of old high-quality work. Blocked and review records are handled explicitly; money never enters the score; and no opaque model silently chooses priority. Large synthetic tests must cover ties, brigading, dominant proposers, sparse categories, and 100,000-record inputs before scale claims are made.",
+      "Eligibility, evidence, popularity, scarce voice, freshness, and discovery stay separate. The canonical lane order is deterministic and category-local. The current feed uses bounded SQL pages, stable ID tie-breaks, visible reason labels, controlled opportunities for new and under-reviewed work, proposer/category diversity, and resurfacing for old work with checkpoint evidence. Blocked and review records are handled explicitly; money never enters either order; and no opaque model silently chooses priority. Property tests cover exact ties, coordinated untrusted pulse, a dominant proposer, sparse categories, old checkpoint-backed work, blocked records, and inputs through 100,000 Kens. Those tests protect algorithm behavior but are not a production throughput guarantee.",
     keywords: ["scale", "ranking", "discovery", "100000", "freshness", "brigading", "pagination"],
   },
   {

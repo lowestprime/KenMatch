@@ -217,12 +217,18 @@ const evidenceRules = [
   {
     match: /\b(filter|search|reset)\b/i,
     code: ["src/components/task-board-filters.tsx", "src/components/search-field.tsx", "src/app/kens/page.tsx"],
-    tests: [],
+    tests: ["tests/discovery.test.ts"],
   },
   {
-    match: /\b(rank|allocation|voice|pulse|quadratic|eligib|tie-break|discovery)\b/i,
-    code: ["src/lib/allocation.ts", "src/lib/allocation-policy.ts", "src/lib/db.ts"],
-    tests: ["tests/allocation.test.ts", "tests/attestation.test.ts"],
+    match: /\b(rank|ranker|allocation|voice|pulse|quadratic|eligib|tie-break|discovery|black-box)\b/i,
+    code: [
+      "src/lib/allocation.ts",
+      "src/lib/allocation-policy.ts",
+      "src/lib/discovery.ts",
+      "src/lib/db.ts",
+      "docs/ranking-discovery.md",
+    ],
+    tests: ["tests/allocation.test.ts", "tests/attestation.test.ts", "tests/discovery.test.ts"],
   },
   {
     match: /\b(lifecycle|checkpoint|run budget|runtime cap|partial delivery|early completion|stop reason)\b/i,
@@ -814,9 +820,21 @@ async function attachEvidence(entries) {
         ) &&
         entry.current_code_evidence.some((evidence) => evidence?.startsWith("src/lib/faq.ts")) &&
         entry.current_test_evidence.some((evidence) => evidence?.startsWith("tests/faq-contact.test.ts"));
+      const discoveryReady =
+        /\b(rank|ranker|allocation|voice|pulse|filter|reset|pagination|cursor|brigad|tie-break|discovery|100,?000)\b/i.test(
+          entry.normalized_requirement,
+        ) &&
+        [
+          "src/lib/discovery.ts",
+          "src/components/task-board-filters.tsx",
+          "docs/ranking-discovery.md",
+          "tests/discovery.test.ts",
+        ].every((file) => existsSync(path.join(repoRoot, file))) &&
+        entry.current_test_evidence.some((evidence) => evidence?.startsWith("tests/discovery.test.ts"));
       const broadening =
         !glossaryReady &&
         !strategicFaqReady &&
+        !discoveryReady &&
         /\b(complete|comprehensive|full lifecycle|historical|over time|pagination|100,?000|appeal|recus|threat model|scale-resilient|every route|all states|tier-2|tier-3)\b/i.test(
           entry.normalized_requirement,
         );

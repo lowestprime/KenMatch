@@ -152,7 +152,7 @@ The allocation problem is practical: compute, review time, and operational atten
 
 ## ✨ Features
 
-- Public proposal feed with search, categories, stage/tier filters, and realistic community-facing examples.
+- Bounded public proposal feed with canonical resettable filters, deterministic category-local lane rank, transparent discovery reasons, proposer/category diversity, and SQL pagination.
 - Linked contributor profiles plus real account creation, email verification, password reset, and cookie-backed sessions.
 - Earned quadratic voice for scarce allocation, with separate up/down pulse voting for broad public curation.
 - Threaded comments with replies, voting, and small stakes for discussion quality.
@@ -243,6 +243,7 @@ KenMatch ships with a standalone Next.js build configuration and a Docker image 
 - For local development, KenMatch constructs a file-backed SQLite-compatible database via libSQL.
 - For public deployment, `DATABASE_URL` and `DATABASE_AUTH_TOKEN` can be specified for managed remote libSQL database integration.
 - Security headers, host filtering, and mutation-origin checks live in [src/proxy.ts](./src/proxy.ts), which Next.js 16 reports as the app proxy/middleware boundary during production builds.
+- The allocation and feed-discovery contract, scale boundary, adversarial cases, and deliberate limits are documented in [docs/ranking-discovery.md](./docs/ranking-discovery.md).
 - For public Synology NAS deployment, read [docs/synology-nas-deploy.md](./docs/synology-nas-deploy.md) and [docs/public-security-hardening.md](./docs/public-security-hardening.md) before exposing the service.
 
 ## 🛣️ Main Routes
