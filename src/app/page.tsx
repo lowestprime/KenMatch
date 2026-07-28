@@ -1,9 +1,9 @@
 import Link from "next/link";
 
 import { CategorySymbol } from "@/components/ken-visual";
+import { KenLifecycleMap } from "@/components/ken-lifecycle-map";
 import { TaskCard } from "@/components/task-card";
 import {
-  KEN_LIFECYCLE_STAGES,
   LANE_OPERATING_POLICIES,
   SUBMISSION_APPROVAL_CRITERIA,
   TOKEN_ASSIGNMENT_RULES,
@@ -70,24 +70,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="panel protocol-panel">
-        <div className="section-heading">
-          <div>
-            <div className="eyebrow">How the board works</div>
-            <h2 className="font-display text-3xl font-semibold text-foreground">From proposal to audited output</h2>
-          </div>
-          <Link href="/submit" className="cta-secondary cta-compact">Start a Ken</Link>
-        </div>
-        <div className="lifecycle-grid">
-          {KEN_LIFECYCLE_STAGES.map((stage) => (
-            <article key={stage.id} className="protocol-card interactive-surface">
-              <h3>{stage.label}</h3>
-              <p>{stage.summary}</p>
-              <small>{stage.publicGate}</small>
-            </article>
-          ))}
-        </div>
-      </section>
+      <KenLifecycleMap id="lifecycle" />
 
       <section className="section-grid" data-columns="2">
         <div className="panel space-y-4">

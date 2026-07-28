@@ -32,6 +32,12 @@ This file maps the stable product requirements from `KenMatch_Conception.md` to 
 ### Partial achievement, early completion, and incremental audit trail
 - `task_timings` and `run_updates` in `src/lib/db.ts` model launch windows, compute used, completion mode, and incremental evidence.
 
+### Accessible lifecycle graphical abstract
+- `src/lib/allocation-policy.ts` is the single source for the eight stages, checkpoint outcomes, delivery variants, pulse/voice distinction, lane assignment, sponsor/rank separation, and contributor-credit aftermath.
+- `src/components/ken-lifecycle-map.tsx` renders that policy as a keyboard-operable graphical abstract on Overview and Governance and as current/completed/upcoming progression on Ken detail.
+- The renderer includes a complete screen-reader narrative, visible non-color state labels, arrow/Home/End keyboard navigation, reduced-motion and forced-color rules, a two-column 320 px layout, and a static print narrative.
+- `tests/lifecycle-policy.test.ts` locks stage order, policy references, funding/rank separation, checkpoint decisions, delivery outcomes, and persisted-stage mapping. Browser evidence and the print contract are recorded in `docs/lifecycle-graphical-abstract.md`.
+
 ### Transparent category and Ken intake
 - `src/lib/intake-review.ts` records deterministic boundary, readiness, similarity, lane, and bounded risk checks at submission.
 - `ken_submissions`, enriched `category_proposals`, and append-only `review_events` preserve status, assignment, timestamps, public reasons, private notes, merge targets, appeals, and immutable transition history.

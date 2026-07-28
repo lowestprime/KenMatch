@@ -46,6 +46,7 @@ export default function FAQPage() {
           <Link href="/kens" className="cta-primary">Browse Kens</Link>
           <Link href="/submit" className="cta-secondary">Submit a Ken</Link>
           <Link href="/glossary" className="cta-secondary">Open the glossary</Link>
+          <Link href="/#lifecycle" className="cta-secondary">See the lifecycle</Link>
           <a href="#contact" className="cta-secondary">Contact the owner</a>
         </div>
       </section>

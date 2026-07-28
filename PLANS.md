@@ -32,7 +32,7 @@ If active, it must stay current as the work progresses.
 | C. Deterministic intake review | DONE | Private pre-publication intake, deterministic checks, collision handling, category creation, proposer status, reviewer queue, append-only history, unit/database tests, and signed-in/signed-out browser checks |
 | D. Transparent moderation and dual control | DONE | Role-scoped triage/final actions, durable recusals, conflict rules, two-person high-risk approval, public outcome history, private notes, idempotent transitions, and independent-reviewer browser checks |
 | Auth transition integrity | DONE | Authority-preserving request-origin checks, exact-host redirects, shared immediate sign-out on desktop/mobile, redirect-sentinel handling, focused tests, and zero-console-error browser checks |
-| E. Lifecycle graphical abstract | IN PROGRESS | Canonical lifecycle model and responsive accessible visual integration still required |
+| E. Lifecycle graphical abstract | DONE | Canonical eight-stage model; interactive Overview/Governance map; Ken-detail progression; keyboard, screen-reader, Light/OLED, 320 px, forced-color, reduced-motion, and print/PDF evidence |
 | F. Theme and long-page system | TODO | Light/OLED computed-style baseline, route-wide overflow review, long-page rhythm, reading progress, and audit-log controls remain |
 | G. Historical admin analytics | TODO | Time-series aggregation, comparisons, telemetry health, retention documentation, and accessible chart/table surfaces remain |
 | H. Technical SEO and launch strategy | TODO | Route audit, metadata/schema verification, current-intent research, and marketing/community documents remain |

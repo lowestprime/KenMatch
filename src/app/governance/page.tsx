@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { CategoryFilterChip, LaneFilterChip } from "@/components/filter-chip-link";
 import { CategorySymbol } from "@/components/ken-visual";
+import { KenLifecycleMap } from "@/components/ken-lifecycle-map";
 import { getGovernanceData } from "@/lib/db";
 import { getViewerProfileId } from "@/lib/session";
 import { categoryFilterHref } from "@/lib/taxonomy";
@@ -49,6 +50,13 @@ export default async function GovernancePage() {
           KenMatch uses “board” to mean the visible public operating surface where proposals, evidence, votes, safety checks, sponsor context, and checkpoint decisions can be inspected. It is not a private committee with hidden authority to buy, bury, or secretly select winners.
         </p>
       </section>
+
+      <KenLifecycleMap
+        id="decision-path"
+        density="compact"
+        eyebrow="Public decision path"
+        title="Every allocation decision leaves a visible next step"
+      />
 
       <section className="panel protocol-panel">
         <div className="section-heading">

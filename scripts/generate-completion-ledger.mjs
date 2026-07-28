@@ -248,8 +248,14 @@ const evidenceRules = [
   },
   {
     match: /\b(lifecycle|checkpoint|run budget|runtime cap|partial delivery|early completion|stop reason)\b/i,
-    code: ["src/lib/allocation-policy.ts", "src/lib/types.ts", "src/components/ken-timing-strip.tsx"],
-    tests: ["tests/allocation.test.ts"],
+    code: [
+      "src/lib/allocation-policy.ts",
+      "src/lib/types.ts",
+      "src/components/ken-lifecycle-map.tsx",
+      "src/components/ken-timing-strip.tsx",
+      "docs/lifecycle-graphical-abstract.md",
+    ],
+    tests: ["tests/allocation.test.ts", "tests/lifecycle-policy.test.ts"],
   },
   {
     match: /\b(visitor|analytics|country|map|chart)\b/i,
@@ -319,7 +325,7 @@ const missingFeatureRules = [
   },
   {
     match: /\b(graphical abstract)\b/i,
-    absent: ["src/components/ken-lifecycle-abstract.tsx"],
+    absent: ["src/components/ken-lifecycle-map.tsx", "docs/lifecycle-graphical-abstract.md"],
   },
   {
     match: /\b(pagination|cursoring|100,000 kens|100000 kens)\b/i,

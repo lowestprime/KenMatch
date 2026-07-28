@@ -20,6 +20,8 @@
   - Canonical filter URLs, deterministic reason-labeled discovery, proposer/category diversity, stable tie-breaks, bounded SQL pagination, and viewer-state loading restricted to the selected page.
 - `src/app/kens/[slug]/page.tsx`
   - Ken detail view with timing metadata, launch window, compute progression, audit timeline, comments, governance log, and funding context.
+- `src/lib/allocation-policy.ts` and `src/components/ken-lifecycle-map.tsx`
+  - One canonical eight-stage lifecycle, mechanism callouts, persisted-state mapping, and responsive interactive/print renderers shared by Overview, Governance, and Ken detail.
 - `src/app/submit/page.tsx`
   - Ken intake form with tier-aware guidance.
 - `src/app/governance/page.tsx`

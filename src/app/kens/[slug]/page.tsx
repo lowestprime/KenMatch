@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { CategoryFilterChip, LaneFilterChip } from "@/components/filter-chip-link";
 import { DiscussionThread } from "@/components/discussion-thread";
 import { KenBookmarkButton } from "@/components/ken-bookmark-button";
+import { KenLifecycleMap } from "@/components/ken-lifecycle-map";
 import { KenVisual } from "@/components/ken-visual";
 import { KenSandboxStrip } from "@/components/ken-sandbox-strip";
 import { KenTimingStrip } from "@/components/ken-timing-strip";
@@ -94,6 +95,13 @@ export default async function KenDetailPage({ params }: { params: Promise<{ slug
           </details>
         </section>
       ) : null}
+
+      <KenLifecycleMap
+        density="progress"
+        currentTaskStage={task.stage}
+        eyebrow="Ken progression"
+        title="Current position in the public lifecycle"
+      />
 
       <section className="detail-layout">
         <div className="space-y-6">

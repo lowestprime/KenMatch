@@ -4351,3 +4351,499 @@ html[data-theme="light"] .category-symbol {
     word-break: normal;
   }
 }
+
+/* Canonical Ken lifecycle graphical abstract */
+.ken-lifecycle-map {
+  --lifecycle-blue: #2554d8;
+  --lifecycle-purple: #6b3bc4;
+  --lifecycle-gold: #946200;
+  --lifecycle-red: #bd2947;
+  --lifecycle-violet: #7d3fc1;
+  display: grid;
+  min-width: 0;
+  gap: 1rem;
+  scroll-margin-top: 5rem;
+  overflow: clip;
+}
+
+html[data-theme="dark"] .ken-lifecycle-map,
+html[data-theme="oled"] .ken-lifecycle-map {
+  --lifecycle-blue: #6ea8ff;
+  --lifecycle-purple: #b58cff;
+  --lifecycle-gold: #ffd166;
+  --lifecycle-red: #ff6b6b;
+  --lifecycle-violet: #9e7bff;
+}
+
+.ken-lifecycle-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.ken-lifecycle-header > div,
+.ken-lifecycle-detail-copy,
+.ken-lifecycle-signals,
+.lifecycle-signal > div {
+  min-width: 0;
+}
+
+.ken-lifecycle-header h2 {
+  margin-top: 0.28rem;
+  max-width: 44rem;
+  text-wrap: balance;
+}
+
+.ken-lifecycle-header > p {
+  max-width: 26rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  text-align: right;
+}
+
+.ken-lifecycle-rail-wrap {
+  position: relative;
+  min-width: 0;
+}
+
+.ken-lifecycle-flow {
+  position: absolute;
+  inset: 1.36rem 1.5rem auto;
+  z-index: 0;
+  width: calc(100% - 3rem);
+  height: 1.7rem;
+  color: var(--line);
+  pointer-events: none;
+}
+
+.ken-lifecycle-flow path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.ken-lifecycle-rail {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 0.36rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lifecycle-stage {
+  --lifecycle-accent: var(--lifecycle-blue);
+  min-width: 0;
+}
+
+.lifecycle-stage.tone-purple,
+.ken-lifecycle-detail.tone-purple {
+  --lifecycle-accent: var(--lifecycle-purple);
+}
+
+.lifecycle-stage.tone-gold,
+.ken-lifecycle-detail.tone-gold {
+  --lifecycle-accent: var(--lifecycle-gold);
+}
+
+.lifecycle-stage.tone-red,
+.ken-lifecycle-detail.tone-red {
+  --lifecycle-accent: var(--lifecycle-red);
+}
+
+.lifecycle-stage.tone-violet,
+.ken-lifecycle-detail.tone-violet {
+  --lifecycle-accent: var(--lifecycle-violet);
+}
+
+.lifecycle-stage.tone-blue,
+.ken-lifecycle-detail.tone-blue {
+  --lifecycle-accent: var(--lifecycle-blue);
+}
+
+.lifecycle-stage-button {
+  display: grid;
+  grid-template-rows: 2.85rem minmax(2.5rem, auto) auto;
+  align-items: start;
+  justify-items: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 7rem;
+  border: 0;
+  border-radius: 0.45rem;
+  background: transparent;
+  color: var(--ink);
+  padding: 0.25rem 0.24rem 0.42rem;
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease, transform 150ms ease;
+}
+
+.lifecycle-stage-button:hover {
+  background: color-mix(in srgb, var(--lifecycle-accent) 9%, transparent);
+  color: var(--ink);
+}
+
+.lifecycle-stage-button:focus-visible {
+  outline: 2px solid var(--lifecycle-accent);
+  outline-offset: 2px;
+}
+
+.lifecycle-stage[data-active="true"] .lifecycle-stage-button {
+  background: color-mix(in srgb, var(--lifecycle-accent) 14%, var(--panel-strong));
+}
+
+.lifecycle-step-number {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 2.65rem;
+  height: 2.65rem;
+  border: 1px solid color-mix(in srgb, var(--lifecycle-accent) 72%, var(--line));
+  border-radius: 999px;
+  background: var(--panel-strong);
+  box-shadow: 0 0 0 0.24rem color-mix(in srgb, var(--lifecycle-accent) 12%, transparent);
+  color: var(--lifecycle-accent);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.lifecycle-stage[data-active="true"] .lifecycle-step-number,
+.lifecycle-stage[data-progress="current"] .lifecycle-step-number,
+.lifecycle-stage[data-progress="blocked"] .lifecycle-step-number {
+  background: var(--lifecycle-accent);
+  color: var(--panel-strong);
+  box-shadow: 0 0 0 0.24rem color-mix(in srgb, var(--lifecycle-accent) 28%, transparent);
+}
+
+.lifecycle-stage[data-progress="complete"] .lifecycle-step-number::after {
+  content: "✓";
+  position: absolute;
+  transform: translate(0.92rem, 0.9rem);
+  display: grid;
+  place-items: center;
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid var(--panel-strong);
+  border-radius: 999px;
+  background: var(--lifecycle-accent);
+  color: var(--panel-strong);
+  font-size: 0.6rem;
+  line-height: 1;
+}
+
+.lifecycle-step-label {
+  align-self: center;
+  min-width: 0;
+  max-width: 100%;
+  color: var(--ink);
+  font-size: 0.76rem;
+  font-weight: 750;
+  line-height: 1.22;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.lifecycle-progress-label {
+  color: var(--muted);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.58rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.lifecycle-stage[data-progress="current"] .lifecycle-progress-label,
+.lifecycle-stage[data-progress="blocked"] .lifecycle-progress-label {
+  color: var(--lifecycle-accent);
+}
+
+.ken-lifecycle-detail {
+  --lifecycle-accent: var(--lifecycle-blue);
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(16rem, 0.92fr);
+  gap: 1.1rem;
+  min-width: 0;
+  border-block: 1px solid var(--line);
+  background: color-mix(in srgb, var(--lifecycle-accent) 5%, transparent);
+  padding: 1rem 0;
+}
+
+.lifecycle-detail-step {
+  display: block;
+  color: var(--lifecycle-accent);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.ken-lifecycle-detail h3 {
+  margin-top: 0.2rem;
+  font-size: 1.35rem;
+}
+
+.ken-lifecycle-detail-copy > p {
+  margin-top: 0.42rem;
+  max-width: 48rem;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.lifecycle-public-gate {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.5rem;
+  align-items: start;
+}
+
+.lifecycle-public-gate strong {
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.ken-lifecycle-signals {
+  display: grid;
+  align-content: center;
+  gap: 0.72rem;
+}
+
+.lifecycle-signal {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.72rem;
+  align-items: start;
+  min-width: 0;
+  border-left: 2px solid var(--lifecycle-accent);
+  padding-left: 0.72rem;
+}
+
+.lifecycle-signal-marker {
+  min-width: 3.25rem;
+  color: var(--lifecycle-accent);
+  font-family: var(--font-mono), monospace;
+  font-size: 0.65rem;
+  font-weight: 800;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.lifecycle-signal strong {
+  display: block;
+  color: var(--ink);
+  font-size: 0.8rem;
+}
+
+.lifecycle-signal p {
+  margin-top: 0.14rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.ken-lifecycle-print-narrative {
+  display: none;
+}
+
+.ken-lifecycle-map.is-compact .ken-lifecycle-header > p,
+.ken-lifecycle-map.is-progress .ken-lifecycle-header > p {
+  max-width: 20rem;
+}
+
+.ken-lifecycle-map.is-progress .ken-lifecycle-detail {
+  padding-block: 0.78rem;
+}
+
+@media (max-width: 980px) {
+  .ken-lifecycle-rail {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    row-gap: 0.6rem;
+  }
+
+  .ken-lifecycle-flow {
+    display: none;
+  }
+
+  .lifecycle-stage-button {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    justify-items: start;
+    align-items: center;
+    min-height: 4.3rem;
+    gap: 0.14rem 0.55rem;
+    border: 1px solid var(--line);
+    padding: 0.45rem;
+  }
+
+  .lifecycle-step-number {
+    grid-row: 1 / span 2;
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .lifecycle-step-label,
+  .lifecycle-progress-label {
+    text-align: left;
+  }
+
+  .ken-lifecycle-detail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 620px) {
+  .ken-lifecycle-header {
+    display: grid;
+    align-items: start;
+  }
+
+  .ken-lifecycle-header > p {
+    max-width: none;
+    text-align: left;
+  }
+
+  .ken-lifecycle-rail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .lifecycle-stage-button {
+    min-height: 4.75rem;
+  }
+
+  .lifecycle-step-label {
+    font-size: 0.72rem;
+  }
+
+  .lifecycle-public-gate {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.1rem;
+  }
+
+  .lifecycle-signal {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.18rem;
+  }
+
+  .lifecycle-signal-marker {
+    min-width: 0;
+    text-align: left;
+  }
+}
+
+@media (max-width: 340px) {
+  .ken-lifecycle-map {
+    padding-inline: 0.58rem;
+  }
+
+  .ken-lifecycle-rail {
+    gap: 0.34rem;
+  }
+
+  .lifecycle-stage-button {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    justify-items: center;
+    min-height: 6.1rem;
+  }
+
+  .lifecycle-step-number {
+    grid-row: auto;
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .lifecycle-step-label,
+  .lifecycle-progress-label {
+    text-align: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lifecycle-stage-button {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .ken-lifecycle-map,
+  .lifecycle-stage-button,
+  .lifecycle-step-number,
+  .ken-lifecycle-detail,
+  .lifecycle-signal {
+    forced-color-adjust: auto;
+  }
+
+  .lifecycle-stage-button,
+  .lifecycle-step-number,
+  .ken-lifecycle-detail {
+    border-color: CanvasText;
+  }
+
+  .lifecycle-stage[data-active="true"] .lifecycle-stage-button {
+    outline: 3px solid Highlight;
+    outline-offset: 1px;
+  }
+
+  .lifecycle-stage[data-active="true"] .lifecycle-step-number,
+  .lifecycle-stage[data-progress="current"] .lifecycle-step-number,
+  .lifecycle-stage[data-progress="blocked"] .lifecycle-step-number {
+    background: Highlight;
+    color: HighlightText;
+  }
+}
+
+@media print {
+  .ken-lifecycle-map {
+    display: block;
+    break-inside: avoid;
+    border: 1pt solid #333;
+    background: #fff !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    padding: 12pt;
+  }
+
+  .ken-lifecycle-header > p,
+  .ken-lifecycle-rail-wrap,
+  .ken-lifecycle-detail {
+    display: none !important;
+  }
+
+  .ken-lifecycle-print-narrative {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8pt 14pt;
+    margin: 10pt 0 0;
+    padding: 0;
+    color: #000;
+    list-style-position: inside;
+  }
+
+  .ken-lifecycle-print-narrative li {
+    break-inside: avoid;
+    border-top: 0.5pt solid #777;
+    padding-top: 5pt;
+  }
+
+  .ken-lifecycle-print-narrative strong,
+  .ken-lifecycle-print-narrative span,
+  .ken-lifecycle-print-narrative small {
+    display: block;
+    color: #000;
+  }
+
+  .ken-lifecycle-print-narrative span,
+  .ken-lifecycle-print-narrative small {
+    margin-top: 2pt;
+    font-size: 8.5pt;
+    line-height: 1.35;
+  }
+}
