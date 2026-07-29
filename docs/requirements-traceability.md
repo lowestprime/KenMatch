@@ -95,6 +95,29 @@ This file maps the stable product requirements from `KenMatch_Conception.md` to 
 - Earlier lifetime traffic is never reconstructed into fabricated daily history; pre-upgrade gaps and unknown-country observations are stated directly. The complete measurement and retention contract is in `docs/admin-historical-analytics.md`.
 - Synology persistence and recovery steps are documented in `docs/synology-nas-deploy.md`; live writes are stored outside the container image in the mounted `data/` directory.
 
+### Technical discovery and community integration
+
+- `src/lib/seo.ts` centralizes canonical URLs, route-specific public/private
+  metadata, social-preview dimensions, and the feed query indexing policy.
+- `src/app/robots.ts` and `src/app/sitemap.ts` expose crawler policy plus
+  public-only static Kens, profiles, and discussion records. Private intake,
+  suspended profiles, account/auth/admin/API paths, and noncanonical query
+  variants are excluded or noindex.
+- Root, FAQ, Ken, profile, and discussion schemas describe visible records only;
+  private or unavailable entities never receive public detail schema.
+- `src/proxy.ts` applies canonical-origin redirects and response-level noindex
+  headers to sensitive surfaces while preserving the requested path and query.
+- `scripts/audit-seo.mjs` validates the actual candidate responses, and
+  `tests/seo.test.ts` locks canonical/query policy, schema-safe serialization,
+  social PNG dimensions, and sitemap SQL compatibility.
+- `src/components/site-shell.tsx` and `src/app/about/page.tsx` link to
+  r/kenmatch as an external community without claiming unverified ownership.
+  `/discuss` remains the canonical public record.
+- Search, launch, ethical outreach, crisis-response, and subreddit operations are
+  documented in `docs/marketing/seo-and-content-strategy.md`,
+  `docs/marketing/launch-and-community-strategy.md`, and
+  `docs/community/reddit-launch-guide.md`.
+
 ### Public deployment and self-hosting readiness
 - Standalone Next.js output is configured in `next.config.ts`.
 - Docker deployment lives in `Dockerfile` and `docker-compose.synology.yml`.

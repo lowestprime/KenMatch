@@ -15,6 +15,7 @@ coverage/
 deploy-backups/
 .playwright-cli/
 output/playwright/
+output/seo-audit/
 
 # Python
 __pycache__/

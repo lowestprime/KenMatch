@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 
 import { CategoryProposalForm } from "@/components/category-proposal-form";
@@ -6,12 +5,15 @@ import { ProposalForm } from "@/components/proposal-form";
 import { KEN_LIFECYCLE_STAGES, SUBMISSION_APPROVAL_CRITERIA, TOKEN_ASSIGNMENT_RULES } from "@/lib/allocation-policy";
 import { getHomeData } from "@/lib/db";
 import { KEN_DEFINITION } from "@/lib/faq";
+import { buildPublicMetadata } from "@/lib/seo";
 import { getViewerSession } from "@/lib/session";
 
-export const metadata: Metadata = {
+export const metadata = buildPublicMetadata({
   title: "Propose a Ken",
-  description: "Submit a new Ken for public review, voting, and checkpointed launch on KenMatch.",
-};
+  description:
+    "Shape and submit a bounded Ken with public benefit, evidence, risks, deliverables, acceptance checks, and a checkpointed run plan.",
+  path: "/submit",
+});
 
 export default async function SubmitPage() {
   const viewer = await getViewerSession();

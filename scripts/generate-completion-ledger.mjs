@@ -276,6 +276,21 @@ const evidenceRules = [
     tests: ["tests/economics.test.ts"],
   },
   {
+    match: /\b(seo|sitemap|robots|canonical|json-ld|structured data|search intent|backlink|reddit|community launch|community integration|marketing|publicity|ethical outreach|hacker news|linkedin)\b/i,
+    code: [
+      "src/lib/seo.ts",
+      "src/app/robots.ts",
+      "src/app/sitemap.ts",
+      "src/proxy.ts",
+      "scripts/audit-seo.mjs",
+      "docs/seo-implementation.md",
+      "docs/marketing/seo-and-content-strategy.md",
+      "docs/marketing/launch-and-community-strategy.md",
+      "docs/community/reddit-launch-guide.md",
+    ],
+    tests: ["tests/seo.test.ts"],
+  },
+  {
     match: /\b(security|privacy|csp|host allow|origin|rate limit|turnstile|stripe webhook)\b/i,
     code: ["src/proxy.ts", "src/lib/security.ts", "src/lib/session.ts", "src/app/api/stripe/webhook/route.ts"],
     tests: ["tests/test-auth.test.ts"],
@@ -871,11 +886,28 @@ async function attachEvidence(entries) {
           "tests/privacy.test.ts",
         ].every((file) => existsSync(path.join(repoRoot, file))) &&
         entry.current_test_evidence.some((evidence) => evidence?.startsWith("tests/admin-analytics.test.ts"));
+      const seoReady =
+        /\b(seo|sitemap|robots|canonical|json-ld|structured data|search intent|backlink|reddit|community|marketing|publicity|outreach|hacker news|linkedin)\b/i.test(
+          entry.normalized_requirement,
+        ) &&
+        [
+          "src/lib/seo.ts",
+          "src/app/robots.ts",
+          "src/app/sitemap.ts",
+          "scripts/audit-seo.mjs",
+          "docs/seo-implementation.md",
+          "docs/marketing/seo-and-content-strategy.md",
+          "docs/marketing/launch-and-community-strategy.md",
+          "docs/community/reddit-launch-guide.md",
+          "tests/seo.test.ts",
+        ].every((file) => existsSync(path.join(repoRoot, file))) &&
+        entry.current_test_evidence.some((evidence) => evidence?.startsWith("tests/seo.test.ts"));
       const broadening =
         !glossaryReady &&
         !strategicFaqReady &&
         !discoveryReady &&
         !analyticsReady &&
+        !seoReady &&
         /\b(complete|comprehensive|full lifecycle|historical|over time|pagination|100,?000|appeal|recus|threat model|scale-resilient|every route|all states|tier-2|tier-3)\b/i.test(
           entry.normalized_requirement,
         );

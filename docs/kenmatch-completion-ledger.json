@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-07-28T10:46:49.514Z",
+  "generated_at": "2026-07-29T18:23:29.081Z",
   "generator": "scripts/generate-completion-ledger.mjs",
   "repository": {
     "path": ".",
@@ -268,7 +268,7 @@
       "path": "PLANS.md",
       "line_count": 574,
       "heading_count": 44,
-      "sha256": "25c45c06a6c6e91356188f57b01a8790e726f7644fd514175143a8629ea653ee",
+      "sha256": "116bfeb3f1fb73d351c048d718287fe532fa65b321ee5523fd376eb4f12287ce",
       "extracted_requirements": 4,
       "historical_claims": 0,
       "reference_constraints": 0,
@@ -305,11 +305,11 @@
       "name": "docs/architecture.md",
       "authority": "current-repository",
       "path": "docs/architecture.md",
-      "line_count": 192,
+      "line_count": 210,
       "heading_count": 13,
-      "sha256": "a931d206d89f8e7b27079c9fcaa6f8c3fcb916a180f17cd2af8df8c4ec46be2c",
+      "sha256": "533a22258645e2a046d2c685e9f8ba9cfb55a0f0b2054d3e24bd98575ddbab2c",
       "extracted_requirements": 0,
-      "historical_claims": 62,
+      "historical_claims": 66,
       "reference_constraints": 0,
       "status": "scanned",
       "note": ""
@@ -318,10 +318,10 @@
       "name": "docs/requirements-traceability.md",
       "authority": "current-repository",
       "path": "docs/requirements-traceability.md",
-      "line_count": 118,
-      "heading_count": 24,
-      "sha256": "c7f8694f4d6ffd39ed29fc0dbf2800c1ed9d95b509a57109000f24ed3e060154",
-      "extracted_requirements": 57,
+      "line_count": 141,
+      "heading_count": 25,
+      "sha256": "ec8cfeadb548262ed6ebcb05a37d9ac13cf82097eef9cfdc5307ef5387c775cd",
+      "extracted_requirements": 61,
       "historical_claims": 0,
       "reference_constraints": 0,
       "status": "scanned",
@@ -368,14 +368,14 @@
     }
   ],
   "summary": {
-    "candidate_requirements_extracted": 593,
-    "canonical_requirements": 504,
+    "candidate_requirements_extracted": 597,
+    "canonical_requirements": 508,
     "duplicate_backlinks_preserved": 89,
-    "source_claims": 202,
+    "source_claims": 206,
     "reference_constraints": 168,
     "status_counts": {
-      "IMPLEMENTED_UNVALIDATED": 236,
-      "NOT_AUDITED": 253,
+      "IMPLEMENTED_UNVALIDATED": 250,
+      "NOT_AUDITED": 243,
       "PARTIAL": 12,
       "MISSING": 3
     },
@@ -2262,7 +2262,7 @@
     {
       "id": "REQ-19DD1C9762CB",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 117; Treasury integrations",
+      "source_line_or_section": "line 140; Treasury integrations",
       "normalized_requirement": "Ensure the economics layer is production-shaped but still partly demo-backed because simulated runway remains part of the seeded public ledger.",
       "exact_short_excerpt": "The economics layer is production-shaped but still partly demo-backed because simulated runway remains part of the seeded public ledger.",
       "priority": "P0",
@@ -2293,7 +2293,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 117; Treasury integrations",
+          "source_line_or_section": "line 140; Treasury integrations",
           "authority": "current-repository"
         }
       ]
@@ -2513,7 +2513,7 @@
     {
       "id": "REQ-02263810873D",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 103; Public deployment and self-hosting readiness",
+      "source_line_or_section": "line 126; Public deployment and self-hosting readiness",
       "normalized_requirement": "Ensure synology-specific public-hosting guidance and hardening checklists live in docs/synology-nas-deploy.md and docs/public-security-hardening.md .",
       "exact_short_excerpt": "Synology-specific public-hosting guidance and hardening checklists live in docs/synology-nas-deploy.md and docs/public-security-hardening.md .",
       "priority": "P0",
@@ -2544,7 +2544,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 103; Public deployment and self-hosting readiness",
+          "source_line_or_section": "line 126; Public deployment and self-hosting readiness",
           "authority": "current-repository"
         }
       ]
@@ -3138,7 +3138,7 @@
     {
       "id": "REQ-132588D61B11",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 104; Public deployment and self-hosting readiness",
+      "source_line_or_section": "line 127; Public deployment and self-hosting readiness",
       "normalized_requirement": "Ensure synology NAS deployment instructions live in docs/synology-nas-deploy.md .",
       "exact_short_excerpt": "Synology NAS deployment instructions live in docs/synology-nas-deploy.md .",
       "priority": "P0",
@@ -3160,7 +3160,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 104; Public deployment and self-hosting readiness",
+          "source_line_or_section": "line 127; Public deployment and self-hosting readiness",
           "authority": "current-repository"
         }
       ]
@@ -3395,7 +3395,7 @@
     {
       "id": "REQ-CD72AF0E2CD5",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 100; Public deployment and self-hosting readiness",
+      "source_line_or_section": "line 123; Public deployment and self-hosting readiness",
       "normalized_requirement": "Ensure docker deployment lives in Dockerfile and docker-compose.synology.yml .",
       "exact_short_excerpt": "Docker deployment lives in Dockerfile and docker-compose.synology.yml .",
       "priority": "P0",
@@ -3417,7 +3417,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 100; Public deployment and self-hosting readiness",
+          "source_line_or_section": "line 123; Public deployment and self-hosting readiness",
           "authority": "current-repository"
         }
       ]
@@ -4824,12 +4824,22 @@
         "src/components/admin/category-proposals.tsx:1",
         "src/components/task-board-filters.tsx:1",
         "src/components/search-field.tsx:1",
-        "src/app/kens/page.tsx:1"
+        "src/app/kens/page.tsx:1",
+        "src/lib/seo.ts:1",
+        "src/app/robots.ts:1",
+        "src/app/sitemap.ts:1",
+        "src/proxy.ts:1",
+        "scripts/audit-seo.mjs:1",
+        "docs/seo-implementation.md:1",
+        "docs/marketing/seo-and-content-strategy.md:1",
+        "docs/marketing/launch-and-community-strategy.md:1",
+        "docs/community/reddit-launch-guide.md:1"
       ],
       "current_test_evidence": [
         "tests/taxonomy.test.ts:1",
         "tests/category-symbol-assets.test.ts:1",
-        "tests/discovery.test.ts:1"
+        "tests/discovery.test.ts:1",
+        "tests/seo.test.ts:1"
       ],
       "current_live_evidence": [],
       "status": "IMPLEMENTED_UNVALIDATED",
@@ -4841,7 +4851,8 @@
       "test_ids": [
         "taxonomy.test.ts",
         "category-symbol-assets.test.ts",
-        "discovery.test.ts"
+        "discovery.test.ts",
+        "seo.test.ts"
       ],
       "commits": [],
       "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
@@ -4866,10 +4877,20 @@
       "current_code_evidence": [
         "src/lib/faq.ts:1",
         "src/components/faq-explorer.tsx:1",
-        "src/app/faq/page.tsx:1"
+        "src/app/faq/page.tsx:1",
+        "src/lib/seo.ts:1",
+        "src/app/robots.ts:1",
+        "src/app/sitemap.ts:1",
+        "src/proxy.ts:1",
+        "scripts/audit-seo.mjs:1",
+        "docs/seo-implementation.md:1",
+        "docs/marketing/seo-and-content-strategy.md:1",
+        "docs/marketing/launch-and-community-strategy.md:1",
+        "docs/community/reddit-launch-guide.md:1"
       ],
       "current_test_evidence": [
-        "tests/faq-contact.test.ts:1"
+        "tests/faq-contact.test.ts:1",
+        "tests/seo.test.ts:1"
       ],
       "current_live_evidence": [],
       "status": "IMPLEMENTED_UNVALIDATED",
@@ -4879,7 +4900,8 @@
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
       "test_ids": [
-        "faq-contact.test.ts"
+        "faq-contact.test.ts",
+        "seo.test.ts"
       ],
       "commits": [],
       "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
@@ -5841,12 +5863,22 @@
         "src/lib/allocation-policy.ts:1",
         "src/lib/discovery.ts:1",
         "src/lib/db.ts:1",
-        "docs/ranking-discovery.md:1"
+        "docs/ranking-discovery.md:1",
+        "src/lib/seo.ts:1",
+        "src/app/robots.ts:1",
+        "src/app/sitemap.ts:1",
+        "src/proxy.ts:1",
+        "scripts/audit-seo.mjs:1",
+        "docs/seo-implementation.md:1",
+        "docs/marketing/seo-and-content-strategy.md:1",
+        "docs/marketing/launch-and-community-strategy.md:1",
+        "docs/community/reddit-launch-guide.md:1"
       ],
       "current_test_evidence": [
         "tests/discovery.test.ts:1",
         "tests/allocation.test.ts:1",
-        "tests/attestation.test.ts:1"
+        "tests/attestation.test.ts:1",
+        "tests/seo.test.ts:1"
       ],
       "current_live_evidence": [],
       "status": "IMPLEMENTED_UNVALIDATED",
@@ -5858,7 +5890,8 @@
       "test_ids": [
         "discovery.test.ts",
         "allocation.test.ts",
-        "attestation.test.ts"
+        "attestation.test.ts",
+        "seo.test.ts"
       ],
       "commits": [],
       "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
@@ -6703,10 +6736,22 @@
       "exact_short_excerpt": "Do not rely on Playwright fullPage: true as the canonical archival path. Use overlapping viewport tiles with:",
       "priority": "P1",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/seo.ts:1",
+        "src/app/robots.ts:1",
+        "src/app/sitemap.ts:1",
+        "src/proxy.ts:1",
+        "scripts/audit-seo.mjs:1",
+        "docs/seo-implementation.md:1",
+        "docs/marketing/seo-and-content-strategy.md:1",
+        "docs/marketing/launch-and-community-strategy.md:1",
+        "docs/community/reddit-launch-guide.md:1"
+      ],
+      "current_test_evidence": [
+        "tests/seo.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "NOT_AUDITED",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under D-MODERATION.",
       "acceptance_criteria": [
@@ -6720,9 +6765,11 @@
         "animation suppression or deterministic settling;",
         "screenshot dimensions and DPR recorded."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "seo.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "D-MODERATION",
       "source_backlinks": [
         {
@@ -6824,7 +6871,15 @@
       "priority": "P1",
       "risk": "high",
       "current_code_evidence": [
+        "src/lib/seo.ts:1",
+        "src/app/robots.ts:1",
+        "src/app/sitemap.ts:1",
         "src/proxy.ts:1",
+        "scripts/audit-seo.mjs:1",
+        "docs/seo-implementation.md:1",
+        "docs/marketing/seo-and-content-strategy.md:1",
+        "docs/marketing/launch-and-community-strategy.md:1",
+        "docs/community/reddit-launch-guide.md:1",
         "src/lib/security.ts:1",
         "src/lib/session.ts:1",
         "src/app/api/stripe/webhook/route.ts:1",
@@ -6833,6 +6888,7 @@
         "src/components/site-shell.tsx:1"
       ],
       "current_test_evidence": [
+        "tests/seo.test.ts:1",
         "tests/test-auth.test.ts:1"
       ],
       "current_live_evidence": [],
@@ -6843,6 +6899,7 @@
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
       "test_ids": [
+        "seo.test.ts",
         "test-auth.test.ts"
       ],
       "commits": [],
@@ -7129,13 +7186,23 @@
         "src/lib/types.ts:1",
         "src/components/ken-lifecycle-map.tsx:1",
         "src/components/ken-timing-strip.tsx:1",
-        "docs/lifecycle-graphical-abstract.md:1"
+        "docs/lifecycle-graphical-abstract.md:1",
+        "src/lib/seo.ts:1",
+        "src/app/robots.ts:1",
+        "src/app/sitemap.ts:1",
+        "src/proxy.ts:1",
+        "scripts/audit-seo.mjs:1",
+        "docs/seo-implementation.md:1",
+        "docs/marketing/seo-and-content-strategy.md:1",
+        "docs/marketing/launch-and-community-strategy.md:1",
+        "docs/community/reddit-launch-guide.md:1"
       ],
       "current_test_evidence": [
         "tests/allocation.test.ts:1",
         "tests/attestation.test.ts:1",
         "tests/discovery.test.ts:1",
-        "tests/lifecycle-policy.test.ts:1"
+        "tests/lifecycle-policy.test.ts:1",
+        "tests/seo.test.ts:1"
       ],
       "current_live_evidence": [],
       "status": "IMPLEMENTED_UNVALIDATED",
@@ -7168,7 +7235,8 @@
         "allocation.test.ts",
         "attestation.test.ts",
         "discovery.test.ts",
-        "lifecycle-policy.test.ts"
+        "lifecycle-policy.test.ts",
+        "seo.test.ts"
       ],
       "commits": [],
       "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
@@ -7813,10 +7881,22 @@
       "exact_short_excerpt": "Include:",
       "priority": "P1",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/seo.ts:1",
+        "src/app/robots.ts:1",
+        "src/app/sitemap.ts:1",
+        "src/proxy.ts:1",
+        "scripts/audit-seo.mjs:1",
+        "docs/seo-implementation.md:1",
+        "docs/marketing/seo-and-content-strategy.md:1",
+        "docs/marketing/launch-and-community-strategy.md:1",
+        "docs/community/reddit-launch-guide.md:1"
+      ],
+      "current_test_evidence": [
+        "tests/seo.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "NOT_AUDITED",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under H-SEO-COMMUNITY.",
       "acceptance_criteria": [
@@ -7832,9 +7912,11 @@
         "crisis/misinformation response;",
         "no astroturfing, vote manipulation, spam, or undisclosed automated posting."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "seo.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "H-SEO-COMMUNITY",
       "source_backlinks": [
         {
@@ -7853,10 +7935,22 @@
       "exact_short_excerpt": "Create a canonical policy and data/UI representation for stop reasons, including:",
       "priority": "P1",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/seo.ts:1",
+        "src/app/robots.ts:1",
+        "src/app/sitemap.ts:1",
+        "src/proxy.ts:1",
+        "scripts/audit-seo.mjs:1",
+        "docs/seo-implementation.md:1",
+        "docs/marketing/seo-and-content-strategy.md:1",
+        "docs/marketing/launch-and-community-strategy.md:1",
+        "docs/community/reddit-launch-guide.md:1"
+      ],
+      "current_test_evidence": [
+        "tests/seo.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "NOT_AUDITED",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under H-SEO-COMMUNITY.",
       "acceptance_criteria": [
@@ -7871,9 +7965,11 @@
         "successful early completion;",
         "owner operational emergency with audit note."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "seo.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "H-SEO-COMMUNITY",
       "source_backlinks": [
         {
@@ -7892,10 +7988,22 @@
       "exact_short_excerpt": "Audit the actual rendered and response state, not only metadata declarations. Implement or validate:",
       "priority": "P1",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/seo.ts:1",
+        "src/app/robots.ts:1",
+        "src/app/sitemap.ts:1",
+        "src/proxy.ts:1",
+        "scripts/audit-seo.mjs:1",
+        "docs/seo-implementation.md:1",
+        "docs/marketing/seo-and-content-strategy.md:1",
+        "docs/marketing/launch-and-community-strategy.md:1",
+        "docs/community/reddit-launch-guide.md:1"
+      ],
+      "current_test_evidence": [
+        "tests/seo.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "NOT_AUDITED",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under H-SEO-COMMUNITY.",
       "acceptance_criteria": [
@@ -7914,9 +8022,11 @@
         "no indexed private/admin data;",
         "no keyword stuffing."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "seo.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "H-SEO-COMMUNITY",
       "source_backlinks": [
         {
@@ -7935,19 +8045,33 @@
       "exact_short_excerpt": "marketing and publicity strategy, including but not limited to:",
       "priority": "P1",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/seo.ts:1",
+        "src/app/robots.ts:1",
+        "src/app/sitemap.ts:1",
+        "src/proxy.ts:1",
+        "scripts/audit-seo.mjs:1",
+        "docs/seo-implementation.md:1",
+        "docs/marketing/seo-and-content-strategy.md:1",
+        "docs/marketing/launch-and-community-strategy.md:1",
+        "docs/community/reddit-launch-guide.md:1"
+      ],
+      "current_test_evidence": [
+        "tests/seo.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "NOT_AUDITED",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under H-SEO-COMMUNITY.",
       "acceptance_criteria": [
         "social media strategy (e.g., Reddit, Twitter/X, LinkedIn, Instagram, Hacker News/news.ycombinator.com)",
         "Add official subreddit ( branding, setup, engagement integration within main kmat.ch site, and separate absolute optimal corresponding subreddit setup guide relative to latest complete version of the website website."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "seo.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "H-SEO-COMMUNITY",
       "source_backlinks": [
         {
@@ -7966,18 +8090,32 @@
       "exact_short_excerpt": "add SEO/community strategy docs;",
       "priority": "P1",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/seo.ts:1",
+        "src/app/robots.ts:1",
+        "src/app/sitemap.ts:1",
+        "src/proxy.ts:1",
+        "scripts/audit-seo.mjs:1",
+        "docs/seo-implementation.md:1",
+        "docs/marketing/seo-and-content-strategy.md:1",
+        "docs/marketing/launch-and-community-strategy.md:1",
+        "docs/community/reddit-launch-guide.md:1"
+      ],
+      "current_test_evidence": [
+        "tests/seo.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "NOT_AUDITED",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under H-SEO-COMMUNITY.",
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "seo.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "H-SEO-COMMUNITY",
       "source_backlinks": [
         {
@@ -8043,18 +8181,32 @@
       "exact_short_excerpt": "Run the repository’s canonical commands and add missing scripts where appropriate:",
       "priority": "P1",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/seo.ts:1",
+        "src/app/robots.ts:1",
+        "src/app/sitemap.ts:1",
+        "src/proxy.ts:1",
+        "scripts/audit-seo.mjs:1",
+        "docs/seo-implementation.md:1",
+        "docs/marketing/seo-and-content-strategy.md:1",
+        "docs/marketing/launch-and-community-strategy.md:1",
+        "docs/community/reddit-launch-guide.md:1"
+      ],
+      "current_test_evidence": [
+        "tests/seo.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "NOT_AUDITED",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under H-SEO-COMMUNITY.",
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "seo.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "H-SEO-COMMUNITY",
       "source_backlinks": [
         {
@@ -8073,18 +8225,32 @@
       "exact_short_excerpt": "verify canonical HTTPS behavior;",
       "priority": "P1",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/seo.ts:1",
+        "src/app/robots.ts:1",
+        "src/app/sitemap.ts:1",
+        "src/proxy.ts:1",
+        "scripts/audit-seo.mjs:1",
+        "docs/seo-implementation.md:1",
+        "docs/marketing/seo-and-content-strategy.md:1",
+        "docs/marketing/launch-and-community-strategy.md:1",
+        "docs/community/reddit-launch-guide.md:1"
+      ],
+      "current_test_evidence": [
+        "tests/seo.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "NOT_AUDITED",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under H-SEO-COMMUNITY.",
       "acceptance_criteria": [
         "The requirement is implemented or dispositioned with reproducible current evidence."
       ],
-      "test_ids": [],
+      "test_ids": [
+        "seo.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "H-SEO-COMMUNITY",
       "source_backlinks": [
         {
@@ -8139,10 +8305,22 @@
       "exact_short_excerpt": "SEO optimization, including but not limited to:",
       "priority": "P1",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/seo.ts:1",
+        "src/app/robots.ts:1",
+        "src/app/sitemap.ts:1",
+        "src/proxy.ts:1",
+        "scripts/audit-seo.mjs:1",
+        "docs/seo-implementation.md:1",
+        "docs/marketing/seo-and-content-strategy.md:1",
+        "docs/marketing/launch-and-community-strategy.md:1",
+        "docs/community/reddit-launch-guide.md:1"
+      ],
+      "current_test_evidence": [
+        "tests/seo.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "NOT_AUDITED",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under H-SEO-COMMUNITY.",
       "acceptance_criteria": [
@@ -8158,9 +8336,11 @@
         "content marketing strategy",
         "technical SEO optimizations (e.g., site speed, mobile optimization, structured data)"
       ],
-      "test_ids": [],
+      "test_ids": [
+        "seo.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "H-SEO-COMMUNITY",
       "source_backlinks": [
         {
@@ -13417,6 +13597,44 @@
       ]
     },
     {
+      "id": "REQ-29F4D44854D5",
+      "source_file": "docs/requirements-traceability.md",
+      "source_line_or_section": "line 106; Technical discovery and community integration",
+      "normalized_requirement": "Ensure root, FAQ, Ken, profile, and discussion schemas describe visible records only;",
+      "exact_short_excerpt": "Root, FAQ, Ken, profile, and discussion schemas describe visible records only;",
+      "priority": "P2",
+      "risk": "low",
+      "current_code_evidence": [
+        "src/lib/faq.ts:1",
+        "src/components/faq-explorer.tsx:1",
+        "src/app/faq/page.tsx:1"
+      ],
+      "current_test_evidence": [
+        "tests/faq-contact.test.ts:1"
+      ],
+      "current_live_evidence": [],
+      "status": "IMPLEMENTED_UNVALIDATED",
+      "superseded_by": null,
+      "implementation_plan": "Audit and implement under A-FAQ-GLOSSARY-TRUST.",
+      "acceptance_criteria": [
+        "The requirement is implemented or dispositioned with reproducible current evidence."
+      ],
+      "test_ids": [
+        "faq-contact.test.ts"
+      ],
+      "commits": [],
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
+      "workstream": "A-FAQ-GLOSSARY-TRUST",
+      "source_backlinks": [
+        {
+          "source_file": "docs/requirements-traceability.md",
+          "source_path": "docs/requirements-traceability.md",
+          "source_line_or_section": "line 106; Technical discovery and community integration",
+          "authority": "current-repository"
+        }
+      ]
+    },
+    {
       "id": "REQ-1A7C2C2F064B",
       "source_file": "KenMatch_DeepWiki.md",
       "source_line_or_section": "line 1501; 3.4 Session Management and Environment Configuration",
@@ -13604,6 +13822,50 @@
       ]
     },
     {
+      "id": "REQ-2BB0BF8C1FD1",
+      "source_file": "docs/requirements-traceability.md",
+      "source_line_or_section": "line 110; Technical discovery and community integration",
+      "normalized_requirement": "Ensure scripts/audit-seo.mjs validates the actual candidate responses, and",
+      "exact_short_excerpt": "scripts/audit-seo.mjs validates the actual candidate responses, and",
+      "priority": "P2",
+      "risk": "low",
+      "current_code_evidence": [
+        "src/lib/seo.ts:1",
+        "src/app/robots.ts:1",
+        "src/app/sitemap.ts:1",
+        "src/proxy.ts:1",
+        "scripts/audit-seo.mjs:1",
+        "docs/seo-implementation.md:1",
+        "docs/marketing/seo-and-content-strategy.md:1",
+        "docs/marketing/launch-and-community-strategy.md:1",
+        "docs/community/reddit-launch-guide.md:1"
+      ],
+      "current_test_evidence": [
+        "tests/seo.test.ts:1"
+      ],
+      "current_live_evidence": [],
+      "status": "IMPLEMENTED_UNVALIDATED",
+      "superseded_by": null,
+      "implementation_plan": "Audit and implement under B-FEED-RANKING-SEARCH.",
+      "acceptance_criteria": [
+        "The requirement is implemented or dispositioned with reproducible current evidence."
+      ],
+      "test_ids": [
+        "seo.test.ts"
+      ],
+      "commits": [],
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
+      "workstream": "B-FEED-RANKING-SEARCH",
+      "source_backlinks": [
+        {
+          "source_file": "docs/requirements-traceability.md",
+          "source_path": "docs/requirements-traceability.md",
+          "source_line_or_section": "line 110; Technical discovery and community integration",
+          "authority": "current-repository"
+        }
+      ]
+    },
+    {
       "id": "REQ-300C1AD38953",
       "source_file": "docs/requirements-traceability.md",
       "source_line_or_section": "line 56; Public discussion with ranking and replies",
@@ -13696,12 +13958,22 @@
         "src/lib/allocation-policy.ts:1",
         "src/lib/discovery.ts:1",
         "src/lib/db.ts:1",
-        "docs/ranking-discovery.md:1"
+        "docs/ranking-discovery.md:1",
+        "src/lib/seo.ts:1",
+        "src/app/robots.ts:1",
+        "src/app/sitemap.ts:1",
+        "src/proxy.ts:1",
+        "scripts/audit-seo.mjs:1",
+        "docs/seo-implementation.md:1",
+        "docs/marketing/seo-and-content-strategy.md:1",
+        "docs/marketing/launch-and-community-strategy.md:1",
+        "docs/community/reddit-launch-guide.md:1"
       ],
       "current_test_evidence": [
         "tests/allocation.test.ts:1",
         "tests/attestation.test.ts:1",
-        "tests/discovery.test.ts:1"
+        "tests/discovery.test.ts:1",
+        "tests/seo.test.ts:1"
       ],
       "current_live_evidence": [],
       "status": "IMPLEMENTED_UNVALIDATED",
@@ -13713,7 +13985,8 @@
       "test_ids": [
         "allocation.test.ts",
         "attestation.test.ts",
-        "discovery.test.ts"
+        "discovery.test.ts",
+        "seo.test.ts"
       ],
       "commits": [],
       "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
@@ -13723,6 +13996,55 @@
           "source_file": "KenMatch_Conception.md",
           "source_path": "KenMatch_Conception.md",
           "source_line_or_section": "line 185; 2\\. The KenMatch Solution: Meritocratic Resource Allocation",
+          "authority": "current-repository"
+        }
+      ]
+    },
+    {
+      "id": "REQ-67DDBCF55CBD",
+      "source_file": "docs/requirements-traceability.md",
+      "source_line_or_section": "line 116; Technical discovery and community integration",
+      "normalized_requirement": "Ensure search, launch, ethical outreach, crisis-response, and subreddit operations are",
+      "exact_short_excerpt": "Search, launch, ethical outreach, crisis-response, and subreddit operations are",
+      "priority": "P2",
+      "risk": "low",
+      "current_code_evidence": [
+        "src/components/task-board-filters.tsx:1",
+        "src/components/search-field.tsx:1",
+        "src/app/kens/page.tsx:1",
+        "src/lib/seo.ts:1",
+        "src/app/robots.ts:1",
+        "src/app/sitemap.ts:1",
+        "src/proxy.ts:1",
+        "scripts/audit-seo.mjs:1",
+        "docs/seo-implementation.md:1",
+        "docs/marketing/seo-and-content-strategy.md:1",
+        "docs/marketing/launch-and-community-strategy.md:1",
+        "docs/community/reddit-launch-guide.md:1"
+      ],
+      "current_test_evidence": [
+        "tests/discovery.test.ts:1",
+        "tests/seo.test.ts:1"
+      ],
+      "current_live_evidence": [],
+      "status": "IMPLEMENTED_UNVALIDATED",
+      "superseded_by": null,
+      "implementation_plan": "Audit and implement under B-FEED-RANKING-SEARCH.",
+      "acceptance_criteria": [
+        "The requirement is implemented or dispositioned with reproducible current evidence."
+      ],
+      "test_ids": [
+        "discovery.test.ts",
+        "seo.test.ts"
+      ],
+      "commits": [],
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
+      "workstream": "B-FEED-RANKING-SEARCH",
+      "source_backlinks": [
+        {
+          "source_file": "docs/requirements-traceability.md",
+          "source_path": "docs/requirements-traceability.md",
+          "source_line_or_section": "line 116; Technical discovery and community integration",
           "authority": "current-repository"
         }
       ]
@@ -13777,14 +14099,24 @@
         "src/lib/allocation-policy.ts:1",
         "src/lib/discovery.ts:1",
         "src/lib/db.ts:1",
-        "docs/ranking-discovery.md:1"
+        "docs/ranking-discovery.md:1",
+        "src/lib/seo.ts:1",
+        "src/app/robots.ts:1",
+        "src/app/sitemap.ts:1",
+        "src/proxy.ts:1",
+        "scripts/audit-seo.mjs:1",
+        "docs/seo-implementation.md:1",
+        "docs/marketing/seo-and-content-strategy.md:1",
+        "docs/marketing/launch-and-community-strategy.md:1",
+        "docs/community/reddit-launch-guide.md:1"
       ],
       "current_test_evidence": [
         "tests/taxonomy.test.ts:1",
         "tests/category-symbol-assets.test.ts:1",
         "tests/discovery.test.ts:1",
         "tests/allocation.test.ts:1",
-        "tests/attestation.test.ts:1"
+        "tests/attestation.test.ts:1",
+        "tests/seo.test.ts:1"
       ],
       "current_live_evidence": [],
       "status": "IMPLEMENTED_UNVALIDATED",
@@ -13798,7 +14130,8 @@
         "category-symbol-assets.test.ts",
         "discovery.test.ts",
         "allocation.test.ts",
-        "attestation.test.ts"
+        "attestation.test.ts",
+        "seo.test.ts"
       ],
       "commits": [],
       "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
@@ -14033,6 +14366,50 @@
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
           "source_line_or_section": "line 44; Transparent category and Ken intake",
+          "authority": "current-repository"
+        }
+      ]
+    },
+    {
+      "id": "REQ-E1850993ECE6",
+      "source_file": "docs/requirements-traceability.md",
+      "source_line_or_section": "line 100; Technical discovery and community integration",
+      "normalized_requirement": "Ensure src/lib/seo.ts centralizes canonical URLs, route-specific public/private",
+      "exact_short_excerpt": "src/lib/seo.ts centralizes canonical URLs, route-specific public/private",
+      "priority": "P2",
+      "risk": "low",
+      "current_code_evidence": [
+        "src/lib/seo.ts:1",
+        "src/app/robots.ts:1",
+        "src/app/sitemap.ts:1",
+        "src/proxy.ts:1",
+        "scripts/audit-seo.mjs:1",
+        "docs/seo-implementation.md:1",
+        "docs/marketing/seo-and-content-strategy.md:1",
+        "docs/marketing/launch-and-community-strategy.md:1",
+        "docs/community/reddit-launch-guide.md:1"
+      ],
+      "current_test_evidence": [
+        "tests/seo.test.ts:1"
+      ],
+      "current_live_evidence": [],
+      "status": "IMPLEMENTED_UNVALIDATED",
+      "superseded_by": null,
+      "implementation_plan": "Audit and implement under B-FEED-RANKING-SEARCH.",
+      "acceptance_criteria": [
+        "The requirement is implemented or dispositioned with reproducible current evidence."
+      ],
+      "test_ids": [
+        "seo.test.ts"
+      ],
+      "commits": [],
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
+      "workstream": "B-FEED-RANKING-SEARCH",
+      "source_backlinks": [
+        {
+          "source_file": "docs/requirements-traceability.md",
+          "source_path": "docs/requirements-traceability.md",
+          "source_line_or_section": "line 100; Technical discovery and community integration",
           "authority": "current-repository"
         }
       ]
@@ -15572,7 +15949,7 @@
     {
       "id": "REQ-5E79D5B9E479",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 118; Treasury integrations",
+      "source_line_or_section": "line 141; Treasury integrations",
       "normalized_requirement": "Ensure live sponsor checkout is wired for Stripe Checkout plus webhook confirmation, but accounting exports, CRM sync, and broader payments operations are still future integrations.",
       "exact_short_excerpt": "Live sponsor checkout is wired for Stripe Checkout plus webhook confirmation, but accounting exports, CRM sync, and broader payments operations are still future integrations.",
       "priority": "P2",
@@ -15603,7 +15980,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 118; Treasury integrations",
+          "source_line_or_section": "line 141; Treasury integrations",
           "authority": "current-repository"
         }
       ]
@@ -16809,7 +17186,7 @@
     {
       "id": "REQ-687791CB5B05",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 110; Internal naming",
+      "source_line_or_section": "line 133; Internal naming",
       "normalized_requirement": "Ensure some internal code and database identifiers still use task for compatibility and to avoid high-risk schema churn.",
       "exact_short_excerpt": "Some internal code and database identifiers still use task for compatibility and to avoid high-risk schema churn.",
       "priority": "P2",
@@ -16831,7 +17208,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 110; Internal naming",
+          "source_line_or_section": "line 133; Internal naming",
           "authority": "current-repository"
         }
       ]
@@ -16839,7 +17216,7 @@
     {
       "id": "REQ-6B6D5EB3206C",
       "source_file": "docs/requirements-traceability.md",
-      "source_line_or_section": "line 109; Internal naming",
+      "source_line_or_section": "line 132; Internal naming",
       "normalized_requirement": "Ensure the public product language is now Ken / Kens .",
       "exact_short_excerpt": "The public product language is now Ken / Kens .",
       "priority": "P2",
@@ -16861,7 +17238,7 @@
         {
           "source_file": "docs/requirements-traceability.md",
           "source_path": "docs/requirements-traceability.md",
-          "source_line_or_section": "line 109; Internal naming",
+          "source_line_or_section": "line 132; Internal naming",
           "authority": "current-repository"
         }
       ]
@@ -18630,12 +19007,22 @@
         "src/lib/allocation-policy.ts:1",
         "src/lib/discovery.ts:1",
         "src/lib/db.ts:1",
-        "docs/ranking-discovery.md:1"
+        "docs/ranking-discovery.md:1",
+        "src/lib/seo.ts:1",
+        "src/app/robots.ts:1",
+        "src/app/sitemap.ts:1",
+        "src/proxy.ts:1",
+        "scripts/audit-seo.mjs:1",
+        "docs/seo-implementation.md:1",
+        "docs/marketing/seo-and-content-strategy.md:1",
+        "docs/marketing/launch-and-community-strategy.md:1",
+        "docs/community/reddit-launch-guide.md:1"
       ],
       "current_test_evidence": [
         "tests/allocation.test.ts:1",
         "tests/attestation.test.ts:1",
-        "tests/discovery.test.ts:1"
+        "tests/discovery.test.ts:1",
+        "tests/seo.test.ts:1"
       ],
       "current_live_evidence": [],
       "status": "IMPLEMENTED_UNVALIDATED",
@@ -18647,7 +19034,8 @@
       "test_ids": [
         "allocation.test.ts",
         "attestation.test.ts",
-        "discovery.test.ts"
+        "discovery.test.ts",
+        "seo.test.ts"
       ],
       "commits": [],
       "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
@@ -18669,18 +19057,32 @@
       "exact_short_excerpt": "NOW PLEASE UPGRADE THE UI TO BE MORE LIKE A MODERN REDDIT, LESS ELITIST, MORE INCLUSIVE. ENHANCE THE REALISM OF THE DEMO/SIM TO USE simulated/sandbox capital and hypothetical consumer-grade frontier AI results generated by FRONTEIR STANDARD API ACCESSIBLE mod…",
       "priority": "P3",
       "risk": "low",
-      "current_code_evidence": [],
-      "current_test_evidence": [],
+      "current_code_evidence": [
+        "src/lib/seo.ts:1",
+        "src/app/robots.ts:1",
+        "src/app/sitemap.ts:1",
+        "src/proxy.ts:1",
+        "scripts/audit-seo.mjs:1",
+        "docs/seo-implementation.md:1",
+        "docs/marketing/seo-and-content-strategy.md:1",
+        "docs/marketing/launch-and-community-strategy.md:1",
+        "docs/community/reddit-launch-guide.md:1"
+      ],
+      "current_test_evidence": [
+        "tests/seo.test.ts:1"
+      ],
       "current_live_evidence": [],
-      "status": "NOT_AUDITED",
+      "status": "IMPLEMENTED_UNVALIDATED",
       "superseded_by": null,
       "implementation_plan": "Audit and implement under H-SEO-COMMUNITY.",
       "acceptance_criteria": [
         "NOW PLEASE UPGRADE THE UI TO BE MORE LIKE A MODERN REDDIT, LESS ELITIST, MORE INCLUSIVE. ENHANCE THE REALISM OF THE DEMO/SIM TO USE simulated/sandbox capital and hypothetical consumer-grade frontier AI results generated by FRONTEIR STANDARD API ACCESSIBLE models TO MAXIMALLY DRIVE ENGAGEMENT AND SPONSORSHIP!"
       ],
-      "test_ids": [],
+      "test_ids": [
+        "seo.test.ts"
+      ],
       "commits": [],
-      "notes": "Initial automated classification; current evidence must be manually verified before DONE.",
+      "notes": "Related implementation and/or tests exist; runtime and acceptance evidence is still required.",
       "workstream": "H-SEO-COMMUNITY",
       "source_backlinks": [
         {
@@ -22208,277 +22610,301 @@
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 41; Route structure",
+      "source_line_or_section": "line 40; Route structure",
+      "exact_short_excerpt": "src/app/faq/page.tsx , src/components/faq-explorer.tsx , and src/lib/faq.ts"
+    },
+    {
+      "claim_type": "current_documentation_claim",
+      "source_file": "docs/architecture.md",
+      "source_line_or_section": "line 44; Route structure",
+      "exact_short_excerpt": "src/app/glossary/page.tsx , src/components/glossary-explorer.tsx , and"
+    },
+    {
+      "claim_type": "current_documentation_claim",
+      "source_file": "docs/architecture.md",
+      "source_line_or_section": "line 50; Route structure",
       "exact_short_excerpt": "src/app/admin/page.tsx"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 42; Route structure",
+      "source_line_or_section": "line 51; Route structure",
       "exact_short_excerpt": "Role-gated operations portal for visitors, privacy-safe historical analytics, notification health, verifications, roles, moderation, and audit log review."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 45; Route structure",
+      "source_line_or_section": "line 54; Route structure",
       "exact_short_excerpt": "src/components/ken-visual.tsx , src/lib/taxonomy.ts , and public/category-icons/{dark,light}/ .svg"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 46; Route structure",
+      "source_line_or_section": "line 55; Route structure",
       "exact_short_excerpt": "The live, theme-aware Ken category identity v2 renderer plus exact static dark/light reference exports, sharing the production spectrum perimeter and radial jewel while preserving dynamic category, stage, tier, and database-override semantics."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 52; Route structure",
+      "source_line_or_section": "line 61; Route structure",
       "exact_short_excerpt": "Stripe webhook handler for promoted sponsor commitments."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 64; Core records",
+      "source_line_or_section": "line 73; Core records",
       "exact_short_excerpt": "tasks (internal compatibility name for Kens)"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 92; Why the model is split this way",
+      "source_line_or_section": "line 101; Why the model is split this way",
       "exact_short_excerpt": "votes and task pulse votes are separate so public signal does not collapse into scarce allocation voice."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 94; Why the model is split this way",
+      "source_line_or_section": "line 103; Why the model is split this way",
       "exact_short_excerpt": "ken submissions holds the private intake state for user-created Kens. Seeded demonstration Kens have no intake row, preserving their existing public behavior."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 95; Why the model is split this way",
+      "source_line_or_section": "line 104; Why the model is split this way",
       "exact_short_excerpt": "review events is an append-only, deduplicated decision history shared by Ken and category intake. Public and internal notes are stored separately."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 98; Why the model is split this way",
+      "source_line_or_section": "line 107; Why the model is split this way",
       "exact_short_excerpt": "/admin exposes bounded, filterable review queues; /account submission-reviews exposes only the submitter-safe history; /reviews publishes final explanations without private reviewer notes."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 100; Why the model is split this way",
+      "source_line_or_section": "line 109; Why the model is split this way",
       "exact_short_excerpt": "sponsorship commitments tracks projected, simulated, checkout-pending, and paid funding states separately from the immutable treasury ledger."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 101; Why the model is split this way",
+      "source_line_or_section": "line 110; Why the model is split this way",
       "exact_short_excerpt": "profile attestations separates standing, review status, and sybil-risk signals from profile copy, while src/lib/attestation.ts converts that state into participation limits and voice caps."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 103; Why the model is split this way",
+      "source_line_or_section": "line 112; Why the model is split this way",
       "exact_short_excerpt": "visitors retains the purpose-salted lifetime visitor signature and country-level state; visitor daily activity provides bounded daily aggregate history without raw IP, user-agent, or precise geography."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 105; Why the model is split this way",
+      "source_line_or_section": "line 114; Why the model is split this way",
       "exact_short_excerpt": "site settings and audit log support notification settings, online About-page editing, and durable redacted audit trails."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 126; Core UI pieces",
+      "source_line_or_section": "line 135; Core UI pieces",
       "exact_short_excerpt": "Actual-height-gated reading progress for the five editorial long-form routes; it is intentionally absent from feed, submission, detail, account, and admin workflows."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 127; Core UI pieces",
+      "source_line_or_section": "line 136; Core UI pieces",
       "exact_short_excerpt": "src/components/kenmatch-mark.tsx"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 129; Core UI pieces",
+      "source_line_or_section": "line 138; Core UI pieces",
       "exact_short_excerpt": "src/components/ken-timing-strip.tsx"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 132; Core UI pieces",
+      "source_line_or_section": "line 141; Core UI pieces",
       "exact_short_excerpt": "Ken cards for the board and overview page."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 133; Core UI pieces",
+      "source_line_or_section": "line 142; Core UI pieces",
       "exact_short_excerpt": "src/components/task-pulse-panel.tsx"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 136; Core UI pieces",
+      "source_line_or_section": "line 145; Core UI pieces",
       "exact_short_excerpt": "Quadratic voice allocation panel with visible voice cap."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 141; Core UI pieces",
+      "source_line_or_section": "line 150; Core UI pieces",
       "exact_short_excerpt": "src/components/auth-panels.tsx"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 142; Core UI pieces",
+      "source_line_or_section": "line 151; Core UI pieces",
       "exact_short_excerpt": "Sign-in and sign-up UI."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 148; Core UI pieces",
+      "source_line_or_section": "line 157; Core UI pieces",
       "exact_short_excerpt": "Linked public profile surface for contributors referenced from Kens and comments; /people itself redirects to the Ken board rather than exposing a directory."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 151; Core UI pieces",
+      "source_line_or_section": "line 160; Core UI pieces",
       "exact_short_excerpt": "Admin audit history is fetched with listAuditLogPage in src/lib/db.ts . Filtering and pagination happen in SQL, metadata redaction is centralized in src/lib/audit-log.ts , and the admin renderer exposes complete event bodies through expandable/copyable detail…"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 153; Core UI pieces",
+      "source_line_or_section": "line 162; Core UI pieces",
       "exact_short_excerpt": "src/components/admin/"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 154; Core UI pieces",
+      "source_line_or_section": "line 163; Core UI pieces",
       "exact_short_excerpt": "Admin and owner management surfaces."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 155; Core UI pieces",
+      "source_line_or_section": "line 164; Core UI pieces",
       "exact_short_excerpt": "src/components/admin/historical-analytics.tsx"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 156; Core UI pieces",
+      "source_line_or_section": "line 165; Core UI pieces",
       "exact_short_excerpt": "Owner/admin-only server-rendered traffic, account, country, and notification trends with equal previous-period comparisons and semantic table equivalents."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 157; Core UI pieces",
+      "source_line_or_section": "line 166; Core UI pieces",
       "exact_short_excerpt": "src/components/visitor-map.tsx"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 158; Core UI pieces",
+      "source_line_or_section": "line 167; Core UI pieces",
       "exact_short_excerpt": "Anonymized country-level visitor geography display based on Cloudflare country headers and deterministic country centroids."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 159; Core UI pieces",
+      "source_line_or_section": "line 168; Core UI pieces",
       "exact_short_excerpt": "src/components/sponsor-form.tsx"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 160; Core UI pieces",
+      "source_line_or_section": "line 169; Core UI pieces",
       "exact_short_excerpt": "Public sponsorship intake with general, category, Ken, or safety-reserve restriction options."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 162; Core UI pieces",
+      "source_line_or_section": "line 171; Core UI pieces",
       "exact_short_excerpt": "Optional Cloudflare Turnstile widget for higher-risk forms."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 166; Accounts and sign-in",
+      "source_line_or_section": "line 175; Accounts and sign-in",
       "exact_short_excerpt": "src/lib/session.ts reads and writes the signed-in account cookie."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 167; Accounts and sign-in",
+      "source_line_or_section": "line 176; Accounts and sign-in",
       "exact_short_excerpt": "src/app/actions.ts creates accounts, opens sign-ins, sends verification/reset email, enforces rate limits, and clears sign-ins."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 168; Accounts and sign-in",
+      "source_line_or_section": "line 177; Accounts and sign-in",
       "exact_short_excerpt": "src/lib/db.ts stores accounts, hashed session tokens, email tokens, profile state, and licensing-consent state."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 169; Accounts and sign-in",
+      "source_line_or_section": "line 178; Accounts and sign-in",
       "exact_short_excerpt": "src/lib/mail.ts dispatches SMTP-backed verification, password reset, and admin notification messages when SMTP is configured."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 174; Deployment model",
+      "source_line_or_section": "line 183; Deployment model",
       "exact_short_excerpt": "npm run build runs Next's experimental compile mode and then generate-env mode so the standalone artifact has its static environment inlined before Docker copies it; scripts/repair-next-route-chunks.mjs then verifies app-route chunk references and repairs sin…"
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 175; Deployment model",
+      "source_line_or_section": "line 184; Deployment model",
       "exact_short_excerpt": "src/proxy.ts enforces host filtering, cross-site request blocking, and security headers for public deployments. Next.js 16 reports it as the app proxy/middleware boundary in production builds."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 177; Deployment model",
+      "source_line_or_section": "line 185; Deployment model",
+      "exact_short_excerpt": "src/lib/seo.ts , src/app/robots.ts , and src/app/sitemap.ts own canonical"
+    },
+    {
+      "claim_type": "current_documentation_claim",
+      "source_file": "docs/architecture.md",
+      "source_line_or_section": "line 189; Deployment model",
+      "exact_short_excerpt": "scripts/audit-seo.mjs verifies actual candidate responses for titles,"
+    },
+    {
+      "claim_type": "current_documentation_claim",
+      "source_file": "docs/architecture.md",
+      "source_line_or_section": "line 195; Deployment model",
       "exact_short_excerpt": "docker-compose.synology.yml mounts persistent app data, uses a read-only root filesystem, tmpfs for /tmp , and binds only to loopback."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 178; Deployment model",
+      "source_line_or_section": "line 196; Deployment model",
       "exact_short_excerpt": "docker-compose.synology.tunnel.yml adds a cloudflared sidecar option for Synology-hosted public deployments."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 183; Economics engine",
+      "source_line_or_section": "line 201; Economics engine",
       "exact_short_excerpt": "src/lib/economics.ts computes revenue stream summaries, treasury coverage, and the treasury governor split."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 184; Economics engine",
+      "source_line_or_section": "line 202; Economics engine",
       "exact_short_excerpt": "summarizeEconomics aggregates revenue streams, treasury entries, and sponsorship commitments into the EconomicsSummary used by public economics surfaces."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 185; Economics engine",
+      "source_line_or_section": "line 203; Economics engine",
       "exact_short_excerpt": "Revenue engines include enterprise , data-licensing , compute-arbitrage , sponsorship , and private-lane ."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 189; Seed data",
+      "source_line_or_section": "line 207; Seed data",
       "exact_short_excerpt": "src/lib/seed.ts holds realistic demo Kens and categories."
     },
     {
       "claim_type": "current_documentation_claim",
       "source_file": "docs/architecture.md",
-      "source_line_or_section": "line 190; Seed data",
+      "source_line_or_section": "line 208; Seed data",
       "exact_short_excerpt": "src/lib/seed-plus.ts adds attestation state, timing, audit updates, structured treasury entries, sponsor commitments, the private-lane revenue stream, and simulated model-outcome data."
     }
   ],

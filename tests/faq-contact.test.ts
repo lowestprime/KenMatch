@@ -15,6 +15,7 @@ import {
   filterFAQEntries,
 } from "../src/lib/faq.ts";
 import { GLOSSARY_ENTRIES, filterGlossaryEntries } from "../src/lib/glossary.ts";
+import { PRODUCT_TRUTH_ITEMS } from "../src/lib/product-truth.ts";
 
 test("FAQ includes a direct Ken definition entry", () => {
   const entry = FAQ_ENTRIES.find((item) => item.id === "what-is-a-ken");
@@ -115,6 +116,15 @@ test("glossary filtering supports implementation state and normalized search", (
   assert.ok(filterGlossaryEntries(GLOSSARY_ENTRIES, "QUADRATIC", "all").some((entry) => entry.id === "quadratic-cost"));
   assert.ok(filterGlossaryEntries(GLOSSARY_ENTRIES, "", "proposed").every((entry) => entry.status === "proposed"));
   assert.deepEqual(filterGlossaryEntries(GLOSSARY_ENTRIES, "", "all"), GLOSSARY_ENTRIES);
+});
+
+test("public truth matrix reflects the operational review and privacy boundaries", () => {
+  const review = PRODUCT_TRUTH_ITEMS.find((item) => item.id === "review");
+  const analytics = PRODUCT_TRUTH_ITEMS.find((item) => item.id === "analytics");
+  assert.equal(review?.status, "operational");
+  assert.match(review?.evidence ?? "", /dual-control high-risk approval/i);
+  assert.match(review?.limitation ?? "", /no external volunteer moderator cohort/i);
+  assert.match(analytics?.limitation ?? "", /raw IPs.*not retained/i);
 });
 
 test("contact schema accepts complete feedback and rejects short bodies", () => {

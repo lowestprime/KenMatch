@@ -1,8 +1,12 @@
 import Link from "next/link";
 
 import { verifyEmailAction } from "@/app/actions";
+import { buildPrivateMetadata } from "@/lib/seo";
 
-export const metadata = { title: "Verify email" };
+export const metadata = buildPrivateMetadata(
+  "Verify email",
+  "Use a private, expiring token to verify a KenMatch account email address.",
+);
 
 export default async function VerifyPage({
   searchParams,

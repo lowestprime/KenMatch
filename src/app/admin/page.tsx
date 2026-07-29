@@ -28,10 +28,14 @@ import {
   listKenSubmissionQueue,
   listReviewEventsForQueue,
 } from "@/lib/db";
+import { buildPrivateMetadata } from "@/lib/seo";
 import { getViewerSession } from "@/lib/session";
 import { categoryProposalStatuses, kenSubmissionStatuses } from "@/lib/types";
 
-export const metadata = { title: "Admin" };
+export const metadata = buildPrivateMetadata(
+  "Admin",
+  "Private KenMatch operations, moderation, review, configuration, audit, and analytics controls.",
+);
 
 type AdminSearchParams = Record<string, string | string[] | undefined>;
 

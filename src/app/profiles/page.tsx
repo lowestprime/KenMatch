@@ -2,11 +2,14 @@ import Link from "next/link";
 
 import { Avatar } from "@/components/avatar";
 import { listProfiles } from "@/lib/db";
+import { buildPublicMetadata } from "@/lib/seo";
 
-export const metadata = {
+export const metadata = buildPublicMetadata({
   title: "Profiles",
-  description: "Browse public KenMatch contributor profiles, expertise signals, and submitted Kens.",
-};
+  description:
+    "Browse public KenMatch contributor profiles, expertise context, verification state, and submitted Kens without turning status into rank.",
+  path: "/profiles",
+});
 
 export default async function ProfilesPage() {
   const profiles = await listProfiles();

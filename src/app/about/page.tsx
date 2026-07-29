@@ -6,14 +6,16 @@ import { ContactForm } from "@/components/contact-form";
 import { getAboutPageContent, listChangelogEntries } from "@/lib/db";
 import { env } from "@/lib/env";
 import { KEN_DEFINITION } from "@/lib/faq";
+import { buildPublicMetadata } from "@/lib/seo";
 import { turnstileConfigured } from "@/lib/security";
 import { getViewerSession } from "@/lib/session";
 
-export const metadata = {
-  title: "About & Contact",
+export const metadata = buildPublicMetadata({
+  title: "About and contact",
   description:
-    "KenMatch mission, public allocation rules, changelog, and contact route.",
-};
+    "Read why KenMatch exists, how the public-allocation prototype is governed, significant project updates, and how to contact the owner.",
+  path: "/about",
+});
 
 export default async function AboutPage() {
   const [about, viewer, changelog] = await Promise.all([getAboutPageContent(), getViewerSession(), listChangelogEntries(false, 20)]);
@@ -128,6 +130,37 @@ export default async function AboutPage() {
             ))}
           </div>
         ) : null}
+      </section>
+
+      <section id="community" className="panel grid gap-3" aria-labelledby="community-heading">
+        <div>
+          <div className="eyebrow">Public community</div>
+          <h2 id="community-heading">Discuss the work without fragmenting the record</h2>
+        </div>
+        <p style={{ color: "var(--ink-muted)" }}>
+          KenMatch discussions, review decisions, checkpoints, and outcomes remain on this site as the durable public record. The external r/kenmatch community is available for broader conversation and discovery; claims or decisions posted there are not authoritative until they are linked into the corresponding on-site record.
+        </p>
+        <div className="hero-actions">
+          <Link className="cta-primary" href="/discuss">
+            Open KenMatch discussions
+          </Link>
+          <a
+            className="cta-secondary"
+            href="https://www.reddit.com/r/kenmatch/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Visit r/kenmatch community
+          </a>
+          <a
+            className="cta-secondary"
+            href="https://github.com/lowestprime/KenMatch"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Review the source
+          </a>
+        </div>
       </section>
 
       <section id="contact" className="panel contact-panel" aria-labelledby="about-contact-form-heading">

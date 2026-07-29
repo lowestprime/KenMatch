@@ -1,26 +1,21 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { TaskBoardFilters } from "@/components/task-board-filters";
 import { TaskCard } from "@/components/task-card";
-import { getMarketplaceData } from "@/lib/db";
+import { getMarketplaceData, listPublicCategories } from "@/lib/db";
 import {
   buildMarketplaceHref,
   DEFAULT_MARKETPLACE_SORT,
   normalizeMarketplacePage,
 } from "@/lib/discovery";
 import { KEN_DEFINITION } from "@/lib/faq";
+import { buildPublicMetadata, classifyKensQuery } from "@/lib/seo";
 import { getViewerProfileId } from "@/lib/session";
+import { laneVisuals } from "@/lib/taxonomy";
 import { allocationTiers, sortOptions, taskStages } from "@/lib/types";
 import type { MarketplaceFilters, SortOption } from "@/lib/types";
 import { labelForStage } from "@/lib/utils";
-
-export const metadata: Metadata = {
-  title: "Kens",
-  description: "Browse, filter, pulse, and allocate voice to public Kens by category, lane, and run status.",
-  openGraph: { title: "Kens | KenMatch", description: "Browse public Kens with visible ranking, funding context, checkpoints, and simulated run outputs." },
-};
 
 interface KensPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -28,6 +23,35 @@ interface KensPageProps {
 
 type TierFilter = Exclude<MarketplaceFilters["tier"], undefined>;
 type StageFilter = Exclude<MarketplaceFilters["stage"], undefined>;
+
+export async function generateMetadata({ searchParams }: KensPageProps) {
+  const [params, categories] = await Promise.all([searchParams, listPublicCategories()]);
+  const categoryBySlug = new Map(categories.map((category) => [category.slug, category]));
+  const state = classifyKensQuery(params, new Set(categoryBySlug.keys()));
+  const category = state.kind === "category" && state.value ? categoryBySlug.get(state.value) : null;
+  const lane = state.kind === "lane" && state.value
+    ? laneVisuals[state.value as keyof typeof laneVisuals]
+    : null;
+  const title = category
+    ? `${category.name} Kens`
+    : lane
+      ? `${lane.label} lane Kens`
+      : state.kind === "noncanonical"
+        ? "Filtered Kens"
+        : "Kens";
+  const description = category
+    ? `Browse public ${category.name} Kens with visible ranking, sources, checkpoints, review state, and funding boundaries.`
+    : lane
+      ? `Browse public Kens in the ${lane.label} lane with visible category rank, checkpoints, review state, and funding boundaries.`
+      : "Browse public Kens by category, lane, and status with visible ranking reasons, sources, checkpoints, review, and sandbox funding context.";
+
+  return buildPublicMetadata({
+    title,
+    description,
+    path: state.canonicalPath,
+    index: state.index,
+  });
+}
 
 export default async function KensPage({ searchParams }: KensPageProps) {
   const params = await searchParams;

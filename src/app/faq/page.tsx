@@ -1,22 +1,20 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 
 import { ContactForm } from "@/components/contact-form";
 import { FAQExplorer } from "@/components/faq-explorer";
+import { JsonLd } from "@/components/json-ld";
 import { ProductTruthMatrix } from "@/components/product-truth-matrix";
 import { env } from "@/lib/env";
 import { FAQ_ENTRIES, KEN_DEFINITION } from "@/lib/faq";
+import { breadcrumbJsonLd, buildPublicMetadata } from "@/lib/seo";
 import { turnstileConfigured } from "@/lib/security";
 
-export const metadata: Metadata = {
+export const metadata = buildPublicMetadata({
   title: "FAQ",
-  description: "Search common KenMatch questions about Kens, lanes, voting, sponsorship, safety, privacy, and contact.",
-  openGraph: {
-    title: "FAQ | KenMatch",
-    description: "Understand what Kens are and how KenMatch ranks sustained frontier-AI work.",
-  },
-  alternates: { canonical: "/faq" },
-};
+  description:
+    "Search clear answers about Kens, ranking lanes, allocation voice, sponsorship, safety, privacy, sandbox status, and participation.",
+  path: "/faq",
+});
 
 export default function FAQPage() {
   const faqJsonLd = {
@@ -34,9 +32,12 @@ export default function FAQPage() {
 
   return (
     <div className="page-stack long-reading-route">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd).replace(/</g, "\\u003c") }}
+      <JsonLd data={faqJsonLd} />
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "KenMatch", path: "/" },
+          { name: "FAQ", path: "/faq" },
+        ])}
       />
       <section className="panel hero-panel faq-hero">
         <div className="eyebrow">KenMatch FAQ</div>

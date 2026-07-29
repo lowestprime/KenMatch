@@ -10,10 +10,18 @@ import {
 } from "@/lib/allocation-policy";
 import { getHomeData } from "@/lib/db";
 import { KEN_DEFINITION } from "@/lib/faq";
+import { buildPublicMetadata } from "@/lib/seo";
 import { getViewerProfileId } from "@/lib/session";
 import { categoryFilterHref, laneFilterHref } from "@/lib/taxonomy";
 import type { AllocationTier } from "@/lib/types";
 import { formatCurrency, formatNumber } from "@/lib/utils";
+
+export const metadata = buildPublicMetadata({
+  title: "Rank sustained AI work",
+  description:
+    "Propose and rank bounded public Kens for sustained AI-assisted work with visible sources, checkpoints, review, and funding boundaries.",
+  path: "/",
+});
 
 export default async function HomePage() {
   const viewerProfileId = await getViewerProfileId();

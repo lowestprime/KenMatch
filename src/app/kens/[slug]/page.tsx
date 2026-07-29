@@ -1,7 +1,9 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { CategoryFilterChip, LaneFilterChip } from "@/components/filter-chip-link";
 import { DiscussionThread } from "@/components/discussion-thread";
+import { JsonLd } from "@/components/json-ld";
 import { KenBookmarkButton } from "@/components/ken-bookmark-button";
 import { KenLifecycleMap } from "@/components/ken-lifecycle-map";
 import { KenVisual } from "@/components/ken-visual";
@@ -9,9 +11,38 @@ import { KenSandboxStrip } from "@/components/ken-sandbox-strip";
 import { KenTimingStrip } from "@/components/ken-timing-strip";
 import { TaskPulsePanel } from "@/components/task-pulse-panel";
 import { VotePanel } from "@/components/vote-panel";
-import { getTaskDetail } from "@/lib/db";
+import { getPublicKenSeoRecord, getTaskDetail } from "@/lib/db";
+import {
+  breadcrumbJsonLd,
+  buildPrivateMetadata,
+  buildPublicMetadata,
+  canonicalUrl,
+  seoDescription,
+} from "@/lib/seo";
 import { getViewerSession } from "@/lib/session";
 import { formatCurrency, formatDateTime, formatHoursToHuman, labelForStage } from "@/lib/utils";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const ken = await getPublicKenSeoRecord(slug);
+  if (!ken) {
+    return buildPrivateMetadata(
+      "Ken unavailable",
+      "This Ken is not public, does not exist, or remains in private intake review.",
+    );
+  }
+  return buildPublicMetadata({
+    title: ken.title,
+    description: seoDescription(ken.summary),
+    path: `/kens/${encodeURIComponent(ken.slug)}`,
+    type: "article",
+    imageAlt: `${ken.title}, a ${ken.categoryName} Ken on KenMatch`,
+  });
+}
 
 export default async function KenDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -26,9 +57,43 @@ export default async function KenDetailPage({ params }: { params: Promise<{ slug
   const participationMessage = intakeBlocked
     ? `This Ken is ${task.intakeReview?.submission.intakeStatus.replaceAll("-", " ")} in intake and cannot receive public participation yet.`
     : publicParticipationMessage;
+  const isPublicKen = !task.intakeReview || task.intakeReview.submission.intakeStatus === "approved";
+  const kenUrl = canonicalUrl(`/kens/${encodeURIComponent(task.slug)}`);
+  const structuredData = isPublicKen
+    ? [
+        breadcrumbJsonLd([
+          { name: "KenMatch", path: "/" },
+          { name: "Kens", path: "/kens" },
+          { name: task.title, path: `/kens/${encodeURIComponent(task.slug)}` },
+        ]),
+        {
+          "@context": "https://schema.org",
+          "@type": "CreativeWork",
+          "@id": `${kenUrl}#ken`,
+          name: task.title,
+          description: task.summary,
+          url: kenUrl,
+          dateCreated: task.createdAt,
+          dateModified: task.lastActivityAt,
+          creativeWorkStatus: labelForStage(task.stage),
+          author: {
+            "@type": "Person",
+            name: task.proposerName,
+          },
+          about: {
+            "@type": "DefinedTerm",
+            name: task.categoryName,
+            url: canonicalUrl(`/kens?category=${encodeURIComponent(task.categorySlug)}`),
+          },
+          isPartOf: { "@id": `${canonicalUrl("/")}#website` },
+          keywords: [task.categoryName, `${task.allocatedTier} lane`, "sustained AI-assisted work"],
+        },
+      ]
+    : [];
 
   return (
     <div className="page-stack">
+      {structuredData.map((data, index) => <JsonLd key={index} data={data} />)}
       <section className="panel hero-panel card-sheen space-y-6">
         <div className="flex flex-wrap gap-3">
           <LaneFilterChip tier={task.allocatedTier} />

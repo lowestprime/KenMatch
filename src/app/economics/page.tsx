@@ -1,8 +1,16 @@
 import { SponsorForm } from "@/components/sponsor-form";
 import { getEconomicsData, getMarketplaceData } from "@/lib/db";
 import { getViewerProfileId } from "@/lib/session";
+import { buildPublicMetadata } from "@/lib/seo";
 import { stripeEnabled } from "@/lib/stripe";
 import { formatCurrency, formatDateTime, formatNumber, formatPercent } from "@/lib/utils";
+
+export const metadata = buildPublicMetadata({
+  title: "Backing and treasury",
+  description:
+    "See how KenMatch separates public rank from simulated sponsorship, restricted funding, compute capacity, review costs, and treasury coverage.",
+  path: "/economics",
+});
 
 function labelForRestrictionScope(value: "general" | "category" | "ken" | "safety-reserve") {
   switch (value) {

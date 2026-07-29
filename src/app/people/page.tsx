@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 
 export const metadata = {
   title: "Profiles",
@@ -6,5 +6,5 @@ export const metadata = {
 };
 
 export default function PeoplePage() {
-  redirect("/kens");
+  permanentRedirect("/profiles");
 }

@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 
 import { CategoryFilterChip, LaneFilterChip } from "@/components/filter-chip-link";
@@ -7,12 +6,15 @@ import { KenLifecycleMap } from "@/components/ken-lifecycle-map";
 import { getGovernanceData } from "@/lib/db";
 import { getViewerProfileId } from "@/lib/session";
 import { categoryFilterHref } from "@/lib/taxonomy";
+import { buildPublicMetadata } from "@/lib/seo";
 import { formatDateTime } from "@/lib/utils";
 
-export const metadata: Metadata = {
+export const metadata = buildPublicMetadata({
   title: "Governance",
-  description: "Visible review states, checkpoint gates, attestation levels, blocked work, and governance decisions on KenMatch.",
-};
+  description:
+    "Inspect KenMatch allocation rules, reviewer boundaries, lifecycle checkpoints, visible blocked work, and reason-coded governance decisions.",
+  path: "/governance",
+});
 
 const boardRoles = [
   {

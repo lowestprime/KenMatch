@@ -1,13 +1,15 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 
 import { listPublicReviewOutcomes } from "@/lib/db";
+import { buildPublicMetadata } from "@/lib/seo";
 import { formatDateTime } from "@/lib/utils";
 
-export const metadata: Metadata = {
+export const metadata = buildPublicMetadata({
   title: "Public review outcomes",
-  description: "Reason-coded, append-only public outcomes for Ken and category intake decisions on KenMatch.",
-};
+  description:
+    "Read reason-coded public outcomes for Ken and category intake decisions without exposing private safety notes or personal data.",
+  path: "/reviews",
+});
 
 export default async function PublicReviewOutcomesPage() {
   const outcomes = await listPublicReviewOutcomes(150);

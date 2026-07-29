@@ -8,9 +8,13 @@ import { SubmissionReviewStatus } from "@/components/submission-review-status";
 import { VerificationPanel } from "@/components/verification-panel";
 import { getProfilePageData } from "@/lib/db";
 import { listSavedDiscussionItems } from "@/lib/discussion-db";
+import { buildPrivateMetadata } from "@/lib/seo";
 import { getViewerSession } from "@/lib/session";
 
-export const metadata = { title: "Account" };
+export const metadata = buildPrivateMetadata(
+  "Account",
+  "Private KenMatch account, profile, verification, saved items, and submission-review controls.",
+);
 
 export default async function AccountPage() {
   const viewer = await getViewerSession();

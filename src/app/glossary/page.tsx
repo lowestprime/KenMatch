@@ -1,18 +1,15 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 
 import { GlossaryExplorer } from "@/components/glossary-explorer";
 import { GLOSSARY_ENTRIES } from "@/lib/glossary";
+import { buildPublicMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata = buildPublicMetadata({
   title: "Operational Glossary",
-  description: "Search precise KenMatch definitions, governing formulas, implementation status, related terms, and public routes.",
-  alternates: { canonical: "/glossary" },
-  openGraph: {
-    title: "Operational Glossary | KenMatch",
-    description: "Definitions and implementation status for Kens, public pulse, allocation voice, lanes, checkpoints, funding, review, and evidence.",
-  },
-};
+  description:
+    "Search precise definitions, governing formulas, implementation status, and routes for Kens, lanes, voice, checkpoints, funding, and review.",
+  path: "/glossary",
+});
 
 export default function GlossaryPage() {
   return (

@@ -69,6 +69,7 @@ import {
   INSERT_REVIEW_EVENT_SQL,
   REVIEW_SCHEMA_STATEMENTS,
 } from "@/lib/review-schema";
+import { PUBLIC_CONTENT_LAST_MODIFIED_SQL } from "@/lib/seo-sitemap";
 import { env, isAdminEmail, isOwnerEmail, canonicalOrigin, notificationEmails, ownerEmail, smtpConfigured, visitorHashSalt } from "@/lib/env";
 import {
   seedCategories,
@@ -2278,6 +2279,121 @@ async function hydrate(
 
 export async function listProfiles() {
   return hydrate().then((snapshot) => snapshot.profiles);
+}
+
+export async function listPublicCategories() {
+  return loadCategories();
+}
+
+export async function listPublicSitemapEntities() {
+  const [kenRows, profileRows, contentRow] = await Promise.all([
+    loadRows(
+      `SELECT
+         task.slug,
+         task.stage,
+         MAX(
+           task.createdAt,
+           COALESCE((SELECT MAX(updatedAt) FROM votes WHERE taskId = task.id), ''),
+           COALESCE((SELECT MAX(updatedAt) FROM task_pulse_votes WHERE taskId = task.id), ''),
+           COALESCE((SELECT MAX(createdAt) FROM comments WHERE taskId = task.id), ''),
+           COALESCE((SELECT MAX(createdAt) FROM run_updates WHERE taskId = task.id), ''),
+           COALESCE((SELECT MAX(createdAt) FROM governance_events WHERE taskId = task.id), ''),
+           COALESCE((SELECT MAX(updatedAt) FROM task_timings WHERE taskId = task.id), '')
+         ) AS lastModified
+       FROM tasks task
+       LEFT JOIN ken_submissions submission ON submission.taskId = task.id
+       WHERE submission.id IS NULL OR submission.intakeStatus = 'approved'
+       ORDER BY task.slug ASC`,
+    ),
+    loadRows(
+      `SELECT COALESCE(NULLIF(trim(username), ''), id) AS slug, createdAt AS lastModified
+       FROM profiles
+       WHERE moderationStatus <> 'suspended'
+       ORDER BY slug ASC`,
+    ),
+    loadOne(PUBLIC_CONTENT_LAST_MODIFIED_SQL),
+  ]);
+
+  const kens = kenRows.map((row) => {
+    const stage = getString(row, "stage");
+    return {
+      slug: getString(row, "slug"),
+      lastModified: getString(row, "lastModified"),
+      changeFrequency: (
+        stage === "running" || stage === "scheduled" || stage === "voting"
+          ? "daily"
+          : stage === "shipped" || stage === "blocked"
+            ? "monthly"
+            : "weekly"
+      ) as "daily" | "weekly" | "monthly",
+    };
+  });
+  const profiles = profileRows.map((row) => ({
+    slug: getString(row, "slug"),
+    lastModified: getString(row, "lastModified"),
+  }));
+  const latestEntityDate = [...kens, ...profiles]
+    .map((entry) => entry.lastModified)
+    .filter(Boolean)
+    .sort()
+    .at(-1);
+
+  return {
+    generatedAt: (contentRow ? getNullableString(contentRow, "lastModified") : null)
+      ?? latestEntityDate
+      ?? "2026-07-28T00:00:00.000Z",
+    kens,
+    profiles,
+  };
+}
+
+export async function getPublicKenSeoRecord(slug: string) {
+  const row = await loadOne(
+    `SELECT
+       task.slug,
+       task.title,
+       task.summary,
+       task.createdAt,
+       task.stage,
+       task.safetyStatus,
+       category.name AS categoryName,
+       category.slug AS categorySlug,
+       CASE
+         WHEN profile.showRealName = 0 AND profile.username IS NOT NULL AND trim(profile.username) <> ''
+           THEN '@' || profile.username
+         ELSE COALESCE(profile.name, 'Unknown proposer')
+       END AS proposerName,
+       MAX(
+         task.createdAt,
+         COALESCE((SELECT MAX(updatedAt) FROM votes WHERE taskId = task.id), ''),
+         COALESCE((SELECT MAX(updatedAt) FROM task_pulse_votes WHERE taskId = task.id), ''),
+         COALESCE((SELECT MAX(createdAt) FROM comments WHERE taskId = task.id), ''),
+         COALESCE((SELECT MAX(createdAt) FROM run_updates WHERE taskId = task.id), ''),
+         COALESCE((SELECT MAX(createdAt) FROM governance_events WHERE taskId = task.id), ''),
+         COALESCE((SELECT MAX(updatedAt) FROM task_timings WHERE taskId = task.id), '')
+       ) AS lastModified
+     FROM tasks task
+     JOIN categories category ON category.id = task.categoryId
+     LEFT JOIN profiles profile ON profile.id = task.proposerId
+     LEFT JOIN ken_submissions submission ON submission.taskId = task.id
+     WHERE task.slug = ?
+       AND (submission.id IS NULL OR submission.intakeStatus = 'approved')
+     LIMIT 1`,
+    [slug],
+  );
+  if (!row) return null;
+  return {
+    slug: getString(row, "slug"),
+    title: getString(row, "title"),
+    summary: getString(row, "summary"),
+    createdAt: getString(row, "createdAt"),
+    lastModified: getString(row, "lastModified"),
+    stage: getString(row, "stage"),
+    safetyStatus: getString(row, "safetyStatus"),
+    categoryName: getString(row, "categoryName"),
+    categorySlug: getString(row, "categorySlug"),
+    proposerName: getString(row, "proposerName"),
+  };
 }
 
 export async function getViewerSessionByToken(token: string): Promise<ViewerSession | null> {

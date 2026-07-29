@@ -1,14 +1,13 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 
-import { canonicalOrigin } from "@/lib/env";
+import { buildPublicMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata = buildPublicMetadata({
   title: "Identity verification",
   description:
     "How KenMatch verifies contributor identity, affiliations, and stewardship responsibility. Public criteria, process, and timing.",
-  alternates: { canonical: `${canonicalOrigin}/verification` },
-};
+  path: "/verification",
+});
 
 export default function VerificationPublicPage() {
   return (

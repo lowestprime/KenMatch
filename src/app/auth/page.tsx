@@ -1,13 +1,13 @@
-import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { AuthPanels } from "@/components/auth-panels";
+import { buildPrivateMetadata } from "@/lib/seo";
 import { getViewerSession } from "@/lib/session";
 
-export const metadata: Metadata = {
-  title: "Sign in",
-  description: "Sign in or create an account to vote, comment, propose Kens, and back work on KenMatch.",
-};
+export const metadata = buildPrivateMetadata(
+  "Sign in",
+  "Sign in or create a KenMatch account to vote, comment, propose Kens, and save public work.",
+);
 
 export default async function AuthPage() {
   const viewer = await getViewerSession();

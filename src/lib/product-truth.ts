@@ -46,9 +46,9 @@ export const PRODUCT_TRUTH_ITEMS: ProductTruthItem[] = [
   {
     id: "review",
     area: "Intake, review, and moderation",
-    status: "proposed",
-    evidence: "Role checks, category review, safety boundaries, and audit events exist.",
-    limitation: "The complete appealable submitted-Ken review and scoped volunteer moderation workflow is still being completed.",
+    status: "operational",
+    evidence: "Private Ken and category intake, deterministic readiness checks, scoped triage, conflict recusals, dual-control high-risk approval, appeals, and append-only public outcomes are implemented.",
+    limitation: "The workflow currently uses configured owner, admin, and moderator roles; no external volunteer moderator cohort is claimed to be active.",
     route: "/faq#moderation-boundaries",
   },
   {
@@ -56,7 +56,7 @@ export const PRODUCT_TRUTH_ITEMS: ProductTruthItem[] = [
     area: "Country-level visitor analytics",
     status: "operational",
     evidence: "Country aggregates and salted visitor identifiers support private owner/admin operating awareness.",
-    limitation: "Counts are approximate; no raw IPs are intended to be stored or displayed.",
+    limitation: "Counts are approximate; raw IPs, user-agent strings, and precise geography are not retained or displayed.",
     route: "/faq#privacy",
   },
   {

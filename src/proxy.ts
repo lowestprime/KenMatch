@@ -6,6 +6,7 @@ import {
   normalizeOrigin,
   trustedRequestOrigin,
 } from "@/lib/request-origin";
+import { PRIVATE_INDEX_PATH_PREFIXES } from "@/lib/seo";
 
 const isDevelopment = process.env.NODE_ENV !== "production";
 const trustedFetchSites = new Set(["same-origin", "same-site", "none", ""]);
@@ -30,7 +31,10 @@ function expectedOrigin(request: NextRequest, host: string) {
 
 function redirectToCanonicalHttps(request: NextRequest, host: string, path: string) {
   if (isDevelopment || !host || isInternalHealthRequest(path, host)) return null;
-  const publicOrigin = process.env.KENMATCH_PUBLIC_ORIGIN ?? "https://kmat.ch";
+  const publicOrigin =
+    process.env.KENMATCH_CANONICAL_ORIGIN
+    ?? process.env.KENMATCH_PUBLIC_ORIGIN
+    ?? "https://kmat.ch";
   let canonical: URL;
   try {
     canonical = new URL(publicOrigin);
@@ -38,13 +42,17 @@ function redirectToCanonicalHttps(request: NextRequest, host: string, path: stri
     canonical = new URL("https://kmat.ch");
   }
   const canonicalHost = normalizeHostname(canonical.host);
+  const requestProtocol = (
+    request.headers.get("x-forwarded-proto")
+    ?? request.nextUrl.protocol.replace(/:$/, "")
+  ).toLowerCase();
 
-  if (host === canonicalHost) {
+  if (host === canonicalHost && `${requestProtocol}:` === canonical.protocol) {
     return null;
   }
 
   const url = new URL(`${request.nextUrl.pathname}${request.nextUrl.search}`, canonical.origin);
-  return applySecurityHeaders(NextResponse.redirect(url, 308));
+  return applyIndexingHeaders(applySecurityHeaders(NextResponse.redirect(url, 308)), path);
 }
 
 function applySecurityHeaders(response: NextResponse) {
@@ -83,10 +91,23 @@ function applySecurityHeaders(response: NextResponse) {
   return response;
 }
 
+function applyIndexingHeaders(response: NextResponse, path: string) {
+  const noIndex = PRIVATE_INDEX_PATH_PREFIXES.some((prefix) => (
+    path === prefix || path.startsWith(`${prefix}/`)
+  ));
+  if (noIndex) {
+    response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
+  }
+  return response;
+}
+
 function blockRequest(request: NextRequest, status: number, body: string, reason: string) {
   const path = request.nextUrl.pathname;
   console.warn(`[kenmatch-proxy] blocked request: path=${path} reason=${reason}`);
-  const blocked = applySecurityHeaders(new NextResponse(body, { status }));
+  const blocked = applyIndexingHeaders(
+    applySecurityHeaders(new NextResponse(body, { status })),
+    path,
+  );
   if (path.startsWith("/api/")) {
     blocked.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
   }
@@ -109,7 +130,10 @@ export function proxy(request: NextRequest) {
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-kenmatch-pathname", path);
-  const response = applySecurityHeaders(NextResponse.next({ request: { headers: requestHeaders } }));
+  const response = applyIndexingHeaders(
+    applySecurityHeaders(NextResponse.next({ request: { headers: requestHeaders } })),
+    path,
+  );
   if (path.startsWith("/api/")) {
     response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
   }
