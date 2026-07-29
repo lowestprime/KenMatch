@@ -27,6 +27,17 @@ import {
 import { summarizeEconomics,
   summarizeRevenueStream } from "@/lib/economics";
 import {
+  DEFAULT_CAPACITY_OVERRIDE,
+  deriveAutomaticCapacityState,
+  isRunDecisionCompatible,
+  resolveCapacityState,
+  runDecisionTransition,
+} from "@/lib/run-governance";
+import {
+  INSERT_RUN_DECISION_SQL,
+  RUN_DECISION_SCHEMA_STATEMENTS,
+} from "@/lib/run-governance-schema";
+import {
   DEFAULT_MARKETPLACE_PAGE_SIZE,
   getDiscoveryReasons,
   normalizeMarketplacePage,
@@ -89,6 +100,7 @@ import {
   seedCommentVotes,
   seedProfileAttestations,
   seedRevenueStreams,
+  seedRunDecisions,
   seedRunUpdates,
   seedSponsorshipCommitments,
   seedTaskFinance,
@@ -103,6 +115,9 @@ import type {
   AdminNotificationSettings,
   AuditLogRecord,
   BookmarkRecord,
+  CapacityOverrideState,
+  CapacityState,
+  CapacityStateResolution,
   ChangelogEntryRecord,
   ContactAttachmentRecord,
   ContactSubmissionRecord,
@@ -131,6 +146,7 @@ import type {
   ReviewEventAction,
   ReviewEventRecord,
   ReviewQueuePage,
+  RunDecisionEventRecord,
   RunUpdateRecord,
   SearchResultItem,
   SessionRecord,
@@ -621,6 +637,7 @@ async function initializeDatabase() {
         createdAt TEXT NOT NULL,
         FOREIGN KEY (taskId) REFERENCES tasks(id)
       )`,
+      ...RUN_DECISION_SCHEMA_STATEMENTS,
       `CREATE TABLE IF NOT EXISTS revenue_streams (
         id TEXT PRIMARY KEY,
         slug TEXT NOT NULL UNIQUE,
@@ -1122,6 +1139,24 @@ async function seedDatabase() {
     args: [event.id, event.taskId, event.house, event.title, event.decision, event.outcome, event.createdAt],
   } satisfies InStatement));
 
+  const runDecisionStatements = seedRunDecisions.map((event) => ({
+    sql: INSERT_RUN_DECISION_SQL.replace("INSERT INTO", "INSERT OR IGNORE INTO"),
+    args: [
+      event.id,
+      event.taskId,
+      event.checkpointId,
+      event.eventType,
+      event.decisionCode,
+      event.publicReason,
+      event.artifactLabel,
+      event.artifactUrl,
+      event.artifactDigest,
+      event.actorAccountId,
+      event.actorRole,
+      event.createdAt,
+    ],
+  } satisfies InStatement));
+
   const revenueStatements = seedRevenueStreams.map((stream) => ({
     sql: `INSERT INTO revenue_streams (
       id, slug, name, engine, description, pricingModel, status, monthlyRevenueUsd, grossMargin,
@@ -1274,6 +1309,7 @@ async function seedDatabase() {
       { sql: `DELETE FROM checkpoint_gates WHERE checkpointId IN (SELECT id FROM checkpoints WHERE taskId IN (${placeholders}))`, args: retiredSeedTaskIds },
       { sql: `DELETE FROM checkpoints WHERE taskId IN (${placeholders})`, args: retiredSeedTaskIds },
       { sql: `DELETE FROM run_updates WHERE taskId IN (${placeholders})`, args: retiredSeedTaskIds },
+      { sql: `DELETE FROM run_decision_events WHERE taskId IN (${placeholders})`, args: retiredSeedTaskIds },
       { sql: `DELETE FROM governance_events WHERE taskId IN (${placeholders})`, args: retiredSeedTaskIds },
       { sql: `DELETE FROM bookmarks WHERE taskId IN (${placeholders})`, args: retiredSeedTaskIds },
       { sql: `DELETE FROM task_timings WHERE taskId IN (${placeholders})`, args: retiredSeedTaskIds },
@@ -1303,6 +1339,7 @@ async function seedDatabase() {
     ...checkpointStatements,
     ...checkpointGateStatements,
     ...governanceStatements,
+    ...runDecisionStatements,
     ...revenueStatements,
     ...treasuryStatements,
     ...sponsorshipStatements,
@@ -1611,6 +1648,23 @@ function mapGovernance(row: DbRow): GovernanceEventRecord {
   };
 }
 
+function mapRunDecision(row: DbRow): RunDecisionEventRecord {
+  return {
+    id: getString(row, "id"),
+    taskId: getString(row, "taskId"),
+    checkpointId: getNullableString(row, "checkpointId"),
+    eventType: getString(row, "eventType") as RunDecisionEventRecord["eventType"],
+    decisionCode: getString(row, "decisionCode") as RunDecisionEventRecord["decisionCode"],
+    publicReason: getString(row, "publicReason"),
+    artifactLabel: getNullableString(row, "artifactLabel"),
+    artifactUrl: getNullableString(row, "artifactUrl"),
+    artifactDigest: getNullableString(row, "artifactDigest"),
+    actorAccountId: getNullableString(row, "actorAccountId"),
+    actorRole: getString(row, "actorRole") as RunDecisionEventRecord["actorRole"],
+    createdAt: getString(row, "createdAt"),
+  };
+}
+
 function mapRevenueStream(row: DbRow): RevenueStreamRecord {
   return {
     id: getString(row, "id"),
@@ -1789,6 +1843,7 @@ const loadRunUpdates = () => loadRows("SELECT * FROM run_updates ORDER BY create
 const loadCheckpoints = () => loadRows("SELECT * FROM checkpoints ORDER BY dueAt ASC").then((rows) => rows.map(mapCheckpoint));
 const loadCheckpointGates = () => loadRows("SELECT * FROM checkpoint_gates").then((rows) => rows.map(mapCheckpointGate));
 const loadGovernanceEvents = () => loadRows("SELECT * FROM governance_events ORDER BY createdAt DESC").then((rows) => rows.map(mapGovernance));
+const loadRunDecisions = () => loadRows("SELECT * FROM run_decision_events ORDER BY createdAt DESC, id DESC").then((rows) => rows.map(mapRunDecision));
 const loadRevenueStreams = () => loadRows("SELECT * FROM revenue_streams ORDER BY monthlyRevenueUsd DESC").then((rows) => rows.map(mapRevenueStream));
 const loadTreasuryEntries = () => loadRows("SELECT * FROM treasury_entries ORDER BY createdAt DESC").then((rows) => rows.map(mapTreasuryEntry));
 const loadSponsorshipCommitments = () =>
@@ -1978,7 +2033,7 @@ async function hydrate(
   viewerProfileId?: string | null,
   options: { includeUnapprovedSubmissions?: boolean } = {},
 ) {
-  const [profiles, profileAttestations, categories, allTasks, finances, illustrations, votes, pulseVotes, comments, commentVotes, runs, taskTimings, runUpdates, checkpoints, checkpointGates, governance, revenueStreams, treasuryEntries, sponsorshipCommitments, bookmarks, accounts, submissionVisibilityRows] =
+  const [profiles, profileAttestations, categories, allTasks, finances, illustrations, votes, pulseVotes, comments, commentVotes, runs, taskTimings, runUpdates, checkpoints, checkpointGates, governance, runDecisions, revenueStreams, treasuryEntries, sponsorshipCommitments, bookmarks, accounts, submissionVisibilityRows] =
     await Promise.all([
       loadProfiles(),
       loadProfileAttestations(),
@@ -1996,6 +2051,7 @@ async function hydrate(
       loadCheckpoints(),
       loadCheckpointGates(),
       loadGovernanceEvents(),
+      loadRunDecisions(),
       loadRevenueStreams(),
       loadTreasuryEntries(),
       loadSponsorshipCommitments(),
@@ -2131,6 +2187,13 @@ async function hydrate(
     governanceByTask.set(event.taskId, bucket);
   }
 
+  const runDecisionsByTask = new Map<string, RunDecisionEventRecord[]>();
+  for (const event of runDecisions) {
+    const bucket = runDecisionsByTask.get(event.taskId) ?? [];
+    bucket.push(event);
+    runDecisionsByTask.set(event.taskId, bucket);
+  }
+
   const rankings = buildCategoryRankings(
     tasks.map((task) => ({
       id: task.id,
@@ -2176,6 +2239,7 @@ async function hydrate(
     const pulse = pulseByTask.get(task.id) ?? [];
     const updates = runUpdatesByTask.get(task.id) ?? [];
     const governanceEvents = governanceByTask.get(task.id) ?? [];
+    const taskRunDecisions = runDecisionsByTask.get(task.id) ?? [];
     const taskComments = commentByTask.get(task.id) ?? [];
     const positivePulseCount = pulse.filter((vote) => vote.value > 0).length;
     const negativePulseCount = pulse.filter((vote) => vote.value < 0).length;
@@ -2190,6 +2254,7 @@ async function hydrate(
       ...taskComments.map((comment) => comment.createdAt),
       ...updates.map((update) => update.createdAt),
       ...governanceEvents.map((event) => event.createdAt),
+      ...taskRunDecisions.map((event) => event.createdAt),
     ].sort().at(-1) ?? task.createdAt;
     return {
       ...task,
@@ -2264,6 +2329,7 @@ async function hydrate(
     checkpointMap,
     governance,
     governanceByTask,
+    runDecisionsByTask,
     revenueSummaries,
     treasuryEntries,
     sponsorshipCommitments,
@@ -2298,6 +2364,7 @@ export async function listPublicSitemapEntities() {
            COALESCE((SELECT MAX(createdAt) FROM comments WHERE taskId = task.id), ''),
            COALESCE((SELECT MAX(createdAt) FROM run_updates WHERE taskId = task.id), ''),
            COALESCE((SELECT MAX(createdAt) FROM governance_events WHERE taskId = task.id), ''),
+           COALESCE((SELECT MAX(createdAt) FROM run_decision_events WHERE taskId = task.id), ''),
            COALESCE((SELECT MAX(updatedAt) FROM task_timings WHERE taskId = task.id), '')
          ) AS lastModified
        FROM tasks task
@@ -2370,6 +2437,7 @@ export async function getPublicKenSeoRecord(slug: string) {
          COALESCE((SELECT MAX(createdAt) FROM comments WHERE taskId = task.id), ''),
          COALESCE((SELECT MAX(createdAt) FROM run_updates WHERE taskId = task.id), ''),
          COALESCE((SELECT MAX(createdAt) FROM governance_events WHERE taskId = task.id), ''),
+         COALESCE((SELECT MAX(createdAt) FROM run_decision_events WHERE taskId = task.id), ''),
          COALESCE((SELECT MAX(updatedAt) FROM task_timings WHERE taskId = task.id), '')
        ) AS lastModified
      FROM tasks task
@@ -2953,6 +3021,7 @@ export async function getTaskDetail(slug: string, viewerProfileId?: string | nul
     run: snapshot.runMap.get(task.id) ?? null,
     checkpoints: (snapshot.checkpointMap.get(task.id) ?? []).sort((left, right) => left.dueAt.localeCompare(right.dueAt)),
     governanceEvents: snapshot.governanceByTask.get(task.id) ?? [],
+    runDecisions: snapshot.runDecisionsByTask.get(task.id) ?? [],
     comments: snapshot.discussionFor(task.id),
     runUpdates: snapshot.runUpdatesByTask.get(task.id) ?? [],
     intakeReview: submission
@@ -2969,6 +3038,7 @@ export async function getTaskDetail(slug: string, viewerProfileId?: string | nul
 
 export async function getGovernanceData(viewerProfileId?: string | null) {
   const snapshot = await hydrate(viewerProfileId);
+  const capacity = await getCapacityState(snapshot.economics);
   return {
     viewer: snapshot.viewer,
     governance: snapshot.governance,
@@ -2976,27 +3046,145 @@ export async function getGovernanceData(viewerProfileId?: string | null) {
     blockedTasks: snapshot.tasks.filter((task) => task.allocatedTier === "blocked"),
     categories: snapshot.categories,
     profiles: snapshot.profiles,
+    capacity,
   };
 }
 
 export async function getEconomicsData(viewerProfileId?: string | null): Promise<{
   viewer: ProfileSummary | null;
   summary: EconomicsSummary;
+  capacity: CapacityStateResolution;
   revenueStreams: RevenueStreamSummary[];
   treasuryEntries: TreasuryEntryRecord[];
   sponsorshipCommitments: SponsorshipCommitmentRecord[];
   fundedTasks: TaskSummary[];
 }> {
   const snapshot = await hydrate(viewerProfileId);
+  const capacity = await getCapacityState(snapshot.economics);
   const fundedTaskIds = new Set(snapshot.tasks.filter((task) => task.sponsorPoolUsd > 0).map((task) => task.id));
   return {
     viewer: snapshot.viewer,
     summary: snapshot.economics,
+    capacity,
     revenueStreams: snapshot.revenueSummaries,
     treasuryEntries: snapshot.treasuryEntries,
     sponsorshipCommitments: snapshot.sponsorshipCommitments,
     fundedTasks: snapshot.tasks.filter((task) => fundedTaskIds.has(task.id)).slice(0, 8),
   };
+}
+
+export async function recordRunDecision(input: {
+  taskId: string;
+  checkpointId?: string | null;
+  eventType: RunDecisionEventRecord["eventType"];
+  decisionCode: RunDecisionEventRecord["decisionCode"];
+  publicReason: string;
+  artifactLabel?: string | null;
+  artifactUrl?: string | null;
+  artifactDigest?: string | null;
+  actorAccountId: string;
+  actorRole: Exclude<RunDecisionEventRecord["actorRole"], "system">;
+}) {
+  const task = await findTaskById(input.taskId);
+  if (!task) throw new Error("The selected Ken does not exist.");
+  if (!isRunDecisionCompatible(input.eventType, input.decisionCode)) {
+    throw new Error("The decision code does not match the selected event type.");
+  }
+  const publicReason = input.publicReason.trim().slice(0, 2000);
+  if (publicReason.length < 20) {
+    throw new Error("A public run decision reason of at least 20 characters is required.");
+  }
+  const checkpointId = input.checkpointId?.trim() || null;
+  if (checkpointId) {
+    const checkpoint = await loadOne("SELECT taskId FROM checkpoints WHERE id = ? LIMIT 1", [checkpointId]);
+    if (!checkpoint || getString(checkpoint, "taskId") !== task.id) {
+      throw new Error("The selected checkpoint does not belong to this Ken.");
+    }
+  }
+  if (input.eventType === "checkpoint" && !checkpointId) {
+    throw new Error("Checkpoint decisions require a checkpoint.");
+  }
+
+  const artifactLabel = input.artifactLabel?.trim().slice(0, 240) || null;
+  const artifactUrl = input.artifactUrl?.trim().slice(0, 1000) || null;
+  const artifactDigest = input.artifactDigest?.trim().toLowerCase() || null;
+  if (artifactUrl && !artifactUrl.startsWith("/") && !/^https?:\/\//i.test(artifactUrl)) {
+    throw new Error("Artifact URLs must be site-relative or use HTTP(S).");
+  }
+  if (artifactDigest && !/^sha256:[a-f0-9]{64}$/.test(artifactDigest)) {
+    throw new Error("Artifact digests must use sha256 followed by 64 hexadecimal characters.");
+  }
+  if (input.eventType === "release" && (!artifactLabel || (!artifactUrl && !artifactDigest))) {
+    throw new Error("Release decisions require an artifact label and either a URL or SHA-256 digest.");
+  }
+
+  const event: RunDecisionEventRecord = {
+    id: randomUUID(),
+    taskId: task.id,
+    checkpointId,
+    eventType: input.eventType,
+    decisionCode: input.decisionCode,
+    publicReason,
+    artifactLabel,
+    artifactUrl,
+    artifactDigest,
+    actorAccountId: input.actorAccountId,
+    actorRole: input.actorRole,
+    createdAt: new Date().toISOString(),
+  };
+  const statements: InStatement[] = [
+    {
+      sql: INSERT_RUN_DECISION_SQL,
+      args: [
+        event.id,
+        event.taskId,
+        event.checkpointId,
+        event.eventType,
+        event.decisionCode,
+        event.publicReason,
+        event.artifactLabel,
+        event.artifactUrl,
+        event.artifactDigest,
+        event.actorAccountId,
+        event.actorRole,
+        event.createdAt,
+      ],
+    },
+  ];
+
+  if (checkpointId && input.eventType === "checkpoint") {
+    const checkpointStatus = input.decisionCode === "checkpoint-approved" ? "complete" : "active";
+    const releaseStatus = input.decisionCode === "checkpoint-approved" ? "approved" : "held";
+    statements.push(
+      { sql: "UPDATE checkpoints SET status = ? WHERE id = ?", args: [checkpointStatus, checkpointId] },
+      { sql: "UPDATE checkpoint_gates SET releaseStatus = ? WHERE checkpointId = ?", args: [releaseStatus, checkpointId] },
+    );
+  }
+
+  const transition = runDecisionTransition(input.decisionCode);
+  if (transition) {
+    statements.push(
+      { sql: "UPDATE tasks SET stage = ? WHERE id = ?", args: [transition.stage, task.id] },
+      {
+        sql: `INSERT INTO task_timings (
+          taskId, launchAt, startedAt, expectedMaxEndAt, computeHoursUsed,
+          completionMode, completionSummary, updatedAt
+        ) VALUES (?, NULL, NULL, NULL, 0, ?, ?, ?)
+        ON CONFLICT(taskId) DO UPDATE SET
+          completionMode = excluded.completionMode,
+          completionSummary = excluded.completionSummary,
+          updatedAt = excluded.updatedAt`,
+        args: [task.id, transition.completionMode, publicReason, event.createdAt],
+      },
+      {
+        sql: "UPDATE runs SET status = ? WHERE taskId = ?",
+        args: [transition.stage === "scheduled" ? "scheduled" : "complete", task.id],
+      },
+    );
+  }
+
+  await batch(statements, "write");
+  return { event, slug: task.slug };
 }
 
 export async function createAccount(input: {
@@ -5422,6 +5610,77 @@ export async function setSiteSetting(key: string, value: string, updatedBy: stri
   }
 }
 
+function isCapacityState(value: unknown): value is CapacityState {
+  return value === "normal" || value === "constrained" || value === "new-launches-paused" || value === "critical-maintenance-only";
+}
+
+export async function getCapacityOverrideState(): Promise<CapacityOverrideState> {
+  const record = await getSiteSetting("operations.capacity");
+  if (!record) return DEFAULT_CAPACITY_OVERRIDE;
+  try {
+    const parsed = JSON.parse(record.value) as Partial<CapacityOverrideState>;
+    const mode = parsed.mode === "manual" ? "manual" : "automatic";
+    const manualState = isCapacityState(parsed.manualState) ? parsed.manualState : null;
+    return {
+      mode,
+      manualState: mode === "manual" ? manualState : null,
+      publicReason: typeof parsed.publicReason === "string" ? parsed.publicReason.trim().slice(0, 1000) : "",
+      updatedAt: record.updatedAt,
+      updatedBy: record.updatedBy,
+    };
+  } catch {
+    return DEFAULT_CAPACITY_OVERRIDE;
+  }
+}
+
+export async function setCapacityOverrideState(
+  input: Pick<CapacityOverrideState, "mode" | "manualState" | "publicReason">,
+  updatedBy: string | null,
+) {
+  const mode = input.mode === "manual" ? "manual" : "automatic";
+  const manualState = mode === "manual" && isCapacityState(input.manualState) ? input.manualState : null;
+  const publicReason = input.publicReason.trim().slice(0, 1000);
+  if (mode === "manual" && (!manualState || publicReason.length < 20)) {
+    throw new Error("Manual capacity restrictions require a state and a public reason of at least 20 characters.");
+  }
+  const payload: CapacityOverrideState = {
+    mode,
+    manualState,
+    publicReason: mode === "manual" ? publicReason : "",
+    updatedAt: new Date().toISOString(),
+    updatedBy,
+  };
+  await setSiteSetting("operations.capacity", JSON.stringify(payload), updatedBy);
+}
+
+export async function getCapacityState(summary?: EconomicsSummary): Promise<CapacityStateResolution> {
+  let economics = summary;
+  if (!economics) {
+    const [revenueStreams, treasuryEntries, sponsorshipCommitments] = await Promise.all([
+      loadRevenueStreams(),
+      loadTreasuryEntries(),
+      loadSponsorshipCommitments(),
+    ]);
+    const monthlyPublicBurnUsd = treasuryEntries
+      .filter((entry) => entry.bucket === "compute-treasury" && entry.direction === "outflow")
+      .reduce((total, entry) => total + entry.amountUsd, 0);
+    economics = summarizeEconomics(
+      revenueStreams,
+      treasuryEntries,
+      sponsorshipCommitments,
+      monthlyPublicBurnUsd,
+      0,
+      env.KENMATCH_TREASURY_TARGET_MONTHS,
+    );
+  }
+  const automaticState = deriveAutomaticCapacityState(
+    economics.coverageMonths,
+    economics.coverageTargetMonths,
+    economics.monthlyPublicBurnUsd,
+  );
+  return resolveCapacityState(automaticState, await getCapacityOverrideState());
+}
+
 const DEFAULT_MAINTENANCE_STATE: MaintenanceState = {
   mode: "off",
   message: "KenMatch is temporarily paused for maintenance. User data remains intact.",
@@ -5966,6 +6225,7 @@ export async function getAdminDashboard() {
     smtp,
     illustrations,
     marketplace,
+    capacity,
   ] = await Promise.all([
     loadAccounts(),
     loadProfiles(),
@@ -5978,6 +6238,7 @@ export async function getAdminDashboard() {
     getAdminSmtpSettings(),
     listTaskIllustrations(),
     hydrate(null),
+    getCapacityState(),
   ]);
   return {
     accounts,
@@ -5991,6 +6252,10 @@ export async function getAdminDashboard() {
     smtp,
     illustrations,
     tasks: marketplace.tasks,
+    capacity,
+    checkpoints: marketplace.tasks.flatMap((task) => marketplace.checkpointMap.get(task.id) ?? []),
+    runDecisions: marketplace.tasks.flatMap((task) => marketplace.runDecisionsByTask.get(task.id) ?? [])
+      .sort((left, right) => right.createdAt.localeCompare(left.createdAt)),
   };
 }
 

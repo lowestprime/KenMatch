@@ -25,7 +25,7 @@
 - `src/app/submit/page.tsx`
   - Ken intake form with tier-aware guidance.
 - `src/app/governance/page.tsx`
-  - Attestation ladder, blocked Kens, governance log, and category health.
+  - Attestation ladder, blocked Kens, governance log, category health, capacity state policy, stop contract, output-quality contract, and objective/subjective decision matrix.
 - `src/app/economics/page.tsx`
   - Treasury summary, revenue streams, sponsor commitments, sponsor intake, reserve coverage, and ledger entries.
 - `src/app/auth/page.tsx`
@@ -82,6 +82,7 @@ The main data logic lives in `src/lib/db.ts`.
 - checkpoints
 - checkpoint_gates
 - governance_events
+- run_decision_events
 - revenue_streams
 - treasury_entries
 - sponsorship_commitments
@@ -100,12 +101,14 @@ The main data logic lives in `src/lib/db.ts`.
 
 - `votes` and `task_pulse_votes` are separate so public signal does not collapse into scarce allocation voice.
 - `task_timings` and `run_updates` make launch timing, partial delivery, early completion, and long-run auditing explicit.
+- `run_decision_events` is the append-only public checkpoint, correction, stop, and release history. Terminal decisions update task stage, timing, and run status in the same database batch; release events require an artifact label plus a URL or SHA-256 digest.
 - `ken_submissions` holds the private intake state for user-created Kens. Seeded demonstration Kens have no intake row, preserving their existing public behavior.
 - `review_events` is an append-only, deduplicated decision history shared by Ken and category intake. Public and internal notes are stored separately.
 - `src/lib/intake-review.ts` produces versioned deterministic readiness snapshots. These checks are advisory and never publish or suppress records.
 - `src/lib/review-policy.ts` enforces role boundaries, own-submission conflicts, permanent recusal, public reasons, idempotent final actions, and two-person approval for high-risk work.
 - `/admin` exposes bounded, filterable review queues; `/account#submission-reviews` exposes only the submitter-safe history; `/reviews` publishes final explanations without private reviewer notes.
-- `task_finance`, `revenue_streams`, and `treasury_entries` keep funding logic visible without turning governance into a pricing layer, and economics summaries separate committed support from projected support.
+- `task_finance`, `revenue_streams`, and `treasury_entries` keep funding logic visible without turning governance into a pricing layer. General runway uses only committed unrestricted compute funds; simulated, projected, mismatched restricted, and protected safety-reserve balances remain visible but cannot make the automatic capacity state healthier.
+- `site_settings.operations.capacity` stores an optional public restrictive override. `src/lib/run-governance.ts` resolves the effective state as the stricter of automatic treasury policy and the manual override.
 - `sponsorship_commitments` tracks projected, simulated, checkout-pending, and paid funding states separately from the immutable treasury ledger.
 - `profile_attestations` separates standing, review status, and sybil-risk signals from profile copy, while `src/lib/attestation.ts` converts that state into participation limits and voice caps.
 - `email_tokens` powers email verification and password reset links.

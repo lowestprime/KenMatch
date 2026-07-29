@@ -9,9 +9,11 @@ import { AdminHistoricalAnalyticsPanel } from "@/components/admin/historical-ana
 import { AdminKenSubmissions } from "@/components/admin/ken-submissions";
 import { AdminNotifications } from "@/components/admin/notifications";
 import {
+  AdminCapacityPanel,
   AdminChangelogPanel,
   AdminIllustrationPanel,
   AdminMaintenancePanel,
+  AdminRunDecisionPanel,
   AdminSmtpPanel,
 } from "@/components/admin/operations";
 import { AdminVerifications } from "@/components/admin/verifications";
@@ -173,6 +175,27 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
             Environment SMTP remains authoritative. Owner-managed database SMTP is available only when env SMTP is absent and secrets can be encrypted at rest.
           </p>
           <AdminSmtpPanel smtp={dashboard.smtp} isOwner={isOwner} />
+        </div>
+      </section>
+
+      <section className="section-grid" data-columns="2">
+        <div className="panel grid gap-3">
+          <h2>Funding and capacity state</h2>
+          <p style={{ color: "var(--muted)" }}>
+            Automatic state uses only committed unrestricted compute coverage. Manual controls can impose a stricter pause, never relax the treasury floor.
+          </p>
+          <AdminCapacityPanel capacity={dashboard.capacity} />
+        </div>
+        <div className="panel grid gap-3">
+          <h2>Run decisions and release gates</h2>
+          <p style={{ color: "var(--muted)" }}>
+            Record checkpoint, correction, stop, and release outcomes with a public reason and verifiable artifact reference.
+          </p>
+          <AdminRunDecisionPanel
+            tasks={dashboard.tasks}
+            checkpoints={dashboard.checkpoints}
+            decisions={dashboard.runDecisions}
+          />
         </div>
       </section>
 

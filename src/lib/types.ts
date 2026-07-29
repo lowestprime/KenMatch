@@ -70,6 +70,44 @@ export type CompletionMode = (typeof completionModes)[number];
 export const updateStatuses = ["planned", "on-track", "at-risk", "partial", "shipped"] as const;
 export type UpdateStatus = (typeof updateStatuses)[number];
 
+export const capacityStates = ["normal", "constrained", "new-launches-paused", "critical-maintenance-only"] as const;
+export type CapacityState = (typeof capacityStates)[number];
+
+export const capacityOverrideModes = ["automatic", "manual"] as const;
+export type CapacityOverrideMode = (typeof capacityOverrideModes)[number];
+
+export const runDecisionEventTypes = ["checkpoint", "correction", "stop", "release"] as const;
+export type RunDecisionEventType = (typeof runDecisionEventTypes)[number];
+
+export const checkpointDecisionCodes = ["checkpoint-approved", "checkpoint-held", "checkpoint-revision-required"] as const;
+export type CheckpointDecisionCode = (typeof checkpointDecisionCodes)[number];
+
+export const correctionDecisionCodes = ["correction-issued", "correction-accepted"] as const;
+export type CorrectionDecisionCode = (typeof correctionDecisionCodes)[number];
+
+export const stopDecisionCodes = [
+  "safety-escalation",
+  "failed-acceptance",
+  "provenance-failure",
+  "budget-runtime-cap",
+  "repeated-provider-tool-failure",
+  "duplication-supersession",
+  "scope-invalidation",
+  "reviewer-redirect",
+  "successful-early-completion",
+  "owner-emergency",
+] as const;
+export type StopDecisionCode = (typeof stopDecisionCodes)[number];
+
+export const releaseDecisionCodes = ["release-approved", "release-partial", "release-rejected", "release-rolled-back"] as const;
+export type ReleaseDecisionCode = (typeof releaseDecisionCodes)[number];
+
+export type RunDecisionCode =
+  | CheckpointDecisionCode
+  | CorrectionDecisionCode
+  | StopDecisionCode
+  | ReleaseDecisionCode;
+
 export const systemRoles = ["owner", "admin", "moderator", "contributor"] as const;
 export type SystemRole = (typeof systemRoles)[number];
 
@@ -344,6 +382,34 @@ export interface MaintenanceState {
   updatedBy: string | null;
 }
 
+export interface CapacityOverrideState {
+  mode: CapacityOverrideMode;
+  manualState: CapacityState | null;
+  publicReason: string;
+  updatedAt: string;
+  updatedBy: string | null;
+}
+
+export interface CapacityPolicy {
+  state: CapacityState;
+  label: string;
+  summary: string;
+  newLaunches: string;
+  existingRuns: string;
+  protectedWork: string;
+  restrictions: string;
+  recovery: string;
+}
+
+export interface CapacityStateResolution {
+  state: CapacityState;
+  automaticState: CapacityState;
+  source: "automatic" | "manual-restrictive-override";
+  publicReason: string;
+  policy: CapacityPolicy;
+  override: CapacityOverrideState;
+}
+
 export const changelogTypes = ["launch", "feature", "data", "security", "operations"] as const;
 export type ChangelogType = (typeof changelogTypes)[number];
 
@@ -589,6 +655,21 @@ export interface GovernanceEventRecord {
   createdAt: string;
 }
 
+export interface RunDecisionEventRecord {
+  id: string;
+  taskId: string;
+  checkpointId: string | null;
+  eventType: RunDecisionEventType;
+  decisionCode: RunDecisionCode;
+  publicReason: string;
+  artifactLabel: string | null;
+  artifactUrl: string | null;
+  artifactDigest: string | null;
+  actorAccountId: string | null;
+  actorRole: SystemRole | "system";
+  createdAt: string;
+}
+
 export interface RevenueStreamRecord {
   id: string;
   slug: string;
@@ -746,6 +827,7 @@ export interface TaskDetail extends TaskSummary {
   run: ComputeRunRecord | null;
   checkpoints: CheckpointDetail[];
   governanceEvents: GovernanceEventRecord[];
+  runDecisions: RunDecisionEventRecord[];
   comments: DiscussionComment[];
   runUpdates: RunUpdateRecord[];
   intakeReview: {
@@ -786,6 +868,8 @@ export interface EconomicsSummary {
   committedTreasuryMonthlyUsd: number;
   founderMonthlyUsd: number;
   treasuryBalanceUsd: number;
+  committedComputeBalanceUsd: number;
+  committedUnrestrictedTreasuryUsd: number;
   monthlyPublicBurnUsd: number;
   coverageMonths: number;
   coverageTargetMonths: number;
@@ -798,6 +882,7 @@ export interface EconomicsSummary {
   sponsorPoolsUsd: number;
   sponsorCommitmentsUsd: number;
   safetyReserveUsd: number;
+  committedSafetyReserveUsd: number;
   verifiedFundingStreams: number;
 }
 

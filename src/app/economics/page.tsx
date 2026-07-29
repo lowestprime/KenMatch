@@ -1,4 +1,5 @@
 import { SponsorForm } from "@/components/sponsor-form";
+import { CapacityStatePanel } from "@/components/capacity-state-panel";
 import { getEconomicsData, getMarketplaceData } from "@/lib/db";
 import { getViewerProfileId } from "@/lib/session";
 import { buildPublicMetadata } from "@/lib/seo";
@@ -38,7 +39,7 @@ function labelForFundingState(value: "simulated" | "projected" | "committed") {
 
 export default async function EconomicsPage() {
   const viewerProfileId = await getViewerProfileId();
-  const [{ summary, revenueStreams, treasuryEntries, fundedTasks, sponsorshipCommitments }, marketplace] = await Promise.all([
+  const [{ summary, capacity, revenueStreams, treasuryEntries, fundedTasks, sponsorshipCommitments }, marketplace] = await Promise.all([
     getEconomicsData(viewerProfileId),
     getMarketplaceData(viewerProfileId, { query: "", category: "all", tier: "all", stage: "all" }),
   ]);
@@ -79,15 +80,21 @@ export default async function EconomicsPage() {
         </div>
       </section>
 
+      <div id="capacity-state" className="scroll-mt-28">
+        <CapacityStatePanel capacity={capacity} summary={summary} />
+      </div>
+
       <section className="metric-grid">
         {[
-          ["Treasury balance", formatCurrency(summary.treasuryBalanceUsd)],
+          ["Displayed treasury balance", formatCurrency(summary.treasuryBalanceUsd)],
+          ["Usable committed treasury", formatCurrency(summary.committedUnrestrictedTreasuryUsd)],
           ["Monthly public burn", formatCurrency(summary.monthlyPublicBurnUsd)],
-          ["Coverage gap", formatCurrency(Math.round((summary.coverageGapMonths / Math.max(summary.coverageTargetMonths, 1)) * summary.monthlyPublicBurnUsd))],
+          ["Coverage gap", formatCurrency(Math.round(summary.coverageGapMonths * summary.monthlyPublicBurnUsd))],
           ["Restricted funding", formatCurrency(summary.restrictedFundingUsd)],
           ["Projected restricted", formatCurrency(summary.projectedRestrictedFundingUsd)],
           ["Sandbox funding", formatCurrency(summary.simulatedFundingUsd)],
           ["Safety reserve", formatCurrency(summary.safetyReserveUsd)],
+          ["Committed safety reserve", formatCurrency(summary.committedSafetyReserveUsd)],
           ["Verified streams", formatNumber(summary.verifiedFundingStreams)],
         ].map(([label, value]) => (
           <div key={label} className="metric-card">

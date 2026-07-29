@@ -13,7 +13,7 @@ import { ReleasePolishStyles } from "@/components/release-polish-styles";
 import { CommunityPolishStyles } from "@/components/community-polish-styles";
 import { ReleaseHardeningStyles } from "@/components/release-hardening-styles";
 import { getCategoryVisualOverrideCss } from "@/lib/category-visual-settings";
-import type { ViewerSession } from "@/lib/types";
+import type { CapacityStateResolution, ViewerSession } from "@/lib/types";
 
 const primaryNav = [
   { href: "/", label: "Overview" },
@@ -28,7 +28,15 @@ const primaryNav = [
   { href: "/glossary", label: "Glossary" },
 ];
 
-export async function SiteShell({ viewer, children }: { viewer: ViewerSession | null; children: React.ReactNode }) {
+export async function SiteShell({
+  viewer,
+  capacity,
+  children,
+}: {
+  viewer: ViewerSession | null;
+  capacity: CapacityStateResolution;
+  children: React.ReactNode;
+}) {
   const showAdminLink = Boolean(viewer && (viewer.account.systemRole === "admin" || viewer.account.systemRole === "owner" || viewer.account.systemRole === "moderator"));
   const categoryVisualCss = await getCategoryVisualOverrideCss();
   const viewerKey = viewer?.account.id ?? "guest";
@@ -60,6 +68,14 @@ export async function SiteShell({ viewer, children }: { viewer: ViewerSession | 
           </div>
         </div>
       </header>
+      {capacity.state !== "normal" ? (
+        <aside className={`capacity-site-banner is-${capacity.state}`} aria-label="Current funding and capacity state">
+          <div>
+            <strong>{capacity.policy.label}.</strong> {capacity.policy.summary} {capacity.policy.newLaunches}
+          </div>
+          <Link href="/economics#capacity-state">View policy</Link>
+        </aside>
+      ) : null}
       <main id="main-content" className="site-main" tabIndex={-1}>{children}</main>
       <footer className="site-footer">
         <div className="site-footer-inner">

@@ -693,6 +693,23 @@ textarea.field { resize: vertical; min-height: 4.5rem; }
   text-align: right;
   font-weight: 700;
 }
+.run-quality-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: 0.75rem;
+}
+.run-quality-stat {
+  min-width: 0;
+}
+.run-quality-stat > span {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+.run-quality-stat > strong {
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
 .flow-card { padding: 1rem; }
 
 .tier-chip {
@@ -1285,6 +1302,103 @@ html[data-theme="dark"] .auth-switcher button.is-active {
   display: block;
   color: var(--muted);
   margin-top: 0.12rem;
+}
+
+.capacity-site-banner {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: min(100% - 2rem, 112rem);
+  margin: 0.75rem auto 0;
+  border: 1px solid color-mix(in srgb, var(--accent-gold) 48%, var(--line));
+  border-radius: 0.7rem;
+  padding: 0.7rem 0.9rem;
+  background: color-mix(in srgb, var(--panel-strong) 92%, #000);
+  color: var(--ink-muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.capacity-site-banner::before,
+.capacity-state-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--rainbow-border);
+  pointer-events: none;
+  opacity: 0.72;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+.capacity-site-banner a {
+  flex: none;
+  color: var(--ink);
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 0.2rem;
+}
+
+.capacity-state-panel {
+  position: relative;
+  overflow: hidden;
+}
+
+.capacity-state-panel.is-normal::before {
+  opacity: 0.45;
+}
+
+.capacity-state-panel.is-critical-maintenance-only::before,
+.capacity-site-banner.is-critical-maintenance-only::before {
+  background: linear-gradient(100deg, var(--accent-red), var(--accent-gold), var(--accent-purple));
+  opacity: 0.95;
+}
+
+.capacity-policy-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.decision-matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--ink-muted);
+  font-size: 0.86rem;
+}
+
+.decision-matrix-table th,
+.decision-matrix-table td {
+  border-bottom: 1px solid var(--line);
+  padding: 0.85rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.decision-matrix-table thead th {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.decision-matrix-table tbody th {
+  color: var(--ink);
+  font-weight: 750;
+}
+
+@media (max-width: 640px) {
+  .capacity-site-banner {
+    align-items: flex-start;
+    flex-direction: column;
+    width: calc(100% - 1rem);
+  }
 }
 
 .admin-filter-row {

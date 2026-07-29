@@ -43,6 +43,7 @@ import {
   markVisitorAccountCreated,
   publicWritesOpen,
   recordAudit,
+  recordRunDecision,
   reviewCategoryProposal,
   reviewKenSubmission,
   removeTaskIllustration,
@@ -56,6 +57,7 @@ import {
   setAccountRole,
   setAdminNotificationSettings,
   setAdminSmtpSettings,
+  setCapacityOverrideState,
   setMaintenanceState,
   suspendProfile,
   upsertChangelogEntry,
@@ -86,7 +88,19 @@ import {
   setViewerSessionCookie,
 } from "@/lib/session";
 import { getStripeClient, stripeEnabled } from "@/lib/stripe";
-import type { AboutPageContent, ChangelogType, ProfileLink, SearchResultItem, SponsorType } from "@/lib/types";
+import {
+  capacityStates,
+  checkpointDecisionCodes,
+  correctionDecisionCodes,
+  releaseDecisionCodes,
+  runDecisionEventTypes,
+  stopDecisionCodes,
+  type AboutPageContent,
+  type ChangelogType,
+  type ProfileLink,
+  type SearchResultItem,
+  type SponsorType,
+} from "@/lib/types";
 import { extractVisitorContext } from "@/lib/visitor";
 
 const proposalSchema = z.object({
@@ -239,6 +253,37 @@ const maintenanceSchema = z.object({
   mode: z.enum(["off", "on"]),
   message: z.string().min(12, "Maintenance message should explain the pause.").max(600),
   expectedReturn: z.string().max(160).optional(),
+});
+
+const capacityOverrideSchema = z.object({
+  mode: z.enum(["automatic", "manual"]),
+  manualState: z.enum(capacityStates).optional(),
+  publicReason: z.string().max(1000).optional(),
+}).superRefine((value, context) => {
+  if (value.mode === "manual" && !value.manualState) {
+    context.addIssue({ code: "custom", path: ["manualState"], message: "Choose a manual restriction state." });
+  }
+  if (value.mode === "manual" && (value.publicReason?.trim().length ?? 0) < 20) {
+    context.addIssue({ code: "custom", path: ["publicReason"], message: "Provide a public reason of at least 20 characters." });
+  }
+});
+
+const runDecisionCodes = [
+  ...checkpointDecisionCodes,
+  ...correctionDecisionCodes,
+  ...stopDecisionCodes,
+  ...releaseDecisionCodes,
+] as const;
+
+const runDecisionSchema = z.object({
+  taskId: z.string().min(1),
+  checkpointId: z.string().max(120).optional(),
+  eventType: z.enum(runDecisionEventTypes),
+  decisionCode: z.enum(runDecisionCodes),
+  publicReason: z.string().min(20, "Provide a public reason of at least 20 characters.").max(2000),
+  artifactLabel: z.string().max(240).optional(),
+  artifactUrl: z.string().max(1000).optional(),
+  artifactDigest: z.string().max(80).optional(),
 });
 
 const changelogSchema = z.object({
@@ -1411,6 +1456,99 @@ export async function updateMaintenanceAction(_: ActionState, formData: FormData
 
   revalidateCorePaths();
   return { status: "success", message: parsed.data.mode === "on" ? "Maintenance mode enabled." : "Maintenance mode disabled." };
+}
+
+export async function updateCapacityOverrideAction(_: ActionState, formData: FormData): Promise<ActionState> {
+  let session: Awaited<ReturnType<typeof requireAdminSession>>;
+  try {
+    session = await requireAdminSession();
+    await guardMutationRequest({
+      action: "update-capacity",
+      actorId: session.account.id,
+      formData,
+      rateLimit: { scope: "update-capacity", limit: 12, windowSeconds: 60 * 60 },
+    });
+  } catch (error) {
+    return { status: "error", message: actionErrorMessage(error, "Unable to update the capacity state.") };
+  }
+  const parsed = capacityOverrideSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: "Capacity settings need a valid mode, state, and public reason.",
+      fieldErrors: flattenFieldErrors(parsed.error),
+    };
+  }
+  try {
+    await setCapacityOverrideState({
+      mode: parsed.data.mode,
+      manualState: parsed.data.manualState ?? null,
+      publicReason: parsed.data.publicReason?.trim() ?? "",
+    }, session.account.id);
+    await recordAudit({
+      accountId: session.account.id,
+      action: "admin.capacity-state",
+      detail: parsed.data.mode === "automatic"
+        ? "Capacity state returned to automatic treasury policy."
+        : `Manual restrictive capacity state requested: ${parsed.data.manualState}.`,
+    });
+  } catch (error) {
+    return { status: "error", message: actionErrorMessage(error, "Unable to update the capacity state.") };
+  }
+  revalidateCorePaths();
+  return {
+    status: "success",
+    message: parsed.data.mode === "automatic"
+      ? "Automatic capacity policy restored."
+      : "Manual restrictive capacity state saved.",
+  };
+}
+
+export async function recordRunDecisionAction(_: ActionState, formData: FormData): Promise<ActionState> {
+  let session: Awaited<ReturnType<typeof requireAdminSession>>;
+  try {
+    session = await requireAdminSession();
+    await guardMutationRequest({
+      action: "record-run-decision",
+      actorId: session.account.id,
+      formData,
+      rateLimit: { scope: "record-run-decision", limit: 30, windowSeconds: 60 * 60 },
+    });
+  } catch (error) {
+    return { status: "error", message: actionErrorMessage(error, "Unable to record the run decision.") };
+  }
+  const parsed = runDecisionSchema.safeParse(Object.fromEntries(formData.entries()));
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: "Run decisions require a Ken, compatible event type and code, and a public reason.",
+      fieldErrors: flattenFieldErrors(parsed.error),
+    };
+  }
+  try {
+    const result = await recordRunDecision({
+      taskId: parsed.data.taskId,
+      checkpointId: parsed.data.checkpointId,
+      eventType: parsed.data.eventType,
+      decisionCode: parsed.data.decisionCode,
+      publicReason: parsed.data.publicReason,
+      artifactLabel: parsed.data.artifactLabel,
+      artifactUrl: parsed.data.artifactUrl,
+      artifactDigest: parsed.data.artifactDigest,
+      actorAccountId: session.account.id,
+      actorRole: session.account.systemRole,
+    });
+    await recordAudit({
+      accountId: session.account.id,
+      action: "run.decision-recorded",
+      detail: `${parsed.data.decisionCode} recorded for ${parsed.data.taskId}.`,
+      metadata: { runDecisionId: result.event.id, eventType: result.event.eventType },
+    });
+    revalidateCorePaths(result.slug);
+  } catch (error) {
+    return { status: "error", message: actionErrorMessage(error, "Unable to record the run decision.") };
+  }
+  return { status: "success", message: "Append-only run decision recorded and public lifecycle state refreshed." };
 }
 
 export async function updateSmtpSettingsAction(_: ActionState, formData: FormData): Promise<ActionState> {

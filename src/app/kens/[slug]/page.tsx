@@ -9,6 +9,7 @@ import { KenLifecycleMap } from "@/components/ken-lifecycle-map";
 import { KenVisual } from "@/components/ken-visual";
 import { KenSandboxStrip } from "@/components/ken-sandbox-strip";
 import { KenTimingStrip } from "@/components/ken-timing-strip";
+import { RunQualityContract } from "@/components/run-quality-contract";
 import { TaskPulsePanel } from "@/components/task-pulse-panel";
 import { VotePanel } from "@/components/vote-panel";
 import { getPublicKenSeoRecord, getTaskDetail } from "@/lib/db";
@@ -258,6 +259,8 @@ export default async function KenDetailPage({ params }: { params: Promise<{ slug
               <p className="text-sm leading-7 text-muted">No incremental updates have been logged yet.</p>
             )}
           </div>
+
+          <RunQualityContract task={task} />
 
           <DiscussionThread
             taskId={task.id}

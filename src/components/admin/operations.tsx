@@ -5,7 +5,9 @@ import { useActionState, useMemo, useState } from "react";
 import { initialActionState } from "@/app/action-state";
 import {
   removeTaskIllustrationAction,
+  recordRunDecisionAction,
   sendSmtpTestAction,
+  updateCapacityOverrideAction,
   updateMaintenanceAction,
   updateSmtpSettingsAction,
   uploadTaskIllustrationAction,
@@ -13,11 +15,15 @@ import {
 } from "@/app/actions";
 import type {
   AdminSmtpSettings,
+  CapacityStateResolution,
   ChangelogEntryRecord,
+  CheckpointDetail,
   MaintenanceState,
+  RunDecisionEventRecord,
   TaskIllustrationRecord,
   TaskSummary,
 } from "@/lib/types";
+import { RUN_DECISION_DEFINITIONS } from "@/lib/run-governance";
 
 function StatusMessage({ state }: { state: typeof initialActionState }) {
   if (!state.message) return null;
@@ -55,6 +61,159 @@ export function AdminMaintenancePanel({ maintenance }: { maintenance: Maintenanc
       </p>
       <StatusMessage state={state} />
     </form>
+  );
+}
+
+export function AdminCapacityPanel({ capacity }: { capacity: CapacityStateResolution }) {
+  const [state, formAction, pending] = useActionState(updateCapacityOverrideAction, initialActionState);
+  return (
+    <div className="form-grid">
+      <div className={`admin-hint ${capacity.state === "normal" ? "alert-success" : "alert-warn"}`}>
+        <strong>{capacity.policy.label}.</strong>{" "}
+        Automatic treasury state: {capacity.automaticState.replaceAll("-", " ")}. Effective source: {capacity.source.replaceAll("-", " ")}.
+      </div>
+      <div className="grid gap-2 text-sm" style={{ color: "var(--muted)" }}>
+        <p><strong style={{ color: "var(--ink)" }}>New launches:</strong> {capacity.policy.newLaunches}</p>
+        <p><strong style={{ color: "var(--ink)" }}>Existing runs:</strong> {capacity.policy.existingRuns}</p>
+        <p><strong style={{ color: "var(--ink)" }}>Protected work:</strong> {capacity.policy.protectedWork}</p>
+      </div>
+      <form action={formAction} className="form-grid">
+        <label className="field-label">
+          <span>Control mode</span>
+          <select name="mode" className="field" defaultValue={capacity.override.mode}>
+            <option value="automatic">Automatic - coverage based</option>
+            <option value="manual">Manual - stricter only</option>
+          </select>
+        </label>
+        <label className="field-label">
+          <span>Manual restriction</span>
+          <select name="manualState" className="field" defaultValue={capacity.override.manualState ?? capacity.state}>
+            <option value="normal">Normal capacity</option>
+            <option value="constrained">Constrained capacity</option>
+            <option value="new-launches-paused">New launches paused</option>
+            <option value="critical-maintenance-only">Critical maintenance only</option>
+          </select>
+        </label>
+        <label className="field-label">
+          <span>Public reason for manual restriction</span>
+          <textarea
+            name="publicReason"
+            className="field"
+            rows={3}
+            defaultValue={capacity.override.publicReason}
+            placeholder="Explain the provider, safety, or operating constraint. This reason is public."
+          />
+        </label>
+        <button type="submit" className="cta-primary cta-compact" disabled={pending}>
+          {pending ? "Saving..." : "Save capacity control"}
+        </button>
+        <p className="text-xs" style={{ color: "var(--muted)" }}>
+          Manual control cannot relax a more restrictive automatic state. Clear it by returning to automatic mode.
+        </p>
+        <StatusMessage state={state} />
+      </form>
+    </div>
+  );
+}
+
+export function AdminRunDecisionPanel({
+  tasks,
+  checkpoints,
+  decisions,
+}: {
+  tasks: TaskSummary[];
+  checkpoints: CheckpointDetail[];
+  decisions: RunDecisionEventRecord[];
+}) {
+  const [state, formAction, pending] = useActionState(recordRunDecisionAction, initialActionState);
+  const [taskId, setTaskId] = useState(tasks[0]?.id ?? "");
+  const [eventType, setEventType] = useState<RunDecisionEventRecord["eventType"]>("checkpoint");
+  const taskCheckpoints = useMemo(() => checkpoints.filter((checkpoint) => checkpoint.taskId === taskId), [checkpoints, taskId]);
+  const decisionOptions = useMemo(
+    () => Object.entries(RUN_DECISION_DEFINITIONS).filter(([, definition]) => definition.eventType === eventType),
+    [eventType],
+  );
+  const titleByTask = useMemo(() => new Map(tasks.map((task) => [task.id, task.title])), [tasks]);
+
+  return (
+    <div className="form-grid">
+      <div className="admin-hint">
+        Decisions are append-only. Stop and release decisions update the public lifecycle state; every status change keeps the reason, actor, time, and artifact trace.
+      </div>
+      <form action={formAction} className="form-grid">
+        <label className="field-label">
+          <span>Ken</span>
+          <select name="taskId" className="field" value={taskId} onChange={(event) => setTaskId(event.target.value)}>
+            {tasks.map((task) => <option key={task.id} value={task.id}>{task.title}</option>)}
+          </select>
+        </label>
+        <div className="form-grid form-grid-two">
+          <label className="field-label">
+            <span>Event type</span>
+            <select
+              name="eventType"
+              className="field"
+              value={eventType}
+              onChange={(event) => setEventType(event.target.value as RunDecisionEventRecord["eventType"])}
+            >
+              <option value="checkpoint">Checkpoint decision</option>
+              <option value="correction">Correction</option>
+              <option value="stop">Stop or redirect</option>
+              <option value="release">Release decision</option>
+            </select>
+          </label>
+          <label className="field-label">
+            <span>Reason code</span>
+            <select name="decisionCode" className="field" key={eventType} defaultValue={decisionOptions[0]?.[0]}>
+              {decisionOptions.map(([code, definition]) => <option key={code} value={code}>{definition.label}</option>)}
+            </select>
+          </label>
+        </div>
+        <label className="field-label">
+          <span>Checkpoint</span>
+          <select name="checkpointId" className="field" defaultValue="" key={taskId}>
+            <option value="">{eventType === "checkpoint" ? "Choose a required checkpoint" : "No checkpoint / whole run"}</option>
+            {taskCheckpoints.map((checkpoint) => <option key={checkpoint.id} value={checkpoint.id}>{checkpoint.label}</option>)}
+          </select>
+        </label>
+        <label className="field-label">
+          <span>Public reason</span>
+          <textarea name="publicReason" className="field" rows={4} minLength={20} required />
+        </label>
+        <div className="form-grid form-grid-two">
+          <label className="field-label">
+            <span>Artifact label</span>
+            <input name="artifactLabel" className="field" placeholder="Required for release decisions" />
+          </label>
+          <label className="field-label">
+            <span>Artifact URL</span>
+            <input name="artifactUrl" className="field" placeholder="/artifacts/... or https://..." />
+          </label>
+        </div>
+        <label className="field-label">
+          <span>SHA-256 artifact digest</span>
+          <input name="artifactDigest" className="field" placeholder="sha256:64 hexadecimal characters" />
+        </label>
+        <button type="submit" className="cta-primary cta-compact" disabled={pending || !taskId}>
+          {pending ? "Recording..." : "Record append-only decision"}
+        </button>
+        <StatusMessage state={state} />
+      </form>
+      <div className="admin-dense-list">
+        {decisions.slice(0, 8).map((decision) => (
+          <article key={decision.id} className="audit-card">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <strong>{RUN_DECISION_DEFINITIONS[decision.decisionCode].label}</strong>
+              <span className="tag">{decision.eventType}</span>
+            </div>
+            <p className="text-sm" style={{ color: "var(--ink-muted)" }}>{decision.publicReason}</p>
+            <p className="text-xs" style={{ color: "var(--muted)" }}>
+              {titleByTask.get(decision.taskId) ?? decision.taskId} · {new Date(decision.createdAt).toLocaleString()}
+            </p>
+          </article>
+        ))}
+      </div>
+    </div>
   );
 }
 

@@ -320,7 +320,7 @@ export const FAQ_ENTRIES: FAQEntry[] = [
     category: "backing",
     question: "What happens when funding or compute capacity is inadequate?",
     answer:
-      "The public board and historical records should remain available. Capacity moves through explicit states: normal, constrained, new launches paused, and critical-maintenance-only. New runs can wait without losing rank; active runs may continue only to a safe checkpoint; safety, integrity, backup, and incident work take precedence; restricted funds remain restricted; and users see why execution is waiting. The current prototype models treasury and coverage but does not guarantee an adequate live pool or an execution date.",
+      "The public board and historical records remain available. The implemented state machine moves through normal, constrained, new launches paused, and critical-maintenance-only using committed unrestricted compute coverage. New runs can wait without losing rank; active runs continue only to the policy's safe checkpoint; safety, rollback, maintenance, and evidence preservation take precedence; and users see the reason in a site-wide notice. Projected, simulated, category-restricted, Ken-restricted, and safety-reserve funds do not inflate general runway. An administrator can impose a stricter public override but cannot relax the automatic floor. The prototype does not guarantee an adequate live pool or execution date.",
     keywords: ["funding", "scarcity", "run out", "shutdown", "capacity", "pause", "queue"],
   },
   {
@@ -328,7 +328,7 @@ export const FAQ_ENTRIES: FAQEntry[] = [
     category: "safety",
     question: "How is the quality of a Ken’s output enforced?",
     answer:
-      "Quality is not inferred from model confidence or popularity. A run must name deliverables, acceptance criteria, source and provenance requirements, checkpoint gates, artifact links or digests, reviewer decisions, correction history, rollback needs, and an explicit release outcome. A failed threshold can produce revision, redirect, pause, block, or partial delivery. The prototype implements many of these records in sandbox form; a live provider run would still require qualified reviewers and domain-specific tests.",
+      "Quality is not inferred from model confidence or popularity. Every public Ken detail joins named deliverables, acceptance criteria, source and provenance requirements, checkpoint gates, artifact links or SHA-256 digests, reviewer decisions, correction history, rollback needs, and an explicit release outcome. Append-only checkpoint, correction, stop, and release events distinguish progress notes from reviewed artifacts. A failed threshold can produce revision, redirect, pause, block, rollback, or partial delivery. Seeded records remain sandbox examples; a live provider run would still require qualified reviewers and domain-specific tests.",
     keywords: ["quality", "output", "acceptance", "checkpoint", "review", "artifact"],
   },
   {
@@ -360,7 +360,7 @@ export const FAQ_ENTRIES: FAQEntry[] = [
     category: "operations",
     question: "Does a submitted Ken enter a review queue?",
     answer:
-      "The intended contract is explicit intake rather than immediate silent publication: automated readiness warnings, risk and duplicate hints, requested-versus-estimated lane, revision, approve, reject, or merge decisions, reviewer assignment, timestamps, immutable history, and submitter-visible status. The complete queue is being implemented against the existing submission and seeded-data model; until it is validated, KenMatch should not claim that every one of those review states is operational.",
+      "Yes. User-submitted Kens enter private intake rather than immediate publication. The operational queue records deterministic readiness warnings, bounded risk and duplicate hints, requested-versus-estimated lane, assignment, recusal, revision, hold, approve, reject, merge, appeal, and second-review states with timestamps and append-only history. The submitter sees a redacted status record; only authorized reviewers see private notes. A submission joins public feed, search, ranking, pulse, comments, and profiles only after approval.",
     keywords: ["submitted ken", "review queue", "intake", "revision", "approve", "reject"],
   },
   {
@@ -368,7 +368,7 @@ export const FAQ_ENTRIES: FAQEntry[] = [
     category: "safety",
     question: "Will KenMatch use volunteer moderators, and how is capture limited?",
     answer:
-      "Broad discretionary moderator power is not the default. Safe volunteer capabilities are narrow: flag or triage, request revision, propose a reason-coded action, place a temporary high-risk hold, declare expertise, recuse, and participate in an appeal or second review. Public evidence is not silently deleted; moderation volume does not buy voice; conflicts and sponsor pressure are recorded; high-impact decisions require stronger review. A complete role, recusal, and appeal workflow must pass authorization and audit tests before it is described as operational.",
+      "Broad discretionary moderator power is not the default. The operational role policy limits moderators to triage, assignment, revision requests, bounded holds, recusal, and reason-coded proposals; admin or owner authority is required for publish, merge, or reject outcomes, and high-risk publication requires two distinct privileged reviewers. Public evidence is not silently deleted, moderation volume does not buy voice, private notes are redacted from public views, conflicts require recusal, and appeals remain in append-only history. KenMatch does not claim that an external volunteer moderator cohort is currently active.",
     keywords: ["moderation", "volunteer", "capture", "appeal", "recusal", "conflict"],
   },
 ];

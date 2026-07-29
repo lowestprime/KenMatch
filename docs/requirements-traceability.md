@@ -27,7 +27,9 @@ This file maps the stable product requirements from `KenMatch_Conception.md` to 
 
 ### Long-run execution with checkpoints, rollback, and visible stopping conditions
 - Run configuration, checkpoints, and rollback notes live in `runs`, `checkpoints`, and `checkpoint_gates` in `src/lib/db.ts`.
-- UI rendering appears in `src/app/kens/[slug]/page.tsx`.
+- Append-only checkpoint, correction, stop, and release decisions live in `run_decision_events`; terminal decisions atomically update task stage, timing, and run status without erasing prior reasons.
+- `src/lib/run-governance.ts` defines all ten stop reasons and separates programmatic checks, automated warnings, and human review decisions.
+- UI rendering appears in `src/app/kens/[slug]/page.tsx` and `src/app/governance/page.tsx`.
 
 ### Partial achievement, early completion, and incremental audit trail
 - `task_timings` and `run_updates` in `src/lib/db.ts` model launch windows, compute used, completion mode, and incremental evidence.
@@ -65,8 +67,9 @@ This file maps the stable product requirements from `KenMatch_Conception.md` to 
 ### Funding, treasury, and commercialization split
 - Ken finance metadata is stored in `task_finance`.
 - Revenue streams, sponsor commitments, and treasury ledger data live in `revenue_streams`, `sponsorship_commitments`, and `treasury_entries`.
-- Supporting summary logic in `src/lib/economics.ts` distinguishes committed support from projected support, simulated runway, restricted funding, and safety reserve coverage so optimistic sponsorship does not masquerade as committed treasury support.
-- Public rendering is implemented on `src/app/economics/page.tsx`.
+- Supporting summary logic in `src/lib/economics.ts` distinguishes committed support from projected support, simulated balances, restricted funding, and protected safety reserves. Only committed unrestricted compute funds count toward usable coverage.
+- `src/lib/run-governance.ts` resolves normal, constrained, new-launches-paused, and critical-maintenance-only states. A database setting may impose a stricter public override but cannot relax the automatic floor.
+- Public rendering is implemented on `src/app/economics/page.tsx`, `src/app/governance/page.tsx`, and the non-normal site-wide capacity notice.
 
 ### High-skill creative and research outputs
 - The prior broad `creative-works`, `public-interest`, and `everyday-services` demo categories are explicitly retired in `src/lib/seed.ts`.

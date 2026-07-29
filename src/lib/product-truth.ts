@@ -44,6 +44,14 @@ export const PRODUCT_TRUTH_ITEMS: ProductTruthItem[] = [
     route: "/faq#provider-dependency",
   },
   {
+    id: "capacity-and-release",
+    area: "Capacity controls and output release",
+    status: "sandbox",
+    evidence: "Committed-only capacity states, restrictive overrides, append-only checkpoint/correction/stop/release events, artifact digests, and lifecycle transitions are implemented and tested.",
+    limitation: "The visible run and artifact records are sandbox examples until a live provider and qualified domain-review program are configured.",
+    route: "/governance#run-quality",
+  },
+  {
     id: "review",
     area: "Intake, review, and moderation",
     status: "operational",

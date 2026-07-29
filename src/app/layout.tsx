@@ -6,7 +6,7 @@ import { JsonLd } from "@/components/json-ld";
 import { MaintenanceScreen } from "@/components/maintenance-screen";
 import { SiteShell } from "@/components/site-shell";
 import { canonicalOrigin } from "@/lib/env";
-import { getMaintenanceState } from "@/lib/db";
+import { getCapacityState, getMaintenanceState } from "@/lib/db";
 import {
   SITE_DESCRIPTION,
   SOCIAL_IMAGE_HEIGHT,
@@ -116,9 +116,10 @@ export const viewport: Viewport = {
 export const dynamic = "force-dynamic";
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const [viewer, maintenance, headerStore] = await Promise.all([
+  const [viewer, maintenance, capacity, headerStore] = await Promise.all([
     getViewerSession(),
     getMaintenanceState(),
+    getCapacityState(),
     headers(),
   ]);
   const pathname = headerStore.get("x-kenmatch-pathname") ?? "/";
@@ -169,7 +170,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <body className={`${bodyFont.variable} ${displayFont.variable} ${monoFont.variable} font-body antialiased`}>
         <JsonLd data={websiteJsonLd} />
         <JsonLd data={projectJsonLd} />
-        <SiteShell viewer={viewer}>
+        <SiteShell viewer={viewer} capacity={capacity}>
           {showMaintenance ? <MaintenanceScreen state={maintenance} /> : children}
         </SiteShell>
       </body>
