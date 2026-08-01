@@ -31,7 +31,7 @@ function New-SecretFile([string]$Path) {
   } finally {
     $rng.Dispose()
   }
-  $hex = [Convert]::ToHexString($bytes).ToLowerInvariant()
+  $hex = ($bytes | ForEach-Object { $_.ToString("x2", [Globalization.CultureInfo]::InvariantCulture) }) -join ""
   [IO.File]::WriteAllText($Path, $hex, [Text.UTF8Encoding]::new($false))
 }
 
