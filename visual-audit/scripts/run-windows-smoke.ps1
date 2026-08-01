@@ -78,6 +78,7 @@ $env:AUDIT_EVIDENCE_TIER = $Tier
 $env:AUDIT_DATA_PROVENANCE = $Provenance
 $env:AUDIT_SCOPE = $Scope
 $env:AUDIT_RUN_ID = $RunId
+$env:REPO_ROOT = $RepoRoot
 $env:AUDIT_STATE_DIR = $StateDir
 $env:AUDIT_TMP_DIR = $TmpDir
 $env:AUDIT_LAB_ROOT = $LabRoot

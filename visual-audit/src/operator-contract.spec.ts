@@ -17,6 +17,20 @@ test("compose definitions never embed resolved secrets or destructive volume cle
   }
 });
 
+test("Windows smoke exports every snapshot path before preparation", () => {
+  const content = fs.readFileSync(
+    path.join(repoRoot, "visual-audit", "scripts", "run-windows-smoke.ps1"),
+    "utf8",
+  );
+  const preparation = content.indexOf("& node $prepareScript");
+  assert.notEqual(preparation, -1);
+  for (const name of ["REPO_ROOT", "AUDIT_STATE_DIR", "AUDIT_LAB_ROOT"]) {
+    const assignment = content.indexOf(`$env:${name} =`);
+    assert.notEqual(assignment, -1, `${name} must be exported`);
+    assert.ok(assignment < preparation, `${name} must be exported before snapshot preparation`);
+  }
+});
+
 test("shareable review helper accepts only explicit anonymous capture keys", () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "kenmatch-review-"));
   try {
