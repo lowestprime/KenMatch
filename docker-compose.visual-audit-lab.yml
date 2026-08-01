@@ -71,7 +71,7 @@ services:
     shm_size: 1gb
     tmpfs:
       - /tmp:size=1g,nosuid,nodev
-      - /audit-secrets:size=1m,noexec,nosuid,nodev,mode=0700
+      - /audit-secrets:size=1m,noexec,nosuid,nodev,mode=0700,uid=${AUDIT_UID:-1000},gid=${AUDIT_GID:-1000}
     security_opt:
       - no-new-privileges:true
     cap_drop:

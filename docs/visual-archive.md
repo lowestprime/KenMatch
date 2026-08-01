@@ -96,9 +96,11 @@ $runId = "<stable-run-id>"
 
 The Windows wrapper restricts the state directory to the current user. Because
 Docker Desktop exposes NTFS bind mounts with synthetic Linux modes, the runner
-copies the read-only mounted token into a private `0700` tmpfs and validates the
-`0600` copy. Comparison, report generation, and final permission validation run
-natively on Windows, where NTFS ACLs rather than Unix mode bits are authoritative.
+copies the read-only mounted token into a private `0700` tmpfs owned by the
+configured audit UID/GID and validates the `0600` copy. Keep `AUDIT_UID` and
+`AUDIT_GID` aligned with the non-root runner user. Comparison, report generation,
+and final permission validation run natively on Windows, where NTFS ACLs rather
+than Unix mode bits are authoritative.
 
 ## Tier 2
 

@@ -14,7 +14,7 @@ test("compose definitions never embed resolved secrets or destructive volume cle
     assert.doesNotMatch(content, /[a-f0-9]{64}/i);
     assert.match(content, /AUDIT_TOKEN_FILE/);
     assert.match(content, /AUDIT_TOKEN_SOURCE_FILE/);
-    assert.match(content, /\/audit-secrets:size=1m,[^\n]*mode=0700/);
+    assert.match(content, /\/audit-secrets:size=1m,[^\n]*mode=0700,[^\n]*uid=\$\{AUDIT_UID:-1000\},gid=\$\{AUDIT_GID:-1000\}/);
     assert.match(content, /read_only:\s+true/);
   }
 });
