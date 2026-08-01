@@ -27,6 +27,7 @@ import {
   persistCoveragePlanState,
   recoverCoveragePlanState,
 } from "./plan-state.js";
+import { restoreResumeSecurity } from "./security-state.js";
 import type {
   CoveragePlan,
   RequestSecuritySummary,
@@ -102,6 +103,7 @@ export function assertResumeCompatible(input: {
   if (input.manifest.expectedCommit !== input.config.expectedCommit) failures.push("expected commit");
   if (input.manifest.viewportMatrixDigest !== input.config.viewportMatrixDigest) failures.push("viewport matrix");
   if (input.manifest.acceleratorRecord !== input.config.acceleratorRecord) failures.push("accelerator record");
+  if (input.manifest.captureWorkers !== input.config.captureWorkers) failures.push("capture workers");
   if (input.manifest.inventoryDigest !== input.inventoryDigest) failures.push("inventory digest");
   if (input.manifest.browserVersion !== input.browserVersion) failures.push("browser version");
   if (input.plan.browserVersion !== input.browserVersion) failures.push("coverage browser version");
@@ -213,6 +215,7 @@ async function main() {
           deployedCommit: inventory.build.sha ?? "",
           viewportMatrixDigest: config.viewportMatrixDigest,
           acceleratorRecord: config.acceleratorRecord,
+          captureWorkers: config.captureWorkers,
           browserName: "chromium",
           browserVersion,
           playwrightVersion: playwrightPackage.version,
@@ -234,6 +237,7 @@ async function main() {
         });
       }
       if (!manifest) throw new Error("Run manifest initialization failed.");
+      if (resumed) restoreResumeSecurity(security, manifest.security);
       let checkpointManifest: RunManifest = manifest;
 
       const persistPlan = (nextPlan: CoveragePlan) => {

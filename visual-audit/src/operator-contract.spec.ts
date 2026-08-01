@@ -61,7 +61,9 @@ test("capture runner checkpoints atomic progress and bounds mobile hydration ret
   const capture = fs.readFileSync(path.join(repoRoot, "visual-audit", "src", "capture.ts"), "utf8");
   const run = fs.readFileSync(path.join(repoRoot, "visual-audit", "src", "run.ts"), "utf8");
   assert.match(capture, /for \(let attempt = 0; attempt < 2; attempt \+= 1\)/);
-  assert.match(capture, /await input\.onProgress\?\.\(\{/);
+  assert.match(capture, /await input\.coordinator\.commit\(\{/);
+  assert.match(capture, /limit: input\.config\.captureWorkers/);
+  assert.match(capture, /const serialGroups = groups\.filter/);
   assert.match(run, /checkpointManifest\.completedKeys = checkpointManifest\.captures/);
   assert.match(run, /writeJsonAtomic\(manifestFile, checkpointManifest\)/);
   assert.match(run, /persistCoveragePlanState/);

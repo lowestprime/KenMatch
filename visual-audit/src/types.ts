@@ -271,6 +271,7 @@ export interface RunManifest {
   deployedCommit: string;
   viewportMatrixDigest: string;
   acceleratorRecord: string;
+  captureWorkers: number;
   browserName: string;
   browserVersion: string;
   playwrightVersion: string;

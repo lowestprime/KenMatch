@@ -452,6 +452,7 @@ export function validateRun(config: AuditConfig): ValidationReport {
     manifest.acceleratorRecord !== config.acceleratorRecord
     || plan.acceleratorRecord !== config.acceleratorRecord
   ) identityFailures.push("accelerator record");
+  if (manifest.captureWorkers !== config.captureWorkers) identityFailures.push("capture workers");
   if (plan.browserVersion !== manifest.browserVersion) identityFailures.push("coverage browser version");
   if (
     manifest.inventoryDigest !== plan.inventoryDigest

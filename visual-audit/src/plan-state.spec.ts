@@ -79,6 +79,7 @@ function makeManifest(plan: CoveragePlan): RunManifest {
     deployedCommit: plan.expectedCommit,
     viewportMatrixDigest: plan.viewportMatrixDigest,
     acceleratorRecord: plan.acceleratorRecord,
+    captureWorkers: 1,
     browserName: "chromium",
     browserVersion: plan.browserVersion,
     playwrightVersion: "1.61.0",

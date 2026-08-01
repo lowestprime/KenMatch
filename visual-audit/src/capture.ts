@@ -11,6 +11,12 @@ import sharp from "sharp";
 
 import { inspectAccessibility } from "./accessibility.js";
 import type { StoredAuthStates } from "./auth.js";
+import {
+  CaptureCoordinator,
+  newCaptureSecurityDelta,
+  runBounded,
+  sortDiagnostics,
+} from "./capture-coordinator.js";
 import type { AuditConfig } from "./config.js";
 import { VIEWPORTS } from "./config.js";
 import {
@@ -45,7 +51,7 @@ import {
   writeJson,
 } from "./util.js";
 
-interface CaptureJob {
+export interface CaptureJob {
   key: string;
   target: RouteTarget;
   theme: ThemeMode;
@@ -56,6 +62,16 @@ interface CaptureAccumulator {
   captures: CaptureRecord[];
   diagnostics: DiagnosticRecord[];
   renderedLinks: Set<string>;
+}
+
+interface CaptureAttempt {
+  accumulator: CaptureAccumulator;
+  security: RequestSecuritySummary;
+}
+
+interface ContextCaptureState {
+  current: CaptureAttempt | null;
+  orphanedRequests: number;
 }
 
 function now() {
@@ -100,10 +116,16 @@ export function expandCaptureJobs(plan: CoveragePlan): CaptureJob[] {
 async function installCapturePolicy(
   context: BrowserContext,
   config: AuditConfig,
-  security: RequestSecuritySummary,
-  accumulator: CaptureAccumulator,
+  state: ContextCaptureState,
 ) {
   await context.route("**/*", async (route) => {
+    const attempt = state.current;
+    if (!attempt) {
+      state.orphanedRequests += 1;
+      await route.abort("blockedbyclient");
+      return;
+    }
+    const { security, accumulator } = attempt;
     const request = route.request();
     const classification = classifyCaptureRequest({
       method: request.method(),
@@ -746,15 +768,114 @@ async function captureOne(input: {
   accumulator.captures.push(record);
 }
 
-function groupJobs(jobs: CaptureJob[]) {
-  const groups = new Map<string, CaptureJob[]>();
+export const SERIAL_CAPTURE_INTERACTIONS = [
+  "ken-proposal-validation",
+  "category-proposal-validation",
+  "voice-controls",
+  "sponsor-modes",
+] as const;
+
+const serializedInteractions = new Set<string>(SERIAL_CAPTURE_INTERACTIONS);
+
+export function captureJobRequiresSerialBarrier(job: CaptureJob) {
+  return Boolean(job.target.interaction && serializedInteractions.has(job.target.interaction));
+}
+
+export interface CaptureJobGroup {
+  key: string;
+  serialized: boolean;
+  jobs: CaptureJob[];
+}
+
+export function groupCaptureJobs(jobs: CaptureJob[]) {
+  const groups = new Map<string, CaptureJobGroup>();
   for (const job of jobs) {
-    const key = `${job.target.auth}:${job.theme}:${job.viewport.name}`;
-    const group = groups.get(key) ?? [];
-    group.push(job);
+    const serialized = captureJobRequiresSerialBarrier(job);
+    const key = `${serialized ? "serial" : "parallel"}:${job.target.auth}:${job.theme}:${job.viewport.name}`;
+    const group = groups.get(key) ?? { key, serialized, jobs: [] };
+    group.jobs.push(job);
     groups.set(key, group);
   }
-  return groups;
+  return [...groups.values()]
+    .map((group) => ({
+      ...group,
+      jobs: [...group.jobs].sort((left, right) => left.key.localeCompare(right.key)),
+    }))
+    .sort((left, right) => left.key.localeCompare(right.key));
+}
+
+async function runCaptureGroup(input: {
+  group: CaptureJobGroup;
+  browser: Browser;
+  config: AuditConfig;
+  authStates: StoredAuthStates;
+  coordinator: CaptureCoordinator;
+  signal: AbortSignal;
+}) {
+  const first = input.group.jobs[0];
+  if (!first) return;
+  const context = await input.browser.newContext({
+    viewport: {
+      width: first.viewport.width,
+      height: first.viewport.height,
+    },
+    deviceScaleFactor: first.viewport.deviceScaleFactor,
+    isMobile: first.viewport.isMobile,
+    hasTouch: first.viewport.isMobile,
+    colorScheme: first.theme === "light" ? "light" : "dark",
+    reducedMotion: "no-preference",
+    storageState: input.authStates[first.target.auth],
+  });
+  const state: ContextCaptureState = { current: null, orphanedRequests: 0 };
+  try {
+    await context.addInitScript((theme) => {
+      window.localStorage.setItem("kenmatch-theme", theme);
+      if (document.documentElement) {
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.style.colorScheme = theme === "light" ? "light" : "dark";
+      }
+    }, first.theme);
+    await installCapturePolicy(context, input.config, state);
+    for (const job of input.group.jobs) {
+      if (input.signal.aborted) break;
+      const attempt: CaptureAttempt = {
+        accumulator: { captures: [], diagnostics: [], renderedLinks: new Set<string>() },
+        security: newCaptureSecurityDelta(),
+      };
+      state.current = attempt;
+      const page = await context.newPage();
+      try {
+        await captureOne({
+          page,
+          config: input.config,
+          job,
+          accumulator: attempt.accumulator,
+          security: attempt.security,
+        });
+      } finally {
+        await page.close();
+        state.current = null;
+      }
+      if (
+        attempt.accumulator.captures.length !== 1
+        || attempt.accumulator.captures[0]?.key !== job.key
+      ) {
+        throw new Error(`Capture ${job.key} did not produce exactly one matching record.`);
+      }
+      await input.coordinator.commit({
+        capture: attempt.accumulator.captures[0],
+        diagnostics: attempt.accumulator.diagnostics,
+        renderedLinks: [...attempt.accumulator.renderedLinks],
+        security: attempt.security,
+      });
+    }
+  } finally {
+    state.current = null;
+    await context.close();
+  }
+  if (state.orphanedRequests > 0) {
+    throw new Error(`Capture context ${input.group.key} observed ${state.orphanedRequests} requests outside an active job.`);
+  }
 }
 
 export async function runCaptures(input: {
@@ -771,65 +892,76 @@ export async function runCaptures(input: {
     diagnostics: DiagnosticRecord[];
     renderedLinks: string[];
   }) => void | Promise<void>;
+  signal?: AbortSignal;
 }) {
-  const accumulator: CaptureAccumulator = {
-    captures: [...(input.existingCaptures ?? [])],
-    diagnostics: (input.existingDiagnostics ?? []).filter((diagnostic) => diagnostic.kind !== "duplicate"),
-    renderedLinks: new Set<string>(input.existingRenderedLinks ?? []),
-  };
-  const completed = new Set(accumulator.captures.map((capture) => capture.key));
-  const jobs = expandCaptureJobs(input.plan).filter((job) => !completed.has(job.key));
-
-  for (const group of groupJobs(jobs).values()) {
-    const first = group[0];
-    if (!first) continue;
-    const context = await input.browser.newContext({
-      viewport: {
-        width: first.viewport.width,
-        height: first.viewport.height,
-      },
-      deviceScaleFactor: first.viewport.deviceScaleFactor,
-      isMobile: first.viewport.isMobile,
-      hasTouch: first.viewport.isMobile,
-      colorScheme: first.theme === "light" ? "light" : "dark",
-      reducedMotion: "no-preference",
-      storageState: input.authStates[first.target.auth],
-    });
-    await context.addInitScript((theme) => {
-      window.localStorage.setItem("kenmatch-theme", theme);
-      if (document.documentElement) {
-        document.documentElement.dataset.theme = theme;
-        document.documentElement.style.colorScheme = theme === "light" ? "light" : "dark";
-      }
-    }, first.theme);
-    await installCapturePolicy(context, input.config, input.security, accumulator);
-    try {
-      for (const job of group) {
-        const page = await context.newPage();
-        try {
-          await captureOne({
-            page,
-            config: input.config,
-            job,
-            accumulator,
-            security: input.security,
-          });
-          await input.onProgress?.({
-            captures: [...accumulator.captures],
-            diagnostics: [...accumulator.diagnostics],
-            renderedLinks: [...accumulator.renderedLinks].sort(),
-          });
-        } finally {
-          await page.close();
-        }
-      }
-    } finally {
-      await context.close();
+  const coordinator = new CaptureCoordinator({
+    security: input.security,
+    existingCaptures: input.existingCaptures,
+    existingDiagnostics: input.existingDiagnostics,
+    existingRenderedLinks: input.existingRenderedLinks,
+    onProgress: input.onProgress,
+  });
+  const expandedJobs = expandCaptureJobs(input.plan);
+  if (new Set(expandedJobs.map((job) => job.key)).size !== expandedJobs.length) {
+    throw new Error("Expanded coverage plan contains duplicate capture jobs.");
+  }
+  const plannedKeys = new Set(expandedJobs.map((job) => job.key));
+  for (const capture of input.existingCaptures ?? []) {
+    if (!plannedKeys.has(capture.key)) {
+      throw new Error(`Existing capture ${capture.key} is outside the active coverage plan.`);
     }
   }
+  const jobs = expandedJobs.filter((job) => !coordinator.hasCapture(job.key));
+  const groups = groupCaptureJobs(jobs);
+  const parallelGroups = groups.filter((group) => !group.serialized);
+  const serialGroups = groups.filter((group) => group.serialized);
+  const executeGroup = async (group: CaptureJobGroup, _index: number, signal: AbortSignal) => {
+    try {
+      await runCaptureGroup({
+        group,
+        browser: input.browser,
+        config: input.config,
+        authStates: input.authStates,
+        coordinator,
+        signal,
+      });
+    } catch (error) {
+      throw new Error(
+        `Capture group ${group.key} failed: ${error instanceof Error ? error.message : String(error)}`,
+        { cause: error },
+      );
+    }
+  };
+
+  let executionError: unknown = null;
+  try {
+    await runBounded({
+      items: parallelGroups,
+      limit: input.config.captureWorkers,
+      worker: executeGroup,
+      signal: input.signal,
+    });
+    await runBounded({
+      items: serialGroups,
+      limit: 1,
+      worker: executeGroup,
+      signal: input.signal,
+    });
+  } catch (error) {
+    executionError = error;
+  }
+
+  let coordinated;
+  try {
+    coordinated = await coordinator.drain();
+  } catch (error) {
+    executionError ??= error;
+  }
+  if (executionError) throw executionError;
+  if (!coordinated) throw new Error("Capture coordinator did not produce a final checkpoint.");
 
   const digestMap = new Map<string, CaptureRecord[]>();
-  for (const capture of accumulator.captures) {
+  for (const capture of coordinated.captures) {
     const digest = fileSha256(path.join(input.config.runRoot, capture.stitchedFile));
     const matches = digestMap.get(digest) ?? [];
     matches.push(capture);
@@ -847,7 +979,7 @@ export async function runCaptures(input: {
       || capture.route.startsWith("/tasks/")
     )) && new Set(captures.map((capture) => capture.finalUrl)).size === 1;
     for (const capture of captures) {
-      accumulator.diagnostics.push({
+      coordinated.diagnostics.push({
         timestamp: now(),
         route: capture.route,
         captureKey: capture.key,
@@ -861,8 +993,8 @@ export async function runCaptures(input: {
     }
   }
   return {
-    captures: accumulator.captures.sort((left, right) => left.key.localeCompare(right.key)),
-    diagnostics: accumulator.diagnostics,
-    renderedLinks: [...accumulator.renderedLinks].sort(),
+    captures: coordinated.captures,
+    diagnostics: sortDiagnostics(coordinated.diagnostics),
+    renderedLinks: coordinated.renderedLinks,
   };
 }

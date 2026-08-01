@@ -20,6 +20,7 @@ const config = {
   expectedCommit: "abcdef1",
   viewportMatrixDigest: "viewport-matrix",
   acceleratorRecord: "chromium-headless-software",
+  captureWorkers: 2,
 } as AuditConfig;
 
 function routeTarget(key: string): RouteTarget {
@@ -80,6 +81,7 @@ function makeManifest(plan: CoveragePlan): RunManifest {
     deployedCommit: config.expectedCommit,
     viewportMatrixDigest: config.viewportMatrixDigest,
     acceleratorRecord: config.acceleratorRecord,
+    captureWorkers: config.captureWorkers,
     browserName: "chromium",
     browserVersion: "1.2.3",
     playwrightVersion: "1.61.0",
@@ -171,6 +173,13 @@ test("resume rejects viewport, provenance, or accelerator drift", () => {
     inventoryDigest: "inventory",
     browserVersion: "1.2.3",
   }), /accelerator record/);
+  assert.throws(() => assertResumeCompatible({
+    config: { ...config, captureWorkers: 4 },
+    manifest,
+    plan,
+    inventoryDigest: "inventory",
+    browserVersion: "1.2.3",
+  }), /capture workers/);
   assert.throws(() => assertResumeCompatible({
     config: { ...config, viewportMatrixDigest: "changed-viewports" },
     manifest,
