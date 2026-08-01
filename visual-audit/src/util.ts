@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -25,6 +25,22 @@ export function writeJson(file: string, value: unknown, mode = 0o600) {
   ensureDirectory(path.dirname(file));
   fs.writeFileSync(file, `${JSON.stringify(value, null, 2)}\n`, { encoding: "utf8", mode });
   restrictPermissions(file, mode);
+}
+
+export function writeJsonAtomic(file: string, value: unknown, mode = 0o600) {
+  ensureDirectory(path.dirname(file));
+  const temporary = path.join(
+    path.dirname(file),
+    `.${path.basename(file)}.${process.pid}.${randomUUID()}.tmp`,
+  );
+  try {
+    fs.writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`, { encoding: "utf8", mode });
+    restrictPermissions(temporary, mode);
+    fs.renameSync(temporary, file);
+    restrictPermissions(file, mode);
+  } finally {
+    fs.rmSync(temporary, { force: true });
+  }
 }
 
 export function readJson<T>(file: string): T {

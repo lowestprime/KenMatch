@@ -8,6 +8,7 @@ import {
   type AuditConfig,
 } from "./config.js";
 import { buildCoveragePlan } from "./coverage.js";
+import { coverageCaptureKeys } from "./plan-identity.js";
 import type { ProtectedInventory } from "./types.js";
 
 const inventory = {
@@ -68,6 +69,7 @@ test("full coverage gives canonical routes the exact Light/OLED viewport matrix"
     config: baseConfig,
     inventory,
     inventoryDigest: "c".repeat(64),
+    browserVersion: "test-chromium",
     renderedRoutes: ["/faq?source=rendered"],
   });
   const expectedViewports = VIEWPORTS.map((viewport) => viewport.name).sort();
@@ -98,6 +100,7 @@ test("smoke coverage records explicit equivalence for unsampled rendered links",
     config: { ...baseConfig, scope: "smoke" },
     inventory,
     inventoryDigest: "c".repeat(64),
+    browserVersion: "test-chromium",
     renderedRoutes,
   });
   assert.equal(plan.routeDispositions.length, renderedRoutes.length);
@@ -114,6 +117,7 @@ test("smoke rendered-link samples remain monotonic while discovery expands", () 
     config: { ...baseConfig, scope: "smoke" },
     inventory,
     inventoryDigest: "c".repeat(64),
+    browserVersion: "test-chromium",
     renderedRoutes: ["/faq?z=1", "/faq?z=2", "/faq?z=3", "/faq?z=4"],
   });
   const retained = initial.targets
@@ -123,6 +127,7 @@ test("smoke rendered-link samples remain monotonic while discovery expands", () 
     config: { ...baseConfig, scope: "smoke" },
     inventory,
     inventoryDigest: "c".repeat(64),
+    browserVersion: "test-chromium",
     renderedRoutes: ["/economics?new=1", ...retained],
     retainedRenderedCaptureRoutes: retained,
   });
@@ -133,4 +138,32 @@ test("smoke rendered-link samples remain monotonic while discovery expands", () 
       .sort(),
     [...retained].sort(),
   );
+});
+
+test("rendered-link ordering and duplicates do not change final target identity", () => {
+  const routes = ["/faq?b=2", "/faq?a=1", "/economics?c=3"];
+  const first = buildCoveragePlan({
+    config: baseConfig,
+    inventory,
+    inventoryDigest: "c".repeat(64),
+    browserVersion: "test-chromium",
+    renderedRoutes: routes,
+    phase: "converged",
+    seedCaptureCount: 1,
+    convergenceIteration: 2,
+  });
+  const second = buildCoveragePlan({
+    config: { ...baseConfig, runId: "coverage-test-repeated" },
+    inventory,
+    inventoryDigest: "c".repeat(64),
+    browserVersion: "test-chromium",
+    renderedRoutes: [routes[2]!, routes[0]!, routes[1]!, routes[0]!, routes[2]!],
+    phase: "converged",
+    seedCaptureCount: 1,
+    convergenceIteration: 2,
+  });
+  assert.deepEqual(coverageCaptureKeys(first), coverageCaptureKeys(second));
+  assert.equal(first.expectedCaptureCount, second.expectedCaptureCount);
+  assert.equal(first.targetKeysDigest, second.targetKeysDigest);
+  assert.equal(first.planDigest, second.planDigest);
 });

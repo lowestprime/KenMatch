@@ -17,6 +17,16 @@ import { expandCaptureJobs, runCaptures } from "./capture.js";
 import { loadConfig, type AuditConfig } from "./config.js";
 import { buildCoveragePlan } from "./coverage.js";
 import { fetchProtectedInventory } from "./inventory.js";
+import {
+  assertCoveragePlanIdentity,
+  coverageBindingsMatch,
+  coverageCaptureKeys,
+  coveragePlanBinding,
+} from "./plan-identity.js";
+import {
+  persistCoveragePlanState,
+  recoverCoveragePlanState,
+} from "./plan-state.js";
 import type {
   CoveragePlan,
   RequestSecuritySummary,
@@ -27,6 +37,7 @@ import {
   hardenPermissions,
   readJson,
   writeJson,
+  writeJsonAtomic,
 } from "./util.js";
 
 const require = createRequire(import.meta.url);
@@ -69,7 +80,16 @@ export function assertResumeCompatible(input: {
   inventoryDigest: string;
   browserVersion: string;
 }) {
-  const failures = [];
+  const failures: string[] = [];
+  let expectedKeys = new Set<string>();
+  let expectedBinding: ReturnType<typeof coveragePlanBinding> | null = null;
+  try {
+    assertCoveragePlanIdentity(input.plan);
+    expectedBinding = coveragePlanBinding(input.plan);
+    expectedKeys = new Set(coverageCaptureKeys(input.plan));
+  } catch (error) {
+    failures.push(error instanceof Error ? error.message : "coverage plan identity");
+  }
   if (input.manifest.schemaVersion !== 2) failures.push("manifest schema version");
   if (input.plan.schemaVersion !== 2) failures.push("coverage schema version");
   if (input.manifest.runId !== input.config.runId) failures.push("run id");
@@ -84,10 +104,29 @@ export function assertResumeCompatible(input: {
   if (input.manifest.acceleratorRecord !== input.config.acceleratorRecord) failures.push("accelerator record");
   if (input.manifest.inventoryDigest !== input.inventoryDigest) failures.push("inventory digest");
   if (input.manifest.browserVersion !== input.browserVersion) failures.push("browser version");
+  if (input.plan.browserVersion !== input.browserVersion) failures.push("coverage browser version");
   if (input.plan.expectedCommit !== input.config.expectedCommit) failures.push("coverage commit");
   if (input.plan.viewportMatrixDigest !== input.config.viewportMatrixDigest) failures.push("coverage viewport matrix");
   if (input.plan.acceleratorRecord !== input.config.acceleratorRecord) failures.push("coverage accelerator record");
   if (input.plan.inventoryDigest !== input.inventoryDigest) failures.push("coverage inventory");
+  if (
+    !input.manifest.coveragePlan
+    || !expectedBinding
+    || !coverageBindingsMatch(input.manifest.coveragePlan, expectedBinding)
+  ) failures.push("manifest coverage-plan binding");
+  const captureKeys = (input.manifest.captures ?? []).map((capture) => capture.key);
+  const completedKeys = input.manifest.completedKeys ?? [];
+  if (new Set(captureKeys).size !== captureKeys.length) failures.push("duplicate manifest captures");
+  if (new Set(completedKeys).size !== completedKeys.length) failures.push("duplicate completed keys");
+  if (
+    captureKeys.some((key) => !expectedKeys.has(key))
+    || completedKeys.some((key) => !expectedKeys.has(key))
+  ) failures.push("persisted capture target set");
+  if (
+    captureKeys.length !== completedKeys.length
+    || captureKeys.some((key) => !completedKeys.includes(key))
+  ) failures.push("completed key checkpoint");
+  if (input.plan.phase === "initial" && captureKeys.length > 0) failures.push("initial phase captures");
   if (failures.length) {
     throw new Error(`Resume refused because immutable run identity changed: ${failures.join(", ")}.`);
   }
@@ -123,7 +162,27 @@ async function main() {
       security.inventoryRequests += 1;
       const manifestFile = path.join(config.runRoot, "manifest.json");
       const planFile = path.join(config.runRoot, "coverage-plan.json");
-      const resumed = config.resume && fs.existsSync(manifestFile) && fs.existsSync(planFile);
+      const journalFile = path.join(config.runRoot, ".coverage-transition.json");
+      if (config.resume) {
+        recoverCoveragePlanState({
+          manifestFile,
+          planFile,
+          journalFile,
+          validate: (journalManifest, journalPlan) => assertResumeCompatible({
+            config,
+            manifest: journalManifest,
+            plan: journalPlan,
+            inventoryDigest,
+            browserVersion,
+          }),
+        });
+      }
+      const hasManifest = fs.existsSync(manifestFile);
+      const hasPlan = fs.existsSync(planFile);
+      if (config.resume && hasManifest !== hasPlan) {
+        throw new Error("Resume refused because manifest.json and coverage-plan.json are not both present.");
+      }
+      const resumed = config.resume && hasManifest && hasPlan;
       let plan: CoveragePlan;
       if (resumed) {
         manifest = readJson<RunManifest>(manifestFile);
@@ -135,8 +194,11 @@ async function main() {
           inventoryDigest,
           browserVersion,
         });
+        if (manifest.completedAt) {
+          throw new Error(`Run ${manifest.runId} is already complete and will not be mutated by resume.`);
+        }
       } else {
-        plan = buildCoveragePlan({ config, inventory, inventoryDigest });
+        plan = buildCoveragePlan({ config, inventory, inventoryDigest, browserVersion });
         manifest = {
           schemaVersion: 2,
           runId: config.runId,
@@ -155,6 +217,7 @@ async function main() {
           browserVersion,
           playwrightVersion: playwrightPackage.version,
           inventoryDigest,
+          coveragePlan: coveragePlanBinding(plan),
           captures: [],
           completedKeys: [],
           diagnostics: [],
@@ -162,68 +225,131 @@ async function main() {
           security,
           sourceEvidence: sourceEvidence(config),
         };
-        writeJson(planFile, plan);
-        writeJson(manifestFile, manifest);
+        manifest = persistCoveragePlanState({
+          planFile,
+          manifestFile,
+          journalFile,
+          plan,
+          manifest,
+        });
       }
-      const checkpointManifest = manifest;
+      if (!manifest) throw new Error("Run manifest initialization failed.");
+      let checkpointManifest: RunManifest = manifest;
+
+      const persistPlan = (nextPlan: CoveragePlan) => {
+        checkpointManifest = persistCoveragePlanState({
+          planFile,
+          manifestFile,
+          journalFile,
+          plan: nextPlan,
+          manifest: checkpointManifest,
+        });
+        manifest = checkpointManifest;
+        plan = nextPlan;
+      };
 
       let finalPass = {
-        captures: manifest.captures,
-        diagnostics: manifest.diagnostics,
-        renderedLinks: manifest.renderedLinks,
+        captures: checkpointManifest.captures,
+        diagnostics: checkpointManifest.diagnostics,
+        renderedLinks: checkpointManifest.renderedLinks,
       };
-      let converged = false;
-      for (let iteration = 0; iteration < 4; iteration += 1) {
+      const runCurrentPlan = async () => runCaptures({
+        browser,
+        config,
+        plan,
+        authStates,
+        security,
+        existingCaptures: finalPass.captures,
+        existingDiagnostics: finalPass.diagnostics,
+        existingRenderedLinks: finalPass.renderedLinks,
+        onProgress: (progress) => {
+          checkpointManifest.captures = [...progress.captures]
+            .sort((left, right) => left.key.localeCompare(right.key));
+          checkpointManifest.completedKeys = checkpointManifest.captures.map((capture) => capture.key);
+          checkpointManifest.diagnostics = progress.diagnostics;
+          checkpointManifest.renderedLinks = [...new Set(progress.renderedLinks)].sort();
+          checkpointManifest.security = { ...security };
+          writeJsonAtomic(manifestFile, checkpointManifest);
+          manifest = checkpointManifest;
+        },
+      });
+
+      if (plan.phase === "initial") {
         const retainedRenderedCaptureRoutes = plan.targets
           .filter((target) => target.source === "rendered")
           .map((target) => target.route);
-        plan = buildCoveragePlan({
+        persistPlan(buildCoveragePlan({
           config,
           inventory,
           inventoryDigest,
+          browserVersion,
           renderedRoutes: finalPass.renderedLinks,
           retainedRenderedCaptureRoutes,
-        });
-        writeJson(planFile, plan);
-        finalPass = await runCaptures({
-          browser,
-          config,
-          plan,
-          authStates,
-          security,
-          existingCaptures: finalPass.captures,
-          existingDiagnostics: finalPass.diagnostics,
-          existingRenderedLinks: finalPass.renderedLinks,
-          onProgress: (progress) => {
-            checkpointManifest.captures = progress.captures;
-            checkpointManifest.completedKeys = progress.captures.map((capture) => capture.key).sort();
-            checkpointManifest.diagnostics = progress.diagnostics;
-            checkpointManifest.renderedLinks = progress.renderedLinks;
-            checkpointManifest.security = { ...security };
-            writeJson(manifestFile, checkpointManifest);
-          },
-        });
+          phase: "converging",
+          seedCaptureCount: plan.seedCaptureCount,
+          convergenceIteration: 1,
+        }));
+      }
+
+      while (plan.phase === "converging") {
+        finalPass = await runCurrentPlan();
+        const retainedRenderedCaptureRoutes = plan.targets
+          .filter((target) => target.source === "rendered")
+          .map((target) => target.route);
         const reconciledPlan = buildCoveragePlan({
           config,
           inventory,
           inventoryDigest,
+          browserVersion,
           renderedRoutes: finalPass.renderedLinks,
-          retainedRenderedCaptureRoutes: plan.targets
-            .filter((target) => target.source === "rendered")
-            .map((target) => target.route),
+          retainedRenderedCaptureRoutes,
+          phase: "converging",
+          seedCaptureCount: plan.seedCaptureCount,
+          convergenceIteration: plan.convergenceIteration + 1,
         });
         const capturedKeys = new Set(finalPass.captures.map((capture) => capture.key));
-        const missing = expandCaptureJobs(reconciledPlan)
-          .some((job) => !capturedKeys.has(job.key));
-        if (!missing) {
-          plan = reconciledPlan;
-          writeJson(planFile, plan);
-          converged = true;
-          break;
+        const missing = expandCaptureJobs(reconciledPlan).some((job) => !capturedKeys.has(job.key));
+        if (missing) {
+          if (plan.convergenceIteration >= 4) {
+            throw new Error("Rendered-link reconciliation did not converge after four capture passes.");
+          }
+          persistPlan(reconciledPlan);
+          continue;
         }
+        persistPlan(buildCoveragePlan({
+          config,
+          inventory,
+          inventoryDigest,
+          browserVersion,
+          renderedRoutes: finalPass.renderedLinks,
+          retainedRenderedCaptureRoutes,
+          phase: "converged",
+          seedCaptureCount: plan.seedCaptureCount,
+          convergenceIteration: plan.convergenceIteration,
+        }));
       }
-      if (!converged) {
-        throw new Error("Rendered-link reconciliation did not converge after four capture passes.");
+
+      if (plan.phase !== "converged") {
+        throw new Error(`Coverage plan stopped in unexpected ${plan.phase} phase.`);
+      }
+      let expectedKeys = new Set(coverageCaptureKeys(plan));
+      let capturedKeys = new Set(finalPass.captures.map((capture) => capture.key));
+      if ([...capturedKeys].some((key) => !expectedKeys.has(key))) {
+        throw new Error("Persisted captures include keys outside the converged coverage plan.");
+      }
+      if ([...expectedKeys].some((key) => !capturedKeys.has(key))) {
+        finalPass = await runCurrentPlan();
+        expectedKeys = new Set(coverageCaptureKeys(plan));
+        capturedKeys = new Set(finalPass.captures.map((capture) => capture.key));
+      }
+      if (
+        expectedKeys.size !== capturedKeys.size
+        || finalPass.captures.length !== capturedKeys.size
+        || [...expectedKeys].some((key) => !capturedKeys.has(key))
+      ) {
+        throw new Error(
+          `Converged coverage is incomplete: captured ${capturedKeys.size}/${expectedKeys.size} unique keys.`,
+        );
       }
 
       const assetInventory = await verifyAssetInventory({
@@ -239,18 +365,21 @@ async function main() {
       }));
 
       manifest = {
-        ...manifest,
+        ...checkpointManifest,
         completedAt: new Date().toISOString(),
-        captures: finalPass.captures,
+        coveragePlan: coveragePlanBinding(plan),
+        captures: [...finalPass.captures].sort((left, right) => left.key.localeCompare(right.key)),
         completedKeys: finalPass.captures.map((capture) => capture.key).sort(),
         diagnostics: finalPass.diagnostics,
-        renderedLinks: finalPass.renderedLinks,
+        renderedLinks: [...new Set(finalPass.renderedLinks)].sort(),
         security: { ...security },
         sourceEvidence: sourceEvidence(config),
       };
-      writeJson(manifestFile, manifest);
+      writeJsonAtomic(manifestFile, manifest);
       hardenPermissions(config.runRoot);
-      console.log(`Captured ${manifest.captures.length}/${plan.expectedCaptureCount} KenMatch visual states.`);
+      console.log(
+        `Captured ${manifest.captures.length}/${plan.expectedCaptureCount} KenMatch visual states; seed=${plan.seedCaptureCount}; convergenceIterations=${plan.convergenceIteration}; planDigest=${plan.planDigest}.`,
+      );
     } finally {
       await inventoryContext.close();
     }

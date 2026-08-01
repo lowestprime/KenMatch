@@ -88,6 +88,17 @@ export interface RouteTarget {
   interaction?: string;
 }
 
+export type CoveragePlanPhase = "initial" | "converging" | "converged";
+
+export interface CoveragePlanBinding {
+  phase: CoveragePlanPhase;
+  seedCaptureCount: number;
+  expectedCaptureCount: number;
+  convergenceIterations: number;
+  planDigest: string;
+  targetKeysDigest: string;
+}
+
 export interface CoveragePlan {
   schemaVersion: 2;
   runId: string;
@@ -99,7 +110,13 @@ export interface CoveragePlan {
   expectedCommit: string;
   viewportMatrixDigest: string;
   acceleratorRecord: string;
+  browserVersion: string;
   inventoryDigest: string;
+  phase: CoveragePlanPhase;
+  seedCaptureCount: number;
+  convergenceIteration: number;
+  planDigest: string;
+  targetKeysDigest: string;
   sourceRoutes: string[];
   databaseRoutes: string[];
   renderedRoutes: string[];
@@ -258,6 +275,7 @@ export interface RunManifest {
   browserVersion: string;
   playwrightVersion: string;
   inventoryDigest: string;
+  coveragePlan: CoveragePlanBinding;
   captures: CaptureRecord[];
   completedKeys: string[];
   diagnostics: DiagnosticRecord[];

@@ -9,6 +9,11 @@ import {
   VIEWPORTS,
   type AuditConfig,
 } from "./config.js";
+import {
+  assertCoveragePlanIdentity,
+  coverageBindingsMatch,
+  coveragePlanBinding,
+} from "./plan-identity.js";
 import type {
   CaptureRecord,
   ComparisonReport,
@@ -413,6 +418,13 @@ export function validateRun(config: AuditConfig): ValidationReport {
   const warnings: string[] = [];
 
   const identityFailures: string[] = [];
+  let planIdentityValid = true;
+  try {
+    assertCoveragePlanIdentity(plan);
+  } catch (error) {
+    planIdentityValid = false;
+    identityFailures.push(error instanceof Error ? error.message : "coverage plan identity");
+  }
   if (manifest.schemaVersion !== 2) identityFailures.push("manifest schemaVersion");
   if (plan.schemaVersion !== 2) identityFailures.push("coverage schemaVersion");
   if (manifest.runId !== config.runId || plan.runId !== config.runId) identityFailures.push("runId");
@@ -440,16 +452,34 @@ export function validateRun(config: AuditConfig): ValidationReport {
     manifest.acceleratorRecord !== config.acceleratorRecord
     || plan.acceleratorRecord !== config.acceleratorRecord
   ) identityFailures.push("accelerator record");
+  if (plan.browserVersion !== manifest.browserVersion) identityFailures.push("coverage browser version");
   if (
     manifest.inventoryDigest !== plan.inventoryDigest
     || manifest.inventoryDigest.length !== 64
   ) identityFailures.push("inventory digest");
+  if (
+    !planIdentityValid
+    || !manifest.coveragePlan
+    || !coverageBindingsMatch(manifest.coveragePlan, coveragePlanBinding(plan))
+  ) identityFailures.push("coverage-plan binding");
   addCheck(
     checks,
     failures,
     "immutable-identity",
     identityFailures.length === 0,
     identityFailures.length ? `mismatch: ${identityFailures.join(", ")}` : "schema, run, mode, origin, build, viewport, tier, provenance, inventory, and accelerator match",
+  );
+  const transitionJournalExists = fs.existsSync(path.join(config.runRoot, ".coverage-transition.json"));
+  addCheck(
+    checks,
+    failures,
+    "coverage-convergence",
+    planIdentityValid
+      && plan.phase === "converged"
+      && plan.seedCaptureCount <= plan.expectedCaptureCount
+      && plan.convergenceIteration >= 1
+      && !transitionJournalExists,
+    `phase=${plan.phase}; seed=${plan.seedCaptureCount}; converged=${plan.expectedCaptureCount}; iterations=${plan.convergenceIteration}; digest=${plan.planDigest}; transitionJournal=${transitionJournalExists ? "present" : "absent"}`,
   );
   addCheck(checks, failures, "run-complete", Boolean(manifest.completedAt), "manifest completedAt is present");
   addCheck(checks, failures, "playwright-version", manifest.playwrightVersion === "1.61.0", `Playwright ${manifest.playwrightVersion}`);

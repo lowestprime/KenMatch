@@ -4,8 +4,10 @@ import {
   expandSourceRoutes,
   scanSourceRoutes,
 } from "./inventory.js";
+import { stampCoveragePlan } from "./plan-identity.js";
 import type {
   AuthState,
+  CoveragePlanPhase,
   CoveragePlan,
   ProtectedInventory,
   RouteTarget,
@@ -268,8 +270,12 @@ export function buildCoveragePlan(input: {
   config: AuditConfig;
   inventory: ProtectedInventory;
   inventoryDigest: string;
+  browserVersion: string;
   renderedRoutes?: string[];
   retainedRenderedCaptureRoutes?: string[];
+  phase?: CoveragePlanPhase;
+  seedCaptureCount?: number;
+  convergenceIteration?: number;
 }): CoveragePlan {
   const source = scanSourceRoutes(input.config.repoRoot);
   const expanded = expandSourceRoutes(source, input.inventory);
@@ -329,7 +335,8 @@ export function buildCoveragePlan(input: {
   const discoveredViewports = viewportNames.includes("mobile-390")
     ? ["desktop-1440", "mobile-390"]
     : [viewportNames[0] ?? "desktop-1440"];
-  const retainedRenderedCaptureRoutes = (input.retainedRenderedCaptureRoutes ?? [])
+  const retainedRenderedCaptureRoutes = [...new Set(input.retainedRenderedCaptureRoutes ?? [])]
+    .sort((left, right) => left.localeCompare(right))
     .filter((route) => uncoveredRenderedRoutes.includes(route));
   const renderedCaptureRoutes = input.config.scope === "full"
     ? uncoveredRenderedRoutes
@@ -394,7 +401,12 @@ export function buildCoveragePlan(input: {
       if (index >= 0) requiredStates.splice(index, 1);
     }
   }
-  return {
+  const expectedCaptureCount = targets.reduce(
+    (total, target) => total + target.themes.length * target.viewports.length,
+    0,
+  );
+  const phase = input.phase ?? "initial";
+  return stampCoveragePlan({
     schemaVersion: 2,
     runId: input.config.runId,
     generatedAt: new Date().toISOString(),
@@ -405,18 +417,22 @@ export function buildCoveragePlan(input: {
     expectedCommit: input.config.expectedCommit,
     viewportMatrixDigest: input.config.viewportMatrixDigest,
     acceleratorRecord: input.config.acceleratorRecord,
+    browserVersion: input.browserVersion,
     inventoryDigest: input.inventoryDigest,
-    sourceRoutes: expanded.routes,
+    phase,
+    seedCaptureCount: input.seedCaptureCount ?? expectedCaptureCount,
+    convergenceIteration: input.convergenceIteration ?? (phase === "initial" ? 0 : 1),
+    sourceRoutes: [...new Set(expanded.routes)].sort(),
     databaseRoutes: [...new Set(databaseRoutes)].sort(),
     renderedRoutes,
     assetRoutes: input.inventory.assets.map((asset) => asset.url).sort(),
-    unresolvedDynamicPatterns: expanded.unresolved,
+    unresolvedDynamicPatterns: [...new Set(expanded.unresolved)].sort(),
     routeDispositions,
     samplingRationale: input.config.scope === "full"
       ? "Every discovered same-origin link not already represented by an exact target receives OLED desktop/mobile capture; exact canonical source/database routes receive the full Light/OLED viewport matrix."
       : "Smoke scope captures four otherwise-uncovered rendered links and records pathname-equivalent representatives for the remainder; it is not release evidence.",
     requiredStates: input.config.scope === "full"
-      ? requiredStates
+      ? [...new Set(requiredStates)].sort()
       : [
         "light-theme",
         "oled-theme",
@@ -434,9 +450,6 @@ export function buildCoveragePlan(input: {
         "focus-visible",
       ],
     targets,
-    expectedCaptureCount: targets.reduce(
-      (total, target) => total + target.themes.length * target.viewports.length,
-      0,
-    ),
-  };
+    expectedCaptureCount,
+  });
 }
