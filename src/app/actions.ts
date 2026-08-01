@@ -77,6 +77,7 @@ import {
   sendSmtpTestMail,
 } from "@/lib/mail";
 import { validateKenIllustration } from "@/lib/illustrations";
+import { categoryProposalSchema, proposalSchema } from "@/lib/proposal-validation";
 import { type ReviewAction, reviewActions } from "@/lib/review-policy";
 import { guardMutationRequest, turnstileConfigured } from "@/lib/security";
 import { searchSite } from "@/lib/site-search";
@@ -102,22 +103,6 @@ import {
   type SponsorType,
 } from "@/lib/types";
 import { extractVisitorContext } from "@/lib/visitor";
-
-const proposalSchema = z.object({
-  title: z.string().min(8, "Give the Ken a specific title."),
-  categorySlug: z.string().min(1, "Choose a category."),
-  summary: z.string().min(30, "Summarize what the Ken will produce in one or two clear sentences."),
-  problem: z.string().min(40, "Describe the bottleneck or unmet need."),
-  whyNow: z.string().min(30, "Explain why this Ken matters now."),
-  publicBenefit: z.string().min(30, "Describe the public, community, or ecosystem upside."),
-  requestedTier: z.enum(["days", "weeks", "months"]),
-  deliverables: z.string().min(10, "List at least one deliverable."),
-  evaluationCriteria: z.string().min(10, "List at least one evaluation check."),
-  riskFlags: z.string().min(10, "List at least one risk or operating constraint."),
-  evidence: z.string().min(10, "List at least one evidence source or anchor."),
-  enterprisePackaging: z.string().min(20, "Explain the optional service or institutional packaging path."),
-  dataValueNote: z.string().min(20, "Explain what corrections, provenance, or evaluation data this Ken could generate."),
-});
 
 const voteSchema = z.object({
   taskId: z.string().min(1),
@@ -198,17 +183,6 @@ const profileUpdateSchema = z.object({
   avatarImageScale: z.coerce.number().min(1).max(2.5).optional(),
   avatarImageX: z.coerce.number().min(0).max(100).optional(),
   avatarImageY: z.coerce.number().min(0).max(100).optional(),
-});
-
-const categoryProposalSchema = z.object({
-  name: z.string().min(4, "Give the category a clear name.").max(80, "Keep the category name short."),
-  description: z.string().min(60, "Describe the category clearly enough for public review.").max(800),
-  publicBenefit: z.string().min(60, "Explain the public or community value.").max(800),
-  exampleKens: z.string().min(20, "List at least two example Kens this category would contain.").max(1200)
-    .refine(
-      (value) => new Set(splitLines(value).map((item) => item.toLowerCase())).size >= 2,
-      "List at least two distinct example Kens.",
-    ),
 });
 
 const reviewerActionSchema = z.object({

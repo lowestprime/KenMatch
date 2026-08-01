@@ -5,6 +5,11 @@ import { useActionState } from "react";
 import { initialActionState } from "@/app/action-state";
 import { createCategoryProposalAction } from "@/app/actions";
 import { AbuseGuardFields } from "@/components/abuse-guard-fields";
+import {
+  CATEGORY_PROPOSAL_FIELD_CONSTRAINTS,
+  nativeTextFieldProps,
+  type TextFieldConstraint,
+} from "@/lib/proposal-constraints";
 
 export function CategoryProposalForm({ disabled }: { disabled?: boolean }) {
   const [state, formAction, pending] = useActionState(createCategoryProposalAction, initialActionState);
@@ -31,11 +36,11 @@ export function CategoryProposalForm({ disabled }: { disabled?: boolean }) {
         ))}
       </div>
       <div className="form-grid form-grid-two">
-        <Field name="name" label="Category name" placeholder="Example: Mechanistic Climate Risk Models" error={errorFor("name")} disabled={disabled || pending} />
-        <Field name="exampleKens" label="Example Kens" as="textarea" placeholder="One example Ken per line" error={errorFor("exampleKens")} disabled={disabled || pending} />
+        <Field name="name" label="Category name" constraint={CATEGORY_PROPOSAL_FIELD_CONSTRAINTS.name} placeholder="Example: Mechanistic Climate Risk Models" error={errorFor("name")} disabled={disabled || pending} />
+        <Field name="exampleKens" label="Example Kens" constraint={CATEGORY_PROPOSAL_FIELD_CONSTRAINTS.exampleKens} as="textarea" placeholder="One example Ken per line" error={errorFor("exampleKens")} disabled={disabled || pending} />
       </div>
-      <Field name="description" label="What belongs here?" as="textarea" placeholder="Define the boundary clearly enough for voters and admins." error={errorFor("description")} disabled={disabled || pending} />
-      <Field name="publicBenefit" label="Why should KenMatch add it?" as="textarea" placeholder="Explain the public, community, cultural, scientific, technical, or practical value." error={errorFor("publicBenefit")} disabled={disabled || pending} />
+      <Field name="description" label="What belongs here?" constraint={CATEGORY_PROPOSAL_FIELD_CONSTRAINTS.description} as="textarea" placeholder="Define the boundary clearly enough for voters and admins." error={errorFor("description")} disabled={disabled || pending} />
+      <Field name="publicBenefit" label="Why should KenMatch add it?" constraint={CATEGORY_PROPOSAL_FIELD_CONSTRAINTS.publicBenefit} as="textarea" placeholder="Explain the public, community, cultural, scientific, technical, or practical value." error={errorFor("publicBenefit")} disabled={disabled || pending} />
       <AbuseGuardFields action="submit-category-proposal" siteKey={turnstileSiteKey} />
       <div className="form-footer">
         <p className="text-xs leading-6 text-muted">Admins can approve, reject, or ask for revision. Approval adds the category with an assigned symbol; public symbol uploads are not enabled yet.</p>
@@ -44,7 +49,12 @@ export function CategoryProposalForm({ disabled }: { disabled?: boolean }) {
         </button>
       </div>
       {state.message ? (
-        <p className={`alert ${state.status === "error" ? "alert-error" : "alert-success"}`}>{state.message}</p>
+        <p
+          className={`alert ${state.status === "error" ? "alert-error" : "alert-success"}`}
+          role={state.status === "error" ? "alert" : "status"}
+        >
+          {state.message}
+        </p>
       ) : null}
     </form>
   );
@@ -53,6 +63,7 @@ export function CategoryProposalForm({ disabled }: { disabled?: boolean }) {
 function Field({
   name,
   label,
+  constraint,
   placeholder,
   error,
   disabled,
@@ -60,20 +71,23 @@ function Field({
 }: {
   name: string;
   label: string;
+  constraint: TextFieldConstraint;
   placeholder: string;
   error?: string;
   disabled?: boolean;
   as?: "textarea";
 }) {
+  const fieldProps = nativeTextFieldProps("category-proposal", name, constraint, error);
+  const errorId = `${fieldProps.id}-error`;
   return (
-    <label className="field-label">
+    <label className="field-label" htmlFor={fieldProps.id}>
       <span>{label}</span>
       {as === "textarea" ? (
-        <textarea className="field" name={name} rows={4} placeholder={placeholder} disabled={disabled} />
+        <textarea {...fieldProps} className="field" rows={4} placeholder={placeholder} disabled={disabled} />
       ) : (
-        <input className="field" name={name} placeholder={placeholder} disabled={disabled} />
+        <input {...fieldProps} className="field" placeholder={placeholder} disabled={disabled} />
       )}
-      {error ? <span className="text-xs text-red-500">{error}</span> : null}
+      {error ? <span id={errorId} className="text-xs text-red-500" role="alert">{error}</span> : null}
     </label>
   );
 }

@@ -4,6 +4,7 @@ import type {
   Browser,
   BrowserContext,
   Page,
+  Request,
   Response,
 } from "playwright";
 import sharp from "sharp";
@@ -152,6 +153,58 @@ async function installCapturePolicy(
   });
 }
 
+export async function assertNativeInvalidSubmission(
+  page: Page,
+  input: {
+    formSelector: string;
+    submitButtonName: string;
+    firstInvalidName: string;
+  },
+) {
+  const form = page.locator(input.formSelector);
+  await form.waitFor({ state: "visible" });
+  const unsafeRequests: string[] = [];
+  const onRequest = (request: Request) => {
+    if (!["GET", "HEAD", "OPTIONS"].includes(request.method().toUpperCase())) {
+      unsafeRequests.push(`${request.method()} ${request.url()}`);
+    }
+  };
+  page.on("request", onRequest);
+  try {
+    await form.getByRole("button", { name: input.submitButtonName }).click();
+    await form.locator(":invalid").first().waitFor({ state: "visible" });
+    const validation = await form.evaluate((element) => {
+      const htmlForm = element as HTMLFormElement;
+      const firstInvalid = htmlForm.querySelector<HTMLElement>(":invalid");
+      const active = document.activeElement as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null;
+      return {
+        valid: htmlForm.checkValidity(),
+        firstInvalidName: firstInvalid?.getAttribute("name") ?? null,
+        activeName: active?.name ?? null,
+      };
+    });
+    await page.waitForTimeout(100);
+    if (validation.valid) {
+      throw new Error(`${input.formSelector} remained valid after an empty native-validation submission.`);
+    }
+    if (validation.firstInvalidName !== input.firstInvalidName) {
+      throw new Error(
+        `${input.formSelector} first invalid control was ${validation.firstInvalidName ?? "missing"}; expected ${input.firstInvalidName}.`,
+      );
+    }
+    if (validation.activeName !== input.firstInvalidName) {
+      throw new Error(
+        `${input.formSelector} focused ${validation.activeName ?? "nothing"}; expected first invalid control ${input.firstInvalidName}.`,
+      );
+    }
+    if (unsafeRequests.length > 0) {
+      throw new Error(`Native validation dispatched unsafe requests: ${unsafeRequests.join(", ")}`);
+    }
+  } finally {
+    page.off("request", onRequest);
+  }
+}
+
 async function performInteraction(page: Page, target: RouteTarget) {
   switch (target.interaction) {
     case "mobile-menu": {
@@ -235,16 +288,22 @@ async function performInteraction(page: Page, target: RouteTarget) {
       break;
     }
     case "ken-proposal-validation":
-      await page.getByRole("button", { name: "Submit Ken for review" }).click();
-      await page.locator("form").first().locator(":invalid").first().waitFor({ state: "visible" });
+      await assertNativeInvalidSubmission(page, {
+        formSelector: "form.ken-proposal-panel",
+        submitButtonName: "Submit Ken for review",
+        firstInvalidName: "title",
+      });
       break;
     case "category-proposal-form":
       await page.locator("form.category-proposal-panel").scrollIntoViewIfNeeded();
       await page.locator('form.category-proposal-panel input[name="name"]').focus();
       break;
     case "category-proposal-validation":
-      await page.getByRole("button", { name: "Propose category" }).click();
-      await page.locator("form.category-proposal-panel :invalid").first().waitFor({ state: "visible" });
+      await assertNativeInvalidSubmission(page, {
+        formSelector: "form.category-proposal-panel",
+        submitButtonName: "Propose category",
+        firstInvalidName: "name",
+      });
       break;
     case "comments":
       await page.getByText(/discussion|comments/i).last().scrollIntoViewIfNeeded().catch(() => undefined);
