@@ -25,7 +25,12 @@ function New-SecretFile([string]$Path) {
     throw "Secret file is empty: $Path"
   }
   $bytes = [byte[]]::new(32)
-  [Security.Cryptography.RandomNumberGenerator]::Fill($bytes)
+  $rng = [Security.Cryptography.RandomNumberGenerator]::Create()
+  try {
+    $rng.GetBytes($bytes)
+  } finally {
+    $rng.Dispose()
+  }
   $hex = [Convert]::ToHexString($bytes).ToLowerInvariant()
   [IO.File]::WriteAllText($Path, $hex, [Text.UTF8Encoding]::new($false))
 }

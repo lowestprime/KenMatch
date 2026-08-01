@@ -51,6 +51,8 @@ test("Windows smoke exports every snapshot path before preparation", () => {
   assert.match(content, /\$env:AUDIT_OUTPUT_DIR = \$OutputRoot/);
   assert.match(content, /\[switch\]\$CaptureOnly/);
   assert.match(content, /capture-metrics\.json/);
+  assert.match(content, /RandomNumberGenerator\]::Create\(\)/);
+  assert.doesNotMatch(content, /RandomNumberGenerator\]::Fill/);
   assert.match(content, /\$env:AUDIT_HOST_FILESYSTEM = "windows-ntfs-bind"/);
   assert.match(content, /\$finalizeOnly = \(Test-Path/);
   assert.match(content, /Using reviewed completed capture for native finalization/);
