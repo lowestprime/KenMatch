@@ -45,6 +45,8 @@ test("Windows smoke exports every snapshot path before preparation", () => {
     assert.ok(assignment < preparation, `${name} must be exported before snapshot preparation`);
   }
   assert.match(content, /Protect-StateDirectory \$StateDir/);
+  assert.match(content, /Get-ChildItem -LiteralPath \$Path -Recurse -Force/);
+  assert.match(content, /\[IO\.File\]::OpenRead/);
   assert.match(content, /dist\\compare\.js/);
   assert.match(content, /dist\\report\.js/);
   assert.match(content, /dist\\validate\.js/);

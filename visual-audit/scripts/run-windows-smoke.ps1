@@ -30,8 +30,17 @@ function New-SecretFile([string]$Path) {
 
 function Protect-StateDirectory([string]$Path) {
   $sid = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value
-  & icacls.exe $Path /inheritance:r /grant:r "*$sid`:(OI)(CI)(F)" /T /Q | Out-Null
+  & icacls.exe $Path /inheritance:r /grant:r "*$sid`:(OI)(CI)(F)" /Q | Out-Null
   if ($LASTEXITCODE -ne 0) { throw "Could not restrict the audit state directory ACL." }
+  Get-ChildItem -LiteralPath $Path -Recurse -Force | ForEach-Object {
+    $grant = if ($_.PSIsContainer) { "*$sid`:(OI)(CI)(F)" } else { "*$sid`:(F)" }
+    & icacls.exe $_.FullName /inheritance:r /grant:r $grant /Q | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "Could not restrict the audit state ACL for $($_.FullName)." }
+    if (-not $_.PSIsContainer) {
+      $stream = [IO.File]::OpenRead($_.FullName)
+      $stream.Dispose()
+    }
+  }
 }
 
 Assert-Command git
