@@ -6,8 +6,8 @@ to an immutable commit, an explicit data provenance tier, a protected public
 inventory, pinned browser tooling, and a complete capture plan.
 
 Generated archives and all audit state are ignored by Git. Never commit
-`visual-audits/`, `visual-audit/.state/`, storage state, SQLite clones, traces,
-reports, PDFs, or secret files.
+`visual-audits/`, `visual-audit/.state/`, `visual-audit/.benchmarks/`, storage
+state, SQLite clones, traces, reports, PDFs, or secret files.
 
 ## Toolchain and evidence tiers
 
@@ -110,6 +110,20 @@ and final permission validation run natively on Windows, where NTFS ACLs rather
 than Unix mode bits are authoritative. The wrapper scopes its NTFS bind-mount
 mode to the declared output/temp roots and restricts the private run directory
 to the current Windows SID before capture and again after report generation.
+
+Before selecting a formal capture worker count, run the fixed Tier 1 smoke
+benchmark from a clean exact candidate commit:
+
+```powershell
+.\visual-audit\scripts\run-windows-benchmark.ps1
+```
+
+The benchmark executes worker counts 1, 2, and 4 sequentially. Capture timing
+excludes image builds, app startup, report generation, and cleanup. Selection
+is accepted only when every run is complete and equivalent by converged plan,
+capture keys and records, stitched-image hashes, diagnostics, security totals,
+and source evidence. Results remain private under
+`visual-audit/.benchmarks/<benchmark-id>/benchmark-result.json`.
 
 ## Tier 2
 

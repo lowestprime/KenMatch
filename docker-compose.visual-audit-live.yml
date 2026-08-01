@@ -25,7 +25,7 @@ services:
       TARGET_COMMIT_SHA: ${TARGET_COMMIT_SHA:?target commit is required}
       AUDIT_RUN_ID: ${AUDIT_RUN_ID:?audit run id is required}
       REPO_ROOT: /workspace/repo
-      RUN_OUTPUT_ROOT: /workspace/repo/visual-audits
+      RUN_OUTPUT_ROOT: /audit-output
       AUDIT_TMP_ROOT: /audit-tmp
       AUDIT_HOST_FILESYSTEM: ${AUDIT_HOST_FILESYSTEM:-native}
       AUDIT_TOKEN_SOURCE_FILE: /audit-state/audit-token
@@ -41,7 +41,7 @@ services:
       APPROVED_BASELINE_ROOT: ${APPROVED_BASELINE_ROOT:-}
     volumes:
       - .:/workspace/repo:ro
-      - ./visual-audits:/workspace/repo/visual-audits
+      - ${AUDIT_OUTPUT_DIR:?audit output directory is required}:/audit-output
       - ${AUDIT_STATE_DIR:?audit state directory is required}:/audit-state:ro
       - ${AUDIT_TMP_DIR:?audit temp directory is required}:/audit-tmp
     command: ["dist/run.js"]

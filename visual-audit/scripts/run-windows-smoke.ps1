@@ -5,7 +5,9 @@ param(
   [ValidateSet("smoke", "full")]
   [string]$Scope = "smoke",
   [string]$RunId = "",
-  [string]$SourceDatabase = ""
+  [string]$SourceDatabase = "",
+  [string]$OutputRoot = "",
+  [switch]$CaptureOnly
 )
 
 $ErrorActionPreference = "Stop"
@@ -49,6 +51,16 @@ Assert-Command node
 
 $RepoRoot = (& git rev-parse --show-toplevel).Trim()
 if (-not $RepoRoot) { throw "Run this command from the KenMatch repository." }
+$RepoRoot = [IO.Path]::GetFullPath($RepoRoot)
+$OutputRoot = if ($OutputRoot) {
+  [IO.Path]::GetFullPath($OutputRoot)
+} else {
+  Join-Path $RepoRoot "visual-audits"
+}
+$RepoPrefix = $RepoRoot.TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
+if (-not $OutputRoot.StartsWith($RepoPrefix, [StringComparison]::OrdinalIgnoreCase)) {
+  throw "OutputRoot must remain inside the KenMatch repository."
+}
 $Head = (& git -C $RepoRoot rev-parse HEAD).Trim()
 if ($env:TARGET_COMMIT_SHA) {
   $Requested = (& git -C $RepoRoot rev-parse "$($env:TARGET_COMMIT_SHA)^{commit}").Trim()
@@ -58,6 +70,8 @@ if ($env:TARGET_COMMIT_SHA) {
 if ($LASTEXITCODE -ne 0) { throw "Tracked working-tree changes must be committed before a formal smoke archive." }
 & git -C $RepoRoot diff --cached --quiet
 if ($LASTEXITCODE -ne 0) { throw "Staged changes must be committed before a formal smoke archive." }
+$Status = (& git -C $RepoRoot status --porcelain=v1 --untracked-files=all) -join "`n"
+if ($Status) { throw "Formal capture requires a clean exact candidate commit." }
 
 if (-not $RunId) {
   $stamp = [DateTime]::UtcNow.ToString("yyyyMMddTHHmmssZ")
@@ -73,9 +87,9 @@ $StateDir = if ($env:AUDIT_STATE_DIR) {
 }
 $TmpDir = Join-Path $StateDir "tmp"
 $LabRoot = Join-Path $StateDir "lab"
-$RunRoot = Join-Path $RepoRoot "visual-audits\$RunId"
+$RunRoot = Join-Path $OutputRoot $RunId
 $ComposeFile = Join-Path $RepoRoot "docker-compose.visual-audit-lab.yml"
-New-Item -ItemType Directory -Force -Path $StateDir, $TmpDir, $RunRoot | Out-Null
+New-Item -ItemType Directory -Force -Path $StateDir, $TmpDir, $OutputRoot, $RunRoot | Out-Null
 New-SecretFile (Join-Path $StateDir "audit-token")
 New-SecretFile (Join-Path $StateDir "test-auth-token")
 New-SecretFile (Join-Path $StateDir "visitor-salt")
@@ -106,7 +120,8 @@ $env:AUDIT_SHAREABLE_APPROVAL_FILE = Join-Path $StateDir "shareable-approval.jso
 $env:AUDIT_RUN_MANIFEST_FILE = Join-Path $RunRoot "manifest.json"
 $env:TARGET_MODE = "snapshot-lab"
 $env:BASE_URL = "http://kenmatch-audit-app:3000"
-$env:RUN_OUTPUT_ROOT = Join-Path $RepoRoot "visual-audits"
+$env:RUN_OUTPUT_ROOT = $OutputRoot
+$env:AUDIT_OUTPUT_DIR = $OutputRoot
 $env:AUDIT_TMP_ROOT = $TmpDir
 $env:AUDIT_HOST_FILESYSTEM = "windows-ntfs-bind"
 $env:AUDIT_TOKEN_FILE = Join-Path $StateDir "audit-token"
@@ -120,7 +135,7 @@ $env:AUDIT_GID = "1000"
 $env:AUDIT_RESUME = if ($env:AUDIT_RESUME) { $env:AUDIT_RESUME } else { "true" }
 $env:AUDIT_ACCELERATOR_RECORD = if ($env:AUDIT_ACCELERATOR_RECORD) { $env:AUDIT_ACCELERATOR_RECORD } else { "chromium-headless-software" }
 $env:VISUAL_AUDIT_CAPTURE_WORKERS = if ($env:VISUAL_AUDIT_CAPTURE_WORKERS) { $env:VISUAL_AUDIT_CAPTURE_WORKERS } else { "1" }
-$env:APPROVED_BASELINE_ROOT = if ($env:APPROVED_BASELINE_RUN_ID) { "/workspace/repo/visual-audits/$($env:APPROVED_BASELINE_RUN_ID)" } else { "" }
+$env:APPROVED_BASELINE_ROOT = if ($env:APPROVED_BASELINE_RUN_ID) { "/audit-output/$($env:APPROVED_BASELINE_RUN_ID)" } else { "" }
 $env:COMPOSE_PROJECT_NAME = "kenmatch-audit-$($RunId.ToLowerInvariant().Replace('_','-').Substring(0, [Math]::Min(42, $RunId.Length)))"
 
 $prepareScript = Join-Path $RepoRoot "visual-audit\scripts\prepare-snapshot.mjs"
@@ -143,8 +158,35 @@ if (-not $finalizeOnly) {
     $started = $true
     & docker compose -f $ComposeFile up -d --wait kenmatch-audit-app
     if ($LASTEXITCODE -ne 0) { throw "Audit app failed to become healthy." }
-    & docker compose -f $ComposeFile run --rm --no-deps audit-runner dist/run.js
-    if ($LASTEXITCODE -ne 0) { throw "Visual capture failed." }
+    $captureStartedAt = [DateTime]::UtcNow
+    $captureTimer = [Diagnostics.Stopwatch]::StartNew()
+    $captureExitCode = 0
+    try {
+      & docker compose -f $ComposeFile run --rm --no-deps audit-runner dist/run.js
+      $captureExitCode = $LASTEXITCODE
+    } finally {
+      $captureTimer.Stop()
+      $captureMetrics = [ordered]@{
+        schemaVersion = 1
+        runId = $RunId
+        expectedCommit = $Head
+        workers = [int]$env:VISUAL_AUDIT_CAPTURE_WORKERS
+        acceleratorRecord = $env:AUDIT_ACCELERATOR_RECORD
+        startedAt = $captureStartedAt.ToString("o")
+        completedAt = [DateTime]::UtcNow.ToString("o")
+        durationMs = $captureTimer.ElapsedMilliseconds
+        exitCode = $captureExitCode
+      }
+      $captureMetricsFile = Join-Path $StateDir "capture-metrics.json"
+      $captureMetricsTemp = "$captureMetricsFile.tmp-$PID"
+      [IO.File]::WriteAllText(
+        $captureMetricsTemp,
+        (($captureMetrics | ConvertTo-Json -Depth 5) + [Environment]::NewLine),
+        [Text.UTF8Encoding]::new($false)
+      )
+      Move-Item -LiteralPath $captureMetricsTemp -Destination $captureMetricsFile -Force
+    }
+    if ($captureExitCode -ne 0) { throw "Visual capture failed." }
     & docker compose -f $ComposeFile down --remove-orphans
     if ($LASTEXITCODE -ne 0) { throw "Audit app cleanup failed." }
     $started = $false
@@ -161,6 +203,12 @@ if (-not $finalizeOnly) {
   }
 } else {
   Write-Host "Using reviewed completed capture for native finalization: $RunRoot"
+}
+
+if ($CaptureOnly) {
+  Protect-StateDirectory $RunRoot
+  Write-Host "Capture-only archive completed: $RunRoot"
+  return
 }
 
 & npm --prefix $auditPackage ci --no-audit --no-fund

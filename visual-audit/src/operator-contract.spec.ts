@@ -14,6 +14,7 @@ test("compose definitions never embed resolved secrets or destructive volume cle
     assert.doesNotMatch(content, /[a-f0-9]{64}/i);
     assert.match(content, /AUDIT_TOKEN_FILE/);
     assert.match(content, /AUDIT_TOKEN_SOURCE_FILE/);
+    assert.match(content, /AUDIT_OUTPUT_DIR/);
     assert.match(content, /\/audit-secrets:size=1m,[^\n]*mode=0700,[^\n]*uid=\$\{AUDIT_UID:-1000\},gid=\$\{AUDIT_GID:-1000\}/);
     assert.match(content, /AUDIT_HOST_FILESYSTEM: \$\{AUDIT_HOST_FILESYSTEM:-native\}/);
     assert.match(content, /read_only:\s+true/);
@@ -47,6 +48,9 @@ test("Windows smoke exports every snapshot path before preparation", () => {
   }
   assert.match(content, /Protect-StateDirectory \$StateDir/);
   assert.match(content, /Protect-StateDirectory \$RunRoot/);
+  assert.match(content, /\$env:AUDIT_OUTPUT_DIR = \$OutputRoot/);
+  assert.match(content, /\[switch\]\$CaptureOnly/);
+  assert.match(content, /capture-metrics\.json/);
   assert.match(content, /\$env:AUDIT_HOST_FILESYSTEM = "windows-ntfs-bind"/);
   assert.match(content, /\$finalizeOnly = \(Test-Path/);
   assert.match(content, /Using reviewed completed capture for native finalization/);
@@ -55,6 +59,19 @@ test("Windows smoke exports every snapshot path before preparation", () => {
   assert.match(content, /dist\\compare\.js/);
   assert.match(content, /dist\\report\.js/);
   assert.match(content, /dist\\validate\.js/);
+});
+
+test("Windows worker benchmark fixes the Tier 1 smoke matrix at 1, 2, and 4", () => {
+  const content = fs.readFileSync(
+    path.join(repoRoot, "visual-audit", "scripts", "run-windows-benchmark.ps1"),
+    "utf8",
+  );
+  assert.match(content, /\$RequiredWorkers = @\(1, 2, 4\)/);
+  assert.match(content, /-Tier "tier-1-synthetic"/);
+  assert.match(content, /-Scope "smoke"/);
+  assert.match(content, /VISUAL_AUDIT_CAPTURE_WORKERS/);
+  assert.match(content, /dist\\benchmark\.js/);
+  assert.match(content, /status --porcelain=v1 --untracked-files=all/);
 });
 
 test("capture runner checkpoints atomic progress and bounds mobile hydration retries", () => {

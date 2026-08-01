@@ -22,6 +22,8 @@ assert_immutable_checkout() {
   [ "$resolved" = "$head" ] || fail "TARGET_COMMIT_SHA must equal the checked-out commit"
   git -C "$repo_root" diff --quiet || fail "tracked working-tree changes must be committed before a formal archive"
   git -C "$repo_root" diff --cached --quiet || fail "staged changes must be committed before a formal archive"
+  [ -z "$(git -C "$repo_root" status --porcelain=v1 --untracked-files=all)" ] \
+    || fail "formal archive requires a clean exact candidate commit"
   printf '%s\n' "$resolved"
 }
 
@@ -64,13 +66,15 @@ set_identity_environment() {
   export AUDIT_SCOPE=${AUDIT_SCOPE:-full}
   export AUDIT_RESUME=${AUDIT_RESUME:-true}
   export VISUAL_AUDIT_CAPTURE_WORKERS=${VISUAL_AUDIT_CAPTURE_WORKERS:-1}
+  export AUDIT_OUTPUT_DIR=${AUDIT_OUTPUT_DIR:-$repo_root/visual-audits}
+  export RUN_OUTPUT_ROOT="$AUDIT_OUTPUT_DIR"
   export APPROVED_BASELINE_ROOT=${APPROVED_BASELINE_ROOT:-}
   export COMPOSE_PROJECT_NAME="kenmatch-audit-$(printf '%s' "$run_id" | tr '[:upper:]_' '[:lower:]-' | cut -c1-42)"
 
   case "${APPROVED_BASELINE_RUN_ID:-}" in
     "") ;;
     *[!A-Za-z0-9._-]*) fail "APPROVED_BASELINE_RUN_ID contains unsupported characters" ;;
-    *) export APPROVED_BASELINE_ROOT="/workspace/repo/visual-audits/$APPROVED_BASELINE_RUN_ID" ;;
+    *) export APPROVED_BASELINE_ROOT="/audit-output/$APPROVED_BASELINE_RUN_ID" ;;
   esac
 }
 

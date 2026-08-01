@@ -56,7 +56,7 @@ cleanup() {
   fi
   if [ "$snapshot_finalized" != "true" ] && [ -f "$AUDIT_SNAPSHOT_EVIDENCE_FILE" ]; then
     AUDIT_SNAPSHOT_EVIDENCE_FILE="$AUDIT_SNAPSHOT_EVIDENCE_FILE" \
-      AUDIT_RUN_MANIFEST_FILE="$REPO_ROOT/visual-audits/$RUN_ID/manifest.json" \
+      AUDIT_RUN_MANIFEST_FILE="$AUDIT_OUTPUT_DIR/$RUN_ID/manifest.json" \
       node "$SCRIPT_DIR/finalize-snapshot.mjs" >/dev/null 2>&1 || true
   fi
 }
@@ -71,7 +71,7 @@ docker compose -f "$COMPOSE_FILE" down --remove-orphans
 app_started=false
 
 AUDIT_SNAPSHOT_EVIDENCE_FILE="$AUDIT_SNAPSHOT_EVIDENCE_FILE" \
-  AUDIT_RUN_MANIFEST_FILE="$REPO_ROOT/visual-audits/$RUN_ID/manifest.json" \
+  AUDIT_RUN_MANIFEST_FILE="$AUDIT_OUTPUT_DIR/$RUN_ID/manifest.json" \
   node "$SCRIPT_DIR/finalize-snapshot.mjs"
 snapshot_finalized=true
 

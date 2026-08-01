@@ -60,8 +60,14 @@ fs.writeFileSync(evidenceFile, `${JSON.stringify(evidence, null, 2)}\n`, { mode:
 const manifestFile = process.env.AUDIT_RUN_MANIFEST_FILE?.trim();
 if (manifestFile) {
   const resolvedManifest = path.resolve(manifestFile);
-  if (path.basename(resolvedManifest) !== "manifest.json" || path.basename(path.dirname(path.dirname(resolvedManifest))) !== "visual-audits") {
-    fail("AUDIT_RUN_MANIFEST_FILE must be a run manifest immediately inside visual-audits.");
+  const outputRoot = path.resolve(process.env.RUN_OUTPUT_ROOT ?? "");
+  const runRoot = path.dirname(resolvedManifest);
+  if (
+    !process.env.RUN_OUTPUT_ROOT?.trim()
+    || path.basename(resolvedManifest) !== "manifest.json"
+    || path.dirname(runRoot) !== outputRoot
+  ) {
+    fail("AUDIT_RUN_MANIFEST_FILE must be a run manifest immediately inside RUN_OUTPUT_ROOT.");
   }
   if (!fs.existsSync(resolvedManifest)) fail("Audit run manifest is missing.");
   const manifest = JSON.parse(fs.readFileSync(resolvedManifest, "utf8"));
