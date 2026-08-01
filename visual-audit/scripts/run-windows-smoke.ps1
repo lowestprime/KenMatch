@@ -28,6 +28,12 @@ function New-SecretFile([string]$Path) {
   [IO.File]::WriteAllText($Path, $hex, [Text.UTF8Encoding]::new($false))
 }
 
+function Protect-StateDirectory([string]$Path) {
+  $sid = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+  & icacls.exe $Path /inheritance:r /grant:r "*$sid`:(OI)(CI)(F)" /T /Q | Out-Null
+  if ($LASTEXITCODE -ne 0) { throw "Could not restrict the audit state directory ACL." }
+}
+
 Assert-Command git
 Assert-Command docker
 Assert-Command node
@@ -64,6 +70,7 @@ New-Item -ItemType Directory -Force -Path $StateDir, $TmpDir | Out-Null
 New-SecretFile (Join-Path $StateDir "audit-token")
 New-SecretFile (Join-Path $StateDir "test-auth-token")
 New-SecretFile (Join-Path $StateDir "visitor-salt")
+Protect-StateDirectory $StateDir
 
 $Provenance = if ($Tier -eq "tier-1-synthetic") { "synthetic-fixture" } else { "production-clone" }
 if ($Tier -eq "tier-2-production-clone") {
@@ -86,6 +93,12 @@ $env:AUDIT_LAB_DATA_DIR = Join-Path $LabRoot "data"
 $env:AUDIT_SOURCE_DATABASE = $SourceDatabase
 $env:AUDIT_SNAPSHOT_EVIDENCE_FILE = Join-Path $StateDir "snapshot-evidence.json"
 $env:AUDIT_SHAREABLE_APPROVAL_FILE = Join-Path $StateDir "shareable-approval.json"
+$env:TARGET_MODE = "snapshot-lab"
+$env:BASE_URL = "http://kenmatch-audit-app:3000"
+$env:RUN_OUTPUT_ROOT = Join-Path $RepoRoot "visual-audits"
+$env:AUDIT_TMP_ROOT = $TmpDir
+$env:AUDIT_TOKEN_FILE = Join-Path $StateDir "audit-token"
+$env:TEST_AUTH_TOKEN_FILE = Join-Path $StateDir "test-auth-token"
 $env:TARGET_COMMIT_SHA = $Head
 $env:KENMATCH_AUDIT_TOKEN = [IO.File]::ReadAllText((Join-Path $StateDir "audit-token")).Trim()
 $env:KENMATCH_TEST_AUTH_BYPASS_TOKEN = [IO.File]::ReadAllText((Join-Path $StateDir "test-auth-token")).Trim()
@@ -93,12 +106,14 @@ $env:KENMATCH_VISITOR_HASH_SALT = [IO.File]::ReadAllText((Join-Path $StateDir "v
 $env:AUDIT_UID = "1000"
 $env:AUDIT_GID = "1000"
 $env:AUDIT_RESUME = if ($env:AUDIT_RESUME) { $env:AUDIT_RESUME } else { "true" }
+$env:AUDIT_ACCELERATOR_RECORD = if ($env:AUDIT_ACCELERATOR_RECORD) { $env:AUDIT_ACCELERATOR_RECORD } else { "chromium-headless-software" }
 $env:VISUAL_AUDIT_CAPTURE_WORKERS = if ($env:VISUAL_AUDIT_CAPTURE_WORKERS) { $env:VISUAL_AUDIT_CAPTURE_WORKERS } else { "1" }
 $env:APPROVED_BASELINE_ROOT = if ($env:APPROVED_BASELINE_RUN_ID) { "/workspace/repo/visual-audits/$($env:APPROVED_BASELINE_RUN_ID)" } else { "" }
 $env:COMPOSE_PROJECT_NAME = "kenmatch-audit-$($RunId.ToLowerInvariant().Replace('_','-').Substring(0, [Math]::Min(42, $RunId.Length)))"
 
 $prepareScript = Join-Path $RepoRoot "visual-audit\scripts\prepare-snapshot.mjs"
 $finalizeScript = Join-Path $RepoRoot "visual-audit\scripts\finalize-snapshot.mjs"
+$auditPackage = Join-Path $RepoRoot "visual-audit"
 $started = $false
 $finalized = $false
 try {
@@ -120,9 +135,13 @@ try {
   & node $finalizeScript
   if ($LASTEXITCODE -ne 0) { throw "Snapshot source/cleanup proof failed." }
   $finalized = $true
-  & docker compose -f $ComposeFile run --rm --no-deps audit-runner dist/compare.js
+  & npm --prefix $auditPackage ci --no-audit --no-fund
+  if ($LASTEXITCODE -ne 0) { throw "Local audit dependency installation failed." }
+  & npm --prefix $auditPackage run build
+  if ($LASTEXITCODE -ne 0) { throw "Local audit build failed." }
+  & node (Join-Path $auditPackage "dist\compare.js")
   if ($LASTEXITCODE -ne 0) { throw "Visual comparison failed." }
-  & docker compose -f $ComposeFile run --rm --no-deps audit-runner dist/report.js
+  & node (Join-Path $auditPackage "dist\report.js")
   if ($LASTEXITCODE -ne 0) { throw "Report generation failed." }
 } finally {
   if ($started) {
@@ -136,6 +155,13 @@ try {
 
 Write-Host "Windows smoke archive captured: $RunRoot"
 Write-Host "Private report: $(Join-Path $RunRoot 'report\index.html')"
-Write-Host "List review candidates with:"
-Write-Host "node visual-audit/scripts/review-shareable.mjs --run-root `"$RunRoot`" --state-file `"$($env:AUDIT_SHAREABLE_APPROVAL_FILE)`" --list"
-Write-Host "Then finalize with: sh visual-audit/scripts/finalize-archive.sh $RunId"
+if (Test-Path -LiteralPath $env:AUDIT_SHAREABLE_APPROVAL_FILE -PathType Leaf) {
+  & node (Join-Path $auditPackage "dist\validate.js")
+  if ($LASTEXITCODE -ne 0) { throw "Archive validation failed." }
+  Write-Host "Validated Windows snapshot archive: $RunRoot"
+} else {
+  Write-Host "List review candidates with:"
+  Write-Host "node visual-audit/scripts/review-shareable.mjs --run-root `"$RunRoot`" --state-file `"$($env:AUDIT_SHAREABLE_APPROVAL_FILE)`" --list"
+  Write-Host "After approval, rerun this command with -RunId '$RunId' to finalize and validate."
+  exit 3
+}

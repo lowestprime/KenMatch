@@ -71,6 +71,7 @@ services:
     shm_size: 1gb
     tmpfs:
       - /tmp:size=1g,nosuid,nodev
+      - /audit-secrets:size=1m,noexec,nosuid,nodev,mode=0700
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -89,8 +90,10 @@ services:
       REPO_ROOT: /workspace/repo
       RUN_OUTPUT_ROOT: /workspace/repo/visual-audits
       AUDIT_TMP_ROOT: /audit-tmp
-      AUDIT_TOKEN_FILE: /audit-state/audit-token
-      TEST_AUTH_TOKEN_FILE: /audit-state/test-auth-token
+      AUDIT_TOKEN_SOURCE_FILE: /audit-state/audit-token
+      AUDIT_TOKEN_FILE: /audit-secrets/audit-token
+      TEST_AUTH_TOKEN_SOURCE_FILE: /audit-state/test-auth-token
+      TEST_AUTH_TOKEN_FILE: /audit-secrets/test-auth-token
       AUDIT_SNAPSHOT_EVIDENCE_FILE: /audit-state/snapshot-evidence.json
       AUDIT_SHAREABLE_APPROVAL_FILE: /audit-state/shareable-approval.json
       AUDIT_RESUME: ${AUDIT_RESUME:-true}

@@ -13,7 +13,22 @@ test("compose definitions never embed resolved secrets or destructive volume cle
     assert.doesNotMatch(content, /down\s+-v/);
     assert.doesNotMatch(content, /[a-f0-9]{64}/i);
     assert.match(content, /AUDIT_TOKEN_FILE/);
+    assert.match(content, /AUDIT_TOKEN_SOURCE_FILE/);
+    assert.match(content, /\/audit-secrets:size=1m,[^\n]*mode=0700/);
     assert.match(content, /read_only:\s+true/);
+  }
+});
+
+test("container entrypoint stages only allowlisted secret files and audit commands", () => {
+  const content = fs.readFileSync(
+    path.join(repoRoot, "visual-audit", "scripts", "container-entrypoint.mjs"),
+    "utf8",
+  );
+  assert.match(content, /const secretRoot = "\/audit-secrets"/);
+  assert.match(content, /mode: 0o600/);
+  assert.match(content, /sourceStats\.isSymbolicLink\(\)/);
+  for (const script of ["run", "compare", "report", "validate"]) {
+    assert.match(content, new RegExp(`dist/${script}\\.js`));
   }
 });
 
@@ -29,6 +44,10 @@ test("Windows smoke exports every snapshot path before preparation", () => {
     assert.notEqual(assignment, -1, `${name} must be exported`);
     assert.ok(assignment < preparation, `${name} must be exported before snapshot preparation`);
   }
+  assert.match(content, /Protect-StateDirectory \$StateDir/);
+  assert.match(content, /dist\\compare\.js/);
+  assert.match(content, /dist\\report\.js/);
+  assert.match(content, /dist\\validate\.js/);
 });
 
 test("shareable review helper accepts only explicit anonymous capture keys", () => {

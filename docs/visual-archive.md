@@ -90,8 +90,15 @@ sh visual-audit/scripts/run-snapshot-lab.sh
 For a bounded native Windows smoke:
 
 ```powershell
-.\visual-audit\scripts\run-windows-smoke.ps1 -Tier tier-1-synthetic -Scope smoke
+$runId = "<stable-run-id>"
+.\visual-audit\scripts\run-windows-smoke.ps1 -Tier tier-1-synthetic -Scope smoke -RunId $runId
 ```
+
+The Windows wrapper restricts the state directory to the current user. Because
+Docker Desktop exposes NTFS bind mounts with synthetic Linux modes, the runner
+copies the read-only mounted token into a private `0700` tmpfs and validates the
+`0600` copy. Comparison, report generation, and final permission validation run
+natively on Windows, where NTFS ACLs rather than Unix mode bits are authoritative.
 
 ## Tier 2
 
@@ -134,6 +141,12 @@ node visual-audit/scripts/review-shareable.mjs \
 
 sh visual-audit/scripts/finalize-archive.sh <run-id>
 ```
+
+For a Windows snapshot run, record approval with the same helper, then rerun
+`run-windows-smoke.ps1` with the identical `-RunId`. Resume identity checks
+reuse completed captures, regenerate the reviewed reports, and run the native
+Windows validator. Do not use the Unix finalizer for a Docker Desktop bind-mount
+archive.
 
 Finalization regenerates the private and redacted reports, then validates every
 artifact and writes `checksums.json` plus `checksums.sha256`. Shareable images

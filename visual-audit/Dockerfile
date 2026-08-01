@@ -13,5 +13,5 @@ RUN npm ci --include=dev
 COPY visual-audit/ ./
 RUN npm run build && npm prune --omit=dev
 
-ENTRYPOINT ["node"]
+ENTRYPOINT ["node", "scripts/container-entrypoint.mjs"]
 CMD ["dist/run.js"]
