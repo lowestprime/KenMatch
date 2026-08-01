@@ -82,7 +82,7 @@ export async function SiteShell({
         <div className="site-footer-inner">
           <div className="site-footer-top">
             <Link href="/" className="site-brand site-brand-footer" aria-label="KenMatch home">
-              <KenMatchMark className="brand-mark brand-mark-footer" />
+              <KenMatchMark className="brand-mark brand-mark-footer" eager />
               <span className="site-brand-text"><strong>KenMatch</strong><span>Public allocation for frontier AI work</span></span>
             </Link>
             <div className="site-footer-links" aria-label="Platform links">

@@ -67,6 +67,10 @@ forced colors, labels, heading order, assets, placeholders, console/page/network
 errors, source immutability, cleanup, report/PDF presence, checksums, redaction,
 and Linux permissions.
 
+Request diagnostics treat only non-navigation, same-origin GET `fetch` requests
+with an `_rsc` parameter and `ERR_ABORTED` as expected Next.js lifecycle
+prefetch cancellation. Other aborted requests remain validation failures.
+
 ## Install and test
 
 ```sh

@@ -21,6 +21,23 @@ export function shouldAttachAuditToken(method: string, requestUrl: string | URL,
   return !isUnsafeMethod(method) && isSameOrigin(requestUrl, baseUrl);
 }
 
+export function isExpectedRscLifecycleAbort(input: {
+  method: string;
+  requestUrl: string;
+  baseUrl: string;
+  resourceType: string;
+  navigationRequest: boolean;
+  failure: string;
+}) {
+  const request = new URL(input.requestUrl, input.baseUrl);
+  return input.method.toUpperCase() === "GET"
+    && input.resourceType === "fetch"
+    && !input.navigationRequest
+    && input.failure.includes("ERR_ABORTED")
+    && request.origin === new URL(input.baseUrl).origin
+    && request.searchParams.has("_rsc");
+}
+
 export function classifyCaptureRequest(input: {
   method: string;
   requestUrl: string;

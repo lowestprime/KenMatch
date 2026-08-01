@@ -12,7 +12,10 @@ import { inspectAccessibility } from "./accessibility.js";
 import type { StoredAuthStates } from "./auth.js";
 import type { AuditConfig } from "./config.js";
 import { VIEWPORTS } from "./config.js";
-import { classifyCaptureRequest } from "./policy.js";
+import {
+  classifyCaptureRequest,
+  isExpectedRscLifecycleAbort,
+} from "./policy.js";
 import { settlePage } from "./settle.js";
 import {
   captureScrollableElement,
@@ -537,7 +540,14 @@ async function captureOne(input: {
   });
   page.on("requestfailed", (request) => {
     const failure = request.failure()?.errorText ?? "unknown failure";
-    const expected = failure.includes("ERR_BLOCKED_BY_CLIENT");
+    const expected = failure.includes("ERR_BLOCKED_BY_CLIENT") || isExpectedRscLifecycleAbort({
+      method: request.method(),
+      requestUrl: request.url(),
+      baseUrl: config.baseUrl,
+      resourceType: request.resourceType(),
+      navigationRequest: request.isNavigationRequest(),
+      failure,
+    });
     addDiagnostic(
       accumulator,
       job,
