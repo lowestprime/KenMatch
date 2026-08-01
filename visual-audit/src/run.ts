@@ -165,6 +165,7 @@ async function main() {
         writeJson(planFile, plan);
         writeJson(manifestFile, manifest);
       }
+      const checkpointManifest = manifest;
 
       let finalPass = {
         captures: manifest.captures,
@@ -193,6 +194,14 @@ async function main() {
           existingCaptures: finalPass.captures,
           existingDiagnostics: finalPass.diagnostics,
           existingRenderedLinks: finalPass.renderedLinks,
+          onProgress: (progress) => {
+            checkpointManifest.captures = progress.captures;
+            checkpointManifest.completedKeys = progress.captures.map((capture) => capture.key).sort();
+            checkpointManifest.diagnostics = progress.diagnostics;
+            checkpointManifest.renderedLinks = progress.renderedLinks;
+            checkpointManifest.security = { ...security };
+            writeJson(manifestFile, checkpointManifest);
+          },
         });
         const reconciledPlan = buildCoveragePlan({
           config,

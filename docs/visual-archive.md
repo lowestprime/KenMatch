@@ -148,9 +148,10 @@ sh visual-audit/scripts/finalize-archive.sh <run-id>
 
 For a Windows snapshot run, record approval with the same helper, then rerun
 `run-windows-smoke.ps1` with the identical `-RunId`. Resume identity checks
-reuse completed captures, regenerate the reviewed reports, and run the native
-Windows validator. Do not use the Unix finalizer for a Docker Desktop bind-mount
-archive.
+reuse captures checkpointed after each completed state, regenerate the reviewed
+reports, and run the native Windows validator. A bounded interaction retry covers
+late client hydration without accepting a missing or hidden target state. Do not
+use the Unix finalizer for a Docker Desktop bind-mount archive.
 
 Finalization regenerates the private and redacted reports, then validates every
 artifact and writes `checksums.json` plus `checksums.sha256`. Shareable images

@@ -151,10 +151,29 @@ async function installCapturePolicy(
 
 async function performInteraction(page: Page, target: RouteTarget) {
   switch (target.interaction) {
-    case "mobile-menu":
-      await page.getByRole("button", { name: "Open menu" }).click();
-      await page.getByRole("dialog", { name: "Site navigation" }).waitFor({ state: "visible" });
+    case "mobile-menu": {
+      const trigger = page.locator(".mobile-nav-trigger");
+      const dialog = page.getByRole("dialog", { name: "Site navigation" });
+      await trigger.waitFor({ state: "visible" });
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        await trigger.click();
+        try {
+          await dialog.waitFor({ state: "visible", timeout: 5_000 });
+          return;
+        } catch (error) {
+          const expanded = await trigger.getAttribute("aria-expanded");
+          const drawerCount = await page.locator("#mobile-nav-drawer").count();
+          if (expanded === "true" || drawerCount > 0 || attempt === 1) {
+            throw new Error(
+              `Mobile menu did not become visible after interaction (expanded=${expanded}, drawers=${drawerCount}).`,
+              { cause: error },
+            );
+          }
+          await page.waitForTimeout(250);
+        }
+      }
       break;
+    }
     case "profile-menu":
       await page.getByRole("button", { name: /Open account menu/ }).click();
       await page.getByRole("menu", { name: "Account menu" }).waitFor({ state: "visible" });
@@ -678,6 +697,11 @@ export async function runCaptures(input: {
   existingCaptures?: CaptureRecord[];
   existingDiagnostics?: DiagnosticRecord[];
   existingRenderedLinks?: string[];
+  onProgress?: (progress: {
+    captures: CaptureRecord[];
+    diagnostics: DiagnosticRecord[];
+    renderedLinks: string[];
+  }) => void | Promise<void>;
 }) {
   const accumulator: CaptureAccumulator = {
     captures: [...(input.existingCaptures ?? [])],
@@ -720,6 +744,11 @@ export async function runCaptures(input: {
             job,
             accumulator,
             security: input.security,
+          });
+          await input.onProgress?.({
+            captures: [...accumulator.captures],
+            diagnostics: [...accumulator.diagnostics],
+            renderedLinks: [...accumulator.renderedLinks].sort(),
           });
         } finally {
           await page.close();
