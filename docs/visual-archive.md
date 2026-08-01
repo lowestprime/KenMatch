@@ -160,6 +160,12 @@ reports, and run the native Windows validator. A bounded interaction retry cover
 late client hydration without accepting a missing or hidden target state. Do not
 use the Unix finalizer for a Docker Desktop bind-mount archive.
 
+When approval and a completed manifest/coverage plan already exist, the Windows
+wrapper enters native finalize-only mode and does not launch a second lab. An
+interrupted pre-approval Tier 1 capture may resume against a fresh fixture; its
+identity excludes only generated/seed-clock timestamps, while route, state,
+taxonomy, discussion, build, count, and asset drift still causes refusal.
+
 Finalization regenerates the private and redacted reports, then validates every
 artifact and writes `checksums.json` plus `checksums.sha256`. Shareable images
 receive opaque digest-derived filenames; only explicitly reviewed anonymous

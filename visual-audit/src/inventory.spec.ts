@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   expandSourceRoutes,
+  protectedInventoryDigest,
   validateInventoryShape,
 } from "./inventory.js";
 import type { ProtectedInventory } from "./types.js";
@@ -28,7 +29,7 @@ test("dynamic source routes expand only from protected public inventory", () => 
   assert.ok(result.routes.includes("/tasks/example"));
 });
 
-const completeInventory = {
+const completeInventory: ProtectedInventory = {
   schemaVersion: 1,
   complete: true,
   generatedAt: "2026-07-29T12:00:00.000Z",
@@ -89,4 +90,25 @@ test("protected inventory rejects truncation and count or route drift", () => {
   const routeDrift = structuredClone(completeInventory);
   routeDrift.routes.kens = ["/kens/different"];
   assert.throws(() => validateInventoryShape(routeDrift), /routes or taxonomy/);
+});
+
+test("inventory identity excludes only volatile clocks allowed by its evidence tier", () => {
+  const initial = structuredClone(completeInventory);
+  const later = structuredClone(completeInventory);
+  later.generatedAt = "2026-07-30T12:00:00.000Z";
+  later.lastModified = "2026-07-30T11:00:00.000Z";
+  assert.equal(
+    protectedInventoryDigest(initial, "tier-1-synthetic"),
+    protectedInventoryDigest(later, "tier-1-synthetic"),
+  );
+  assert.notEqual(
+    protectedInventoryDigest(initial, "tier-2-production-clone"),
+    protectedInventoryDigest(later, "tier-2-production-clone"),
+  );
+  const routeDrift = structuredClone(initial);
+  routeDrift.routes.static = ["/", "/faq"];
+  assert.notEqual(
+    protectedInventoryDigest(initial, "tier-1-synthetic"),
+    protectedInventoryDigest(routeDrift, "tier-1-synthetic"),
+  );
 });

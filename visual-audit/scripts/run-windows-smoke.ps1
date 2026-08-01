@@ -103,6 +103,7 @@ $env:AUDIT_LAB_DATA_DIR = Join-Path $LabRoot "data"
 $env:AUDIT_SOURCE_DATABASE = $SourceDatabase
 $env:AUDIT_SNAPSHOT_EVIDENCE_FILE = Join-Path $StateDir "snapshot-evidence.json"
 $env:AUDIT_SHAREABLE_APPROVAL_FILE = Join-Path $StateDir "shareable-approval.json"
+$env:AUDIT_RUN_MANIFEST_FILE = Join-Path $RunRoot "manifest.json"
 $env:TARGET_MODE = "snapshot-lab"
 $env:BASE_URL = "http://kenmatch-audit-app:3000"
 $env:RUN_OUTPUT_ROOT = Join-Path $RepoRoot "visual-audits"
@@ -127,43 +128,50 @@ $finalizeScript = Join-Path $RepoRoot "visual-audit\scripts\finalize-snapshot.mj
 $auditPackage = Join-Path $RepoRoot "visual-audit"
 $started = $false
 $finalized = $false
-try {
-  & node $prepareScript
-  if ($LASTEXITCODE -ne 0) { throw "Snapshot preparation failed." }
-  & docker compose -f $ComposeFile config --quiet
-  if ($LASTEXITCODE -ne 0) { throw "Compose validation failed." }
-  & docker compose -f $ComposeFile build kenmatch-audit-app audit-runner
-  if ($LASTEXITCODE -ne 0) { throw "Audit image build failed." }
-  & docker compose -f $ComposeFile up -d --wait kenmatch-audit-app
-  if ($LASTEXITCODE -ne 0) { throw "Audit app failed to become healthy." }
-  $started = $true
-  & docker compose -f $ComposeFile run --rm --no-deps audit-runner dist/run.js
-  if ($LASTEXITCODE -ne 0) { throw "Visual capture failed." }
-  & docker compose -f $ComposeFile down --remove-orphans
-  if ($LASTEXITCODE -ne 0) { throw "Audit app cleanup failed." }
-  $started = $false
-  $env:AUDIT_RUN_MANIFEST_FILE = Join-Path $RunRoot "manifest.json"
-  & node $finalizeScript
-  if ($LASTEXITCODE -ne 0) { throw "Snapshot source/cleanup proof failed." }
-  $finalized = $true
-  & npm --prefix $auditPackage ci --no-audit --no-fund
-  if ($LASTEXITCODE -ne 0) { throw "Local audit dependency installation failed." }
-  & npm --prefix $auditPackage run build
-  if ($LASTEXITCODE -ne 0) { throw "Local audit build failed." }
-  & node (Join-Path $auditPackage "dist\compare.js")
-  if ($LASTEXITCODE -ne 0) { throw "Visual comparison failed." }
-  & node (Join-Path $auditPackage "dist\report.js")
-  if ($LASTEXITCODE -ne 0) { throw "Report generation failed." }
-  Protect-StateDirectory $RunRoot
-} finally {
-  if ($started) {
-    & docker compose -f $ComposeFile down --remove-orphans 2>$null
+$finalizeOnly = (Test-Path -LiteralPath $env:AUDIT_SHAREABLE_APPROVAL_FILE -PathType Leaf) `
+  -and (Test-Path -LiteralPath $env:AUDIT_RUN_MANIFEST_FILE -PathType Leaf) `
+  -and (Test-Path -LiteralPath (Join-Path $RunRoot "coverage-plan.json") -PathType Leaf)
+
+if (-not $finalizeOnly) {
+  try {
+    & node $prepareScript
+    if ($LASTEXITCODE -ne 0) { throw "Snapshot preparation failed." }
+    & docker compose -f $ComposeFile config --quiet
+    if ($LASTEXITCODE -ne 0) { throw "Compose validation failed." }
+    & docker compose -f $ComposeFile build kenmatch-audit-app audit-runner
+    if ($LASTEXITCODE -ne 0) { throw "Audit image build failed." }
+    $started = $true
+    & docker compose -f $ComposeFile up -d --wait kenmatch-audit-app
+    if ($LASTEXITCODE -ne 0) { throw "Audit app failed to become healthy." }
+    & docker compose -f $ComposeFile run --rm --no-deps audit-runner dist/run.js
+    if ($LASTEXITCODE -ne 0) { throw "Visual capture failed." }
+    & docker compose -f $ComposeFile down --remove-orphans
+    if ($LASTEXITCODE -ne 0) { throw "Audit app cleanup failed." }
+    $started = $false
+    & node $finalizeScript
+    if ($LASTEXITCODE -ne 0) { throw "Snapshot source/cleanup proof failed." }
+    $finalized = $true
+  } finally {
+    if ($started) {
+      & docker compose -f $ComposeFile down --remove-orphans 2>$null
+    }
+    if (-not $finalized -and (Test-Path -LiteralPath $env:AUDIT_SNAPSHOT_EVIDENCE_FILE)) {
+      & node $finalizeScript 2>$null
+    }
   }
-  if (-not $finalized -and (Test-Path -LiteralPath $env:AUDIT_SNAPSHOT_EVIDENCE_FILE)) {
-    $env:AUDIT_RUN_MANIFEST_FILE = Join-Path $RunRoot "manifest.json"
-    & node $finalizeScript 2>$null
-  }
+} else {
+  Write-Host "Using reviewed completed capture for native finalization: $RunRoot"
 }
+
+& npm --prefix $auditPackage ci --no-audit --no-fund
+if ($LASTEXITCODE -ne 0) { throw "Local audit dependency installation failed." }
+& npm --prefix $auditPackage run build
+if ($LASTEXITCODE -ne 0) { throw "Local audit build failed." }
+& node (Join-Path $auditPackage "dist\compare.js")
+if ($LASTEXITCODE -ne 0) { throw "Visual comparison failed." }
+& node (Join-Path $auditPackage "dist\report.js")
+if ($LASTEXITCODE -ne 0) { throw "Report generation failed." }
+Protect-StateDirectory $RunRoot
 
 Write-Host "Windows smoke archive captured: $RunRoot"
 Write-Host "Private report: $(Join-Path $RunRoot 'report\index.html')"

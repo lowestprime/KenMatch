@@ -4,7 +4,7 @@ import path from "node:path";
 import type { BrowserContext } from "playwright";
 
 import type { AuditConfig } from "./config.js";
-import type { ProtectedInventory } from "./types.js";
+import type { EvidenceTier, ProtectedInventory } from "./types.js";
 import { sha256, stableJson } from "./util.js";
 
 export interface SourceRouteInventory {
@@ -207,6 +207,16 @@ function sameRouteSlugs(routes: string[], slugs: string[], prefix: string) {
     && expected.every((route, index) => route === actual[index]);
 }
 
+export function protectedInventoryDigest(inventory: ProtectedInventory, evidenceTier: EvidenceTier) {
+  return sha256(stableJson({
+    ...inventory,
+    generatedAt: "<excluded-from-identity>",
+    lastModified: evidenceTier === "tier-1-synthetic"
+      ? "<excluded-synthetic-seed-clock>"
+      : inventory.lastModified,
+  }));
+}
+
 export async function fetchProtectedInventory(
   context: BrowserContext,
   config: AuditConfig,
@@ -242,9 +252,6 @@ export async function fetchProtectedInventory(
   }
   return {
     inventory: value,
-    digest: sha256(stableJson({
-      ...value,
-      generatedAt: "<excluded-from-identity>",
-    })),
+    digest: protectedInventoryDigest(value, config.evidenceTier),
   };
 }

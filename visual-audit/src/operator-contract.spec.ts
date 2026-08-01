@@ -48,6 +48,8 @@ test("Windows smoke exports every snapshot path before preparation", () => {
   assert.match(content, /Protect-StateDirectory \$StateDir/);
   assert.match(content, /Protect-StateDirectory \$RunRoot/);
   assert.match(content, /\$env:AUDIT_HOST_FILESYSTEM = "windows-ntfs-bind"/);
+  assert.match(content, /\$finalizeOnly = \(Test-Path/);
+  assert.match(content, /Using reviewed completed capture for native finalization/);
   assert.match(content, /Get-ChildItem -LiteralPath \$Path -Recurse -Force/);
   assert.match(content, /\[IO\.File\]::OpenRead/);
   assert.match(content, /dist\\compare\.js/);
