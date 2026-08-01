@@ -41,6 +41,7 @@ test("private indexing policy covers sensitive surfaces without hiding public ve
     "/forgot-password",
     "/reset",
     "/verify",
+    "/visual-audit",
   ]);
 });
 

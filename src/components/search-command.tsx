@@ -5,7 +5,6 @@ import { createPortal } from "react-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 
-import { searchAction } from "@/app/actions";
 import { SearchField } from "@/components/search-field";
 import type { SearchResultItem } from "@/lib/types";
 
@@ -68,9 +67,16 @@ export function SearchCommand() {
     const debounce = window.setTimeout(async () => {
       setLoading(true);
       try {
-        const response = await searchAction(query.trim());
+        const response = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}`, {
+          method: "GET",
+          headers: { Accept: "application/json" },
+          signal: controller.signal,
+          cache: "no-store",
+        });
+        if (!response.ok) throw new Error(`Search returned HTTP ${response.status}.`);
+        const payload = await response.json() as { results?: SearchResultItem[] };
         if (!controller.signal.aborted) {
-          setResults(response);
+          setResults(payload.results ?? []);
           setActiveIndex(0);
         }
       } catch {

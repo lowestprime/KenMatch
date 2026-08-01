@@ -53,6 +53,7 @@ export function AuthPanels({
                 <input
                   type="email"
                   name="email"
+                  aria-label="Email address for verification resend"
                   placeholder="you@example.com"
                   className="field"
                   style={{ flex: 1, minWidth: "14rem" }}

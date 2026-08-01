@@ -179,6 +179,7 @@ The allocation problem is practical: compute, review time, and operational atten
 - Governance view with blocked Kens, attestation state, enforceable participation limits, review timing, and visible decision logs.
 - Security headers, host filtering, request-origin checks, structured rate limits, optional Turnstile verification, and public-safe health checks.
 - Standalone Next.js Docker build, non-root container runtime, loopback-only Synology deployment, and public-hosting guidance for Cloudflare Tunnel or equivalent origin shielding.
+- Private deterministic visual archives with pinned Playwright capture, source/DB/rendered route reconciliation, Light/OLED viewport matrices, snapshot-clone isolation, live read-only request enforcement, reviewed redacted atlases, and checksum validation.
 
 ## 🏗️ Stack
 
@@ -187,6 +188,10 @@ The allocation problem is practical: compute, review time, and operational atten
 - [Tailwind CSS v4](https://tailwindcss.com/blog/tailwindcss-v4)
 - [libSQL TypeScript client](https://docs.turso.tech/sdk/ts/quickstart) for local-file or remote libSQL persistence
 - [`zod`](https://zod.dev) for form and environment validation
+
+The private release evidence workflow is documented in
+[`docs/visual-archive.md`](docs/visual-archive.md). Generated captures, reports,
+PDFs, cloned data, browser state, and audit secrets remain outside Git.
 
 ## 💻 Local Development
 

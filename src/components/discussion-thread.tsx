@@ -116,6 +116,7 @@ function CommentComposer({
       {parentId ? <input type="hidden" name="parentId" value={parentId} /> : null}
       <textarea
         name="body"
+        aria-label={parentId ? "Reply text" : "Comment text"}
         rows={parentId ? 3 : 4}
         className="field"
         placeholder={

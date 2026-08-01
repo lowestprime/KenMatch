@@ -135,7 +135,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
 
       {isAdmin ? <>
       <section className="section-grid" data-columns="2">
-        <div className="panel grid gap-3">
+        <div id="visitor-map" className="panel grid gap-3 scroll-mt-28">
           <h2>Visitor map</h2>
           <p style={{ color: "var(--muted)" }}>
             Approximate country-level traffic from Cloudflare geolocation headers. Visitor IDs are salted hashes; the map is for operating awareness, not personal tracking.
@@ -162,14 +162,14 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
 
       {isAdmin ? <>
       <section className="section-grid" data-columns="2">
-        <div className="panel grid gap-3">
+        <div id="maintenance-controls" className="panel grid gap-3 scroll-mt-28">
           <h2>Maintenance mode</h2>
           <p style={{ color: "var(--muted)" }}>
             Pause public writes and show a clean public maintenance page while keeping admin recovery, auth, health, and assets reachable.
           </p>
           <AdminMaintenancePanel maintenance={dashboard.maintenance} />
         </div>
-        <div className="panel grid gap-3">
+        <div id="smtp-status" className="panel grid gap-3 scroll-mt-28">
           <h2>SMTP configuration</h2>
           <p style={{ color: "var(--muted)" }}>
             Environment SMTP remains authoritative. Owner-managed database SMTP is available only when env SMTP is absent and secrets can be encrypted at rest.
@@ -200,14 +200,14 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
       </section>
 
       <section className="section-grid" data-columns="2">
-        <div className="panel grid gap-3">
+        <div id="changelog-controls" className="panel grid gap-3 scroll-mt-28">
           <h2>Changelog</h2>
           <p style={{ color: "var(--muted)" }}>
             Publish compact release notes so public users can tell what changed without reading commits or deployment logs.
           </p>
           <AdminChangelogPanel entries={dashboard.changelog} />
         </div>
-        <div className="panel grid gap-3">
+        <div id="illustration-controls" className="panel grid gap-3 scroll-mt-28">
           <h2>Ken illustrations</h2>
           <p style={{ color: "var(--muted)" }}>
             Admin-uploaded Ken images are optional and persist in the data volume. Kens without uploaded art use the public category/lane symbol.

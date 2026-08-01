@@ -3,9 +3,11 @@ import Image from "next/image";
 export function KenMatchMark({
   className = "",
   variant = "auto",
+  eager = false,
 }: {
   className?: string;
   variant?: "auto" | "light" | "dark" | "oled";
+  eager?: boolean;
 }) {
   const svgClassName = [className, "kenmatch-mark-themed", `kenmatch-mark-${variant}`].filter(Boolean).join(" ");
 
@@ -50,6 +52,8 @@ export function KenMatchMark({
         width={128}
         height={128}
         draggable={false}
+        loading={eager ? "eager" : "lazy"}
+        fetchPriority={eager ? "high" : "auto"}
         unoptimized
       />
       <Image
@@ -59,6 +63,8 @@ export function KenMatchMark({
         width={128}
         height={128}
         draggable={false}
+        loading={eager ? "eager" : "lazy"}
+        fetchPriority={eager ? "high" : "auto"}
         unoptimized
       />
     </span>

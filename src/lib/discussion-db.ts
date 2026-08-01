@@ -298,6 +298,18 @@ export async function listDiscussionSitemapEntries() {
   }));
 }
 
+export async function listVisualAuditDiscussionInventory() {
+  const result = await rows(
+    `SELECT slug, topic
+     FROM discussion_posts
+     ORDER BY slug ASC`,
+  );
+  return result.map((row) => ({
+    slug: getString(row, "slug"),
+    topic: getString(row, "topic"),
+  }));
+}
+
 export async function getDiscussionPostSeoRecord(slug: string) {
   const row = await one(
     `SELECT

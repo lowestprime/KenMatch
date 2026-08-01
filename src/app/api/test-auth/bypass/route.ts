@@ -55,12 +55,14 @@ export async function GET(request: NextRequest) {
   <body>
     <main>
       <h1>Local test auth</h1>
-      <p>This route only exists on loopback development hosts when the local test-auth bypass is explicitly enabled.</p>
+      <p>This route only exists in an explicitly enabled local or isolated audit-lab development environment.</p>
       <form method="post">
         <label for="token">Bypass token</label>
         <input id="token" name="token" type="password" autocomplete="off" required />
         <button name="mode" value="user" type="submit">Sign in as test contributor</button>
-        <button name="mode" value="admin" type="submit">Sign in as test owner</button>
+        <button name="mode" value="moderator" type="submit">Sign in as test moderator</button>
+        <button name="mode" value="admin" type="submit">Sign in as test administrator</button>
+        <button name="mode" value="owner" type="submit">Sign in as test owner</button>
       </form>
     </main>
   </body>
@@ -102,7 +104,7 @@ export async function POST(request: NextRequest) {
     production: false,
   });
   if (!routeOrigin) return unavailable();
-  const destination = new URL(mode === "admin" ? "/admin" : "/account", routeOrigin);
+  const destination = new URL(mode === "user" ? "/account" : "/admin", routeOrigin);
   const response = NextResponse.redirect(destination, 303);
   response.cookies.set(ACTIVE_SESSION_COOKIE, session.token, sessionCookieOptions(env.KENMATCH_SESSION_DAYS * 24 * 60 * 60));
   response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");

@@ -2414,6 +2414,78 @@ export async function listPublicSitemapEntities() {
   };
 }
 
+export async function getVisualAuditPublicInventory() {
+  const [taskRows, profileRows, categoryRows, countRow, modifiedRow] = await Promise.all([
+    loadRows(
+      `SELECT
+         task.slug,
+         task.stage,
+         task.safetyStatus,
+         task.requestedTier,
+         category.slug AS categorySlug,
+         illustration.url AS illustrationUrl,
+         illustration.source AS illustrationSource,
+         CASE WHEN EXISTS (
+           SELECT 1 FROM comments comment WHERE comment.taskId = task.id
+         ) THEN 1 ELSE 0 END AS hasComments
+       FROM tasks task
+       JOIN categories category ON category.id = task.categoryId
+       LEFT JOIN task_illustrations illustration ON illustration.taskId = task.id
+       LEFT JOIN ken_submissions submission ON submission.taskId = task.id
+       WHERE submission.id IS NULL OR submission.intakeStatus = 'approved'
+       ORDER BY task.slug ASC`,
+    ),
+    loadRows(
+      `SELECT trim(username) AS slug
+       FROM profiles
+       WHERE moderationStatus <> 'suspended'
+         AND username IS NOT NULL
+         AND trim(username) <> ''
+       ORDER BY slug ASC`,
+    ),
+    loadRows(
+      `SELECT slug
+       FROM categories
+       ORDER BY slug ASC`,
+    ),
+    loadOne(
+      `SELECT
+         (SELECT COUNT(*) FROM tasks task
+           LEFT JOIN ken_submissions submission ON submission.taskId = task.id
+           WHERE submission.id IS NULL OR submission.intakeStatus = 'approved') AS kens,
+         (SELECT COUNT(*) FROM profiles
+           WHERE moderationStatus <> 'suspended'
+             AND username IS NOT NULL
+             AND trim(username) <> '') AS profiles,
+         (SELECT COUNT(*) FROM categories) AS categories`,
+    ),
+    loadOne(PUBLIC_CONTENT_LAST_MODIFIED_SQL),
+  ]);
+
+  const tasks = taskRows.map((row) => ({
+    slug: getString(row, "slug"),
+    stage: getString(row, "stage"),
+    safetyStatus: getString(row, "safetyStatus"),
+    requestedLane: getString(row, "requestedTier"),
+    categorySlug: getString(row, "categorySlug"),
+    illustrationUrl: getNullableString(row, "illustrationUrl"),
+    illustrationSource: getNullableString(row, "illustrationSource"),
+    hasComments: getNumber(row, "hasComments") === 1,
+  }));
+
+  return {
+    lastModified: modifiedRow ? getNullableString(modifiedRow, "lastModified") : null,
+    counts: {
+      kens: countRow ? getNumber(countRow, "kens") : tasks.length,
+      profiles: countRow ? getNumber(countRow, "profiles") : profileRows.length,
+      categories: countRow ? getNumber(countRow, "categories") : categoryRows.length,
+    },
+    kens: tasks,
+    profiles: profileRows.map((row) => ({ slug: getString(row, "slug") })),
+    categories: categoryRows.map((row) => ({ slug: getString(row, "slug") })),
+  };
+}
+
 export async function getPublicKenSeoRecord(slug: string) {
   const row = await loadOne(
     `SELECT
@@ -3331,9 +3403,14 @@ export async function ensureTestAuthAccount(mode: TestAuthMode) {
   const now = new Date().toISOString();
   const existing = await findAccountByEmail(config.email);
   const systemRole = config.systemRole;
-  const voiceCredits = systemRole === "owner" ? 120 : 12;
-  const credibility = systemRole === "owner" ? 0.98 : 0.66;
-  const attestationLevel = systemRole === "owner" ? "expert" : "provisional";
+  const elevated = systemRole !== "contributor";
+  const voiceCredits = systemRole === "owner" ? 120 : systemRole === "admin" ? 48 : systemRole === "moderator" ? 24 : 12;
+  const credibility = systemRole === "owner" ? 0.98 : systemRole === "admin" ? 0.9 : systemRole === "moderator" ? 0.82 : 0.66;
+  const attestationLevel = systemRole === "owner" ? "expert" : elevated ? "verified" : "provisional";
+  const roleLabel = `Local validation ${systemRole}`;
+  const accountDescription = `Local-only deterministic ${systemRole} account used for CI and browser validation. Disabled outside loopback development or an isolated audit lab.`;
+  const attestation = `Local ${systemRole} validation account.`;
+  const verificationNote = elevated ? `Local-only ${systemRole} bypass account.` : null;
   const profileId = existing?.profileId ?? `local-${mode}`;
 
   if (existing) {
@@ -3348,17 +3425,15 @@ export async function ensureTestAuthAccount(mode: TestAuthMode) {
           args: [
             config.username,
             config.name,
-            systemRole === "owner" ? "Local validation owner" : "Local validation contributor",
-            systemRole === "owner"
-              ? "Local-only deterministic owner account used for CI and browser validation. Disabled outside loopback development."
-              : "Local-only deterministic contributor account used for CI and browser validation. Disabled outside loopback development.",
+            roleLabel,
+            accountDescription,
             "KenMatch validation",
-            systemRole === "owner" ? "Local owner validation account." : "Local contributor validation account.",
+            attestation,
             attestationLevel,
             voiceCredits,
             credibility,
-            systemRole === "owner" ? "approved" : "none",
-            systemRole === "owner" ? "Local-only owner bypass account." : null,
+            elevated ? "approved" : "none",
+            verificationNote,
             existing.profileId,
           ],
         },
@@ -3373,7 +3448,7 @@ export async function ensureTestAuthAccount(mode: TestAuthMode) {
           args: [
             existing.profileId,
             "Local test auth bypass",
-            systemRole === "owner" ? "verified" : "review",
+            elevated ? "verified" : "review",
             "low",
             now,
             serializeList(["Loopback only", "Non-production only", "Deterministic account"]),
@@ -3401,12 +3476,10 @@ export async function ensureTestAuthAccount(mode: TestAuthMode) {
           config.username,
           0,
           config.name,
-          systemRole === "owner" ? "Local validation owner" : "Local validation contributor",
-          systemRole === "owner"
-            ? "Local-only deterministic owner account used for CI and browser validation. Disabled outside loopback development."
-            : "Local-only deterministic contributor account used for CI and browser validation. Disabled outside loopback development.",
+          roleLabel,
+          accountDescription,
           "KenMatch validation",
-          systemRole === "owner" ? "Local owner validation account." : "Local contributor validation account.",
+          attestation,
           attestationLevel,
           "active",
           voiceCredits,
@@ -3420,9 +3493,9 @@ export async function ensureTestAuthAccount(mode: TestAuthMode) {
           "[]",
           null,
           null,
-          systemRole === "owner" ? "approved" : "none",
+          elevated ? "approved" : "none",
           null,
-          systemRole === "owner" ? "Local-only owner bypass account." : null,
+          verificationNote,
           now,
         ],
       },
@@ -3431,7 +3504,7 @@ export async function ensureTestAuthAccount(mode: TestAuthMode) {
         args: [
           profileId,
           "Local test auth bypass",
-          systemRole === "owner" ? "verified" : "review",
+          elevated ? "verified" : "review",
           "low",
           now,
           serializeList(["Loopback only", "Non-production only", "Deterministic account"]),

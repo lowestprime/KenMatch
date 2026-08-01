@@ -1,0 +1,43 @@
+services:
+  audit-runner:
+    build:
+      context: .
+      dockerfile: visual-audit/Dockerfile
+    image: kenmatch-visual-audit-runner:1.61.0
+    init: true
+    restart: "no"
+    user: "${AUDIT_UID:-1000}:${AUDIT_GID:-1000}"
+    read_only: true
+    shm_size: 1gb
+    tmpfs:
+      - /tmp:size=1g,nosuid,nodev
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    environment:
+      TARGET_MODE: live-readonly
+      AUDIT_SCOPE: ${AUDIT_SCOPE:-full}
+      AUDIT_EVIDENCE_TIER: tier-3-live-production
+      AUDIT_DATA_PROVENANCE: production-live
+      BASE_URL: ${AUDIT_LIVE_BASE_URL:-https://kmat.ch}
+      TARGET_COMMIT_SHA: ${TARGET_COMMIT_SHA:?target commit is required}
+      AUDIT_RUN_ID: ${AUDIT_RUN_ID:?audit run id is required}
+      REPO_ROOT: /workspace/repo
+      RUN_OUTPUT_ROOT: /workspace/repo/visual-audits
+      AUDIT_TMP_ROOT: /audit-tmp
+      AUDIT_TOKEN_FILE: /audit-state/audit-token
+      ADMIN_PASSWORD_FILE: /audit-state/admin-password
+      KENMATCH_ADMIN_EMAIL: ${KENMATCH_ADMIN_EMAIL:?admin email is required}
+      AUDIT_SHAREABLE_APPROVAL_FILE: /audit-state/shareable-approval.json
+      AUDIT_RESUME: ${AUDIT_RESUME:-true}
+      AUDIT_ACCELERATOR_RECORD: ${AUDIT_ACCELERATOR_RECORD:-chromium-headless-software}
+      AUDIT_STRICT_DIAGNOSTICS: "true"
+      VISUAL_AUDIT_CAPTURE_WORKERS: ${VISUAL_AUDIT_CAPTURE_WORKERS:-1}
+      APPROVED_BASELINE_ROOT: ${APPROVED_BASELINE_ROOT:-}
+    volumes:
+      - .:/workspace/repo:ro
+      - ./visual-audits:/workspace/repo/visual-audits
+      - ${AUDIT_STATE_DIR:?audit state directory is required}:/audit-state:ro
+      - ${AUDIT_TMP_DIR:?audit temp directory is required}:/audit-tmp
+    command: ["dist/run.js"]

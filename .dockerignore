@@ -9,3 +9,13 @@ data
 @eaDir
 **/@eaDir
 deploy-backups/
+.tmp/
+visual-audits/
+visual-audit/.auth/
+visual-audit/.secrets/
+visual-audit/.state/
+visual-audit/storage-state*.json
+visual-audit/**/*.sqlite
+visual-audit/**/*.sqlite-shm
+visual-audit/**/*.sqlite-wal
+visual-audit/**/*.trace.zip

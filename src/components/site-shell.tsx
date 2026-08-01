@@ -4,6 +4,7 @@ import { KenMatchMark } from "@/components/kenmatch-mark";
 import { HeaderScrollController } from "@/components/header-scroll-controller";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SearchCommand } from "@/components/search-command";
+import { SkipLink } from "@/components/skip-link";
 import { VisitorBeacon } from "@/components/visitor-beacon";
 import { MobileNav } from "@/components/mobile-nav";
 import { PrimaryNav } from "@/components/primary-nav";
@@ -47,7 +48,7 @@ export async function SiteShell({
       <CommunityPolishStyles />
       <ReleaseHardeningStyles />
       {categoryVisualCss ? <style dangerouslySetInnerHTML={{ __html: categoryVisualCss }} /> : null}
-      <a href="#main-content" className="skip-link">Skip to content</a>
+      <SkipLink />
       <VisitorBeacon />
       <HeaderScrollController />
       <ReadingProgress />
@@ -55,7 +56,7 @@ export async function SiteShell({
         <div className="site-header-inner">
           <div className="site-brand-row">
             <Link href="/" className="site-brand" aria-label="KenMatch home">
-              <KenMatchMark className="brand-mark" />
+              <KenMatchMark className="brand-mark" eager />
               <span className="site-brand-text"><strong>KenMatch</strong><span>Transparent allocation of frontier AI compute</span></span>
             </Link>
             <PrimaryNav items={primaryNav} />

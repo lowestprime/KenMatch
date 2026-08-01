@@ -38,6 +38,7 @@ export const PRIVATE_INDEX_PATH_PREFIXES = [
   "/forgot-password",
   "/reset",
   "/verify",
+  "/visual-audit",
 ] as const;
 
 const SOCIAL_IMAGE = `/og-image.png?v=${SOCIAL_IMAGE_VERSION}`;

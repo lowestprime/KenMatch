@@ -1901,12 +1901,15 @@ html[data-theme="dark"] .sandbox-disclosure {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
+  min-height: 2.75rem;
   padding: 0.48rem 0.62rem;
   color: var(--ink-muted);
   font-size: 0.86rem;
   font-weight: 600;
+  cursor: pointer;
 }
 .toggle-row input {
+  flex: none;
   width: 1.05rem;
   height: 1.05rem;
   accent-color: var(--accent-strong);
@@ -4033,6 +4036,32 @@ body.mobile-nav-open { overflow: hidden; }
   .analytics-country-track i {
     fill: CanvasText;
     background: CanvasText;
+  }
+}
+
+@media (max-width: 719px), (pointer: coarse) {
+  :is(
+    button,
+    input:not([type="hidden"]),
+    select,
+    textarea,
+    a[href],
+    [role="button"],
+    [role="link"],
+    summary
+  ) {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-width: 1.5rem;
+    min-height: 1.5rem;
+  }
+
+  .faq-item summary {
+    padding-block: 0.2rem;
   }
 }
 

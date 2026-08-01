@@ -22,6 +22,11 @@ const booleanish = z.preprocess((value) => {
   return value;
 }, z.boolean());
 
+const blankAsUndefined = <T extends z.ZodType>(schema: T) => z.preprocess(
+  (value) => typeof value === "string" && value.trim() === "" ? undefined : value,
+  schema.optional(),
+);
+
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   DATABASE_URL: z.string().optional(),
@@ -57,6 +62,20 @@ const envSchema = z.object({
   KENMATCH_MAINTENANCE_MESSAGE: z.string().optional(),
   KENMATCH_MAINTENANCE_EXPECTED_RETURN: z.string().optional(),
   KENMATCH_VISITOR_HASH_SALT: z.string().optional(),
+  KENMATCH_AUDIT_TOKEN: blankAsUndefined(z.string().regex(/^[a-f0-9]{64}$/i)),
+  KENMATCH_AUDIT_TIER: z.enum([
+    "tier-1-synthetic",
+    "tier-2-production-clone",
+    "tier-3-live-production",
+  ]).optional(),
+  KENMATCH_AUDIT_DATA_PROVENANCE: z.enum([
+    "synthetic-fixture",
+    "production-clone",
+    "production-live",
+    "unverified",
+  ]).default("unverified"),
+  KENMATCH_AUDIT_LAB_MODE: booleanish.default(false),
+  KENMATCH_BUILD_SHA: blankAsUndefined(z.string().regex(/^[a-f0-9]{7,64}$/i)),
 });
 
 export const env = envSchema.parse(process.env);

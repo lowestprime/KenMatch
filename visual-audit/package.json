@@ -1,0 +1,26 @@
+{
+  "name": "kenmatch-visual-audit",
+  "version": "1.0.0",
+  "description": "Private deterministic visual archive for KenMatch",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\" && node ./node_modules/typescript/bin/tsc -p tsconfig.json",
+    "test": "npm run build && node --test dist/*.spec.js",
+    "capture": "npm run build && node dist/run.js",
+    "report": "npm run build && node dist/report.js",
+    "compare": "npm run build && node dist/compare.js",
+    "validate": "npm run build && node dist/validate.js",
+    "all": "npm run build && node dist/run.js && node dist/compare.js && node dist/report.js && node dist/validate.js"
+  },
+  "dependencies": {
+    "pdfkit": "0.19.1",
+    "playwright": "1.61.0",
+    "sharp": "0.35.3"
+  },
+  "devDependencies": {
+    "@types/node": "22.15.0",
+    "@types/pdfkit": "0.17.6",
+    "typescript": "5.8.3"
+  }
+}

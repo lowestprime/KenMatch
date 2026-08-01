@@ -7,6 +7,7 @@ import {
   trustedRequestOrigin,
 } from "@/lib/request-origin";
 import { PRIVATE_INDEX_PATH_PREFIXES } from "@/lib/seo";
+import { isValidatedVisualAuditContext } from "@/lib/visual-audit-context";
 
 const isDevelopment = process.env.NODE_ENV !== "production";
 const trustedFetchSites = new Set(["same-origin", "same-site", "none", ""]);
@@ -128,17 +129,38 @@ export function proxy(request: NextRequest) {
   const httpsRedirect = redirectToCanonicalHttps(request, host, path);
   if (httpsRedirect) return httpsRedirect;
 
+  const unsafeMethod = request.method === "POST"
+    || request.method === "PUT"
+    || request.method === "PATCH"
+    || request.method === "DELETE";
+
+  if (unsafeMethod && isValidatedVisualAuditContext(request.headers)) {
+    const blocked = blockRequest(
+      request,
+      409,
+      "Read-only visual audit context cannot mutate application state.",
+      "validated visual audit read-only context",
+    );
+    blocked.headers.set("x-kenmatch-audit-blocked", "1");
+    return blocked;
+  }
+
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-kenmatch-pathname", path);
+  const validatedAuditContext = isValidatedVisualAuditContext(request.headers);
   const response = applyIndexingHeaders(
     applySecurityHeaders(NextResponse.next({ request: { headers: requestHeaders } })),
     path,
   );
+  if (validatedAuditContext) {
+    response.headers.set("x-kenmatch-audit-telemetry-suppressed", "1");
+    response.headers.set("x-kenmatch-audit-context", "readonly");
+  }
   if (path.startsWith("/api/")) {
     response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
   }
 
-  if (request.method === "POST" || request.method === "PUT" || request.method === "PATCH" || request.method === "DELETE") {
+  if (unsafeMethod) {
     if (path !== "/api/stripe/webhook") {
       const secFetchSite = (request.headers.get("sec-fetch-site") ?? "").toLowerCase();
       if (!trustedFetchSites.has(secFetchSite)) {

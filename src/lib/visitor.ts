@@ -10,6 +10,7 @@ import {
 } from "@/lib/db";
 import { visitorHashSalt } from "@/lib/env";
 import { buildVisitorNotificationEmail, sendMail } from "@/lib/mail";
+import { isValidatedVisualAuditContext } from "@/lib/visual-audit-context";
 
 export interface VisitorContext {
   visitorHash: string;
@@ -76,8 +77,11 @@ const COUNTRY_NAMES: Record<string, string> = {
   HR: "Croatia",
 };
 
-export async function extractVisitorContext(): Promise<VisitorContext> {
+export async function extractVisitorContext(): Promise<VisitorContext | null> {
   const headerList = await headers();
+  if (isValidatedVisualAuditContext(headerList)) {
+    return null;
+  }
   const ipAddress =
     headerList.get("cf-connecting-ip") ??
     headerList.get("x-forwarded-for")?.split(",")[0]?.trim() ??
@@ -99,6 +103,9 @@ export async function extractVisitorContext(): Promise<VisitorContext> {
 export async function trackVisitor(context?: VisitorContext) {
   try {
     const resolved = context ?? (await extractVisitorContext());
+    if (!resolved) {
+      return { isNew: false, record: null };
+    }
     const result = await recordVisitor({
       visitorHash: resolved.visitorHash,
       countryCode: resolved.countryCode,

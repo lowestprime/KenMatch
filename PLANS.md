@@ -572,3 +572,25 @@ Run the app locally and verify at minimum:
 - `docker build -t kenmatch-smoke .` -> clean; Docker build runs regenerated route types, typecheck, and finalized Next build
 - Docker runtime smoke on port 3019 -> 200 on `/api/health`, `/`, `/kens`, `/about`, `/verification`, `/forgot-password`, `/reset`, `/verify`, `/admin`, `/account`, `/economics`, `/people`, `/auth`, `/icon.svg`, `/icon-dark.svg`, `/apple-touch-icon.svg`, and `/manifest.webmanifest`; `/kens` includes durable sandbox model labels
 - Startup deadlock fixed in `src/lib/db.ts`: initialization no longer calls normal DB helpers that wait on the initialization promise itself.
+
+## 2026-07-29 deterministic visual archive
+
+### Status
+
+- [x] Add dual-gated, public-field-only route/database/asset inventory.
+- [x] Suppress visitor telemetry and reject unsafe methods in validated audit context.
+- [x] Add exact contributor/moderator/admin/owner snapshot-lab identities.
+- [x] Pin Playwright, Sharp, PDFKit, browser image, and package lock.
+- [x] Reconcile source, database, required, and rendered routes.
+- [x] Capture the complete Light/OLED and nine-viewport matrix with overlapping tiles.
+- [x] Add focus, keyboard, overflow, motion, forced-colors, label, heading, asset, placeholder, seam, blank, and duplicate diagnostics.
+- [x] Add private HTML/PDF reports, explicit anonymous share review, redacted atlas, validation, and checksums.
+- [x] Add isolated synthetic/production-clone Compose and live-readonly Compose.
+- [x] Add clone integrity/cleanup, native Windows smoke, retention, and operator runbook.
+- [ ] Run full tier 1 against the final candidate SHA.
+- [ ] Run full tier 2 from a fresh production data clone.
+- [ ] Deploy the exact passing SHA and run live smoke plus full tier 3.
+- [ ] Regenerate the requirement ledger only from final static/browser/deployment evidence.
+
+The remaining unchecked gates are execution gates, not missing implementation.
+See `docs/visual-archive.md` for the exact order and evidence contract.

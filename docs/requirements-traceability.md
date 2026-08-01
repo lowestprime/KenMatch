@@ -129,6 +129,25 @@ This file maps the stable product requirements from `KenMatch_Conception.md` to 
 - Synology-specific public-hosting guidance and hardening checklists live in `docs/synology-nas-deploy.md` and `docs/public-security-hardening.md`.
 - Synology NAS deployment instructions live in `docs/synology-nas-deploy.md`.
 
+### Deterministic visual release evidence
+
+- `visual-audit/src/inventory.ts` reconciles source routes with the protected
+  public database inventory; `visual-audit/src/coverage.ts` adds rendered links,
+  canonical Light/OLED coverage, nine exact viewport profiles, role states,
+  lifecycle states, forms, empty/error/loading states, and interactions.
+- `visual-audit/src/capture.ts`, `stitch.ts`, and `accessibility.ts` own
+  read-only request interception, deterministic settling, overlapping tile
+  capture, independent scroll-container capture, seam checks, link/asset
+  discovery, and accessibility diagnostics.
+- `src/lib/visual-audit-context.ts`, `src/proxy.ts`,
+  `src/lib/visitor.ts`, and `/api/visual-audit/inventory` enforce the server
+  boundary. The inventory omits private IDs, personal data, contacts, network
+  hashes, audit bodies, secrets, and private paths.
+- Tier 1/2 clone preparation, source hashing, cleanup proof, live tier 3,
+  explicit shareable review, report/PDF generation, validation, checksums, and
+  safe retention are implemented in `visual-audit/scripts/` and documented in
+  `docs/visual-archive.md`.
+
 ## Honest boundaries
 
 ### Internal naming

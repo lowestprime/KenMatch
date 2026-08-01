@@ -52,7 +52,6 @@ import {
   saveCommentVote,
   saveTaskPulse,
   saveVote,
-  searchIndex,
   setAboutPageContent,
   setAccountRole,
   setAdminNotificationSettings,
@@ -80,6 +79,7 @@ import {
 import { validateKenIllustration } from "@/lib/illustrations";
 import { type ReviewAction, reviewActions } from "@/lib/review-policy";
 import { guardMutationRequest, turnstileConfigured } from "@/lib/security";
+import { searchSite } from "@/lib/site-search";
 import {
   clearViewerSessionCookie,
   getViewerProfileId,
@@ -2042,26 +2042,5 @@ export async function getAboutContent(): Promise<AboutPageContent> {
 }
 
 export async function searchAction(query: string): Promise<SearchResultItem[]> {
-  const trimmed = query.trim().toLowerCase();
-  if (trimmed.length < 1) return [];
-  const viewerId = await getViewerProfileId();
-  const items = await searchIndex(viewerId);
-  const tokens = trimmed.split(/\s+/).filter(Boolean);
-  function score(item: SearchResultItem) {
-    const haystack = `${item.title} ${item.subtitle ?? ""} ${item.type}`.toLowerCase();
-    let scoreValue = 0;
-    for (const token of tokens) {
-      if (!haystack.includes(token)) return -1;
-      if (haystack.startsWith(token)) scoreValue += 3;
-      else scoreValue += 1;
-    }
-    if (item.type === "ken") scoreValue += 0.5;
-    return scoreValue;
-  }
-  return items
-    .map((item) => ({ item, score: score(item) }))
-    .filter((entry) => entry.score >= 0)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 25)
-    .map((entry) => entry.item);
+  return searchSite(query, await getViewerProfileId());
 }
