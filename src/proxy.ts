@@ -7,9 +7,15 @@ import {
   trustedRequestOrigin,
 } from "@/lib/request-origin";
 import { PRIVATE_INDEX_PATH_PREFIXES } from "@/lib/seo";
+import {
+  contentSecurityPolicy,
+  emitsSecureTransportHeaders,
+} from "@/lib/security-policy";
 import { isValidatedVisualAuditContext } from "@/lib/visual-audit-context";
 
 const isDevelopment = process.env.NODE_ENV !== "production";
+const auditLabMode = process.env.KENMATCH_AUDIT_LAB_MODE === "true";
+const securityPolicyMode = { development: isDevelopment, auditLabMode };
 const trustedFetchSites = new Set(["same-origin", "same-site", "none", ""]);
 const allowedHosts = (process.env.KENMATCH_ALLOWED_HOSTS ?? "")
   .split(",")
@@ -61,34 +67,16 @@ function applySecurityHeaders(response: NextResponse) {
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   response.headers.set("X-Frame-Options", "DENY");
-  response.headers.set("Cross-Origin-Opener-Policy", "same-origin");
+  if (!auditLabMode) response.headers.set("Cross-Origin-Opener-Policy", "same-origin");
   response.headers.set("Cross-Origin-Resource-Policy", "same-origin");
   response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
   response.headers.set("X-DNS-Prefetch-Control", "off");
   response.headers.set("X-Download-Options", "noopen");
   response.headers.set("X-Permitted-Cross-Domain-Policies", "none");
-  if (!isDevelopment) {
+  if (emitsSecureTransportHeaders(securityPolicyMode)) {
     response.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
   }
-  response.headers.set(
-    "Content-Security-Policy",
-    [
-      "default-src 'self'",
-      "img-src 'self' data: blob:",
-      "style-src 'self' 'unsafe-inline'",
-      isDevelopment
-        ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com"
-        : "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
-      "connect-src 'self' https://challenges.cloudflare.com wss:",
-      "font-src 'self' data:",
-      "frame-src 'self' https://challenges.cloudflare.com",
-      "frame-ancestors 'none'",
-      "base-uri 'self'",
-      "form-action 'self'",
-      "object-src 'none'",
-      isDevelopment ? "" : "upgrade-insecure-requests",
-    ].filter(Boolean).join("; "),
-  );
+  response.headers.set("Content-Security-Policy", contentSecurityPolicy(securityPolicyMode));
   return response;
 }
 

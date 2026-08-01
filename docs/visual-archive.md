@@ -23,7 +23,10 @@ binary and recorded in `manifest.json`.
 
 Tier 1 and 2 run only on the internal Docker network. SMTP, Stripe, Turnstile,
 signup, and external providers are disabled. The app receives no published
-port. Tier 2 uses SQLite `VACUUM INTO`, runs `PRAGMA quick_check`, copies files
+port. Because this isolated origin is intentionally HTTP, audit-lab mode omits
+HSTS, COOP, and CSP insecure-request upgrading that require a trustworthy HTTPS
+origin; production responses retain all three controls. Tier 2 uses SQLite
+`VACUUM INTO`, runs `PRAGMA quick_check`, copies files
 without hardlinks, hashes the source before and after, and removes the isolated
 clone after capture.
 
