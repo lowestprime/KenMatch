@@ -15,6 +15,7 @@ test("compose definitions never embed resolved secrets or destructive volume cle
     assert.match(content, /AUDIT_TOKEN_FILE/);
     assert.match(content, /AUDIT_TOKEN_SOURCE_FILE/);
     assert.match(content, /\/audit-secrets:size=1m,[^\n]*mode=0700,[^\n]*uid=\$\{AUDIT_UID:-1000\},gid=\$\{AUDIT_GID:-1000\}/);
+    assert.match(content, /AUDIT_HOST_FILESYSTEM: \$\{AUDIT_HOST_FILESYSTEM:-native\}/);
     assert.match(content, /read_only:\s+true/);
   }
 });
@@ -45,6 +46,8 @@ test("Windows smoke exports every snapshot path before preparation", () => {
     assert.ok(assignment < preparation, `${name} must be exported before snapshot preparation`);
   }
   assert.match(content, /Protect-StateDirectory \$StateDir/);
+  assert.match(content, /Protect-StateDirectory \$RunRoot/);
+  assert.match(content, /\$env:AUDIT_HOST_FILESYSTEM = "windows-ntfs-bind"/);
   assert.match(content, /Get-ChildItem -LiteralPath \$Path -Recurse -Force/);
   assert.match(content, /\[IO\.File\]::OpenRead/);
   assert.match(content, /dist\\compare\.js/);

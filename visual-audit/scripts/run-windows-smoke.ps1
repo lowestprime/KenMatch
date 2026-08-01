@@ -75,11 +75,12 @@ $TmpDir = Join-Path $StateDir "tmp"
 $LabRoot = Join-Path $StateDir "lab"
 $RunRoot = Join-Path $RepoRoot "visual-audits\$RunId"
 $ComposeFile = Join-Path $RepoRoot "docker-compose.visual-audit-lab.yml"
-New-Item -ItemType Directory -Force -Path $StateDir, $TmpDir | Out-Null
+New-Item -ItemType Directory -Force -Path $StateDir, $TmpDir, $RunRoot | Out-Null
 New-SecretFile (Join-Path $StateDir "audit-token")
 New-SecretFile (Join-Path $StateDir "test-auth-token")
 New-SecretFile (Join-Path $StateDir "visitor-salt")
 Protect-StateDirectory $StateDir
+Protect-StateDirectory $RunRoot
 
 $Provenance = if ($Tier -eq "tier-1-synthetic") { "synthetic-fixture" } else { "production-clone" }
 if ($Tier -eq "tier-2-production-clone") {
@@ -106,6 +107,7 @@ $env:TARGET_MODE = "snapshot-lab"
 $env:BASE_URL = "http://kenmatch-audit-app:3000"
 $env:RUN_OUTPUT_ROOT = Join-Path $RepoRoot "visual-audits"
 $env:AUDIT_TMP_ROOT = $TmpDir
+$env:AUDIT_HOST_FILESYSTEM = "windows-ntfs-bind"
 $env:AUDIT_TOKEN_FILE = Join-Path $StateDir "audit-token"
 $env:TEST_AUTH_TOKEN_FILE = Join-Path $StateDir "test-auth-token"
 $env:TARGET_COMMIT_SHA = $Head
@@ -152,6 +154,7 @@ try {
   if ($LASTEXITCODE -ne 0) { throw "Visual comparison failed." }
   & node (Join-Path $auditPackage "dist\report.js")
   if ($LASTEXITCODE -ne 0) { throw "Report generation failed." }
+  Protect-StateDirectory $RunRoot
 } finally {
   if ($started) {
     & docker compose -f $ComposeFile down --remove-orphans 2>$null

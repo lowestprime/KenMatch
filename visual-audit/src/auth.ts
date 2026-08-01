@@ -8,7 +8,7 @@ import type {
 
 import type { AuditConfig } from "./config.js";
 import type { AuthState, RequestSecuritySummary } from "./types.js";
-import { ensureDirectory } from "./util.js";
+import { ensureDirectory, restrictPermissions } from "./util.js";
 
 export type StorageState = Awaited<ReturnType<BrowserContext["storageState"]>>;
 export type StoredAuthStates = Record<AuthState, StorageState>;
@@ -92,7 +92,7 @@ export async function establishAuthStates(
   ensureDirectory(path.join(config.tmpRoot, "auth"));
   const stateFile = path.join(config.tmpRoot, "auth", "owner-state.json");
   fs.writeFileSync(stateFile, `${JSON.stringify(owner)}\n`, { encoding: "utf8", mode: 0o600 });
-  if (process.platform !== "win32") fs.chmodSync(stateFile, 0o600);
+  restrictPermissions(stateFile, 0o600);
   return { anonymous, user, moderator, admin, owner };
 }
 

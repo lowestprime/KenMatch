@@ -100,7 +100,9 @@ copies the read-only mounted token into a private `0700` tmpfs owned by the
 configured audit UID/GID and validates the `0600` copy. Keep `AUDIT_UID` and
 `AUDIT_GID` aligned with the non-root runner user. Comparison, report generation,
 and final permission validation run natively on Windows, where NTFS ACLs rather
-than Unix mode bits are authoritative.
+than Unix mode bits are authoritative. The wrapper scopes its NTFS bind-mount
+mode to the declared output/temp roots and restricts the private run directory
+to the current Windows SID before capture and again after report generation.
 
 ## Tier 2
 

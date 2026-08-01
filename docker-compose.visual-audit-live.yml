@@ -27,6 +27,7 @@ services:
       REPO_ROOT: /workspace/repo
       RUN_OUTPUT_ROOT: /workspace/repo/visual-audits
       AUDIT_TMP_ROOT: /audit-tmp
+      AUDIT_HOST_FILESYSTEM: ${AUDIT_HOST_FILESYSTEM:-native}
       AUDIT_TOKEN_SOURCE_FILE: /audit-state/audit-token
       AUDIT_TOKEN_FILE: /audit-secrets/audit-token
       ADMIN_PASSWORD_SOURCE_FILE: /audit-state/admin-password
