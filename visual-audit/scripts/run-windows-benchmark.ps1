@@ -44,7 +44,7 @@ if (Test-Path -LiteralPath $BenchmarkRoot) {
   throw "Benchmark directory already exists: $BenchmarkRoot"
 }
 $OutputRoot = Join-Path $BenchmarkRoot "runs"
-$StateRoot = Join-Path $BenchmarkRoot "state"
+$StateRoot = Join-Path $RepoRoot "visual-audit\.state\benchmarks\$BenchmarkId"
 $LogRoot = Join-Path $BenchmarkRoot "logs"
 New-Item -ItemType Directory -Force -Path $OutputRoot, $StateRoot, $LogRoot | Out-Null
 
