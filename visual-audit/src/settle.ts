@@ -1,6 +1,37 @@
 import type { Page } from "playwright";
 
 const FREEZE_STYLE_ID = "kenmatch-visual-audit-freeze";
+export const SETTLE_NAVIGATION_ATTEMPTS = 3;
+
+export function isNavigationContextTurnover(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  return [
+    "Execution context was destroyed",
+    "Cannot find context with specified id",
+    "Frame was detached",
+    "Inspected target navigated or closed",
+  ].some((fragment) => message.includes(fragment));
+}
+
+export async function retryNavigationContextTurnover<T>(input: {
+  operation: () => Promise<T>;
+  afterTurnover: () => Promise<void>;
+  attempts?: number;
+}) {
+  const attempts = input.attempts ?? SETTLE_NAVIGATION_ATTEMPTS;
+  if (!Number.isInteger(attempts) || attempts < 1) {
+    throw new Error("Navigation settlement attempts must be a positive integer.");
+  }
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      return await input.operation();
+    } catch (error) {
+      if (!isNavigationContextTurnover(error) || attempt === attempts) throw error;
+      await input.afterTurnover();
+    }
+  }
+  throw new Error("Navigation settlement retry exhausted unexpectedly.");
+}
 
 async function waitForImages(page: Page) {
   await page.evaluate(async () => {
@@ -52,35 +83,43 @@ async function drainPage(page: Page) {
 }
 
 export async function settlePage(page: Page) {
-  await page.waitForLoadState("domcontentloaded");
-  await page.waitForLoadState("networkidle", { timeout: 5_000 }).catch(() => undefined);
-  await page.evaluate(async () => {
-    if ("fonts" in document) await document.fonts.ready;
-    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
-  });
-  await drainPage(page);
-  await waitForImages(page);
-  await page.waitForTimeout(350);
-  await page.evaluate((styleId) => {
-    document.getElementById(styleId)?.remove();
-    const style = document.createElement("style");
-    style.id = styleId;
-    style.textContent = `
-      html { scroll-behavior: auto !important; }
-      .site-header { position: relative !important; top: auto !important; }
-      .reading-progress { display: none !important; }
-      *, *::before, *::after {
-        animation-play-state: paused !important;
-        caret-color: transparent !important;
-        scroll-behavior: auto !important;
-        transition-duration: 0s !important;
-        transition-delay: 0s !important;
-      }
-    `;
-    document.head.append(style);
-    window.scrollTo(0, 0);
-  }, FREEZE_STYLE_ID);
-  await page.evaluate(async () => {
-    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+  await retryNavigationContextTurnover({
+    operation: async () => {
+      await page.waitForLoadState("domcontentloaded");
+      await page.waitForLoadState("networkidle", { timeout: 5_000 }).catch(() => undefined);
+      await page.evaluate(async () => {
+        if ("fonts" in document) await document.fonts.ready;
+        await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+      });
+      await drainPage(page);
+      await waitForImages(page);
+      await page.waitForTimeout(350);
+      await page.evaluate((styleId) => {
+        document.getElementById(styleId)?.remove();
+        const style = document.createElement("style");
+        style.id = styleId;
+        style.textContent = `
+          html { scroll-behavior: auto !important; }
+          .site-header { position: relative !important; top: auto !important; }
+          .reading-progress { display: none !important; }
+          *, *::before, *::after {
+            animation-play-state: paused !important;
+            caret-color: transparent !important;
+            scroll-behavior: auto !important;
+            transition-duration: 0s !important;
+            transition-delay: 0s !important;
+          }
+        `;
+        document.head.append(style);
+        window.scrollTo(0, 0);
+      }, FREEZE_STYLE_ID);
+      await page.evaluate(async () => {
+        await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+      });
+    },
+    afterTurnover: async () => {
+      await page.waitForLoadState("domcontentloaded", { timeout: 10_000 });
+      await page.waitForTimeout(100);
+    },
   });
 }
