@@ -136,6 +136,27 @@ process is expected to be terminal, inspect it exactly once without polling:
 .\visual-audit\scripts\get-windows-operation-status.ps1 -BenchmarkId "<benchmark-id>"
 ```
 
+### Current worker and accelerator decision
+
+The 2026-08-08 exact-candidate benchmark
+`20260808T174324Z-tier1-smoke-workers-768611dc0826` selected four capture
+workers. All worker counts produced the same 76 capture keys, converged-plan
+digest, content records, diagnostics, security evidence, source evidence, and
+stitched-image digests. Capture times were 437,438 ms with one worker,
+247,374 ms with two workers, and 185,797 ms with four workers. The formal Tier 1
+runner therefore uses `VISUAL_AUDIT_CAPTURE_WORKERS=4` for this candidate.
+
+GPU mode remains disabled. A bounded Docker Desktop probe exposed the NVIDIA
+GeForce RTX 3070 Ti and CUDA runtime to the container, but Chromium 149 reported
+no GPU device or GL implementation, disabled software compositing and
+rasterization, disabled Vulkan/WebGL/WebGPU, and no WebGL context. The same
+result held with Playwright's regular Chromium headless channel and the Linux
+headless Vulkan flags. Because a hardware Chromium renderer was not established,
+the determinism and end-to-end performance gates were not reached. Formal
+evidence continues to record `chromium-headless-software`; do not enable GPU
+mode without proving device exposure inside Chromium, deterministic output
+equivalence, and a meaningful complete-run improvement.
+
 ## Tier 2
 
 Use a fresh read-only source path from the production data tree. The script
