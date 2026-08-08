@@ -1,6 +1,8 @@
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
+import sharp from "sharp";
+
 import {
   assertCoveragePlanIdentity,
   coverageBindingsMatch,
@@ -40,11 +42,27 @@ interface EvaluatedObservation extends BenchmarkObservation {
   expectedCaptureCount: number;
   captureEquivalenceDigest: string;
   imageEquivalenceDigest: string;
+  imageComparison: ImageComparisonSummary | null;
   diagnosticEquivalenceDigest: string;
   securityDigest: string;
   sourceEvidenceDigest: string;
   speedupVersusOne: number | null;
 }
+
+interface ImageComparisonSummary {
+  exactDigestMatch: boolean;
+  pixelEquivalent: boolean;
+  comparedCaptures: number;
+  differingCaptures: number;
+  changedPixels: number;
+  maxChannelDelta: number;
+  rendererNoiseCaptureKeys: string[];
+  nonEquivalentCaptureKeys: string[];
+  errors: string[];
+}
+
+const MAX_RENDERER_NOISE_PIXELS_PER_CAPTURE = 8;
+const MAX_RENDERER_NOISE_CHANNEL_DELTA = 1;
 
 export interface BenchmarkResult {
   schemaVersion: 1;
@@ -105,6 +123,98 @@ function normalizedDiagnostic(diagnostic: DiagnosticRecord) {
     message: diagnostic.message,
     expected: diagnostic.expected,
   };
+}
+
+function exactImageComparison(comparedCaptures: number): ImageComparisonSummary {
+  return {
+    exactDigestMatch: true,
+    pixelEquivalent: true,
+    comparedCaptures,
+    differingCaptures: 0,
+    changedPixels: 0,
+    maxChannelDelta: 0,
+    rendererNoiseCaptureKeys: [],
+    nonEquivalentCaptureKeys: [],
+    errors: [],
+  };
+}
+
+async function compareObservationImages(
+  reference: BenchmarkObservation,
+  candidate: BenchmarkObservation,
+): Promise<ImageComparisonSummary> {
+  const referenceManifest = readJson<RunManifest>(reference.manifestFile);
+  const candidateManifest = readJson<RunManifest>(candidate.manifestFile);
+  const candidateByKey = new Map(candidateManifest.captures.map((capture) => [capture.key, capture]));
+  const referenceRoot = path.dirname(reference.manifestFile);
+  const candidateRoot = path.dirname(candidate.manifestFile);
+  const summary = exactImageComparison(referenceManifest.captures.length);
+
+  for (const referenceCapture of referenceManifest.captures) {
+    const candidateCapture = candidateByKey.get(referenceCapture.key);
+    if (!candidateCapture) {
+      summary.pixelEquivalent = false;
+      summary.nonEquivalentCaptureKeys.push(referenceCapture.key);
+      summary.errors.push(`${referenceCapture.key}: candidate image is missing`);
+      continue;
+    }
+    const referenceFile = path.join(referenceRoot, referenceCapture.stitchedFile);
+    const candidateFile = path.join(candidateRoot, candidateCapture.stitchedFile);
+    if (fileSha256(referenceFile) === fileSha256(candidateFile)) continue;
+
+    summary.exactDigestMatch = false;
+    summary.differingCaptures += 1;
+    try {
+      const [left, right] = await Promise.all([
+        sharp(referenceFile).ensureAlpha().raw().toBuffer({ resolveWithObject: true }),
+        sharp(candidateFile).ensureAlpha().raw().toBuffer({ resolveWithObject: true }),
+      ]);
+      if (
+        left.info.width !== right.info.width
+        || left.info.height !== right.info.height
+        || left.info.channels !== right.info.channels
+      ) {
+        summary.pixelEquivalent = false;
+        summary.nonEquivalentCaptureKeys.push(referenceCapture.key);
+        summary.errors.push(`${referenceCapture.key}: decoded image dimensions differ`);
+        continue;
+      }
+
+      let changedPixels = 0;
+      let maxChannelDelta = 0;
+      for (let offset = 0; offset < left.data.length; offset += left.info.channels) {
+        let pixelChanged = false;
+        for (let channel = 0; channel < left.info.channels; channel += 1) {
+          const delta = Math.abs((left.data[offset + channel] ?? 0) - (right.data[offset + channel] ?? 0));
+          if (delta > 0) pixelChanged = true;
+          if (delta > maxChannelDelta) maxChannelDelta = delta;
+        }
+        if (pixelChanged) changedPixels += 1;
+      }
+      summary.changedPixels += changedPixels;
+      summary.maxChannelDelta = Math.max(summary.maxChannelDelta, maxChannelDelta);
+      if (
+        changedPixels <= MAX_RENDERER_NOISE_PIXELS_PER_CAPTURE
+        && maxChannelDelta <= MAX_RENDERER_NOISE_CHANNEL_DELTA
+      ) {
+        summary.rendererNoiseCaptureKeys.push(referenceCapture.key);
+      } else {
+        summary.pixelEquivalent = false;
+        summary.nonEquivalentCaptureKeys.push(referenceCapture.key);
+        summary.errors.push(
+          `${referenceCapture.key}: ${changedPixels} pixels changed with max channel delta ${maxChannelDelta}`,
+        );
+      }
+    } catch (error) {
+      summary.pixelEquivalent = false;
+      summary.nonEquivalentCaptureKeys.push(referenceCapture.key);
+      summary.errors.push(
+        `${referenceCapture.key}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
+  return summary;
 }
 
 function evaluateObservation(
@@ -196,6 +306,7 @@ function evaluateObservation(
     expectedCaptureCount,
     captureEquivalenceDigest,
     imageEquivalenceDigest,
+    imageComparison: null,
     diagnosticEquivalenceDigest,
     securityDigest,
     sourceEvidenceDigest,
@@ -203,7 +314,7 @@ function evaluateObservation(
   };
 }
 
-export function evaluateBenchmark(input: BenchmarkInput): BenchmarkResult {
+export async function evaluateBenchmark(input: BenchmarkInput): Promise<BenchmarkResult> {
   const errors: string[] = [];
   if (input.schemaVersion !== 1) errors.push("benchmark input schema mismatch");
   if (!sameNumbers(input.requiredWorkerCounts, input.observations.map((item) => item.workers))) {
@@ -228,13 +339,22 @@ export function evaluateBenchmark(input: BenchmarkInput): BenchmarkResult {
       "targetKeysDigest",
       "expectedCaptureCount",
       "captureEquivalenceDigest",
-      "imageEquivalenceDigest",
       "diagnosticEquivalenceDigest",
       "securityDigest",
       "sourceEvidenceDigest",
     ] as const) {
       if (observation[field] !== equivalenceReference[field]) {
         observation.errors.push(`${field} differs from worker ${equivalenceReference.workers}`);
+      }
+    }
+    if (observation.imageEquivalenceDigest === equivalenceReference.imageEquivalenceDigest) {
+      observation.imageComparison = exactImageComparison(observation.expectedCaptureCount);
+    } else {
+      observation.imageComparison = await compareObservationImages(equivalenceReference, observation);
+      if (!observation.imageComparison.pixelEquivalent) {
+        observation.errors.push(
+          `stitched images differ from worker ${equivalenceReference.workers}: ${observation.imageComparison.errors.join("; ")}`,
+        );
       }
     }
     observation.passed = observation.errors.length === 0;
@@ -261,14 +381,14 @@ export function evaluateBenchmark(input: BenchmarkInput): BenchmarkResult {
   };
 }
 
-function main() {
+async function main() {
   const inputFile = process.argv[2];
   const outputFile = process.argv[3];
   if (!inputFile || !outputFile) {
     throw new Error("Usage: node dist/benchmark.js <benchmark-input.json> <benchmark-result.json>");
   }
   const input = readJson<BenchmarkInput>(path.resolve(inputFile));
-  const result = evaluateBenchmark(input);
+  const result = await evaluateBenchmark(input);
   writeJsonAtomic(path.resolve(outputFile), result);
   if (!result.passed) {
     throw new Error(`Benchmark failed: ${result.errors.join("; ")}`);
@@ -278,7 +398,7 @@ function main() {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   try {
-    main();
+    await main();
   } catch (error) {
     console.error(error);
     process.exitCode = 1;

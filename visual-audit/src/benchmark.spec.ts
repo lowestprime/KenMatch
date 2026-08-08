@@ -4,6 +4,8 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 
+import sharp from "sharp";
+
 import {
   evaluateBenchmark,
   type BenchmarkInput,
@@ -154,6 +156,7 @@ function fixture(
   workers: number,
   durationMs: number,
   digest = "content",
+  image: string | Buffer = "deterministic-image",
 ): BenchmarkObservation {
   const runId = `benchmark-w${workers}`;
   const runPlan = plan(runId);
@@ -166,7 +169,7 @@ function fixture(
   for (const record of runManifest.captures) {
     const imageFile = path.join(runRoot, record.stitchedFile);
     fs.mkdirSync(path.dirname(imageFile), { recursive: true });
-    fs.writeFileSync(imageFile, "deterministic-image");
+    fs.writeFileSync(imageFile, image);
   }
   return { workers, durationMs, runId, manifestFile, planFile };
 }
@@ -182,10 +185,10 @@ function input(observations: BenchmarkObservation[]): BenchmarkInput {
   };
 }
 
-test("equivalent worker archives select the fastest passing count", () => {
+test("equivalent worker archives select the fastest passing count", async () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "kenmatch-benchmark-"));
   try {
-    const result = evaluateBenchmark(input([
+    const result = await evaluateBenchmark(input([
       fixture(root, 1, 100),
       fixture(root, 2, 60),
       fixture(root, 4, 80),
@@ -198,10 +201,10 @@ test("equivalent worker archives select the fastest passing count", () => {
   }
 });
 
-test("worker output drift prevents selection", () => {
+test("worker output drift prevents selection", async () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "kenmatch-benchmark-"));
   try {
-    const result = evaluateBenchmark(input([
+    const result = await evaluateBenchmark(input([
       fixture(root, 1, 100),
       fixture(root, 2, 60),
       fixture(root, 4, 40, "changed-content"),
@@ -214,16 +217,74 @@ test("worker output drift prevents selection", () => {
   }
 });
 
-test("missing worker observations are rejected", () => {
+test("missing worker observations are rejected", async () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "kenmatch-benchmark-"));
   try {
-    const result = evaluateBenchmark(input([
+    const result = await evaluateBenchmark(input([
       fixture(root, 1, 100),
       fixture(root, 2, 60),
     ]));
     assert.equal(result.passed, false);
     assert.equal(result.selectedWorkers, null);
     assert.match(result.errors.join("\n"), /required worker counts/);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+async function tinyImage(changes: Array<{ pixel: number; delta: number }> = []) {
+  const width = 4;
+  const height = 4;
+  const channels = 4;
+  const data = Buffer.alloc(width * height * channels, 120);
+  for (let pixel = 0; pixel < width * height; pixel += 1) {
+    data[pixel * channels + 3] = 255;
+  }
+  for (const change of changes) {
+    data[change.pixel * channels] = 120 + change.delta;
+  }
+  return sharp(data, { raw: { width, height, channels } }).png().toBuffer();
+}
+
+test("decoded image comparison accepts only bounded one-value renderer noise", async () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "kenmatch-benchmark-"));
+  try {
+    const exact = await tinyImage();
+    const rendererNoise = await tinyImage([
+      { pixel: 2, delta: 1 },
+      { pixel: 3, delta: 1 },
+    ]);
+    const result = await evaluateBenchmark(input([
+      fixture(root, 1, 100, "content", exact),
+      fixture(root, 2, 60, "content", exact),
+      fixture(root, 4, 40, "content", rendererNoise),
+    ]));
+    assert.equal(result.passed, true);
+    assert.equal(result.selectedWorkers, 4);
+    assert.equal(result.observations[2]?.imageComparison?.exactDigestMatch, false);
+    assert.equal(result.observations[2]?.imageComparison?.pixelEquivalent, true);
+    assert.equal(result.observations[2]?.imageComparison?.changedPixels, 2);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("decoded image comparison rejects changes outside renderer-noise bounds", async () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "kenmatch-benchmark-"));
+  try {
+    const exact = await tinyImage();
+    const changed = await tinyImage([{ pixel: 2, delta: 2 }]);
+    const result = await evaluateBenchmark(input([
+      fixture(root, 1, 100, "content", exact),
+      fixture(root, 2, 60, "content", exact),
+      fixture(root, 4, 40, "content", changed),
+    ]));
+    assert.equal(result.passed, false);
+    assert.equal(result.selectedWorkers, null);
+    assert.match(result.errors.join("\n"), /stitched images differ/);
+    assert.deepEqual(result.observations[2]?.imageComparison?.nonEquivalentCaptureKeys, [
+      "home-oled-desktop-1440",
+    ]);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }

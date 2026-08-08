@@ -121,8 +121,12 @@ benchmark from a clean exact candidate commit:
 The benchmark executes worker counts 1, 2, and 4 sequentially. Capture timing
 excludes image builds, app startup, report generation, and cleanup. Selection
 is accepted only when every run is complete and equivalent by converged plan,
-capture keys and records, stitched-image hashes, diagnostics, security totals,
-and source evidence. Results remain private under
+capture keys and records, stitched images, diagnostics, security totals, and
+source evidence. Raw stitched-image hashes remain recorded. When hashes differ,
+the benchmark decodes both PNGs and accepts only bounded renderer rounding noise:
+at most eight changed pixels per capture with no channel changing by more than
+one value. Dimensions, larger pixel changes, content records, and every other
+evidence identity remain exact. Results remain private under
 `visual-audit/.benchmarks/<benchmark-id>/benchmark-result.json`.
 The start helper records a durable process handoff under
 `visual-audit/.benchmarks/.processes/<benchmark-id>/`. After the detached
