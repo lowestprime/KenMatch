@@ -200,10 +200,24 @@ if (-not $finalizeOnly) {
     $finalized = $true
   } finally {
     if ($started) {
-      & docker compose -f $ComposeFile down --remove-orphans 2>$null
+      try {
+        & docker compose -f $ComposeFile down --remove-orphans 1>$null 2>$null
+      } catch {
+        # Preserve the original capture/startup failure; cleanup is best effort here.
+      }
     }
     if (-not $finalized -and (Test-Path -LiteralPath $env:AUDIT_SNAPSHOT_EVIDENCE_FILE)) {
-      & node $finalizeScript 2>$null
+      $manifestPath = $env:AUDIT_RUN_MANIFEST_FILE
+      try {
+        if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) {
+          $env:AUDIT_RUN_MANIFEST_FILE = ""
+        }
+        & node $finalizeScript 1>$null 2>$null
+      } catch {
+        # Preserve the original capture/startup failure; cleanup is best effort here.
+      } finally {
+        $env:AUDIT_RUN_MANIFEST_FILE = $manifestPath
+      }
     }
   }
 } else {

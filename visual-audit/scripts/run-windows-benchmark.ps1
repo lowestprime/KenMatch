@@ -57,6 +57,7 @@ foreach ($Workers in $RequestedWorkers) {
   $StateDir = Join-Path $StateRoot $RunId
   $StdoutLog = Join-Path $LogRoot "worker-$Workers.stdout.log"
   $StderrLog = Join-Path $LogRoot "worker-$Workers.stderr.log"
+  $WorkerLauncher = Join-Path $LogRoot "worker-$Workers.launcher.ps1"
   $env:TARGET_COMMIT_SHA = $Head
   $env:AUDIT_STATE_DIR = $StateDir
   $env:AUDIT_RESUME = "false"
@@ -64,16 +65,27 @@ foreach ($Workers in $RequestedWorkers) {
   $env:VISUAL_AUDIT_CAPTURE_WORKERS = "$Workers"
   $env:APPROVED_BASELINE_RUN_ID = ""
 
-  try {
-    & $SmokeScript `
-      -Tier "tier-1-synthetic" `
-      -Scope "smoke" `
-      -RunId $RunId `
-      -OutputRoot $OutputRoot `
-      -CaptureOnly `
-      1>> $StdoutLog 2>> $StderrLog
-  } catch {
-    Add-Content -LiteralPath $StderrLog -Value $_.Exception.ToString()
+  $WorkerLauncherText = @"
+`$ErrorActionPreference = "Stop"
+try {
+  & '$SmokeScript' -Tier "tier-1-synthetic" -Scope "smoke" -RunId '$RunId' -OutputRoot '$OutputRoot' -CaptureOnly
+  exit 0
+} catch {
+  [Console]::Error.WriteLine(`$_.Exception.ToString())
+  exit 1
+}
+"@
+  [IO.File]::WriteAllText($WorkerLauncher, $WorkerLauncherText, [Text.UTF8Encoding]::new($false))
+  $WorkerProcess = Start-Process `
+    -FilePath (Get-Command powershell.exe).Source `
+    -ArgumentList @("-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-File", $WorkerLauncher) `
+    -WorkingDirectory $RepoRoot `
+    -RedirectStandardOutput $StdoutLog `
+    -RedirectStandardError $StderrLog `
+    -WindowStyle Hidden `
+    -Wait `
+    -PassThru
+  if ($WorkerProcess.ExitCode -ne 0) {
     throw "Worker $Workers benchmark failed. See $StderrLog"
   }
 

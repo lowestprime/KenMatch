@@ -54,6 +54,8 @@ test("Windows smoke exports every snapshot path before preparation", () => {
   assert.match(content, /RandomNumberGenerator\]::Create\(\)/);
   assert.doesNotMatch(content, /RandomNumberGenerator\]::Fill/);
   assert.doesNotMatch(content, /Convert\]::ToHexString/);
+  assert.match(content, /AUDIT_RUN_MANIFEST_FILE = ""/);
+  assert.match(content, /Preserve the original capture\/startup failure/);
   assert.match(content, /\$env:AUDIT_HOST_FILESYSTEM = "windows-ntfs-bind"/);
   assert.match(content, /\$finalizeOnly = \(Test-Path/);
   assert.match(content, /Using reviewed completed capture for native finalization/);
@@ -75,6 +77,9 @@ test("Windows worker benchmark fixes the Tier 1 smoke matrix at 1, 2, and 4", ()
   assert.match(content, /VISUAL_AUDIT_CAPTURE_WORKERS/);
   assert.match(content, /dist\\benchmark\.js/);
   assert.match(content, /status --porcelain=v1 --untracked-files=all/);
+  assert.match(content, /Start-Process/);
+  assert.match(content, /-RedirectStandardOutput \$StdoutLog/);
+  assert.match(content, /-RedirectStandardError \$StderrLog/);
 });
 
 test("capture runner checkpoints atomic progress and bounds mobile hydration retries", () => {
