@@ -59,12 +59,15 @@ function safeRunId(value: string) {
   return value;
 }
 
-function assertSafeOutputRoot(outputRoot: string, repoRoot: string) {
+export function assertSafeOutputRoot(outputRoot: string, repoRoot: string) {
   const parsed = path.parse(outputRoot);
   if (outputRoot === parsed.root) throw new Error("RUN_OUTPUT_ROOT cannot be a filesystem root.");
-  const expectedParent = path.resolve(repoRoot, "visual-audits");
-  if (outputRoot !== expectedParent) {
-    throw new Error(`RUN_OUTPUT_ROOT must resolve to ${expectedParent}.`);
+  const repositoryArchiveRoot = path.resolve(repoRoot, "visual-audits");
+  const dedicatedMountRoot = path.resolve(path.parse(repoRoot).root, "audit-output");
+  if (outputRoot !== repositoryArchiveRoot && outputRoot !== dedicatedMountRoot) {
+    throw new Error(
+      `RUN_OUTPUT_ROOT must resolve to ${repositoryArchiveRoot} or ${dedicatedMountRoot}.`,
+    );
   }
 }
 
