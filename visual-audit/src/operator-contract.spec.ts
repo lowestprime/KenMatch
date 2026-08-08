@@ -125,6 +125,13 @@ test("capture runner checkpoints atomic progress and bounds mobile hydration ret
   assert.match(run, /phase: "converged"/);
 });
 
+test("snapshot auth bootstrap does not render redirect destinations", () => {
+  const auth = fs.readFileSync(path.join(repoRoot, "visual-audit", "src", "auth.ts"), "utf8");
+  assert.match(auth, /responseMode: "storage-state"/);
+  assert.match(auth, /maxRedirects: 0/);
+  assert.match(auth, /response\.status\(\) !== 204/);
+});
+
 test("shareable review helper accepts only explicit anonymous capture keys", () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "kenmatch-review-"));
   try {

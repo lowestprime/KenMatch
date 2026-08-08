@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  classifyCaptureRequestFailure,
   classifyCaptureRequest,
   isExpectedRscLifecycleAbort,
   isInventoryRequest,
@@ -56,4 +57,16 @@ test("only same-origin GET RSC fetch cancellation is an expected lifecycle abort
   assert.equal(isExpectedRscLifecycleAbort({ ...expected, resourceType: "image" }), false);
   assert.equal(isExpectedRscLifecycleAbort({ ...expected, navigationRequest: true }), false);
   assert.equal(isExpectedRscLifecycleAbort({ ...expected, failure: "net::ERR_FAILED" }), false);
+  assert.equal(classifyCaptureRequestFailure(expected), "suppress");
+  assert.equal(classifyCaptureRequestFailure({
+    ...expected,
+    requestUrl: "https://assets.example.com/image.png",
+    resourceType: "image",
+    failure: "net::ERR_BLOCKED_BY_CLIENT",
+  }), "expected");
+  assert.equal(classifyCaptureRequestFailure({
+    ...expected,
+    requestUrl: `${BASE}/api/data`,
+    failure: "net::ERR_FAILED",
+  }), "serious");
 });

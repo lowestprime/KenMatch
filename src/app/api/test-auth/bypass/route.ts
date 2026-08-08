@@ -2,6 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { createSession, ensureTestAuthAccount, recordAudit, updateAccountLastLogin } from "@/lib/db";
 import {
+  isIsolatedAuditLabTestAuthContext,
+  isTestAuthStorageStateResponse,
   isTestAuthBypassAvailable,
   isValidTestAuthBypassToken,
   isValidTestAuthMode,
@@ -83,6 +85,7 @@ export async function POST(request: NextRequest) {
   const formData = await request.formData();
   const token = formData.get("token");
   const mode = formData.get("mode");
+  const responseMode = formData.get("responseMode");
   if (!isValidTestAuthBypassToken(token) || !isValidTestAuthMode(mode)) {
     return unavailable();
   }
@@ -90,22 +93,29 @@ export async function POST(request: NextRequest) {
   const accountId = await ensureTestAuthAccount(mode);
   const session = await createSession(accountId);
   await updateAccountLastLogin(accountId);
-  await recordAudit({
-    accountId,
-    action: "auth.test-bypass",
-    detail: `Local-only test auth bypass for ${TEST_AUTH_USERS[mode].email}.`,
-  });
+  if (!isIsolatedAuditLabTestAuthContext(requestHost(request))) {
+    await recordAudit({
+      accountId,
+      action: "auth.test-bypass",
+      detail: `Local-only test auth bypass for ${TEST_AUTH_USERS[mode].email}.`,
+    });
+  }
 
-  const routeOrigin = trustedRouteOrigin({
-    forwardedHost: request.headers.get("x-forwarded-host"),
-    host: request.headers.get("host"),
-    forwardedProto: request.headers.get("x-forwarded-proto"),
-    fallbackProtocol: request.nextUrl.protocol,
-    production: false,
-  });
-  if (!routeOrigin) return unavailable();
-  const destination = new URL(mode === "user" ? "/account" : "/admin", routeOrigin);
-  const response = NextResponse.redirect(destination, 303);
+  let response: NextResponse;
+  if (isTestAuthStorageStateResponse(responseMode)) {
+    response = new NextResponse(null, { status: 204 });
+  } else {
+    const routeOrigin = trustedRouteOrigin({
+      forwardedHost: request.headers.get("x-forwarded-host"),
+      host: request.headers.get("host"),
+      forwardedProto: request.headers.get("x-forwarded-proto"),
+      fallbackProtocol: request.nextUrl.protocol,
+      production: false,
+    });
+    if (!routeOrigin) return unavailable();
+    const destination = new URL(mode === "user" ? "/account" : "/admin", routeOrigin);
+    response = NextResponse.redirect(destination, 303);
+  }
   response.cookies.set(ACTIVE_SESSION_COOKIE, session.token, sessionCookieOptions(env.KENMATCH_SESSION_DAYS * 24 * 60 * 60));
   response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
   response.headers.set("X-Robots-Tag", "noindex, nofollow");

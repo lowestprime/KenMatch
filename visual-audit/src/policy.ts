@@ -38,6 +38,19 @@ export function isExpectedRscLifecycleAbort(input: {
     && request.searchParams.has("_rsc");
 }
 
+export function classifyCaptureRequestFailure(input: {
+  method: string;
+  requestUrl: string;
+  baseUrl: string;
+  resourceType: string;
+  navigationRequest: boolean;
+  failure: string;
+}) {
+  if (isExpectedRscLifecycleAbort(input)) return "suppress" as const;
+  if (input.failure.includes("ERR_BLOCKED_BY_CLIENT")) return "expected" as const;
+  return "serious" as const;
+}
+
 export function classifyCaptureRequest(input: {
   method: string;
   requestUrl: string;

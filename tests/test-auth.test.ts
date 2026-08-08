@@ -3,7 +3,9 @@ import test from "node:test";
 
 import {
   isIsolatedAuditLabOrigin,
+  isIsolatedAuditLabTestAuthContext,
   isLoopbackHost,
+  isTestAuthStorageStateResponse,
   isTestAuthBypassAvailable,
   isValidTestAuthBypassToken,
   isValidTestAuthMode,
@@ -55,7 +57,9 @@ test("test auth bypass permits only the exact isolated audit host with non-live 
     KENMATCH_AUDIT_TOKEN: "a".repeat(64),
   } as const;
   assert.equal(isTestAuthBypassAvailable("kenmatch-audit-app:3000", lab), true);
+  assert.equal(isIsolatedAuditLabTestAuthContext("kenmatch-audit-app:3000", lab), true);
   assert.equal(isTestAuthBypassAvailable("kenmatch:3000", lab), false);
+  assert.equal(isIsolatedAuditLabTestAuthContext("kenmatch:3000", lab), false);
   assert.equal(isTestAuthBypassAvailable("kenmatch-audit-app:3000", {
     ...lab,
     KENMATCH_AUDIT_DATA_PROVENANCE: "production-live",
@@ -81,6 +85,12 @@ test("test auth accepts each explicit validation role", () => {
   assert.equal(isValidTestAuthMode("admin"), true);
   assert.equal(isValidTestAuthMode("owner"), true);
   assert.equal(isValidTestAuthMode("root"), false);
+});
+
+test("test auth storage-state responses require the exact internal mode", () => {
+  assert.equal(isTestAuthStorageStateResponse("storage-state"), true);
+  assert.equal(isTestAuthStorageStateResponse("redirect"), false);
+  assert.equal(isTestAuthStorageStateResponse(null), false);
 });
 
 test("production session cookies are insecure only on the exact isolated HTTP lab origin", () => {

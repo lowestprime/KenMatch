@@ -77,6 +77,13 @@ function isValidAuditLabIdentity(environment: AuditLabEnvironment) {
   );
 }
 
+export function isIsolatedAuditLabTestAuthContext(
+  host: string | null | undefined,
+  environment: AuditLabEnvironment = process.env,
+) {
+  return isValidAuditLabIdentity(environment) && isIsolatedAuditLabHost(host);
+}
+
 export function isIsolatedAuditLabOrigin(
   origin: string | undefined,
   environment: AuditLabEnvironment = process.env,
@@ -118,10 +125,7 @@ export function isTestAuthBypassAvailable(
     >
   > = process.env,
 ) {
-  const isolatedLab = (
-    isValidAuditLabIdentity(environment)
-    && isIsolatedAuditLabHost(host)
-  );
+  const isolatedLab = isIsolatedAuditLabTestAuthContext(host, environment);
   const localDevelopment = environment.NODE_ENV !== "production" && isLoopbackHost(host);
   return (
     booleanish(environment.KENMATCH_ENABLE_TEST_AUTH_BYPASS) &&
@@ -132,6 +136,10 @@ export function isTestAuthBypassAvailable(
 
 export function isValidTestAuthMode(value: FormDataEntryValue | null): value is TestAuthMode {
   return value === "user" || value === "moderator" || value === "admin" || value === "owner";
+}
+
+export function isTestAuthStorageStateResponse(value: FormDataEntryValue | null) {
+  return value === "storage-state";
 }
 
 export function isValidTestAuthBypassToken(

@@ -24,11 +24,12 @@ async function snapshotLabLogin(
       form: {
         token: config.testAuthToken ?? "",
         mode,
+        responseMode: "storage-state",
       },
-      maxRedirects: 4,
+      maxRedirects: 0,
     });
-    if (!response.ok()) {
-      throw new Error(`Snapshot-lab ${mode} login failed with HTTP ${response.status()}.`);
+    if (response.status() !== 204) {
+      throw new Error(`Snapshot-lab ${mode} storage-state login failed with HTTP ${response.status()}.`);
     }
     return await context.storageState();
   } finally {

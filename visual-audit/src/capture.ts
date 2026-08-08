@@ -20,8 +20,8 @@ import {
 import type { AuditConfig } from "./config.js";
 import { VIEWPORTS } from "./config.js";
 import {
+  classifyCaptureRequestFailure,
   classifyCaptureRequest,
-  isExpectedRscLifecycleAbort,
 } from "./policy.js";
 import { settlePage } from "./settle.js";
 import {
@@ -621,7 +621,7 @@ async function captureOne(input: {
   });
   page.on("requestfailed", (request) => {
     const failure = request.failure()?.errorText ?? "unknown failure";
-    const expected = failure.includes("ERR_BLOCKED_BY_CLIENT") || isExpectedRscLifecycleAbort({
+    const disposition = classifyCaptureRequestFailure({
       method: request.method(),
       requestUrl: request.url(),
       baseUrl: config.baseUrl,
@@ -629,6 +629,8 @@ async function captureOne(input: {
       navigationRequest: request.isNavigationRequest(),
       failure,
     });
+    if (disposition === "suppress") return;
+    const expected = disposition === "expected";
     addDiagnostic(
       accumulator,
       job,
