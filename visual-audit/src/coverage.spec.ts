@@ -112,6 +112,18 @@ test("smoke coverage records explicit equivalence for unsampled rendered links",
   }
 });
 
+test("smoke coverage includes both mutation-safe proposal validation states", () => {
+  const plan = buildCoveragePlan({
+    config: { ...baseConfig, scope: "smoke" },
+    inventory,
+    inventoryDigest: "c".repeat(64),
+    browserVersion: "test-chromium",
+  });
+  const keys = coverageCaptureKeys(plan);
+  assert.ok(keys.includes("user--submit-category-proposal-validation-oled-desktop-1440"));
+  assert.ok(keys.includes("user--submit-ken-proposal-validation-oled-desktop-1440"));
+});
+
 test("smoke rendered-link samples remain monotonic while discovery expands", () => {
   const initial = buildCoveragePlan({
     config: { ...baseConfig, scope: "smoke" },

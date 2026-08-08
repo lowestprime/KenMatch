@@ -260,6 +260,8 @@ function specialTargets(
       "maintenance",
       "empty",
       "focus-visible",
+      "ken-proposal-validation",
+      "category-proposal-validation",
     ]);
     return examples.filter((target) => smokeStates.has(target.state));
   }
