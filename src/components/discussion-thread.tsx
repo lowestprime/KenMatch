@@ -6,6 +6,7 @@ import { useActionState, useMemo, useState } from "react";
 import { initialActionState } from "@/app/action-state";
 import { createCommentAction, saveCommentVoteAction } from "@/app/actions";
 import { Avatar } from "@/components/avatar";
+import { profilePath } from "@/lib/profile-route";
 import type { DiscussionComment } from "@/lib/types";
 import { describeRelativeTime, formatDateTime } from "@/lib/utils";
 
@@ -229,7 +230,10 @@ function CommentNode({
               }}
               size={26}
             />
-            <Link href={`/people/${comment.profileId}`} className="comment-author">
+            <Link
+              href={profilePath({ id: comment.profileId, username: comment.profileUsername })}
+              className="comment-author"
+            >
               {comment.profileName}
             </Link>
             {badgeClass ? <span className={badgeClass}>{systemRole}</span> : null}

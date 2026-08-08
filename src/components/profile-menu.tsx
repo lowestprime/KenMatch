@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { Avatar } from "@/components/avatar";
 import { SignOutButton } from "@/components/auth-session-controls";
+import { profilePath } from "@/lib/profile-route";
 import type { ViewerSession } from "@/lib/types";
 
 export function ProfileMenu({
@@ -63,7 +64,7 @@ export function ProfileMenu({
             </div>
           </div>
           <div className="profile-menu-actions">
-            <Link className="profile-menu-item" href={`/people/${viewer.profile.id}`} role="menuitem" onClick={() => setOpen(false)}>
+            <Link className="profile-menu-item" href={profilePath(viewer.profile)} role="menuitem" onClick={() => setOpen(false)}>
               Profile
             </Link>
             <Link className="profile-menu-item" href="/account" role="menuitem" onClick={() => setOpen(false)}>

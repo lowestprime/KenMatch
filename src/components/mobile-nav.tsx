@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 
 import { Avatar } from "@/components/avatar";
 import { SignOutButton } from "@/components/auth-session-controls";
+import { profilePath } from "@/lib/profile-route";
 import type { ViewerSession } from "@/lib/types";
 
 export type MobileNavLink = { href: string; label: string };
@@ -126,7 +127,7 @@ export function MobileNav({
             <div className="mobile-nav-footer">
               {activeViewer ? (
                 <>
-                  <Link href={`/people/${activeViewer.profile.id}`} className="mobile-nav-viewer" onClick={close}>
+                  <Link href={profilePath(activeViewer.profile)} className="mobile-nav-viewer" onClick={close}>
                     <Avatar profile={activeViewer.profile} size={38} />
                     <span>
                       <strong>{activeViewer.profile.showRealName ? activeViewer.profile.name : `@${activeViewer.profile.username}`}</strong>

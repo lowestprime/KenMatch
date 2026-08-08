@@ -81,6 +81,7 @@ import {
   REVIEW_SCHEMA_STATEMENTS,
 } from "@/lib/review-schema";
 import { PUBLIC_CONTENT_LAST_MODIFIED_SQL } from "@/lib/seo-sitemap";
+import { profilePath } from "@/lib/profile-route";
 import { env, isAdminEmail, isOwnerEmail, canonicalOrigin, notificationEmails, ownerEmail, smtpConfigured, visitorHashSalt } from "@/lib/env";
 import {
   seedCategories,
@@ -6374,7 +6375,7 @@ export async function searchIndex(viewerProfileId?: string | null): Promise<Sear
       type: "profile",
       title: publicProfileName(profile),
       subtitle: `@${profile.username} · ${profile.role} · ${profile.specialty}`,
-      url: `/people/${profile.id}`,
+      url: profilePath(profile),
       badge: profile.attestationLevel,
     });
   }

@@ -67,6 +67,7 @@ import {
   normalizeUsername,
 } from "@/lib/db";
 import { canonicalOrigin, env, notificationEmails, ownerEmail } from "@/lib/env";
+import { profilePath } from "@/lib/profile-route";
 import {
   buildContactSubmissionEmail,
   buildPasswordResetEmail,
@@ -888,7 +889,10 @@ export async function requestVerificationAction(_: ActionState, formData: FormDa
       const mail = buildVerificationRequestEmail({
         name: session?.profile.name ?? "Contributor",
         note: parsed.data.note,
-        profileUrl: `${canonicalOrigin}/people/${profileId}`,
+        profileUrl: `${canonicalOrigin}${profilePath({
+          id: profileId,
+          username: session?.profile.username,
+        })}`,
       });
       await sendMail({ to: settings.recipientEmails, ...mail });
     }
