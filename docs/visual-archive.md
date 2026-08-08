@@ -115,7 +115,7 @@ Before selecting a formal capture worker count, run the fixed Tier 1 smoke
 benchmark from a clean exact candidate commit:
 
 ```powershell
-.\visual-audit\scripts\run-windows-benchmark.ps1
+.\visual-audit\scripts\start-windows-benchmark.ps1
 ```
 
 The benchmark executes worker counts 1, 2, and 4 sequentially. Capture timing
@@ -124,6 +124,13 @@ is accepted only when every run is complete and equivalent by converged plan,
 capture keys and records, stitched-image hashes, diagnostics, security totals,
 and source evidence. Results remain private under
 `visual-audit/.benchmarks/<benchmark-id>/benchmark-result.json`.
+The start helper records a durable process handoff under
+`visual-audit/.benchmarks/.processes/<benchmark-id>/`. After the detached
+process is expected to be terminal, inspect it exactly once without polling:
+
+```powershell
+.\visual-audit\scripts\get-windows-operation-status.ps1 -BenchmarkId "<benchmark-id>"
+```
 
 ## Tier 2
 

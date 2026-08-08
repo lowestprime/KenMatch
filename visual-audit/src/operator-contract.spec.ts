@@ -82,6 +82,36 @@ test("Windows worker benchmark fixes the Tier 1 smoke matrix at 1, 2, and 4", ()
   assert.match(content, /-RedirectStandardError \$StderrLog/);
 });
 
+test("Windows detached benchmark helpers record and inspect one durable operation", () => {
+  const start = fs.readFileSync(
+    path.join(repoRoot, "visual-audit", "scripts", "start-windows-benchmark.ps1"),
+    "utf8",
+  );
+  const status = fs.readFileSync(
+    path.join(repoRoot, "visual-audit", "scripts", "get-windows-operation-status.ps1"),
+    "utf8",
+  );
+  for (const field of [
+    "benchmarkId",
+    "expectedCommit",
+    "pid",
+    "exactCommand",
+    "startTimestamp",
+    "proofAliveAt",
+    "stdoutLog",
+    "stderrLog",
+    "exitCodeFile",
+  ]) {
+    assert.match(start, new RegExp(`${field}\\s*=`));
+  }
+  assert.match(start, /-WindowStyle Hidden/);
+  assert.match(start, /status --porcelain=v1 --untracked-files=all/);
+  assert.match(status, /exitCodeFileExists/);
+  assert.match(status, /terminated-without-exit-code/);
+  assert.match(status, /Get-Content[^\n]+-Tail \$TailLines/);
+  assert.doesNotMatch(status, /while\s*\(|tail\s+-Wait|Start-Sleep/);
+});
+
 test("capture runner checkpoints atomic progress and bounds mobile hydration retries", () => {
   const capture = fs.readFileSync(path.join(repoRoot, "visual-audit", "src", "capture.ts"), "utf8");
   const run = fs.readFileSync(path.join(repoRoot, "visual-audit", "src", "run.ts"), "utf8");
