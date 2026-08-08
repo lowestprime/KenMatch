@@ -5,6 +5,7 @@ import {
   classifyCaptureRequestFailure,
   classifyCaptureRequest,
   isExpectedRscLifecycleAbort,
+  isExpectedSettledNavigationAbort,
   isInventoryRequest,
   isUnsafeMethod,
   shouldAttachAuditToken,
@@ -69,4 +70,23 @@ test("only same-origin GET RSC fetch cancellation is an expected lifecycle abort
     requestUrl: `${BASE}/api/data`,
     failure: "net::ERR_FAILED",
   }), "serious");
+});
+
+test("only a successfully settled same-origin navigation abort is suppressed", () => {
+  const expected = {
+    method: "GET",
+    requestUrl: `${BASE}/people/canonical-user`,
+    baseUrl: BASE,
+    resourceType: "document",
+    navigationRequest: true,
+    failure: "net::ERR_ABORTED",
+    finalUrl: `${BASE}/people/canonical-user#activity`,
+    documentSettled: true,
+  };
+  assert.equal(isExpectedSettledNavigationAbort(expected), true);
+  assert.equal(classifyCaptureRequestFailure(expected), "suppress");
+  assert.equal(classifyCaptureRequestFailure({ ...expected, documentSettled: false }), "serious");
+  assert.equal(classifyCaptureRequestFailure({ ...expected, finalUrl: `${BASE}/people/other` }), "serious");
+  assert.equal(classifyCaptureRequestFailure({ ...expected, requestUrl: "https://example.com/people/canonical-user" }), "serious");
+  assert.equal(classifyCaptureRequestFailure({ ...expected, failure: "net::ERR_FAILED" }), "serious");
 });

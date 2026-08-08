@@ -602,6 +602,14 @@ async function captureOne(input: {
 }) {
   const { page, config, job, accumulator, security } = input;
   let documentResponse: Response | null = null;
+  const requestFailures: Array<{
+    method: string;
+    requestUrl: string;
+    baseUrl: string;
+    resourceType: string;
+    navigationRequest: boolean;
+    failure: string;
+  }> = [];
   page.on("console", (message) => {
     if (message.type() === "error" || message.type() === "warning") {
       const expected = job.target.route.startsWith("/visual-audit-not-found")
@@ -621,7 +629,7 @@ async function captureOne(input: {
   });
   page.on("requestfailed", (request) => {
     const failure = request.failure()?.errorText ?? "unknown failure";
-    const disposition = classifyCaptureRequestFailure({
+    requestFailures.push({
       method: request.method(),
       requestUrl: request.url(),
       baseUrl: config.baseUrl,
@@ -629,16 +637,6 @@ async function captureOne(input: {
       navigationRequest: request.isNavigationRequest(),
       failure,
     });
-    if (disposition === "suppress") return;
-    const expected = disposition === "expected";
-    addDiagnostic(
-      accumulator,
-      job,
-      "requestfailed",
-      expected ? "info" : "serious",
-      `${request.method()} ${request.url()}: ${failure}`,
-      expected,
-    );
   });
   page.on("response", (response) => {
     if (response.request().resourceType() === "document") documentResponse = response;
@@ -742,6 +740,24 @@ async function captureOne(input: {
     if (!seam.passed) {
       addDiagnostic(accumulator, job, "seam", "serious", `Tile seam correlation ${seam.score.toFixed(4)} failed.`);
     }
+  }
+
+  for (const failure of requestFailures) {
+    const disposition = classifyCaptureRequestFailure({
+      ...failure,
+      finalUrl: page.url(),
+      documentSettled: Boolean(documentResponse?.ok()),
+    });
+    if (disposition === "suppress") continue;
+    const expected = disposition === "expected";
+    addDiagnostic(
+      accumulator,
+      job,
+      "requestfailed",
+      expected ? "info" : "serious",
+      `${failure.method} ${failure.requestUrl}: ${failure.failure}`,
+      expected,
+    );
   }
 
   const record: CaptureRecord = {

@@ -38,6 +38,29 @@ export function isExpectedRscLifecycleAbort(input: {
     && request.searchParams.has("_rsc");
 }
 
+export function isExpectedSettledNavigationAbort(input: {
+  method: string;
+  requestUrl: string;
+  baseUrl: string;
+  resourceType: string;
+  navigationRequest: boolean;
+  failure: string;
+  finalUrl?: string;
+  documentSettled?: boolean;
+}) {
+  if (!input.finalUrl || input.documentSettled !== true) return false;
+  const request = new URL(input.requestUrl, input.baseUrl);
+  const finalUrl = new URL(input.finalUrl, input.baseUrl);
+  return input.method.toUpperCase() === "GET"
+    && input.resourceType === "document"
+    && input.navigationRequest
+    && input.failure.includes("ERR_ABORTED")
+    && request.origin === new URL(input.baseUrl).origin
+    && finalUrl.origin === request.origin
+    && finalUrl.pathname === request.pathname
+    && finalUrl.search === request.search;
+}
+
 export function classifyCaptureRequestFailure(input: {
   method: string;
   requestUrl: string;
@@ -45,8 +68,11 @@ export function classifyCaptureRequestFailure(input: {
   resourceType: string;
   navigationRequest: boolean;
   failure: string;
+  finalUrl?: string;
+  documentSettled?: boolean;
 }) {
   if (isExpectedRscLifecycleAbort(input)) return "suppress" as const;
+  if (isExpectedSettledNavigationAbort(input)) return "suppress" as const;
   if (input.failure.includes("ERR_BLOCKED_BY_CLIENT")) return "expected" as const;
   return "serious" as const;
 }
