@@ -5,6 +5,7 @@ import test from "node:test";
 const homePage = readFileSync(new URL("../src/app/page.tsx", import.meta.url), "utf8");
 const globalStyles = readFileSync(new URL("../src/app/globals.css", import.meta.url), "utf8");
 const siteShell = readFileSync(new URL("../src/components/site-shell.tsx", import.meta.url), "utf8");
+const contactForm = readFileSync(new URL("../src/components/contact-form.tsx", import.meta.url), "utf8");
 
 test("mobile header auth action keeps its compact label on one line", () => {
   assert.match(
@@ -36,5 +37,16 @@ test("authenticated desktop headers yield tagline space without clipping tabs", 
   assert.match(
     globalStyles,
     /\.site-brand-row\.is-authenticated\s+\.site-brand-text\s*>\s*span\s*\{[^}]*display:\s*none;/s,
+  );
+});
+
+test("contact message height follows scaled text metrics", () => {
+  assert.match(
+    contactForm,
+    /<textarea[\s\S]*?name="bodyMarkdown"[\s\S]*?rows=\{7\}[\s\S]*?required/,
+  );
+  assert.doesNotMatch(
+    globalStyles,
+    /\.contact-body-field\s*\{[^}]*(?:^|[;{])\s*height\s*:/s,
   );
 });
