@@ -3438,6 +3438,17 @@ body.mobile-nav-open { overflow: hidden; }
   outline: none;
 }
 
+.visitor-bubble-target {
+  fill: transparent;
+  pointer-events: all;
+  stroke: transparent;
+  stroke-width: 3;
+}
+
+.visitor-bubble-hit:focus-visible .visitor-bubble-target {
+  stroke: var(--accent-gold);
+}
+
 .visitor-pulse {
   fill: url(#visitor-dot);
   opacity: 0.82;
@@ -3473,9 +3484,24 @@ body.mobile-nav-open { overflow: hidden; }
 .visitor-popover strong { font-size: 1rem; }
 .visitor-popover span { color: var(--muted); font-size: 0.78rem; }
 
+.visitor-country-list {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.38rem;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  padding-bottom: 0.3rem;
+  scroll-snap-type: inline proximity;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--accent-glow) 70%, transparent) transparent;
+}
+
 .visitor-country-list button {
   display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
   gap: 0.25rem;
+  min-height: 2.75rem;
   border: 1px solid var(--line);
   background: color-mix(in srgb, var(--panel-strong) 74%, transparent);
   border-radius: 0.5rem;
@@ -3483,6 +3509,8 @@ body.mobile-nav-open { overflow: hidden; }
   color: var(--muted);
   font: inherit;
   cursor: pointer;
+  scroll-snap-align: start;
+  white-space: nowrap;
 }
 
 .visitor-country-list button.is-active,
@@ -3521,6 +3549,10 @@ body.mobile-nav-open { overflow: hidden; }
     position: static;
     transform: none;
     margin-top: 0.6rem;
+  }
+
+  .visitor-bubble-hit-layer {
+    display: none;
   }
 }
 
