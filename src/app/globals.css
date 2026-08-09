@@ -4709,6 +4709,16 @@ html[data-theme="light"] .category-symbol {
   }
 }
 
+@media (min-width: 1081px) and (max-width: 1500px) {
+  .site-brand-row.is-authenticated {
+    grid-template-columns: minmax(9.5rem, auto) minmax(0, 1fr) auto;
+  }
+
+  .site-brand-row.is-authenticated .site-brand-text > span {
+    display: none;
+  }
+}
+
 @media (max-width: 900px) {
   .about-hero {
     grid-template-columns: minmax(0, 1fr);

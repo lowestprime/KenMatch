@@ -54,7 +54,7 @@ export async function SiteShell({
       <ReadingProgress />
       <header className="site-header">
         <div className="site-header-inner">
-          <div className="site-brand-row">
+          <div className={`site-brand-row${viewer ? " is-authenticated" : ""}`}>
             <Link href="/" className="site-brand" aria-label="KenMatch home">
               <KenMatchMark className="brand-mark" eager />
               <span className="site-brand-text"><strong>KenMatch</strong><span>Transparent allocation of frontier AI compute</span></span>
