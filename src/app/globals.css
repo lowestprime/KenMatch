@@ -4786,6 +4786,40 @@ html[data-theme="light"] .category-symbol {
    Must remain at the end of globals.css so later compact/base card rules
    cannot reintroduce the desktop two-column feed on phone widths. */
 @media (max-width: 640px) {
+  .site-utility-row > .cta-compact {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  .category-summary-card,
+  .category-summary-main {
+    min-width: 0;
+  }
+
+  .category-summary-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 0.6rem;
+  }
+
+  .category-summary-main > .font-display {
+    min-width: 0;
+    overflow-wrap: break-word;
+    word-break: normal;
+  }
+
+  .category-summary-count.tag {
+    flex: 0 0 auto;
+    max-width: none;
+    white-space: nowrap;
+    overflow-wrap: normal;
+    word-break: normal;
+    text-align: center;
+  }
+
   .task-card-link,
   .task-card,
   .task-feed-card,

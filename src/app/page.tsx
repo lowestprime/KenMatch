@@ -128,8 +128,8 @@ export default async function HomePage() {
           <div className="grid gap-4">
             {categories.map((category) => (
               <Link key={category.id} href={categoryFilterHref(category.slug)} className="category-summary-card interactive-surface">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
+                <div className="category-summary-header flex items-center justify-between gap-3">
+                  <div className="category-summary-main flex items-center gap-3">
                     <CategorySymbol
                       categorySlug={category.slug}
                       categoryName={category.name}
@@ -139,7 +139,7 @@ export default async function HomePage() {
                     />
                     <div className="font-display text-xl font-semibold text-foreground">{category.name}</div>
                   </div>
-                  <span className="tag">{category.proposalCount} Kens</span>
+                  <span className="category-summary-count tag">{category.proposalCount} Kens</span>
                 </div>
                 <p className="mt-2 text-sm leading-7 text-muted">{category.thesis}</p>
               </Link>
