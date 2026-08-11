@@ -191,3 +191,34 @@ test("an interrupted coverage transition recovers one exact plan and manifest bi
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
+
+test("coverage persistence rejects same-size target replacement before any capture exists", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "kenmatch-plan-replacement-"));
+  const planFile = path.join(root, "coverage-plan.json");
+  const manifestFile = path.join(root, "manifest.json");
+  const journalFile = path.join(root, ".coverage-transition.json");
+  try {
+    const initial = makePlan({ phase: "initial", iteration: 0, targets: [routeTarget("home")] });
+    const manifest = persistCoveragePlanState({
+      planFile,
+      manifestFile,
+      journalFile,
+      plan: initial,
+      manifest: makeManifest(initial),
+    });
+    const replacement = makePlan({
+      phase: "converging",
+      iteration: 1,
+      targets: [routeTarget("different", "rendered")],
+    });
+    assert.throws(() => persistCoveragePlanState({
+      planFile,
+      manifestFile,
+      journalFile,
+      plan: replacement,
+      manifest,
+    }), /target keys cannot be replaced/);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});

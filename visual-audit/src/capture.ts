@@ -20,6 +20,7 @@ import {
 import type { AuditConfig } from "./config.js";
 import { VIEWPORTS } from "./config.js";
 import { isExpectedLegacyRedirectDuplicate } from "./legacy-redirect.js";
+import { normalizeRenderedRoutes } from "./rendered-routes.js";
 import {
   classifyCaptureRequestFailure,
   classifyCaptureRequest,
@@ -417,7 +418,7 @@ async function collectRenderedLinks(page: Page, baseUrl: string) {
         }
       })
       .filter((value): value is string => Boolean(value));
-  }, baseUrl).then((links) => [...new Set(links)].sort());
+  }, baseUrl).then((links) => normalizeRenderedRoutes(links));
 }
 
 async function collectAssetUrls(page: Page, baseUrl: string) {

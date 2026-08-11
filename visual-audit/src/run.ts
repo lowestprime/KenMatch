@@ -13,9 +13,10 @@ import {
   buildPlaceholderReport,
   verifyAssetInventory,
 } from "./assets.js";
-import { expandCaptureJobs, runCaptures } from "./capture.js";
+import { runCaptures } from "./capture.js";
 import { loadConfig, type AuditConfig } from "./config.js";
 import { buildCoveragePlan } from "./coverage.js";
+import { evaluateCoverageConvergence } from "./convergence.js";
 import { fetchProtectedInventory } from "./inventory.js";
 import {
   assertCoveragePlanIdentity,
@@ -311,12 +312,12 @@ async function main() {
           seedCaptureCount: plan.seedCaptureCount,
           convergenceIteration: plan.convergenceIteration + 1,
         });
-        const capturedKeys = new Set(finalPass.captures.map((capture) => capture.key));
-        const missing = expandCaptureJobs(reconciledPlan).some((job) => !capturedKeys.has(job.key));
-        if (missing) {
-          if (plan.convergenceIteration >= 4) {
-            throw new Error("Rendered-link reconciliation did not converge after four capture passes.");
-          }
+        const convergence = evaluateCoverageConvergence({
+          currentPlan: plan,
+          reconciledPlan,
+          capturedKeys: new Set(finalPass.captures.map((capture) => capture.key)),
+        });
+        if (convergence.missingKeys.length > 0) {
           persistPlan(reconciledPlan);
           continue;
         }

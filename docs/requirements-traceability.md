@@ -135,6 +135,10 @@ This file maps the stable product requirements from `KenMatch_Conception.md` to 
   public database inventory; `visual-audit/src/coverage.ts` adds rendered links,
   canonical Light/OLED coverage, nine exact viewport profiles, role states,
   lifecycle states, forms, empty/error/loading states, and interactions.
+- `visual-audit/src/rendered-routes.ts`, `convergence.ts`, and `plan-state.ts`
+  normalize query ordering, collapse pagination/filter value permutations into
+  stable query-shape representatives, enforce monotonic target keys, and bound
+  fixed-point discovery with precise plan-identity failures.
 - `visual-audit/src/capture.ts`, `stitch.ts`, and `accessibility.ts` own
   read-only request interception, deterministic settling, overlapping tile
   capture, independent scroll-container capture, seam checks, link/asset

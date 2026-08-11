@@ -6,6 +6,11 @@ import {
   scanSourceRoutes,
 } from "./inventory.js";
 import { stampCoveragePlan } from "./plan-identity.js";
+import {
+  renderedRouteEquivalenceKey,
+  renderedRoutePathname,
+  selectRenderedRouteRepresentatives,
+} from "./rendered-routes.js";
 import type {
   AuthState,
   CoveragePlanPhase,
@@ -324,22 +329,19 @@ export function buildCoveragePlan(input: {
     canonical.set(target.key, target);
   }
 
-  const renderedRoutes = [...new Set(input.renderedRoutes ?? [])].sort();
-  const uncoveredRenderedRoutes = renderedRoutes
-    .filter((route) => ![...canonical.values()].some((target) => target.route === route));
   const discoveredViewports = viewportNames.includes("mobile-390")
     ? ["desktop-1440", "mobile-390"]
     : [viewportNames[0] ?? "desktop-1440"];
-  const retainedRenderedCaptureRoutes = [...new Set(input.retainedRenderedCaptureRoutes ?? [])]
-    .sort((left, right) => left.localeCompare(right))
-    .filter((route) => uncoveredRenderedRoutes.includes(route));
-  const renderedCaptureRoutes = input.config.scope === "full"
-    ? uncoveredRenderedRoutes
-    : [
-      ...retainedRenderedCaptureRoutes,
-      ...uncoveredRenderedRoutes.filter((route) => !retainedRenderedCaptureRoutes.includes(route)),
-    ].slice(0, 4);
-  for (const route of renderedCaptureRoutes) {
+  const renderedSelection = selectRenderedRouteRepresentatives({
+    renderedRoutes: input.renderedRoutes ?? [],
+    existingTargetRoutes: [...canonical.values()].map((target) => target.route),
+    ...(input.retainedRenderedCaptureRoutes
+      ? { retainedCaptureRoutes: input.retainedRenderedCaptureRoutes }
+      : {}),
+    ...(input.config.scope === "smoke" ? { maxNewRepresentatives: 4 } : {}),
+  });
+  const renderedRoutes = renderedSelection.renderedRoutes;
+  for (const route of renderedSelection.captureRoutes) {
     const target = routeTarget({
       route,
       source: "rendered",
@@ -352,6 +354,11 @@ export function buildCoveragePlan(input: {
 
   const targets = [...canonical.values()].sort((left, right) => left.key.localeCompare(right.key));
   const targetRoutes = new Set(targets.map((target) => target.route));
+  const targetByEquivalenceClass = new Map<string, string>();
+  for (const route of [...targetRoutes].sort((left, right) => left.localeCompare(right))) {
+    const key = renderedRouteEquivalenceKey(route);
+    if (!targetByEquivalenceClass.has(key)) targetByEquivalenceClass.set(key, route);
+  }
   const routeDispositions = renderedRoutes.map((route) => {
     if (targetRoutes.has(route)) {
       return {
@@ -361,24 +368,24 @@ export function buildCoveragePlan(input: {
         reason: "Exact source, database, required, or rendered-link target.",
       };
     }
-    let pathname = "/";
-    try {
-      pathname = new URL(route, "https://audit.invalid").pathname;
-    } catch {
-      // The rendered-link collector emits URL-safe paths; root is a conservative representative.
+    const equivalentRepresentative = targetByEquivalenceClass.get(renderedRouteEquivalenceKey(route));
+    if (equivalentRepresentative) {
+      return {
+        route,
+        disposition: "equivalent" as const,
+        representativeRoute: equivalentRepresentative,
+        reason: "Equivalent pathname and query-parameter shape is covered by one stable representative; query values are not multiplied into redundant captures.",
+      };
     }
+    const pathname = renderedRoutePathname(route);
     const representativeRoute = [...targetRoutes].find((candidate) => {
-      try {
-        return new URL(candidate, "https://audit.invalid").pathname === pathname;
-      } catch {
-        return false;
-      }
+      return renderedRoutePathname(candidate) === pathname;
     }) ?? "/";
     return {
       route,
       disposition: "equivalent" as const,
       representativeRoute,
-      reason: "Smoke scope samples one representative for equivalent rendered-link query or anchor states.",
+      reason: "Smoke scope limits newly discovered query-shape representatives and records the canonical pathname as the explicit fallback.",
     };
   });
   const requiredStates: string[] = [
@@ -424,8 +431,8 @@ export function buildCoveragePlan(input: {
     unresolvedDynamicPatterns: [...new Set(expanded.unresolved)].sort(),
     routeDispositions,
     samplingRationale: input.config.scope === "full"
-      ? "Every discovered same-origin link not already represented by an exact target receives OLED desktop/mobile capture; exact canonical source/database routes receive the full Light/OLED viewport matrix."
-      : "Smoke scope captures four otherwise-uncovered rendered links and records pathname-equivalent representatives for the remainder; it is not release evidence.",
+      ? "Exact canonical source/database routes receive the full Light/OLED viewport matrix. Discovered same-origin links are normalized and grouped by pathname plus query-parameter shape; one stable representative per shape receives OLED desktop/mobile capture, and every rendered value has an explicit captured or equivalent disposition."
+      : "Smoke scope captures at most four stable, otherwise-uncovered rendered query-shape representatives and records explicit equivalence for the remainder; it is not release evidence.",
     requiredStates: input.config.scope === "full"
       ? [...new Set(requiredStates)].sort()
       : [

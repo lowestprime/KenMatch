@@ -104,8 +104,8 @@ test("smoke coverage records explicit equivalence for unsampled rendered links",
     renderedRoutes,
   });
   assert.equal(plan.routeDispositions.length, renderedRoutes.length);
-  assert.equal(plan.routeDispositions.filter((entry) => entry.disposition === "captured").length, 4);
-  assert.equal(plan.routeDispositions.filter((entry) => entry.disposition === "equivalent").length, 2);
+  assert.equal(plan.routeDispositions.filter((entry) => entry.disposition === "captured").length, 1);
+  assert.equal(plan.routeDispositions.filter((entry) => entry.disposition === "equivalent").length, 5);
   for (const entry of plan.routeDispositions) {
     assert.ok(plan.targets.some((target) => target.route === entry.representativeRoute));
     assert.ok(entry.reason.length > 20);
@@ -143,13 +143,12 @@ test("smoke rendered-link samples remain monotonic while discovery expands", () 
     renderedRoutes: ["/economics?new=1", ...retained],
     retainedRenderedCaptureRoutes: retained,
   });
-  assert.deepEqual(
-    expanded.targets
-      .filter((target) => target.source === "rendered")
-      .map((target) => target.route)
-      .sort(),
-    [...retained].sort(),
-  );
+  assert.equal(retained.length, 1);
+  const expandedRendered = expanded.targets
+    .filter((target) => target.source === "rendered")
+    .map((target) => target.route);
+  assert.ok(retained.every((route) => expandedRendered.includes(route)));
+  assert.ok(expandedRendered.includes("/economics?new=1"));
 });
 
 test("rendered-link ordering and duplicates do not change final target identity", () => {

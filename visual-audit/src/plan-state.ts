@@ -92,6 +92,21 @@ export function persistCoveragePlanState(input: {
   }
   const binding = coveragePlanBinding(input.plan);
   assertCoverageTransition(input.manifest.coveragePlan, binding);
+  if (fs.existsSync(input.planFile)) {
+    const previousPlan = readJson<CoveragePlan>(input.planFile);
+    assertCoveragePlanIdentity(previousPlan);
+    if (
+      !input.manifest.coveragePlan
+      || !coverageBindingsMatch(input.manifest.coveragePlan, coveragePlanBinding(previousPlan))
+    ) {
+      throw new Error("Persisted coverage plan does not match the manifest transition origin.");
+    }
+    const nextKeys = new Set(coverageCaptureKeys(input.plan));
+    const replacedKey = coverageCaptureKeys(previousPlan).find((key) => !nextKeys.has(key));
+    if (replacedKey) {
+      throw new Error(`Coverage target keys cannot be replaced during convergence; first=${replacedKey}.`);
+    }
+  }
   assertManifestFitsPlan(input.manifest, input.plan);
   const manifest = {
     ...input.manifest,

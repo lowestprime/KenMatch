@@ -54,6 +54,18 @@ The audit reconciles source routes, protected database routes, and rendered
 links. Full scope captures every canonical source/database route in Light and
 OLED across these exact profiles:
 
+Rendered links are normalized by sorting query parameters and discarding
+noncanonical fragments. To prevent pagination and filter controls from
+creating redundant Cartesian products, query variants are grouped by pathname
+and query-parameter shape. One stable representative per otherwise-uncovered
+shape receives OLED desktop/mobile capture; every discovered value remains in
+`coverage-plan.json` with an explicit captured or equivalent disposition.
+Representatives remain monotonic during convergence, and a persisted plan may
+never replace completed or planned capture keys. Reconciliation must strictly
+expand when work remains and is bounded to eight route-depth iterations, after
+which it fails with current/next plan digests rather than silently changing the
+archive identity.
+
 - 1440x900, 1280x800, and 1024x768 desktop
 - 1024x1366 at DPR 2
 - 430x932, 390x844, 375x812, and 320x720 at DPR 3
