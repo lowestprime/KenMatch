@@ -70,7 +70,7 @@ export default async function HomePage() {
               </Link>
             ))}
           </div>
-          <div className="metric-grid">
+          <div className="metric-grid home-metric-grid">
             {[ ["Kens", formatNumber(metrics.proposals)], ["Running", formatNumber(metrics.activeRuns)], ["Bonded voice", formatNumber(metrics.bondedVoice)], ["Committed treasury / month", formatCurrency(metrics.treasuryMonthlyUsd)] ].map(([label, value]) => (
               <div key={label} className="metric-card"><div className="eyebrow">{label}</div><div className="metric-value">{value}</div></div>
             ))}

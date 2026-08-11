@@ -28,6 +28,18 @@ test("home category summaries reserve an intrinsic-width count column", () => {
   );
 });
 
+test("home metrics keep large currency values intact", () => {
+  assert.match(homePage, /className="metric-grid home-metric-grid"/);
+  assert.match(
+    globalStyles,
+    /\.home-metric-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\);/s,
+  );
+  assert.match(
+    globalStyles,
+    /\.home-metric-grid\s+\.metric-value\s*\{[^}]*font-size:\s*clamp\([^}]*white-space:\s*nowrap;/s,
+  );
+});
+
 test("authenticated desktop headers yield tagline space without clipping tabs", () => {
   assert.match(siteShell, /className=\{`site-brand-row\$\{viewer \? " is-authenticated" : ""\}`\}/);
   assert.match(

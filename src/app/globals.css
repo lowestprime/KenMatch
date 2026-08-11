@@ -681,6 +681,14 @@ textarea.field { resize: vertical; min-height: 4.5rem; }
   color: var(--ink);
   letter-spacing: 0;
 }
+.home-metric-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.home-metric-grid .metric-value {
+  min-width: 0;
+  font-size: clamp(1.35rem, 2vw, 1.85rem);
+  white-space: nowrap;
+}
 .stat-card {
   display: flex;
   align-items: center;
