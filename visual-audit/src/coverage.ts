@@ -1,4 +1,5 @@
 import type { AuditConfig } from "./config.js";
+import { isLegacyRedirectRoute } from "./legacy-redirect.js";
 import { VIEWPORTS } from "./config.js";
 import {
   expandSourceRoutes,
@@ -286,14 +287,6 @@ export function buildCoveragePlan(input: {
     ? allViewportNames
     : ["desktop-1440", "mobile-390"];
   const themes: ThemeMode[] = ["light", "oled"];
-  const isLegacyRedirect = (route: string) => (
-    route === "/changelog"
-    || route === "/about/changelog"
-    || route === "/people"
-    || route === "/tasks"
-    || route.startsWith("/tasks/")
-  );
-
   const databaseRoutes = [
     ...input.inventory.routes.kens,
     ...input.inventory.routes.profiles,
@@ -316,7 +309,7 @@ export function buildCoveragePlan(input: {
     ];
   for (const route of canonicalCandidates) {
     const sourceType = databaseRoutes.includes(route) ? "database" : "source";
-    const legacyRedirect = isLegacyRedirect(route);
+    const legacyRedirect = isLegacyRedirectRoute(route);
     const target = routeTarget({
       route,
       ...(legacyRedirect ? { state: "legacy-redirect" } : {}),

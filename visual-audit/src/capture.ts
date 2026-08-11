@@ -19,6 +19,7 @@ import {
 } from "./capture-coordinator.js";
 import type { AuditConfig } from "./config.js";
 import { VIEWPORTS } from "./config.js";
+import { isExpectedLegacyRedirectDuplicate } from "./legacy-redirect.js";
 import {
   classifyCaptureRequestFailure,
   classifyCaptureRequest,
@@ -989,13 +990,7 @@ export async function runCaptures(input: {
     if (captures.length < 2) continue;
     const distinctRoutes = new Set(captures.map((capture) => capture.route));
     if (distinctRoutes.size < 2) continue;
-    const expectedRedirectDuplicate = captures.some((capture) => (
-      capture.route === "/changelog"
-      || capture.route === "/about/changelog"
-      || capture.route === "/people"
-      || capture.route === "/tasks"
-      || capture.route.startsWith("/tasks/")
-    )) && new Set(captures.map((capture) => capture.finalUrl)).size === 1;
+    const expectedRedirectDuplicate = isExpectedLegacyRedirectDuplicate(captures);
     for (const capture of captures) {
       coordinated.diagnostics.push({
         timestamp: now(),

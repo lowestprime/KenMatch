@@ -23,6 +23,7 @@ import type {
   TileManifest,
   ValidationReport,
 } from "./types.js";
+import { expectedLegacyRedirectLocation } from "./legacy-redirect.js";
 import {
   fileSha256,
   hardenPermissions,
@@ -128,13 +129,6 @@ const REQUIRED_ARTIFACTS = [
   "shareable/kenmatch-visual-atlas-redacted.pdf",
 ] as const;
 
-const LEGACY_REDIRECTS = new Set([
-  "/about/changelog",
-  "/changelog",
-  "/people",
-  "/tasks",
-]);
-
 function uniqueStrings(values: string[]) {
   return new Set(values).size === values.length;
 }
@@ -147,29 +141,7 @@ function sameStringSet(left: string[], right: string[]) {
 }
 
 function isLegacyRedirect(route: string) {
-  const pathname = new URL(route, "https://audit.invalid").pathname;
-  return LEGACY_REDIRECTS.has(pathname) || pathname.startsWith("/tasks/");
-}
-
-function expectedRedirectLocation(route: string) {
-  const parsed = new URL(route, "https://audit.invalid");
-  if (parsed.pathname === "/about/changelog" || parsed.pathname === "/changelog") {
-    return { pathname: "/about", search: "", hash: "#changelog" };
-  }
-  if (parsed.pathname === "/people") {
-    return { pathname: "/profiles", search: "", hash: "" };
-  }
-  if (parsed.pathname === "/tasks") {
-    return { pathname: "/kens", search: "", hash: "" };
-  }
-  if (parsed.pathname.startsWith("/tasks/")) {
-    return {
-      pathname: parsed.pathname.replace(/^\/tasks\//, "/kens/"),
-      search: parsed.search,
-      hash: parsed.hash,
-    };
-  }
-  return null;
+  return expectedLegacyRedirectLocation(route) !== null;
 }
 
 function resolveArchiveFile(runRoot: string, relativeFile: string) {
@@ -605,7 +577,7 @@ export function validateRun(config: AuditConfig): ValidationReport {
   addCheck(checks, failures, "http-statuses", invalidStatuses.length === 0, `${invalidStatuses.length} invalid capture statuses`);
 
   const redirectFailures = manifest.captures.flatMap((capture) => {
-    const expected = expectedRedirectLocation(capture.route);
+    const expected = expectedLegacyRedirectLocation(capture.route);
     if (!expected) return [];
     let finalUrl: URL;
     try {
