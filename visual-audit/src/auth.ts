@@ -18,7 +18,9 @@ const unsafeMethods = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 export function isLiveLoginMutation(method: string, requestUrl: string, baseUrl: string) {
   if (!unsafeMethods.has(method.toUpperCase())) return false;
   try {
-    return new URL(requestUrl).origin === new URL(baseUrl).origin;
+    const request = new URL(requestUrl);
+    if (request.origin !== new URL(baseUrl).origin) return false;
+    return request.pathname !== "/cdn-cgi" && !request.pathname.startsWith("/cdn-cgi/");
   } catch {
     return false;
   }
