@@ -8,9 +8,12 @@ import {
 
 test("production security policy keeps HTTPS transport enforcement", () => {
   const mode = { development: false, auditLabMode: false };
+  const policy = contentSecurityPolicy(mode);
   assert.equal(emitsSecureTransportHeaders(mode), true);
-  assert.match(contentSecurityPolicy(mode), /upgrade-insecure-requests/);
-  assert.doesNotMatch(contentSecurityPolicy(mode), /unsafe-eval/);
+  assert.match(policy, /upgrade-insecure-requests/);
+  assert.doesNotMatch(policy, /unsafe-eval/);
+  assert.match(policy, /script-src[^;]*https:\/\/static\.cloudflareinsights\.com/);
+  assert.match(policy, /connect-src[^;]*https:\/\/cloudflareinsights\.com/);
 });
 
 test("isolated HTTP audit lab keeps CSP while omitting invalid transport upgrades", () => {

@@ -13,6 +13,17 @@ import { ensureDirectory, restrictPermissions } from "./util.js";
 export type StorageState = Awaited<ReturnType<BrowserContext["storageState"]>>;
 export type StoredAuthStates = Record<AuthState, StorageState>;
 
+const unsafeMethods = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
+export function isLiveLoginMutation(method: string, requestUrl: string, baseUrl: string) {
+  if (!unsafeMethods.has(method.toUpperCase())) return false;
+  try {
+    return new URL(requestUrl).origin === new URL(baseUrl).origin;
+  } catch {
+    return false;
+  }
+}
+
 async function snapshotLabLogin(
   browser: Browser,
   config: AuditConfig,
@@ -42,7 +53,7 @@ async function liveLogin(browser: Browser, config: AuditConfig) {
   let unsafeRequests = 0;
   const page = await context.newPage();
   page.on("request", (request) => {
-    if (["POST", "PUT", "PATCH", "DELETE"].includes(request.method().toUpperCase())) {
+    if (isLiveLoginMutation(request.method(), request.url(), config.baseUrl)) {
       unsafeRequests += 1;
     }
   });
@@ -50,6 +61,13 @@ async function liveLogin(browser: Browser, config: AuditConfig) {
     await page.goto(`${config.baseUrl}/auth`, { waitUntil: "domcontentloaded" });
     await page.locator('input[name="identifier"]').fill(config.adminEmail ?? "");
     await page.locator('input[name="password"]').fill(config.adminPassword ?? "");
+    const turnstileToken = page.locator('input[name="turnstileToken"]');
+    if (await turnstileToken.count()) {
+      await page.waitForFunction(() => {
+        const input = document.querySelector<HTMLInputElement>('input[name="turnstileToken"]');
+        return Boolean(input?.value.trim());
+      }, undefined, { timeout: 30_000 });
+    }
     await Promise.all([
       page.waitForURL((url) => url.pathname !== "/auth", { timeout: 30_000 }),
       page.getByRole("button", { name: "Sign in", exact: true }).click(),

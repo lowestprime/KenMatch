@@ -13,9 +13,9 @@ export function contentSecurityPolicy(mode: SecurityPolicyMode) {
     "img-src 'self' data: blob:",
     "style-src 'self' 'unsafe-inline'",
     mode.development
-      ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com"
-      : "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
-    "connect-src 'self' https://challenges.cloudflare.com wss:",
+      ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://static.cloudflareinsights.com"
+      : "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://static.cloudflareinsights.com",
+    "connect-src 'self' https://challenges.cloudflare.com https://cloudflareinsights.com wss:",
     "font-src 'self' data:",
     "frame-src 'self' https://challenges.cloudflare.com",
     "frame-ancestors 'none'",
