@@ -2,6 +2,35 @@ import type { Page } from "playwright";
 
 import type { AccessibilityResult } from "./types.js";
 
+export interface FocusSnapshot {
+  tagName: string;
+  id: string;
+  name: string;
+  role: string;
+  ariaLabel: string;
+  labelledBy: string;
+  title: string;
+  href: string;
+  text: string;
+  siblingIndex: number;
+}
+
+export function focusSignature(snapshot: FocusSnapshot | null) {
+  if (!snapshot) return "none";
+  return JSON.stringify([
+    snapshot.tagName,
+    snapshot.id,
+    snapshot.name,
+    snapshot.role,
+    snapshot.ariaLabel,
+    snapshot.labelledBy,
+    snapshot.title,
+    snapshot.href,
+    snapshot.text,
+    snapshot.siblingIndex,
+  ]);
+}
+
 export async function inspectAccessibility(page: Page, mobile: boolean): Promise<AccessibilityResult> {
   const structural = await page.evaluate((isMobile) => {
     const visible = (element: Element) => {
@@ -119,11 +148,25 @@ export async function inspectAccessibility(page: Page, mobile: boolean): Promise
   let keyboardTrapDetected = false;
   for (let index = 0; index < 24; index += 1) {
     await page.keyboard.press("Tab");
-    const signature = await page.evaluate(() => {
+    const snapshot = await page.evaluate(() => {
       const active = document.activeElement as HTMLElement | null;
-      if (!active) return "none";
-      return `${active.tagName}:${active.id}:${active.getAttribute("name") ?? ""}:${active.textContent?.trim().slice(0, 40) ?? ""}`;
+      if (!active) return null;
+      return {
+        tagName: active.tagName,
+        id: active.id,
+        name: active.getAttribute("name") ?? "",
+        role: active.getAttribute("role") ?? "",
+        ariaLabel: active.getAttribute("aria-label") ?? "",
+        labelledBy: active.getAttribute("aria-labelledby") ?? "",
+        title: active.getAttribute("title") ?? "",
+        href: active.getAttribute("href") ?? "",
+        text: active.textContent?.trim().slice(0, 80) ?? "",
+        siblingIndex: active.parentElement
+          ? Array.from(active.parentElement.children).indexOf(active)
+          : -1,
+      };
     });
+    const signature = focusSignature(snapshot);
     if (index > 8 && focusSignatures.size <= 1) keyboardTrapDetected = true;
     focusSignatures.add(signature);
   }
