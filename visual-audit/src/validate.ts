@@ -14,6 +14,7 @@ import {
   coverageBindingsMatch,
   coveragePlanBinding,
 } from "./plan-identity.js";
+import { renderedRouteEquivalenceKey } from "./rendered-routes.js";
 import type {
   CaptureRecord,
   ComparisonReport,
@@ -129,15 +130,81 @@ const REQUIRED_ARTIFACTS = [
   "shareable/kenmatch-visual-atlas-redacted.pdf",
 ] as const;
 
-function uniqueStrings(values: string[]) {
+function uniqueStrings(values: readonly string[]) {
   return new Set(values).size === values.length;
 }
 
-function sameStringSet(left: string[], right: string[]) {
+function sameStringSet(left: readonly string[], right: readonly string[]) {
   return left.length === right.length
     && uniqueStrings(left)
     && uniqueStrings(right)
     && left.every((value) => right.includes(value));
+}
+
+type RenderedRouteDisposition = CoveragePlan["routeDispositions"][number];
+
+export function renderedRouteDispositionFailures(input: {
+  scope: AuditConfig["scope"];
+  renderedRoutes: readonly string[];
+  manifestRenderedRoutes: readonly string[];
+  routeDispositions: readonly RenderedRouteDisposition[];
+  plannedRoutes: ReadonlySet<string>;
+}) {
+  const failures: string[] = [];
+  const renderedRoutes = [...new Set(input.renderedRoutes)].sort();
+  const manifestRenderedRoutes = [...new Set(input.manifestRenderedRoutes)].sort();
+  const dispositionRoutes = input.routeDispositions.map((entry) => entry.route);
+  const dispositionsByRoute = new Map(input.routeDispositions.map((entry) => [entry.route, entry]));
+
+  if (!uniqueStrings(input.renderedRoutes)) {
+    failures.push("coverage plan contains duplicate rendered routes");
+  }
+  if (!uniqueStrings(input.manifestRenderedRoutes)) {
+    failures.push("manifest contains duplicate rendered routes");
+  }
+  if (!sameStringSet(renderedRoutes, manifestRenderedRoutes)) {
+    failures.push("coverage-plan and manifest rendered-link inventories differ");
+  }
+  if (!uniqueStrings(dispositionRoutes)) {
+    failures.push("coverage plan contains duplicate rendered-route dispositions");
+  }
+  if (!sameStringSet(renderedRoutes, dispositionRoutes)) {
+    failures.push("rendered-link inventory and dispositions differ");
+  }
+
+  for (const route of renderedRoutes) {
+    const disposition = dispositionsByRoute.get(route);
+    if (!disposition || !disposition.reason.trim()) {
+      failures.push(`${route} has no documented disposition`);
+      continue;
+    }
+
+    const representativeIsPlanned = input.plannedRoutes.has(disposition.representativeRoute);
+    if (!representativeIsPlanned) {
+      failures.push(`${route} names an uncaptured representative`);
+    }
+
+    if (disposition.disposition === "captured") {
+      if (disposition.representativeRoute !== route || !input.plannedRoutes.has(route)) {
+        failures.push(`${route} captured disposition does not name its exact target`);
+      }
+      continue;
+    }
+
+    if (disposition.disposition !== "equivalent") {
+      failures.push(`${route} has an invalid disposition`);
+      continue;
+    }
+
+    const sameQueryShape = renderedRouteEquivalenceKey(disposition.representativeRoute)
+      === renderedRouteEquivalenceKey(route);
+    if (input.scope === "full" && !sameQueryShape) {
+      failures.push(`${route} does not share its representative's query shape in full scope`);
+      continue;
+    }
+  }
+
+  return failures;
 }
 
 function isLegacyRedirect(route: string) {
@@ -525,37 +592,13 @@ export function validateRun(config: AuditConfig): ValidationReport {
   );
 
   const renderedRoutes = [...new Set(plan.renderedRoutes)].sort();
-  const manifestRenderedRoutes = [...new Set(manifest.renderedLinks)].sort();
-  const dispositionsByRoute = new Map(plan.routeDispositions.map((entry) => [entry.route, entry]));
-  const dispositionFailures: string[] = [];
-  if (
-    !uniqueStrings(plan.renderedRoutes)
-    || !sameStringSet(renderedRoutes, manifestRenderedRoutes)
-    || !uniqueStrings(plan.routeDispositions.map((entry) => entry.route))
-    || plan.routeDispositions.length !== renderedRoutes.length
-  ) {
-    dispositionFailures.push("rendered-link inventory and dispositions differ");
-  }
-  for (const route of renderedRoutes) {
-    const disposition = dispositionsByRoute.get(route);
-    if (!disposition || !disposition.reason.trim()) {
-      dispositionFailures.push(`${route} has no documented disposition`);
-      continue;
-    }
-    if (!plannedRoutes.has(disposition.representativeRoute)) {
-      dispositionFailures.push(`${route} names an uncaptured representative`);
-    }
-    if (
-      config.scope === "full"
-      && (
-        disposition.disposition !== "captured"
-        || disposition.representativeRoute !== route
-        || !plannedRoutes.has(route)
-      )
-    ) {
-      dispositionFailures.push(`${route} is not captured exactly in full scope`);
-    }
-  }
+  const dispositionFailures = renderedRouteDispositionFailures({
+    scope: config.scope,
+    renderedRoutes: plan.renderedRoutes,
+    manifestRenderedRoutes: manifest.renderedLinks,
+    routeDispositions: plan.routeDispositions,
+    plannedRoutes,
+  });
   addCheck(
     checks,
     failures,
