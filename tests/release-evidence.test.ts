@@ -126,13 +126,13 @@ test("release evidence binds the exact deployed candidate to every formal archiv
 test("completion ledger has no unresolved applicable requirements", () => {
   const allowedStatuses = new Set(["DONE", "NOT_APPLICABLE", "SUPERSEDED"]);
   assert.equal(ledger.requirements.length, 495);
+  assert.equal(ledger.summary.status_counts.BLOCKED ?? 0, 0);
   assert.deepEqual(ledger.summary.status_counts, {
     DONE: 445,
     SUPERSEDED: 29,
     NOT_APPLICABLE: 21,
   });
   assert.equal(ledger.summary.unresolved_applicable_requirements, 0);
-  assert.equal(ledger.summary.status_counts.BLOCKED ?? 0, 0);
   assert.equal(ledger.release_evidence.release_candidate_sha, releaseEvidence.release_candidate_sha);
 
   for (const entry of ledger.requirements) {
