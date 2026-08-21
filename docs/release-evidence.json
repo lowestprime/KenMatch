@@ -1,0 +1,278 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-08-21T09:09:09.850Z",
+  "branch": "codex/kenmatch-completion-visual-archive-20260727",
+  "starting_sha": "53a2faeead16bc4bbe06f2fcfaa6fccfef95e5f8",
+  "release_candidate_sha": "72dcf5579fd5674624a0602af623acd7b61c7331",
+  "immutable_failed_evidence": {
+    "run_id": "20260801T080604Z-tier1-full-bfece455a0f0",
+    "candidate_sha": "bfece455a0f02122f7cd665332de125874a0b6d8",
+    "status": "PRESERVED_FAILED",
+    "manifest_capture_count": 1259,
+    "converged_capture_count": 1261,
+    "unique_capture_count": 1259,
+    "duplicate_capture_count": 0,
+    "unexpected_serious_diagnostic_count": 0,
+    "completed_at": null,
+    "manifest_sha256": "626d9e14b351e5c14e85acd7490e134f9b8d578a41ca7acdc3e3a051c15dabbb",
+    "coverage_plan_sha256": "d283aecde212df8f3d69c705c1ce16d39d1fa991fe1c97d584a4b912d106c9c1",
+    "missing_capture_keys": [
+      "user--submit-category-proposal-validation-oled-desktop-1440",
+      "user--submit-ken-proposal-validation-oled-desktop-1440"
+    ],
+    "disposition": "Immutable failed evidence; never resumed, finalized, relabeled, replaced, or used as passing release evidence."
+  },
+  "capture_benchmark": {
+    "benchmark_id": "20260808T174324Z-tier1-smoke-workers-768611dc0826",
+    "candidate_sha": "768611dc0826fb2f147efde8125f8a7cf0fa9c42",
+    "result_sha256": "28fd1a97bc2fb5fd38c38956a9061d8c15bdd64293c7ae372f90ba7d9629fe58",
+    "status": "PASS",
+    "accelerator": "chromium-headless-software",
+    "selected_workers": 4,
+    "observations": [
+      {
+        "workers": 1,
+        "duration_ms": 437438,
+        "captures": 76,
+        "status": "PASS"
+      },
+      {
+        "workers": 2,
+        "duration_ms": 247374,
+        "captures": 76,
+        "status": "PASS"
+      },
+      {
+        "workers": 4,
+        "duration_ms": 185797,
+        "captures": 76,
+        "status": "PASS"
+      }
+    ],
+    "equivalence": "Identical converged plan, target keys, capture records, stitched images, diagnostics, security totals, and source evidence at worker counts 1, 2, and 4."
+  },
+  "gpu_evaluation": {
+    "status": "SOFTWARE_RETAINED",
+    "device_exposure": "NVIDIA device and CUDA runtime reached the container, but Chromium exposed no hardware renderer or WebGL context.",
+    "decision": "Retain chromium-headless-software because renderer proof, deterministic equivalence, and end-to-end speedup gates were not reached."
+  },
+  "production_snapshot": {
+    "created_at": "2026-08-21T07:14:03Z",
+    "method": "SQLite VACUUM INTO from the mounted production database",
+    "bytes": 4943872,
+    "sha256": "9cf15cdc37eeec4e054047ac8ecfc61e4c08236ed9dc5cf2541504c6f9d32383",
+    "remote_path": "/volume2/docker_ssd/kenmatch/data/backups/20260821T071403Z-tier2-full-source-production.sqlite",
+    "local_artifact": "visual-audit/.state/snapshots/20260821T071403Z-tier2-full-source-production.sqlite",
+    "remote_local_hash_match": true,
+    "quick_check": "ok",
+    "source_immutable": true
+  },
+  "formal_runs": [
+    {
+      "run_id": "20260821T062224Z-tier1-smoke-72dcf5579fd5",
+      "tier": "tier-1-synthetic",
+      "provenance": "synthetic-fixture",
+      "scope": "smoke",
+      "candidate_sha": "72dcf5579fd5674624a0602af623acd7b61c7331",
+      "workers": 4,
+      "seed_capture_count": 70,
+      "capture_count": 78,
+      "expected_capture_count": 78,
+      "convergence_iterations": 2,
+      "plan_digest": "082c398f236e331d089c2a2c9cbdc25481ba407447c28e5216f6609a12d756d6",
+      "completed_at": "2026-08-21T06:26:31.295Z",
+      "unexpected_serious_diagnostic_count": 0,
+      "successful_unsafe_request_count": 0,
+      "checksums_file_sha256": "d642b76db9d5c6068f5da0feef6a3e4b1357a6801dec183199535e617358411b",
+      "reports_pdf_validation": "PASS",
+      "shareable_review": "PASS",
+      "status": "PASS"
+    },
+    {
+      "run_id": "20260821T063038Z-tier1-full-72dcf5579fd5",
+      "tier": "tier-1-synthetic",
+      "provenance": "synthetic-fixture",
+      "scope": "full",
+      "candidate_sha": "72dcf5579fd5674624a0602af623acd7b61c7331",
+      "workers": 4,
+      "seed_capture_count": 1215,
+      "capture_count": 1225,
+      "expected_capture_count": 1225,
+      "convergence_iterations": 3,
+      "plan_digest": "b3d56ba78d6f251ffa85bc48a13e2ec05d1d8f9e0b0f283a140cf16a82af3296",
+      "completed_at": "2026-08-21T07:03:49.174Z",
+      "unexpected_serious_diagnostic_count": 0,
+      "successful_unsafe_request_count": 0,
+      "checksums_file_sha256": "c7c62732bae7d235a95d9fa01dbca46eec5df8c9f4d67c703cea61f28ffe6da4",
+      "reports_pdf_validation": "PASS",
+      "shareable_review": "PASS",
+      "status": "PASS"
+    },
+    {
+      "run_id": "20260821T071539Z-tier2-full-72dcf5579fd5",
+      "tier": "tier-2-production-clone",
+      "provenance": "production-clone",
+      "scope": "full",
+      "candidate_sha": "72dcf5579fd5674624a0602af623acd7b61c7331",
+      "workers": 4,
+      "seed_capture_count": 1233,
+      "capture_count": 1245,
+      "expected_capture_count": 1245,
+      "convergence_iterations": 3,
+      "plan_digest": "b814ba8493975644f54fbfc700114782075cad54bf77feddcc009181f185b535",
+      "completed_at": "2026-08-21T07:50:03.688Z",
+      "unexpected_serious_diagnostic_count": 0,
+      "successful_unsafe_request_count": 0,
+      "checksums_file_sha256": "e2fcc882dd155d9333341b0172a3cb25505115b6e6415508458efe6e2296b11c",
+      "reports_pdf_validation": "PASS",
+      "shareable_review": "PASS",
+      "source_immutable": true,
+      "status": "PASS"
+    },
+    {
+      "run_id": "20260821T081323Z-tier3-smoke-72dcf5579fd5",
+      "tier": "tier-3-live-production",
+      "provenance": "production-live",
+      "scope": "smoke",
+      "candidate_sha": "72dcf5579fd5674624a0602af623acd7b61c7331",
+      "deployed_sha": "72dcf5579fd5674624a0602af623acd7b61c7331",
+      "workers": 4,
+      "seed_capture_count": 70,
+      "capture_count": 78,
+      "expected_capture_count": 78,
+      "convergence_iterations": 2,
+      "plan_digest": "ff43b53bc24a54ab4e103111b9b38d6945e8419e25a6928f913cc00211b998e2",
+      "completed_at": "2026-08-21T08:17:08.281Z",
+      "unexpected_serious_diagnostic_count": 0,
+      "successful_unsafe_request_count": 0,
+      "checksums_file_sha256": "c2cff8010b14f817c645761a7b813a5d3e931b547ef6c18a83b639f66d9e28d1",
+      "reports_pdf_validation": "PASS",
+      "shareable_review": "PASS",
+      "status": "PASS"
+    },
+    {
+      "run_id": "20260821T082411Z-tier3-full-72dcf5579fd5",
+      "tier": "tier-3-live-production",
+      "provenance": "production-live",
+      "scope": "full",
+      "candidate_sha": "72dcf5579fd5674624a0602af623acd7b61c7331",
+      "deployed_sha": "72dcf5579fd5674624a0602af623acd7b61c7331",
+      "workers": 4,
+      "seed_capture_count": 1179,
+      "capture_count": 1191,
+      "expected_capture_count": 1191,
+      "convergence_iterations": 3,
+      "plan_digest": "403f0b2797d71559cf8e49821c17acee2d73bcc76e1c6e51b0dfcd4254bfc6be",
+      "completed_at": "2026-08-21T08:59:52.785Z",
+      "unexpected_serious_diagnostic_count": 0,
+      "successful_unsafe_request_count": 0,
+      "checksums_file_sha256": "5d74a0c689e16a04eaccfe598f450c4f8739a811bbc743b59415f881b3a5b632",
+      "reports_pdf_validation": "PASS",
+      "shareable_review": "PASS",
+      "status": "PASS"
+    }
+  ],
+  "deployment": {
+    "deployed_sha": "72dcf5579fd5674624a0602af623acd7b61c7331",
+    "image_tag": "kenmatch-kenmatch:72dcf5579fd5674624a0602af623acd7b61c7331",
+    "image_id": "sha256:efecce3200715d8feca698cb0054bcc354cfe23a35562a84fa763457fe7c1c56",
+    "local_manifest_digest": "sha256:5fd83646a55769207c78c9379f8acaa5391dda2017a11f26b03a179251055de7",
+    "image_archive_bytes": 88125440,
+    "image_archive_sha256": "1b382bb75f201e93abc60ed7a5b3e8b2fc68953aa57bf5ecf3127fc6464330eb",
+    "normal_environment_restored_at": "2026-08-21T09:09:09.850Z",
+    "app_health": "healthy",
+    "app_restart_count": 0,
+    "app_oom_killed": false,
+    "tunnel_status": "running",
+    "tunnel_restart_count": 0,
+    "readiness": {
+      "ok": true,
+      "database_mode": "local-file",
+      "maintenance": false
+    },
+    "audit_tier_present": false,
+    "audit_token_present": false,
+    "test_auth_enabled": false,
+    "test_auth_token_present": false,
+    "rollback_material_retained": true
+  },
+  "ephemeral_live_audit_cleanup": {
+    "account_rows_removed": 1,
+    "profile_rows_removed": 1,
+    "session_rows_removed": 2,
+    "audit_log_rows_removed": 2,
+    "attestation_rows_removed": 1,
+    "residual_rows": 0,
+    "database_quick_check": "ok",
+    "nas_audit_env_removed": true
+  },
+  "candidate_validation": {
+    "root_lint": "PASS",
+    "root_typecheck": "PASS",
+    "root_tests": "121/121 PASS",
+    "root_build": "PASS",
+    "visual_audit_tests": "79/79 PASS",
+    "visual_audit_build": "PASS",
+    "exact_image_build": "PASS",
+    "note": "Final closure validation is rerun after ledger and documentation reconciliation and reported separately."
+  },
+  "capability_reconciliation": [
+    {
+      "capability": "Product truth, FAQ, glossary, and contact",
+      "status": "DONE",
+      "evidence": "Searchable FAQ/glossary, product-truth matrix, contact persistence/mail fallback, focused tests, and Tier 1/2/3 browser archives."
+    },
+    {
+      "capability": "Auth and immediate session transitions",
+      "status": "DONE",
+      "evidence": "Shared client auth controls, server cookie/session invalidation, focused tests, and authenticated archive states."
+    },
+    {
+      "capability": "Discovery, ranking, search, categories, and lanes",
+      "status": "DONE",
+      "evidence": "Database-backed bounded discovery, deterministic taxonomy visuals/links, filter reset/search controls, 100,000-row tests, and full archives."
+    },
+    {
+      "capability": "Intake, moderation, appeals, and governance",
+      "status": "DONE",
+      "evidence": "Private intake, deterministic checks, role boundaries, conflict/recusal, dual control, append-only outcomes, tests, and browser evidence."
+    },
+    {
+      "capability": "Lifecycle, capacity, checkpoints, and output quality",
+      "status": "DONE",
+      "evidence": "Shared eight-stage lifecycle, explicit lanes and stop reasons, append-only run decisions, artifact release gates, tests, and archived states."
+    },
+    {
+      "capability": "OLED/Light visual system, responsive text, and assets",
+      "status": "DONE",
+      "evidence": "Central tokens, SVG-first brand/category assets, bounded typography, rainbow interactions, nine viewports, both themes, accessibility checks, and reviewed archives."
+    },
+    {
+      "capability": "Admin visitor map and historical analytics",
+      "status": "DONE",
+      "evidence": "Interactive country map, privacy-safe aggregates, historical periods/comparisons, accessible chart tables, tests, and archived admin states."
+    },
+    {
+      "capability": "SEO and community launch surfaces",
+      "status": "DONE",
+      "evidence": "Canonical/noindex policy, sitemap/robots, structured data, response audit, ethical launch docs, and non-authoritative community linking."
+    },
+    {
+      "capability": "Deterministic visual release archive",
+      "status": "DONE",
+      "evidence": "Worker equivalence benchmark plus validated Tier 1 smoke/full, Tier 2 full, and Tier 3 smoke/full archives with reports, PDFs, checksums, and zero unsafe successes."
+    },
+    {
+      "capability": "Production deployment and rollback",
+      "status": "DONE",
+      "evidence": "Fresh source snapshot, exact image transfer/deploy, healthy app/tunnel, retained rollback material, live-readonly validation, normal-env restoration, and cleanup."
+    }
+  ],
+  "scope_boundaries": [
+    "No blockchain, tradable token, soulbound token, DAO, or decentralized compute network is part of the current prototype.",
+    "No autonomous frontier-model execution provider is configured; visible run and economics records remain clearly labeled sandbox demonstrations.",
+    "No irreversible legal, corporate, purchasing, or third-party account action is authorized by repository work.",
+    "Cloudflare Tunnel is the deployed public-ingress path; direct router exposure and the DSM reverse-proxy fallback are not used.",
+    "Local SQLite is appropriate for the bounded single-node prototype; a stable production database remains a future scale migration."
+  ]
+}

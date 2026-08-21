@@ -35,6 +35,11 @@ Create a project folder, for example:
 /volume1/docker/kenmatch
 ```
 
+`/volume1/docker/kenmatch` is an example only. Use one resolved project root
+consistently; installations on another storage pool may use a path such as
+`/volume2/docker_ssd/kenmatch`. Each backup, restore, or deployment command uses
+that same resolved root.
+
 Copy the repository there by SSH, SMB, or File Station.
 
 Example SSH flow:

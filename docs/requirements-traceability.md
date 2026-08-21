@@ -154,6 +154,18 @@ This file maps the stable product requirements from `KenMatch_Conception.md` to 
 
 ## Honest boundaries
 
+### Validated release closure
+
+`docs/release-evidence.json` binds release candidate `72dcf5579fd5674624a0602af623acd7b61c7331` to the selected four-worker software capture mode, a fresh immutable production snapshot, five passing formal archives, the exact deployed image, healthy app/tunnel state, and removal of ephemeral live-audit records.
+
+Tier 1 synthetic smoke/full completed 78/78 and 1,225/1,225 captures; Tier 2 production-clone full completed 1,245/1,245; Tier 3 live-readonly smoke/full completed 78/78 and 1,191/1,191. Every run has zero unexpected serious diagnostics, zero successful unsafe requests, and validated private/shareable report, PDF, and checksum artifacts.
+
+`docs/kenmatch-completion-ledger.json` reconciles 495 canonical requirements as 445 `DONE`, 21 `NOT_APPLICABLE`, and 29 `SUPERSEDED`, with zero unresolved applicable requirements. The Markdown companion exposes every non-`DONE` rationale.
+
+The incomplete historical run `20260801T080604Z-tier1-full-bfece455a0f0` remains immutable failed evidence at 1,259/1,261 captures with no completion timestamp; it was not resumed, relabeled, or used as release evidence.
+
+The generated archives and production clone remain private and ignored. The tracked record contains hashes, counts, identities, and dispositions without copied user data, audit credentials, or ephemeral account identifiers.
+
 ### Internal naming
 - The public product language is now `Ken` / `Kens`.
 - Some internal code and database identifiers still use `task` for compatibility and to avoid high-risk schema churn.

@@ -310,3 +310,31 @@ The release gate is:
 If NAS credentials, a production clone, or the deployed audit token are not
 available, record that exact external dependency. Synthetic evidence is not a
 substitute for tier 2 or tier 3.
+
+## Validated 2026-08-21 release evidence
+
+Release candidate `72dcf5579fd5674624a0602af623acd7b61c7331` completed the
+formal sequence with four capture workers and
+`chromium-headless-software`:
+
+| Tier | Run | Seed | Final | Convergence | Result |
+|---|---|---:|---:|---:|---|
+| Tier 1 smoke | `20260821T062224Z-tier1-smoke-72dcf5579fd5` | 70 | 78/78 | 2 iterations | PASS |
+| Tier 1 full | `20260821T063038Z-tier1-full-72dcf5579fd5` | 1,215 | 1,225/1,225 | 3 iterations | PASS |
+| Tier 2 full | `20260821T071539Z-tier2-full-72dcf5579fd5` | 1,233 | 1,245/1,245 | 3 iterations | PASS |
+| Tier 3 smoke | `20260821T081323Z-tier3-smoke-72dcf5579fd5` | 70 | 78/78 | 2 iterations | PASS |
+| Tier 3 full | `20260821T082411Z-tier3-full-72dcf5579fd5` | 1,179 | 1,191/1,191 | 3 iterations | PASS |
+
+All five runs recorded zero unexpected serious diagnostics and zero successful
+unsafe requests. Private and redacted shareable HTML, PDF, validation, and
+checksum artifacts passed. The fresh Tier 2 source snapshot matched locally and
+remotely, passed SQLite `quick_check`, and remained immutable. After Tier 3, the
+normal production environment was restored, the app and tunnel were healthy
+with zero restarts and no OOM event, audit/test-auth configuration was absent,
+and all ephemeral audit account rows were removed.
+
+The earlier run `20260801T080604Z-tier1-full-bfece455a0f0` is preserved as
+immutable failed evidence. It stopped at 1,259 of 1,261 converged captures with
+no `completedAt`; it was never resumed or promoted. The sanitized hashes,
+converged-plan digests, deployment identity, cleanup proof, and exact run
+records are tracked in `docs/release-evidence.json`.

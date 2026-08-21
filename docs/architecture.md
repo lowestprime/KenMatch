@@ -207,6 +207,9 @@ Admin audit history is fetched with `listAuditLogPage` in `src/lib/db.ts`. Filte
   suppressed for validated safe audit requests and unsafe methods return 409.
   The threat model, evidence tiers, operator commands, artifact contract, and
   retention policy live in `docs/visual-archive.md`.
+- `docs/release-evidence.json` is the sanitized exact-candidate closure record;
+  `scripts/generate-completion-ledger.mjs` validates it before producing the
+  requirement dispositions in `docs/kenmatch-completion-ledger.{json,md}`.
 - `docker-compose.synology.yml` mounts persistent app data, uses a read-only root filesystem, tmpfs for `/tmp`, and binds only to loopback.
 - `docker-compose.synology.tunnel.yml` adds a `cloudflared` sidecar option for Synology-hosted public deployments.
 - `public/.gitkeep`, the exact SVG/PNG/ICO icon family, and the static `og-image.png` / `share-image.png` pair keep browser and preview metadata byte-stable; `npm run start` copies those assets into `.next/standalone` before launching the standalone server.

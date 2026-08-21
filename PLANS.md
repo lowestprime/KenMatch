@@ -15,13 +15,13 @@ This task is not just a UI refresh. It combines:
 This file is not a substitute for implementation.
 If active, it must stay current as the work progresses.
 
-## Active completion program — 2026-07-27
+## Active completion program — 2026-08-21
 
 - Task title: Comprehensive product completion, governance, ranking resilience, and deterministic visual archive
 - Source of truth: the July 27, 2026 completion program and its generated claim/constraint ledger
 - Branch: `codex/kenmatch-completion-visual-archive-20260727`
-- Status: IN PROGRESS
-- Last updated: 2026-07-28
+- Status: RELEASE VALIDATED; FINAL RECONCILIATION IN PROGRESS
+- Last updated: 2026-08-21
 
 ### Current evidence
 
@@ -37,14 +37,15 @@ If active, it must stay current as the work progresses.
 | G. Historical admin analytics | DONE | Privacy-safe daily aggregates; 7/30/90/365-day and day/week/month views; equal previous-period comparisons; account, country, visitor-mix, and delivery health; 400-day retention; no raw request metadata; accessible SVG/table surfaces; focused tests, production build, database inspection, and desktop/mobile browser evidence |
 | H. Technical SEO and launch strategy | DONE | Public-only dynamic sitemap, robots/noindex/canonical policy, route metadata and schemas, current-intent research, ethical launch docs, non-authoritative r/kenmatch integration, 92-test/static/build checks, desktop/mobile browser evidence, and matching development plus standalone production response audits |
 | I. Capacity and output resilience | DONE | Committed-unrestricted coverage state machine; restrictive manual controls; protected-work and recovery rules; ten reason-coded stop paths; append-only checkpoint/correction/stop/release events; explicit artifact/digest release gates; public quality history; objective/subjective matrix; 98-test/static/build checks; isolated desktop/mobile browser and admin-mutation evidence |
-| J. Deterministic visual archive | TODO | Read-only/live and snapshot-lab harness, provenance, route/state inventories, screenshots, diagnostics, artifacts, retention, and runbook remain |
-| K. Final validation and release evidence | TODO | Full matrix validation, archive review, deployment, live parity, and final ledger disposition remain |
+| J. Deterministic visual archive | DONE | Four-worker deterministic coordinator, convergence/resume identity, request safety, private/shareable reports and PDFs, checksums, and validated Tier 1 synthetic, Tier 2 production-clone, and Tier 3 live-readonly smoke/full archives |
+| K. Final validation and release evidence | IN PROGRESS | Exact candidate `72dcf5579fd5674624a0602af623acd7b61c7331` deployed healthy and validated live; ephemeral audit data removed; final ledger/docs, exact-head checks, and repository publication remain |
 
 ### Completion controls
 
 - `scripts/generate-completion-ledger.mjs` regenerates the auditable claim and constraint inventory.
 - `docs/kenmatch-completion-ledger.json` is the machine-readable state record.
 - `docs/kenmatch-completion-ledger.md` is the reviewer-facing state record.
+- `docs/release-evidence.json` binds the exact candidate, benchmark decision, formal runs, deployment, cleanup, and scope boundaries used for final disposition.
 - A workstream moves to DONE only after its implementation, focused tests, project checks, and direct UI or artifact evidence are all recorded.
 - The earlier April plan below remains historical context. Its workstream letters are not aliases for the July completion program.
 
