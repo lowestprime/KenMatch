@@ -2,7 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
-function delegatesPermissionsToWindowsHost(entryPath: string) {
+export function delegatesPermissionsToWindowsHost(entryPath: string) {
   if (process.env.AUDIT_HOST_FILESYSTEM !== "windows-ntfs-bind") return false;
   const candidate = path.resolve(entryPath);
   return [process.env.RUN_OUTPUT_ROOT, process.env.AUDIT_TMP_ROOT]

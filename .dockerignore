@@ -12,6 +12,7 @@ deploy-backups/
 .tmp/
 visual-audits/
 visual-audit/.auth/
+visual-audit/.benchmarks/
 visual-audit/.secrets/
 visual-audit/.state/
 visual-audit/storage-state*.json

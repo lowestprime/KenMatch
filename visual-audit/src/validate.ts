@@ -26,6 +26,7 @@ import type {
 } from "./types.js";
 import { expectedLegacyRedirectLocation } from "./legacy-redirect.js";
 import {
+  delegatesPermissionsToWindowsHost,
   fileSha256,
   hardenPermissions,
   readJson,
@@ -414,8 +415,8 @@ function secretLeaks(config: AuditConfig) {
   return leaks;
 }
 
-function permissionFailures(root: string) {
-  if (process.platform === "win32") return [];
+export function permissionFailures(root: string) {
+  if (process.platform === "win32" || delegatesPermissionsToWindowsHost(root)) return [];
   const failures: string[] = [];
   const walk = (entryPath: string) => {
     const stats = fs.lstatSync(entryPath);

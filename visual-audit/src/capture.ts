@@ -24,6 +24,7 @@ import { normalizeRenderedRoutes } from "./rendered-routes.js";
 import {
   classifyCaptureRequestFailure,
   classifyCaptureRequest,
+  isExpectedBrowserPolicyConsoleMessage,
 } from "./policy.js";
 import { settlePage } from "./settle.js";
 import {
@@ -614,8 +615,10 @@ async function captureOne(input: {
   }> = [];
   page.on("console", (message) => {
     if (message.type() === "error" || message.type() === "warning") {
-      const expected = job.target.route.startsWith("/visual-audit-not-found")
-        && message.text().includes("404");
+      const expected = (
+        job.target.route.startsWith("/visual-audit-not-found")
+        && message.text().includes("404")
+      ) || isExpectedBrowserPolicyConsoleMessage(message.text());
       addDiagnostic(
         accumulator,
         job,

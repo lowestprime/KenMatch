@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import test from "node:test";
 
 import {
+  permissionFailures,
   renderedRouteDispositionFailures,
   stateCovered,
 } from "./validate.js";
@@ -170,4 +174,35 @@ test("smoke validation accepts a documented captured baseline for an unsampled p
   });
 
   assert.deepEqual(failures, []);
+});
+
+test("permission validation delegates mode enforcement for a declared Windows NTFS bind", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "kenmatch-audit-permissions-"));
+  const file = path.join(root, "manifest.json");
+  const previousHostFilesystem = process.env.AUDIT_HOST_FILESYSTEM;
+  const previousOutputRoot = process.env.RUN_OUTPUT_ROOT;
+  const previousTmpRoot = process.env.AUDIT_TMP_ROOT;
+  try {
+    fs.writeFileSync(file, "{}\n");
+    if (process.platform !== "win32") {
+      fs.chmodSync(root, 0o777);
+      fs.chmodSync(file, 0o666);
+      process.env.AUDIT_HOST_FILESYSTEM = "native";
+      process.env.RUN_OUTPUT_ROOT = root;
+      assert.ok(permissionFailures(root).length >= 2);
+    }
+
+    process.env.AUDIT_HOST_FILESYSTEM = "windows-ntfs-bind";
+    process.env.RUN_OUTPUT_ROOT = root;
+    process.env.AUDIT_TMP_ROOT = path.join(root, "tmp");
+    assert.deepEqual(permissionFailures(root), []);
+  } finally {
+    if (previousHostFilesystem === undefined) delete process.env.AUDIT_HOST_FILESYSTEM;
+    else process.env.AUDIT_HOST_FILESYSTEM = previousHostFilesystem;
+    if (previousOutputRoot === undefined) delete process.env.RUN_OUTPUT_ROOT;
+    else process.env.RUN_OUTPUT_ROOT = previousOutputRoot;
+    if (previousTmpRoot === undefined) delete process.env.AUDIT_TMP_ROOT;
+    else process.env.AUDIT_TMP_ROOT = previousTmpRoot;
+    fs.rmSync(root, { recursive: true, force: true });
+  }
 });

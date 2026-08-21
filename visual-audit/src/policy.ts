@@ -77,6 +77,10 @@ export function classifyCaptureRequestFailure(input: {
   return "serious" as const;
 }
 
+export function isExpectedBrowserPolicyConsoleMessage(message: string) {
+  return message.includes("Failed to load resource: net::ERR_BLOCKED_BY_CLIENT");
+}
+
 export function classifyCaptureRequest(input: {
   method: string;
   requestUrl: string;

@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   classifyCaptureRequestFailure,
   classifyCaptureRequest,
+  isExpectedBrowserPolicyConsoleMessage,
   isExpectedRscLifecycleAbort,
   isExpectedSettledNavigationAbort,
   isInventoryRequest,
@@ -89,4 +90,19 @@ test("only a successfully settled same-origin navigation abort is suppressed", (
   assert.equal(classifyCaptureRequestFailure({ ...expected, finalUrl: `${BASE}/people/other` }), "serious");
   assert.equal(classifyCaptureRequestFailure({ ...expected, requestUrl: "https://example.com/people/canonical-user" }), "serious");
   assert.equal(classifyCaptureRequestFailure({ ...expected, failure: "net::ERR_FAILED" }), "serious");
+});
+
+test("browser-policy console echoes are expected without hiding other failures", () => {
+  assert.equal(
+    isExpectedBrowserPolicyConsoleMessage("Failed to load resource: net::ERR_BLOCKED_BY_CLIENT.Inspector"),
+    true,
+  );
+  assert.equal(
+    isExpectedBrowserPolicyConsoleMessage("Failed to load resource: net::ERR_FAILED"),
+    false,
+  );
+  assert.equal(
+    isExpectedBrowserPolicyConsoleMessage("Application error: ERR_BLOCKED_BY_CLIENT"),
+    false,
+  );
 });
