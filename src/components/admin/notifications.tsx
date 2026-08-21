@@ -43,7 +43,7 @@ export function AdminNotifications({
         />
         <ToggleRow
           name="notifyOnFirstVisit"
-          label="Email on first visit from a new unique IP"
+          label="Email on first visit from a new salted visitor signature"
           defaultChecked={settings.notifyOnFirstVisit}
         />
         <ToggleRow
@@ -55,6 +55,16 @@ export function AdminNotifications({
           name="notifyOnProposal"
           label="Email when a new Ken is submitted"
           defaultChecked={settings.notifyOnProposal}
+        />
+        <ToggleRow
+          name="notifyOnCategoryProposal"
+          label="Email when a new category is proposed"
+          defaultChecked={settings.notifyOnCategoryProposal}
+        />
+        <ToggleRow
+          name="notifyOnReviewDecision"
+          label="Email submitters when review outcomes change"
+          defaultChecked={settings.notifyOnReviewDecision}
         />
         <ToggleRow
           name="dailyDigest"

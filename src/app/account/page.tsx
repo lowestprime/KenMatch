@@ -4,18 +4,23 @@ import { redirect } from "next/navigation";
 import { AccountSavedItems } from "@/components/account-saved-items";
 import { Avatar } from "@/components/avatar";
 import { ProfileEditor } from "@/components/profile-editor";
+import { SubmissionReviewStatus } from "@/components/submission-review-status";
 import { VerificationPanel } from "@/components/verification-panel";
 import { getProfilePageData } from "@/lib/db";
 import { listSavedDiscussionItems } from "@/lib/discussion-db";
+import { buildPrivateMetadata } from "@/lib/seo";
 import { getViewerSession } from "@/lib/session";
 
-export const metadata = { title: "Account" };
+export const metadata = buildPrivateMetadata(
+  "Account",
+  "Private KenMatch account, profile, verification, saved items, and submission-review controls.",
+);
 
 export default async function AccountPage() {
   const viewer = await getViewerSession();
   if (!viewer) redirect("/auth");
   const [data, savedDiscussion] = await Promise.all([
-    getProfilePageData(viewer.profile.id),
+    getProfilePageData(viewer.profile.id, viewer.profile.id),
     listSavedDiscussionItems(viewer.profile.id),
   ]);
   if (!data) redirect("/auth");
@@ -119,10 +124,25 @@ export default async function AccountPage() {
       </section>
 
       <section className="panel grid gap-3">
-        <h2>My Kens</h2>
+        <span className="eyebrow">Private intake dashboard</span>
+        <h2 id="submission-reviews">Submission review status</h2>
+        <p className="text-sm leading-7 text-muted">
+          Track readiness checks, reviewer notes, assignments, decisions, and appeals. Private reviewer notes are never included here.
+        </p>
+        {data.privateReviews ? (
+          <SubmissionReviewStatus
+            categories={data.privateReviews.categories}
+            kens={data.privateReviews.kens}
+            events={data.privateReviews.events}
+          />
+        ) : null}
+      </section>
+
+      <section className="panel grid gap-3">
+        <h2>Public Kens</h2>
         {data.ownTasks.length === 0 ? (
           <p style={{ color: "var(--muted)" }}>
-            You haven&apos;t submitted a Ken yet. <Link href="/submit" className="underline">Submit one</Link>.
+            None of your Kens are public yet. Pending and finalized intake records appear above.
           </p>
         ) : (
           <ul className="grid gap-2">

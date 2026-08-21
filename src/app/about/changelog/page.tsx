@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { permanentRedirect } from "next/navigation";
 
 export const metadata = {
   title: "Changelog",
@@ -6,5 +6,5 @@ export const metadata = {
 };
 
 export default function ChangelogPage() {
-  redirect("/about#changelog");
+  permanentRedirect("/about#changelog");
 }

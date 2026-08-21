@@ -91,7 +91,12 @@ export function buildCategoryRankings(tasks: RankingSeed[]): Map<string, Ranking
           return left.createdAt.localeCompare(right.createdAt);
         }
 
-        return left.title.localeCompare(right.title);
+        const titleDelta = left.title.localeCompare(right.title);
+        if (titleDelta !== 0) {
+          return titleDelta;
+        }
+
+        return left.id.localeCompare(right.id);
       });
 
     eligible.forEach((task, index) => {

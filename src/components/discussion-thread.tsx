@@ -6,6 +6,7 @@ import { useActionState, useMemo, useState } from "react";
 import { initialActionState } from "@/app/action-state";
 import { createCommentAction, saveCommentVoteAction } from "@/app/actions";
 import { Avatar } from "@/components/avatar";
+import { profilePath } from "@/lib/profile-route";
 import type { DiscussionComment } from "@/lib/types";
 import { describeRelativeTime, formatDateTime } from "@/lib/utils";
 
@@ -116,6 +117,7 @@ function CommentComposer({
       {parentId ? <input type="hidden" name="parentId" value={parentId} /> : null}
       <textarea
         name="body"
+        aria-label={parentId ? "Reply text" : "Comment text"}
         rows={parentId ? 3 : 4}
         className="field"
         placeholder={
@@ -228,7 +230,10 @@ function CommentNode({
               }}
               size={26}
             />
-            <Link href={`/people/${comment.profileId}`} className="comment-author">
+            <Link
+              href={profilePath({ id: comment.profileId, username: comment.profileUsername })}
+              className="comment-author"
+            >
               {comment.profileName}
             </Link>
             {badgeClass ? <span className={badgeClass}>{systemRole}</span> : null}

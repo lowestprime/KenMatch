@@ -1,8 +1,12 @@
 import Link from "next/link";
 
 import { ForgotPasswordForm } from "@/components/forgot-password-form";
+import { buildPrivateMetadata } from "@/lib/seo";
 
-export const metadata = { title: "Forgot password" };
+export const metadata = buildPrivateMetadata(
+  "Forgot password",
+  "Request a private KenMatch account password-reset link.",
+);
 
 export default function ForgotPasswordPage() {
   return (

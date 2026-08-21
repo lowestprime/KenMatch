@@ -3,36 +3,6 @@ export function ReleaseHardeningStyles() {
     <style
       dangerouslySetInnerHTML={{
         __html: `
-:root{
-  --color-background:#eadcff;
-  --color-foreground:#12071f;
-  --color-panel:#fbf7ff;
-  --color-muted:#645670;
-  --color-border:rgba(76,29,149,.22);
-  --color-teal:#1d4ed8;
-  --color-ember:#991b1b;
-  --color-gold:#b08d1a;
-  --mark-front:#03020a;
-  --mark-front-muted-1:#1d4ed8;
-  --mark-front-muted-2:#6d28d9;
-  --danger:#991b1b;
-  --danger-soft:rgba(153,27,27,.14);
-}
-html[data-theme="oled"],html[data-theme="dark"]{
-  --color-background:#000;
-  --color-foreground:#f8fafc;
-  --color-panel:#000;
-  --color-muted:#a99fba;
-  --color-border:rgba(196,181,253,.16);
-  --color-teal:#1d4ed8;
-  --color-ember:#991b1b;
-  --color-gold:#b08d1a;
-  --mark-front:#f8fafc;
-  --mark-front-muted-1:#1d4ed8;
-  --mark-front-muted-2:#6d28d9;
-  --danger:#dc2626;
-  --danger-soft:rgba(153,27,27,.18);
-}
 html,body,.site-frame{background-color:var(--page)}
 html[data-theme="oled"],html[data-theme="oled"] body,html[data-theme="oled"] .site-frame,html[data-theme="dark"],html[data-theme="dark"] body,html[data-theme="dark"] .site-frame{background-color:#000}
 select.field{background-color:color-mix(in srgb,var(--panel-strong) 96%,transparent);color:var(--ink);accent-color:var(--accent-glow)}

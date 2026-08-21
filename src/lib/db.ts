@@ -26,7 +26,63 @@ import {
   } from "@/lib/allocation";
 import { summarizeEconomics,
   summarizeRevenueStream } from "@/lib/economics";
-import { env, isAdminEmail, isOwnerEmail, canonicalOrigin, notificationEmails, ownerEmail, smtpConfigured } from "@/lib/env";
+import {
+  DEFAULT_CAPACITY_OVERRIDE,
+  deriveAutomaticCapacityState,
+  isRunDecisionCompatible,
+  resolveCapacityState,
+  runDecisionTransition,
+} from "@/lib/run-governance";
+import {
+  INSERT_RUN_DECISION_SQL,
+  RUN_DECISION_SCHEMA_STATEMENTS,
+} from "@/lib/run-governance-schema";
+import {
+  DEFAULT_MARKETPLACE_PAGE_SIZE,
+  getDiscoveryReasons,
+  normalizeMarketplacePage,
+  normalizeMarketplacePageSize,
+  normalizeMarketplaceQuery,
+} from "@/lib/discovery";
+import {
+  escapeAuditLikePattern,
+  normalizeAuditLogFilters,
+  type AuditLogPage,
+} from "@/lib/audit-log";
+import {
+  analyticsBucketSql,
+  analyticsPeriod,
+  buildAnalyticsBuckets,
+  normalizeAnalyticsFilters,
+  VISITOR_ANALYTICS_RETENTION_DAYS,
+  type AdminHistoricalAnalytics,
+  type AnalyticsSummaryValues,
+} from "@/lib/admin-analytics";
+import {
+  evaluateCategoryIntake,
+  evaluateKenIntake,
+  normalizeReviewText,
+  normalizedReviewSlug,
+  parseIntakeResult,
+  type CategoryIntakeResult,
+  type KenIntakeResult,
+} from "@/lib/intake-review";
+import {
+  assertReviewActionAuthorized,
+  decisionNeedsPublicReason,
+  isSameFinalDecision,
+  isReviewerRole,
+  nextReviewStatus,
+  type ReviewAction,
+} from "@/lib/review-policy";
+import {
+  INSERT_APPROVED_CATEGORY_SQL,
+  INSERT_REVIEW_EVENT_SQL,
+  REVIEW_SCHEMA_STATEMENTS,
+} from "@/lib/review-schema";
+import { PUBLIC_CONTENT_LAST_MODIFIED_SQL } from "@/lib/seo-sitemap";
+import { profilePath } from "@/lib/profile-route";
+import { env, isAdminEmail, isOwnerEmail, canonicalOrigin, notificationEmails, ownerEmail, smtpConfigured, visitorHashSalt } from "@/lib/env";
 import {
   seedCategories,
   seedCheckpoints,
@@ -45,6 +101,7 @@ import {
   seedCommentVotes,
   seedProfileAttestations,
   seedRevenueStreams,
+  seedRunDecisions,
   seedRunUpdates,
   seedSponsorshipCommitments,
   seedTaskFinance,
@@ -59,6 +116,9 @@ import type {
   AdminNotificationSettings,
   AuditLogRecord,
   BookmarkRecord,
+  CapacityOverrideState,
+  CapacityState,
+  CapacityStateResolution,
   ChangelogEntryRecord,
   ContactAttachmentRecord,
   ContactSubmissionRecord,
@@ -76,12 +136,18 @@ import type {
   HomepageMetrics,
   MaintenanceState,
   MarketplaceFilters,
+  KenSubmissionRecord,
   ProfileAttestationRecord,
   ProfileLink,
   ProfileRecord,
   ProfileSummary,
   RevenueStreamRecord,
   RevenueStreamSummary,
+  ReviewEntityType,
+  ReviewEventAction,
+  ReviewEventRecord,
+  ReviewQueuePage,
+  RunDecisionEventRecord,
   RunUpdateRecord,
   SearchResultItem,
   SessionRecord,
@@ -108,6 +174,12 @@ import { FAQ_ENTRIES } from "@/lib/faq";
 import { laneVisuals } from "@/lib/taxonomy";
 import { configEncryptionAvailable, decryptConfigSecret, encryptConfigSecret } from "@/lib/config-crypto";
 import { TEST_AUTH_USERS, type TestAuthMode } from "@/lib/test-auth";
+import {
+  redactCategoryProposalForSubmitter,
+  redactKenSubmissionForPublic,
+  redactReviewEventForPublic,
+} from "@/lib/review-redaction";
+import { hashPrivateIdentifier } from "@/lib/privacy";
 
 type DbRow = Record<string, Value>;
 
@@ -327,6 +399,25 @@ async function initializeDatabase() {
         pageViews INTEGER NOT NULL DEFAULT 1,
         accountCreated INTEGER NOT NULL DEFAULT 0
       )`,
+      `CREATE TABLE IF NOT EXISTS visitor_daily_activity (
+        day TEXT NOT NULL,
+        visitorId TEXT NOT NULL,
+        countryCode TEXT,
+        countryName TEXT,
+        pageViews INTEGER NOT NULL DEFAULT 1,
+        firstSeenAt TEXT NOT NULL,
+        lastSeenAt TEXT NOT NULL,
+        PRIMARY KEY (day, visitorId),
+        FOREIGN KEY (visitorId) REFERENCES visitors(id) ON DELETE CASCADE
+      )`,
+      `CREATE TABLE IF NOT EXISTS notification_delivery_events (
+        id TEXT PRIMARY KEY,
+        purpose TEXT NOT NULL,
+        status TEXT NOT NULL,
+        transportSource TEXT NOT NULL,
+        recipientCount INTEGER NOT NULL DEFAULT 0,
+        createdAt TEXT NOT NULL
+      )`,
       `CREATE TABLE IF NOT EXISTS site_settings (
         key TEXT PRIMARY KEY,
         value TEXT NOT NULL,
@@ -378,7 +469,13 @@ async function initializeDatabase() {
         exampleKens TEXT NOT NULL,
         reviewStatus TEXT NOT NULL DEFAULT 'pending',
         reviewNote TEXT,
+        internalReviewNote TEXT,
         reviewedBy TEXT,
+        assigneeAccountId TEXT,
+        mergedCategoryId TEXT,
+        intakeResultJson TEXT NOT NULL DEFAULT '{}',
+        reviewedAt TEXT,
+        firstApprovalBy TEXT,
         createdAt TEXT NOT NULL,
         updatedAt TEXT NOT NULL,
         FOREIGN KEY (proposerProfileId) REFERENCES profiles(id)
@@ -407,6 +504,7 @@ async function initializeDatabase() {
         FOREIGN KEY (categoryId) REFERENCES categories(id),
         FOREIGN KEY (proposerId) REFERENCES profiles(id)
       )`,
+      ...REVIEW_SCHEMA_STATEMENTS,
       `CREATE TABLE IF NOT EXISTS task_finance (
         taskId TEXT PRIMARY KEY,
         qualityBondCredits INTEGER NOT NULL,
@@ -540,6 +638,7 @@ async function initializeDatabase() {
         createdAt TEXT NOT NULL,
         FOREIGN KEY (taskId) REFERENCES tasks(id)
       )`,
+      ...RUN_DECISION_SCHEMA_STATEMENTS,
       `CREATE TABLE IF NOT EXISTS revenue_streams (
         id TEXT PRIMARY KEY,
         slug TEXT NOT NULL UNIQUE,
@@ -644,13 +743,21 @@ async function initializeDatabase() {
       "CREATE INDEX IF NOT EXISTS idx_votes_profileId ON votes(profileId)",
       "CREATE INDEX IF NOT EXISTS idx_votes_taskId ON votes(taskId)",
       "CREATE INDEX IF NOT EXISTS idx_tasks_categoryId ON tasks(categoryId)",
+      "CREATE INDEX IF NOT EXISTS idx_tasks_discovery ON tasks(stage, safetyStatus, categoryId, createdAt, id)",
+      "CREATE INDEX IF NOT EXISTS idx_tasks_category_discovery ON tasks(categoryId, stage, safetyStatus, createdAt, id)",
+      "CREATE INDEX IF NOT EXISTS idx_votes_task_signal ON votes(taskId, voteCount, updatedAt)",
       "CREATE INDEX IF NOT EXISTS idx_category_proposals_status ON category_proposals(reviewStatus)",
       "CREATE INDEX IF NOT EXISTS idx_category_proposals_proposer ON category_proposals(proposerProfileId)",
       "CREATE INDEX IF NOT EXISTS idx_comments_taskId ON comments(taskId)",
+      "CREATE INDEX IF NOT EXISTS idx_comments_task_activity ON comments(taskId, createdAt)",
       "CREATE INDEX IF NOT EXISTS idx_comment_votes_commentId ON comment_votes(commentId)",
       "CREATE INDEX IF NOT EXISTS idx_run_updates_taskId ON run_updates(taskId)",
+      "CREATE INDEX IF NOT EXISTS idx_run_updates_task_activity ON run_updates(taskId, createdAt)",
+      "CREATE INDEX IF NOT EXISTS idx_checkpoints_task_status ON checkpoints(taskId, status, dueAt)",
+      "CREATE INDEX IF NOT EXISTS idx_governance_events_task_activity ON governance_events(taskId, createdAt)",
       "CREATE INDEX IF NOT EXISTS idx_sessions_tokenHash ON sessions(tokenHash)",
       "CREATE INDEX IF NOT EXISTS idx_task_pulse_votes_taskId ON task_pulse_votes(taskId)",
+      "CREATE INDEX IF NOT EXISTS idx_task_pulse_votes_signal ON task_pulse_votes(taskId, value, updatedAt)",
       "CREATE INDEX IF NOT EXISTS idx_sponsorship_commitments_status ON sponsorship_commitments(status)",
       "CREATE INDEX IF NOT EXISTS idx_changelog_entries_visible ON changelog_entries(visible, entryDate)",
       "CREATE INDEX IF NOT EXISTS idx_contact_submissions_createdAt ON contact_submissions(createdAt)",
@@ -662,8 +769,14 @@ async function initializeDatabase() {
       "CREATE INDEX IF NOT EXISTS idx_email_tokens_purpose ON email_tokens(purpose)",
       "CREATE INDEX IF NOT EXISTS idx_visitors_firstSeenAt ON visitors(firstSeenAt)",
       "CREATE INDEX IF NOT EXISTS idx_visitors_countryCode ON visitors(countryCode)",
+      "CREATE INDEX IF NOT EXISTS idx_visitor_daily_activity_day ON visitor_daily_activity(day)",
+      "CREATE INDEX IF NOT EXISTS idx_visitor_daily_activity_country_day ON visitor_daily_activity(countryCode, day)",
+      "CREATE INDEX IF NOT EXISTS idx_notification_delivery_createdAt ON notification_delivery_events(createdAt)",
+      "CREATE INDEX IF NOT EXISTS idx_notification_delivery_status_createdAt ON notification_delivery_events(status, createdAt)",
+      "CREATE INDEX IF NOT EXISTS idx_accounts_createdAt ON accounts(createdAt)",
       "CREATE INDEX IF NOT EXISTS idx_audit_log_createdAt ON audit_log(createdAt)",
       "CREATE INDEX IF NOT EXISTS idx_audit_log_accountId ON audit_log(accountId)",
+      "CREATE INDEX IF NOT EXISTS idx_audit_log_action_createdAt ON audit_log(action, createdAt)",
     ],
     "write",
   );
@@ -690,6 +803,13 @@ async function initializeDatabase() {
   await ensureColumn(client, "profiles", "verificationRequestedAt", "TEXT");
   await ensureColumn(client, "profiles", "verificationNote", "TEXT");
   await ensureColumn(client, "categories", "symbolKey", "TEXT NOT NULL DEFAULT ''");
+  await ensureColumn(client, "category_proposals", "internalReviewNote", "TEXT");
+  await ensureColumn(client, "category_proposals", "assigneeAccountId", "TEXT");
+  await ensureColumn(client, "category_proposals", "mergedCategoryId", "TEXT");
+  await ensureColumn(client, "category_proposals", "intakeResultJson", "TEXT NOT NULL DEFAULT '{}'");
+  await ensureColumn(client, "category_proposals", "reviewedAt", "TEXT");
+  await ensureColumn(client, "category_proposals", "firstApprovalBy", "TEXT");
+  await client.execute("CREATE INDEX IF NOT EXISTS idx_category_proposals_assignee ON category_proposals(assigneeAccountId, reviewStatus, updatedAt)");
   await ensureColumn(client, "revenue_streams", "publicBenefitCovenant", "TEXT NOT NULL DEFAULT ''");
   await ensureColumn(client, "revenue_streams", "openDeliverableBoundary", "TEXT NOT NULL DEFAULT ''");
   await ensureColumn(client, "revenue_streams", "contributorDividendPercent", "INTEGER NOT NULL DEFAULT 0");
@@ -706,6 +826,12 @@ async function initializeDatabase() {
   await ensureColumn(client, "task_finance", "simulationSummary", "TEXT NOT NULL DEFAULT ''");
   await ensureColumn(client, "task_finance", "sampleOutcome", "TEXT NOT NULL DEFAULT ''");
   await ensureColumn(client, "task_finance", "sponsorAppeal", "TEXT NOT NULL DEFAULT ''");
+  await ensureColumn(client, "security_events", "networkHash", "TEXT");
+  await client.execute("UPDATE audit_log SET ipAddress = NULL WHERE ipAddress IS NOT NULL");
+  await client.execute("UPDATE contact_submissions SET ipAddress = NULL WHERE ipAddress IS NOT NULL");
+  await client.execute("UPDATE security_events SET ipAddress = NULL WHERE ipAddress IS NOT NULL");
+  await client.execute("UPDATE visitors SET region = NULL, city = NULL, latitude = NULL, longitude = NULL, userAgent = NULL WHERE region IS NOT NULL OR city IS NOT NULL OR latitude IS NOT NULL OR longitude IS NOT NULL OR userAgent IS NOT NULL");
+  await client.execute("DELETE FROM request_rate_limits WHERE identifier NOT LIKE 'sha256:%'");
   await client.execute("UPDATE profiles SET username = id WHERE username IS NULL OR trim(username) = ''");
   await client.execute("UPDATE accounts SET username = profileId WHERE username IS NULL OR trim(username) = ''");
   await client.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_accounts_username ON accounts(username) WHERE username IS NOT NULL");
@@ -1014,6 +1140,24 @@ async function seedDatabase() {
     args: [event.id, event.taskId, event.house, event.title, event.decision, event.outcome, event.createdAt],
   } satisfies InStatement));
 
+  const runDecisionStatements = seedRunDecisions.map((event) => ({
+    sql: INSERT_RUN_DECISION_SQL.replace("INSERT INTO", "INSERT OR IGNORE INTO"),
+    args: [
+      event.id,
+      event.taskId,
+      event.checkpointId,
+      event.eventType,
+      event.decisionCode,
+      event.publicReason,
+      event.artifactLabel,
+      event.artifactUrl,
+      event.artifactDigest,
+      event.actorAccountId,
+      event.actorRole,
+      event.createdAt,
+    ],
+  } satisfies InStatement));
+
   const revenueStatements = seedRevenueStreams.map((stream) => ({
     sql: `INSERT INTO revenue_streams (
       id, slug, name, engine, description, pricingModel, status, monthlyRevenueUsd, grossMargin,
@@ -1166,6 +1310,7 @@ async function seedDatabase() {
       { sql: `DELETE FROM checkpoint_gates WHERE checkpointId IN (SELECT id FROM checkpoints WHERE taskId IN (${placeholders}))`, args: retiredSeedTaskIds },
       { sql: `DELETE FROM checkpoints WHERE taskId IN (${placeholders})`, args: retiredSeedTaskIds },
       { sql: `DELETE FROM run_updates WHERE taskId IN (${placeholders})`, args: retiredSeedTaskIds },
+      { sql: `DELETE FROM run_decision_events WHERE taskId IN (${placeholders})`, args: retiredSeedTaskIds },
       { sql: `DELETE FROM governance_events WHERE taskId IN (${placeholders})`, args: retiredSeedTaskIds },
       { sql: `DELETE FROM bookmarks WHERE taskId IN (${placeholders})`, args: retiredSeedTaskIds },
       { sql: `DELETE FROM task_timings WHERE taskId IN (${placeholders})`, args: retiredSeedTaskIds },
@@ -1195,6 +1340,7 @@ async function seedDatabase() {
     ...checkpointStatements,
     ...checkpointGateStatements,
     ...governanceStatements,
+    ...runDecisionStatements,
     ...revenueStatements,
     ...treasuryStatements,
     ...sponsorshipStatements,
@@ -1503,6 +1649,23 @@ function mapGovernance(row: DbRow): GovernanceEventRecord {
   };
 }
 
+function mapRunDecision(row: DbRow): RunDecisionEventRecord {
+  return {
+    id: getString(row, "id"),
+    taskId: getString(row, "taskId"),
+    checkpointId: getNullableString(row, "checkpointId"),
+    eventType: getString(row, "eventType") as RunDecisionEventRecord["eventType"],
+    decisionCode: getString(row, "decisionCode") as RunDecisionEventRecord["decisionCode"],
+    publicReason: getString(row, "publicReason"),
+    artifactLabel: getNullableString(row, "artifactLabel"),
+    artifactUrl: getNullableString(row, "artifactUrl"),
+    artifactDigest: getNullableString(row, "artifactDigest"),
+    actorAccountId: getNullableString(row, "actorAccountId"),
+    actorRole: getString(row, "actorRole") as RunDecisionEventRecord["actorRole"],
+    createdAt: getString(row, "createdAt"),
+  };
+}
+
 function mapRevenueStream(row: DbRow): RevenueStreamRecord {
   return {
     id: getString(row, "id"),
@@ -1613,9 +1776,59 @@ function mapCategoryProposal(row: DbRow): CategoryProposalRecord {
     exampleKens: parseList(row.exampleKens),
     reviewStatus: getString(row, "reviewStatus") as CategoryProposalRecord["reviewStatus"],
     reviewNote: getNullableString(row, "reviewNote"),
+    internalReviewNote: getNullableString(row, "internalReviewNote"),
     reviewedBy: getNullableString(row, "reviewedBy"),
+    assigneeAccountId: getNullableString(row, "assigneeAccountId"),
+    mergedCategoryId: getNullableString(row, "mergedCategoryId"),
+    intakeResultJson: getString(row, "intakeResultJson") || "{}",
+    reviewedAt: getNullableString(row, "reviewedAt"),
+    firstApprovalBy: getNullableString(row, "firstApprovalBy"),
     createdAt: getString(row, "createdAt"),
     updatedAt: getString(row, "updatedAt"),
+  };
+}
+
+function mapKenSubmission(row: DbRow): KenSubmissionRecord {
+  return {
+    id: getString(row, "id"),
+    taskId: getString(row, "taskId"),
+    taskSlug: getString(row, "taskSlug"),
+    taskTitle: getString(row, "taskTitle"),
+    taskSummary: getString(row, "taskSummary"),
+    proposerProfileId: getString(row, "proposerProfileId"),
+    proposerName: getNullableString(row, "proposerName"),
+    requestedTier: getString(row, "requestedTier") as KenSubmissionRecord["requestedTier"],
+    estimatedTier: getString(row, "estimatedTier") as KenSubmissionRecord["estimatedTier"],
+    intakeStatus: getString(row, "intakeStatus") as KenSubmissionRecord["intakeStatus"],
+    intakeResultJson: getString(row, "intakeResultJson") || "{}",
+    riskFlags: parseList(row.riskFlags),
+    reviewNote: getNullableString(row, "reviewNote"),
+    internalReviewNote: getNullableString(row, "internalReviewNote"),
+    assigneeAccountId: getNullableString(row, "assigneeAccountId"),
+    mergedTaskId: getNullableString(row, "mergedTaskId"),
+    firstApprovalBy: getNullableString(row, "firstApprovalBy"),
+    submittedAt: getString(row, "submittedAt"),
+    assignedAt: getNullableString(row, "assignedAt"),
+    reviewedAt: getNullableString(row, "reviewedAt"),
+    updatedAt: getString(row, "updatedAt"),
+  };
+}
+
+function mapReviewEvent(row: DbRow): ReviewEventRecord {
+  return {
+    id: getString(row, "id"),
+    entityType: getString(row, "entityType") as ReviewEventRecord["entityType"],
+    entityId: getString(row, "entityId"),
+    action: getString(row, "action") as ReviewEventRecord["action"],
+    fromStatus: getNullableString(row, "fromStatus"),
+    toStatus: getNullableString(row, "toStatus"),
+    actorAccountId: getNullableString(row, "actorAccountId"),
+    actorName: getNullableString(row, "actorName"),
+    publicNote: getNullableString(row, "publicNote"),
+    internalNote: getNullableString(row, "internalNote"),
+    metadataJson: getNullableString(row, "metadataJson"),
+    isPublic: getNumber(row, "isPublic") > 0,
+    createdAt: getString(row, "createdAt"),
   };
 }
 const loadTasks = () => loadRows("SELECT * FROM tasks ORDER BY createdAt DESC").then((rows) => rows.map(mapTask));
@@ -1631,17 +1844,27 @@ const loadRunUpdates = () => loadRows("SELECT * FROM run_updates ORDER BY create
 const loadCheckpoints = () => loadRows("SELECT * FROM checkpoints ORDER BY dueAt ASC").then((rows) => rows.map(mapCheckpoint));
 const loadCheckpointGates = () => loadRows("SELECT * FROM checkpoint_gates").then((rows) => rows.map(mapCheckpointGate));
 const loadGovernanceEvents = () => loadRows("SELECT * FROM governance_events ORDER BY createdAt DESC").then((rows) => rows.map(mapGovernance));
+const loadRunDecisions = () => loadRows("SELECT * FROM run_decision_events ORDER BY createdAt DESC, id DESC").then((rows) => rows.map(mapRunDecision));
 const loadRevenueStreams = () => loadRows("SELECT * FROM revenue_streams ORDER BY monthlyRevenueUsd DESC").then((rows) => rows.map(mapRevenueStream));
 const loadTreasuryEntries = () => loadRows("SELECT * FROM treasury_entries ORDER BY createdAt DESC").then((rows) => rows.map(mapTreasuryEntry));
 const loadSponsorshipCommitments = () =>
   loadRows("SELECT * FROM sponsorship_commitments ORDER BY updatedAt DESC, createdAt DESC").then((rows) => rows.map(mapSponsorshipCommitment));
-const loadCategoryProposals = () =>
-  loadRows(
-    `SELECT category_proposals.*, profiles.name AS proposerName
-     FROM category_proposals
-     LEFT JOIN profiles ON profiles.id = category_proposals.proposerProfileId
-     ORDER BY category_proposals.updatedAt DESC, category_proposals.createdAt DESC`,
-  ).then((rows) => rows.map(mapCategoryProposal));
+export async function listCategoriesForReview() {
+  return loadCategories();
+}
+
+const kenSubmissionSelect = `
+  SELECT
+    submission.*,
+    task.slug AS taskSlug,
+    task.title AS taskTitle,
+    task.summary AS taskSummary,
+    task.riskFlags,
+    profile.name AS proposerName
+  FROM ken_submissions submission
+  JOIN tasks task ON task.id = submission.taskId
+  LEFT JOIN profiles profile ON profile.id = submission.proposerProfileId
+`;
 
 async function findProfileById(profileId: string) {
   const row = await loadOne("SELECT * FROM profiles WHERE id = ? LIMIT 1", [profileId]);
@@ -1807,8 +2030,11 @@ function sortTasks(tasks: TaskSummary[]) {
   });
 }
 
-async function hydrate(viewerProfileId?: string | null) {
-  const [profiles, profileAttestations, categories, tasks, finances, illustrations, votes, pulseVotes, comments, commentVotes, runs, taskTimings, runUpdates, checkpoints, checkpointGates, governance, revenueStreams, treasuryEntries, sponsorshipCommitments, bookmarks, accounts] =
+async function hydrate(
+  viewerProfileId?: string | null,
+  options: { includeUnapprovedSubmissions?: boolean } = {},
+) {
+  const [profiles, profileAttestations, categories, allTasks, finances, illustrations, votes, pulseVotes, comments, commentVotes, runs, taskTimings, runUpdates, checkpoints, checkpointGates, governance, runDecisions, revenueStreams, treasuryEntries, sponsorshipCommitments, bookmarks, accounts, submissionVisibilityRows] =
     await Promise.all([
       loadProfiles(),
       loadProfileAttestations(),
@@ -1826,15 +2052,25 @@ async function hydrate(viewerProfileId?: string | null) {
       loadCheckpoints(),
       loadCheckpointGates(),
       loadGovernanceEvents(),
+      loadRunDecisions(),
       loadRevenueStreams(),
       loadTreasuryEntries(),
       loadSponsorshipCommitments(),
       viewerProfileId ? loadBookmarksForProfile(viewerProfileId) : Promise.resolve<BookmarkRecord[]>([]),
       loadAccounts(),
+      loadRows("SELECT taskId, intakeStatus FROM ken_submissions"),
     ]);
 
   const bookmarkSet = new Set(bookmarks.map((bookmark) => bookmark.taskId));
   const accountByProfile = new Map(accounts.map((account) => [account.profileId, account]));
+  const unpublishedTaskIds = new Set(
+    submissionVisibilityRows
+      .filter((row) => getString(row, "intakeStatus") !== "approved")
+      .map((row) => getString(row, "taskId")),
+  );
+  const tasks = options.includeUnapprovedSubmissions
+    ? allTasks
+    : allTasks.filter((task) => !unpublishedTaskIds.has(task.id));
 
   const voteByTask = new Map<string, VoteRecord[]>();
   const voteByProfile = new Map<string, VoteRecord[]>();
@@ -1854,7 +2090,7 @@ async function hydrate(viewerProfileId?: string | null) {
   const profileSummaries: ProfileSummary[] = profiles.map((profile) => {
     const castVotes = voteByProfile.get(profile.id) ?? [];
     const voteCreditsSpent = spentCredits(castVotes);
-    const bondedCredits = activeBondedCredits(profile.id, tasks, finances);
+    const bondedCredits = activeBondedCredits(profile.id, allTasks, finances);
     const spent = voteCreditsSpent + bondedCredits;
     const attestation = attestationMap.get(profile.id);
     const createdAt = profile.createdAt ?? new Date().toISOString();
@@ -1952,6 +2188,13 @@ async function hydrate(viewerProfileId?: string | null) {
     governanceByTask.set(event.taskId, bucket);
   }
 
+  const runDecisionsByTask = new Map<string, RunDecisionEventRecord[]>();
+  for (const event of runDecisions) {
+    const bucket = runDecisionsByTask.get(event.taskId) ?? [];
+    bucket.push(event);
+    runDecisionsByTask.set(event.taskId, bucket);
+  }
+
   const rankings = buildCategoryRankings(
     tasks.map((task) => ({
       id: task.id,
@@ -1997,6 +2240,7 @@ async function hydrate(viewerProfileId?: string | null) {
     const pulse = pulseByTask.get(task.id) ?? [];
     const updates = runUpdatesByTask.get(task.id) ?? [];
     const governanceEvents = governanceByTask.get(task.id) ?? [];
+    const taskRunDecisions = runDecisionsByTask.get(task.id) ?? [];
     const taskComments = commentByTask.get(task.id) ?? [];
     const positivePulseCount = pulse.filter((vote) => vote.value > 0).length;
     const negativePulseCount = pulse.filter((vote) => vote.value < 0).length;
@@ -2011,6 +2255,7 @@ async function hydrate(viewerProfileId?: string | null) {
       ...taskComments.map((comment) => comment.createdAt),
       ...updates.map((update) => update.createdAt),
       ...governanceEvents.map((event) => event.createdAt),
+      ...taskRunDecisions.map((event) => event.createdAt),
     ].sort().at(-1) ?? task.createdAt;
     return {
       ...task,
@@ -2085,6 +2330,7 @@ async function hydrate(viewerProfileId?: string | null) {
     checkpointMap,
     governance,
     governanceByTask,
+    runDecisionsByTask,
     revenueSummaries,
     treasuryEntries,
     sponsorshipCommitments,
@@ -2100,6 +2346,195 @@ async function hydrate(viewerProfileId?: string | null) {
 
 export async function listProfiles() {
   return hydrate().then((snapshot) => snapshot.profiles);
+}
+
+export async function listPublicCategories() {
+  return loadCategories();
+}
+
+export async function listPublicSitemapEntities() {
+  const [kenRows, profileRows, contentRow] = await Promise.all([
+    loadRows(
+      `SELECT
+         task.slug,
+         task.stage,
+         MAX(
+           task.createdAt,
+           COALESCE((SELECT MAX(updatedAt) FROM votes WHERE taskId = task.id), ''),
+           COALESCE((SELECT MAX(updatedAt) FROM task_pulse_votes WHERE taskId = task.id), ''),
+           COALESCE((SELECT MAX(createdAt) FROM comments WHERE taskId = task.id), ''),
+           COALESCE((SELECT MAX(createdAt) FROM run_updates WHERE taskId = task.id), ''),
+           COALESCE((SELECT MAX(createdAt) FROM governance_events WHERE taskId = task.id), ''),
+           COALESCE((SELECT MAX(createdAt) FROM run_decision_events WHERE taskId = task.id), ''),
+           COALESCE((SELECT MAX(updatedAt) FROM task_timings WHERE taskId = task.id), '')
+         ) AS lastModified
+       FROM tasks task
+       LEFT JOIN ken_submissions submission ON submission.taskId = task.id
+       WHERE submission.id IS NULL OR submission.intakeStatus = 'approved'
+       ORDER BY task.slug ASC`,
+    ),
+    loadRows(
+      `SELECT COALESCE(NULLIF(trim(username), ''), id) AS slug, createdAt AS lastModified
+       FROM profiles
+       WHERE moderationStatus <> 'suspended'
+       ORDER BY slug ASC`,
+    ),
+    loadOne(PUBLIC_CONTENT_LAST_MODIFIED_SQL),
+  ]);
+
+  const kens = kenRows.map((row) => {
+    const stage = getString(row, "stage");
+    return {
+      slug: getString(row, "slug"),
+      lastModified: getString(row, "lastModified"),
+      changeFrequency: (
+        stage === "running" || stage === "scheduled" || stage === "voting"
+          ? "daily"
+          : stage === "shipped" || stage === "blocked"
+            ? "monthly"
+            : "weekly"
+      ) as "daily" | "weekly" | "monthly",
+    };
+  });
+  const profiles = profileRows.map((row) => ({
+    slug: getString(row, "slug"),
+    lastModified: getString(row, "lastModified"),
+  }));
+  const latestEntityDate = [...kens, ...profiles]
+    .map((entry) => entry.lastModified)
+    .filter(Boolean)
+    .sort()
+    .at(-1);
+
+  return {
+    generatedAt: (contentRow ? getNullableString(contentRow, "lastModified") : null)
+      ?? latestEntityDate
+      ?? "2026-07-28T00:00:00.000Z",
+    kens,
+    profiles,
+  };
+}
+
+export async function getVisualAuditPublicInventory() {
+  const [taskRows, profileRows, categoryRows, countRow, modifiedRow] = await Promise.all([
+    loadRows(
+      `SELECT
+         task.slug,
+         task.stage,
+         task.safetyStatus,
+         task.requestedTier,
+         category.slug AS categorySlug,
+         illustration.url AS illustrationUrl,
+         illustration.source AS illustrationSource,
+         CASE WHEN EXISTS (
+           SELECT 1 FROM comments comment WHERE comment.taskId = task.id
+         ) THEN 1 ELSE 0 END AS hasComments
+       FROM tasks task
+       JOIN categories category ON category.id = task.categoryId
+       LEFT JOIN task_illustrations illustration ON illustration.taskId = task.id
+       LEFT JOIN ken_submissions submission ON submission.taskId = task.id
+       WHERE submission.id IS NULL OR submission.intakeStatus = 'approved'
+       ORDER BY task.slug ASC`,
+    ),
+    loadRows(
+      `SELECT trim(username) AS slug
+       FROM profiles
+       WHERE moderationStatus <> 'suspended'
+         AND username IS NOT NULL
+         AND trim(username) <> ''
+       ORDER BY slug ASC`,
+    ),
+    loadRows(
+      `SELECT slug
+       FROM categories
+       ORDER BY slug ASC`,
+    ),
+    loadOne(
+      `SELECT
+         (SELECT COUNT(*) FROM tasks task
+           LEFT JOIN ken_submissions submission ON submission.taskId = task.id
+           WHERE submission.id IS NULL OR submission.intakeStatus = 'approved') AS kens,
+         (SELECT COUNT(*) FROM profiles
+           WHERE moderationStatus <> 'suspended'
+             AND username IS NOT NULL
+             AND trim(username) <> '') AS profiles,
+         (SELECT COUNT(*) FROM categories) AS categories`,
+    ),
+    loadOne(PUBLIC_CONTENT_LAST_MODIFIED_SQL),
+  ]);
+
+  const tasks = taskRows.map((row) => ({
+    slug: getString(row, "slug"),
+    stage: getString(row, "stage"),
+    safetyStatus: getString(row, "safetyStatus"),
+    requestedLane: getString(row, "requestedTier"),
+    categorySlug: getString(row, "categorySlug"),
+    illustrationUrl: getNullableString(row, "illustrationUrl"),
+    illustrationSource: getNullableString(row, "illustrationSource"),
+    hasComments: getNumber(row, "hasComments") === 1,
+  }));
+
+  return {
+    lastModified: modifiedRow ? getNullableString(modifiedRow, "lastModified") : null,
+    counts: {
+      kens: countRow ? getNumber(countRow, "kens") : tasks.length,
+      profiles: countRow ? getNumber(countRow, "profiles") : profileRows.length,
+      categories: countRow ? getNumber(countRow, "categories") : categoryRows.length,
+    },
+    kens: tasks,
+    profiles: profileRows.map((row) => ({ slug: getString(row, "slug") })),
+    categories: categoryRows.map((row) => ({ slug: getString(row, "slug") })),
+  };
+}
+
+export async function getPublicKenSeoRecord(slug: string) {
+  const row = await loadOne(
+    `SELECT
+       task.slug,
+       task.title,
+       task.summary,
+       task.createdAt,
+       task.stage,
+       task.safetyStatus,
+       category.name AS categoryName,
+       category.slug AS categorySlug,
+       CASE
+         WHEN profile.showRealName = 0 AND profile.username IS NOT NULL AND trim(profile.username) <> ''
+           THEN '@' || profile.username
+         ELSE COALESCE(profile.name, 'Unknown proposer')
+       END AS proposerName,
+       MAX(
+         task.createdAt,
+         COALESCE((SELECT MAX(updatedAt) FROM votes WHERE taskId = task.id), ''),
+         COALESCE((SELECT MAX(updatedAt) FROM task_pulse_votes WHERE taskId = task.id), ''),
+         COALESCE((SELECT MAX(createdAt) FROM comments WHERE taskId = task.id), ''),
+         COALESCE((SELECT MAX(createdAt) FROM run_updates WHERE taskId = task.id), ''),
+         COALESCE((SELECT MAX(createdAt) FROM governance_events WHERE taskId = task.id), ''),
+         COALESCE((SELECT MAX(createdAt) FROM run_decision_events WHERE taskId = task.id), ''),
+         COALESCE((SELECT MAX(updatedAt) FROM task_timings WHERE taskId = task.id), '')
+       ) AS lastModified
+     FROM tasks task
+     JOIN categories category ON category.id = task.categoryId
+     LEFT JOIN profiles profile ON profile.id = task.proposerId
+     LEFT JOIN ken_submissions submission ON submission.taskId = task.id
+     WHERE task.slug = ?
+       AND (submission.id IS NULL OR submission.intakeStatus = 'approved')
+     LIMIT 1`,
+    [slug],
+  );
+  if (!row) return null;
+  return {
+    slug: getString(row, "slug"),
+    title: getString(row, "title"),
+    summary: getString(row, "summary"),
+    createdAt: getString(row, "createdAt"),
+    lastModified: getString(row, "lastModified"),
+    stage: getString(row, "stage"),
+    safetyStatus: getString(row, "safetyStatus"),
+    categoryName: getString(row, "categoryName"),
+    categorySlug: getString(row, "categorySlug"),
+    proposerName: getString(row, "proposerName"),
+  };
 }
 
 export async function getViewerSessionByToken(token: string): Promise<ViewerSession | null> {
@@ -2168,46 +2603,483 @@ export async function getHomeData(viewerProfileId?: string | null) {
   };
 }
 
-export async function getMarketplaceData(viewerProfileId: string | null | undefined, filters: MarketplaceFilters) {
-  const snapshot = await hydrate(viewerProfileId);
-  const query = filters.query?.trim().toLowerCase() ?? "";
+const marketplaceCommonTableExpressions = `
+  WITH
+  vote_stats AS (
+    SELECT
+      taskId,
+      COALESCE(SUM(voteCount), 0) AS totalVotes,
+      COUNT(*) AS supporterCount,
+      MAX(updatedAt) AS lastVoteAt
+    FROM votes
+    GROUP BY taskId
+  ),
+  pulse_stats AS (
+    SELECT
+      pulse.taskId,
+      COALESCE(SUM(pulse.value), 0) AS taskPulseScore,
+      COUNT(*) AS taskPulseVotes,
+      COALESCE(SUM(CASE WHEN pulse.value > 0 THEN 1 ELSE 0 END), 0) AS positivePulseCount,
+      COALESCE(SUM(CASE WHEN pulse.value < 0 THEN 1 ELSE 0 END), 0) AS negativePulseCount,
+      COALESCE(SUM(CASE
+        WHEN attest.status = 'verified' AND attest.sybilRisk = 'low' THEN pulse.value
+        ELSE 0
+      END), 0) AS trustedPulseScore,
+      MAX(pulse.updatedAt) AS lastPulseAt
+    FROM task_pulse_votes pulse
+    LEFT JOIN profile_attestations attest ON attest.profileId = pulse.profileId
+    GROUP BY pulse.taskId
+  ),
+  comment_stats AS (
+    SELECT taskId, COUNT(*) AS discussionCount, MAX(createdAt) AS lastCommentAt
+    FROM comments
+    GROUP BY taskId
+  ),
+  update_stats AS (
+    SELECT taskId, COUNT(*) AS updateCount, MAX(createdAt) AS lastUpdateAt
+    FROM run_updates
+    GROUP BY taskId
+  ),
+  checkpoint_stats AS (
+    SELECT
+      taskId,
+      COALESCE(SUM(CASE WHEN status = 'complete' THEN 1 ELSE 0 END), 0) AS completedCheckpointCount
+    FROM checkpoints
+    GROUP BY taskId
+  ),
+  governance_stats AS (
+    SELECT taskId, MAX(createdAt) AS lastGovernanceAt
+    FROM governance_events
+    WHERE taskId IS NOT NULL
+    GROUP BY taskId
+  ),
+  eligible_rankings AS (
+    SELECT
+      eligible.id,
+      ROW_NUMBER() OVER (
+        PARTITION BY eligible.categoryId
+        ORDER BY eligible.totalVotes DESC, eligible.createdAt ASC, eligible.title COLLATE NOCASE ASC, eligible.id ASC
+      ) AS categoryRank
+    FROM (
+      SELECT
+        task.id,
+        task.categoryId,
+        task.createdAt,
+        task.title,
+        COALESCE(vote.totalVotes, 0) AS totalVotes
+      FROM tasks task
+      LEFT JOIN vote_stats vote ON vote.taskId = task.id
+      LEFT JOIN ken_submissions submission ON submission.taskId = task.id
+      WHERE task.stage NOT IN ('review', 'blocked')
+        AND task.safetyStatus NOT IN ('pending', 'blocked')
+        AND (submission.id IS NULL OR submission.intakeStatus = 'approved')
+        AND COALESCE(vote.totalVotes, 0) > 0
+    ) eligible
+  ),
+  marketplace_base AS (
+    SELECT
+      task.*,
+      category.name AS categoryName,
+      category.slug AS categorySlug,
+      COALESCE(NULLIF(category.symbolKey, ''), category.slug, 'default') AS categorySymbolKey,
+      CASE
+        WHEN profile.showRealName = 0 AND profile.username IS NOT NULL AND trim(profile.username) <> ''
+          THEN '@' || profile.username
+        ELSE COALESCE(profile.name, 'Unknown proposer')
+      END AS proposerName,
+      COALESCE(vote.totalVotes, 0) AS totalVotes,
+      COALESCE(vote.supporterCount, 0) AS supporterCount,
+      ranking.categoryRank AS categoryRank,
+      CASE
+        WHEN task.stage = 'blocked' OR task.safetyStatus = 'blocked' THEN 'blocked'
+        WHEN ranking.categoryRank BETWEEN 1 AND 3 THEN 'months'
+        WHEN ranking.categoryRank BETWEEN 4 AND 10 THEN 'weeks'
+        WHEN ranking.categoryRank BETWEEN 11 AND 100 THEN 'days'
+        ELSE 'queued'
+      END AS allocatedTier,
+      COALESCE(pulse.taskPulseScore, 0) AS taskPulseScore,
+      COALESCE(pulse.taskPulseVotes, 0) AS taskPulseVotes,
+      COALESCE(pulse.positivePulseCount, 0) AS positivePulseCount,
+      COALESCE(pulse.negativePulseCount, 0) AS negativePulseCount,
+      COALESCE(pulse.trustedPulseScore, 0) AS trustedPulseScore,
+      COALESCE(comment.discussionCount, 0) AS discussionCount,
+      COALESCE(update_summary.updateCount, 0) AS updateCount,
+      COALESCE(checkpoint.completedCheckpointCount, 0) AS completedCheckpointCount,
+      (
+        SELECT update_item.label
+        FROM run_updates update_item
+        WHERE update_item.taskId = task.id
+        ORDER BY update_item.createdAt DESC, update_item.id ASC
+        LIMIT 1
+      ) AS latestUpdateLabel,
+      MAX(
+        task.createdAt,
+        COALESCE(timing.updatedAt, ''),
+        COALESCE(vote.lastVoteAt, ''),
+        COALESCE(pulse.lastPulseAt, ''),
+        COALESCE(comment.lastCommentAt, ''),
+        COALESCE(update_summary.lastUpdateAt, ''),
+        COALESCE(governance.lastGovernanceAt, '')
+      ) AS lastActivityAt,
+      finance.taskId AS financeTaskId,
+      finance.qualityBondCredits,
+      finance.sponsorPoolUsd,
+      finance.checkpointApprovalTarget,
+      finance.enterprisePackaging,
+      finance.dataValueNote,
+      finance.sandboxCapitalUsd,
+      finance.sandboxApiSpendUsd,
+      finance.sandboxPilotUsers,
+      finance.modelLineup,
+      finance.simulationSummary,
+      finance.sampleOutcome,
+      finance.sponsorAppeal,
+      timing.taskId AS timingTaskId,
+      timing.launchAt,
+      timing.startedAt,
+      timing.expectedMaxEndAt,
+      timing.computeHoursUsed,
+      timing.completionMode,
+      timing.completionSummary,
+      illustration.taskId AS illustrationTaskId,
+      illustration.url AS illustrationUrl,
+      illustration.altText AS illustrationAlt,
+      illustration.source AS illustrationSource,
+      illustration.updatedAt AS illustrationUpdatedAt
+    FROM tasks task
+    JOIN categories category ON category.id = task.categoryId
+    LEFT JOIN profiles profile ON profile.id = task.proposerId
+    LEFT JOIN vote_stats vote ON vote.taskId = task.id
+    LEFT JOIN pulse_stats pulse ON pulse.taskId = task.id
+    LEFT JOIN comment_stats comment ON comment.taskId = task.id
+    LEFT JOIN update_stats update_summary ON update_summary.taskId = task.id
+    LEFT JOIN checkpoint_stats checkpoint ON checkpoint.taskId = task.id
+    LEFT JOIN governance_stats governance ON governance.taskId = task.id
+    LEFT JOIN eligible_rankings ranking ON ranking.id = task.id
+    LEFT JOIN task_finance finance ON finance.taskId = task.id
+    LEFT JOIN task_timings timing ON timing.taskId = task.id
+    LEFT JOIN task_illustrations illustration ON illustration.taskId = task.id
+    LEFT JOIN ken_submissions submission ON submission.taskId = task.id
+    WHERE submission.id IS NULL OR submission.intakeStatus = 'approved'
+  )
+`;
+
+function escapeLikePattern(value: string) {
+  return value.replaceAll("!", "!!").replaceAll("%", "!%").replaceAll("_", "!_");
+}
+
+function buildMarketplaceFilterClause(filters: ReturnType<typeof normalizeMarketplaceQuery>) {
+  const conditions: string[] = [];
+  const args: Value[] = [];
+
+  if (filters.query) {
+    conditions.push(`LOWER(
+      title || ' ' || summary || ' ' || problem || ' ' || whyNow || ' ' || publicBenefit || ' '
+      || categoryName || ' ' || COALESCE(enterprisePackaging, '') || ' ' || COALESCE(dataValueNote, '') || ' '
+      || COALESCE(simulationSummary, '') || ' ' || COALESCE(sampleOutcome, '') || ' '
+      || COALESCE(sponsorAppeal, '') || ' ' || COALESCE(modelLineup, '')
+    ) LIKE ? ESCAPE '!'`);
+    args.push(`%${escapeLikePattern(filters.query.toLowerCase())}%`);
+  }
+  if (filters.category !== "all") {
+    conditions.push("categorySlug = ?");
+    args.push(filters.category);
+  }
+  if (filters.tier !== "all") {
+    conditions.push("allocatedTier = ?");
+    args.push(filters.tier);
+  }
+  if (filters.stage !== "all") {
+    conditions.push("stage = ?");
+    args.push(filters.stage);
+  }
+
   return {
-    viewer: snapshot.viewer,
-    categories: snapshot.categories,
-    tasks: snapshot.tasks.filter((task) => {
-      if (query) {
-        const haystack = [
-          task.title,
-          task.summary,
-          task.problem,
-          task.categoryName,
-          task.enterprisePackaging,
-          task.dataValueNote,
-          task.simulationSummary,
-          task.sampleOutcome,
-          task.sponsorAppeal,
-          ...task.modelLineup,
-        ].join(" ").toLowerCase();
-        if (!haystack.includes(query)) {
-          return false;
-        }
-      }
-      if (filters.category && filters.category !== "all" && task.categorySlug !== filters.category) {
-        return false;
-      }
-      if (filters.tier && filters.tier !== "all" && task.allocatedTier !== filters.tier) {
-        return false;
-      }
-      if (filters.stage && filters.stage !== "all" && task.stage !== filters.stage) {
-        return false;
-      }
-      return true;
-    }),
+    sql: conditions.length > 0 ? conditions.join(" AND ") : "1 = 1",
+    args,
+  };
+}
+
+const marketplaceDiscoveryBaseOrder = `
+  discoveryBand ASC,
+  stageWeight DESC,
+  completedCheckpointCount DESC,
+  totalVotes DESC,
+  supporterCount DESC,
+  trustedPulseScore DESC,
+  positivePulseCount DESC,
+  lastActivityAt DESC,
+  id ASC
+`;
+
+function marketplaceOrderBy(sort: ReturnType<typeof normalizeMarketplaceQuery>["sort"]) {
+  switch (sort) {
+    case "pulse":
+      return "trustedPulseScore DESC, positivePulseCount DESC, taskPulseScore DESC, taskPulseVotes DESC, totalVotes DESC, lastActivityAt DESC, id ASC";
+    case "voice":
+      return "totalVotes DESC, supporterCount DESC, categoryRank ASC, lastActivityAt DESC, id ASC";
+    case "recent":
+      return "lastActivityAt DESC, id ASC";
+    case "newest":
+      return "createdAt DESC, id ASC";
+    case "active":
+      return `
+        CASE WHEN discoveryBand < 4 THEN 0 ELSE 1 END ASC,
+        CASE WHEN discoveryBand < 4 THEN proposerSlot ELSE 2147483647 END ASC,
+        CASE
+          WHEN discoveryBand >= 4 THEN 2147483647
+          WHEN categorySlot > 3 THEN 3
+          ELSE categorySlot
+        END ASC,
+        CASE WHEN discoveryBand < 4 THEN bandSlot ELSE 2147483647 END ASC,
+        discoveryBand ASC,
+        categorySlot ASC,
+        stageWeight DESC,
+        completedCheckpointCount DESC,
+        totalVotes DESC,
+        trustedPulseScore DESC,
+        lastActivityAt DESC,
+        id ASC
+      `;
+  }
+}
+
+function mapMarketplaceTask(row: DbRow): TaskSummary {
+  const task = mapTask(row);
+  const hasFinance = getNullableString(row, "financeTaskId") !== null;
+  const hasTiming = getNullableString(row, "timingTaskId") !== null;
+  const hasIllustration = getNullableString(row, "illustrationTaskId") !== null;
+  const totalVotes = getNumber(row, "totalVotes");
+  const taskPulseScore = getNumber(row, "taskPulseScore");
+  const taskPulseVotes = getNumber(row, "taskPulseVotes");
+  const positivePulseCount = getNumber(row, "positivePulseCount");
+  const negativePulseCount = getNumber(row, "negativePulseCount");
+  const trustedPulseScore = getNumber(row, "trustedPulseScore");
+  const supporterCount = getNumber(row, "supporterCount");
+  const discussionCount = getNumber(row, "discussionCount");
+  const updateCount = getNumber(row, "updateCount");
+  const completedCheckpointCount = getNumber(row, "completedCheckpointCount");
+  const categoryRank = row.categoryRank === null || row.categoryRank === undefined ? null : getNumber(row, "categoryRank");
+  const allocatedTier = getString(row, "allocatedTier") as TaskSummary["allocatedTier"];
+  const lastActivityAt = getString(row, "lastActivityAt") || task.createdAt;
+
+  const summary: TaskSummary = {
+    ...task,
+    ...(hasFinance
+      ? mapTaskFinance({ ...row, taskId: row.financeTaskId })
+      : {
+          taskId: task.id,
+          qualityBondCredits: tierDefaults[task.requestedTier].bond,
+          sponsorPoolUsd: 0,
+          checkpointApprovalTarget: tierDefaults[task.requestedTier].checkpointTarget,
+          enterprisePackaging: "Public output first, with an optional service version for groups that need support.",
+          dataValueNote: "Corrections and audit traces remain useful public-good inputs.",
+          sandboxCapitalUsd: 0,
+          sandboxApiSpendUsd: 0,
+          sandboxPilotUsers: 0,
+          modelLineup: [],
+          simulationSummary: "",
+          sampleOutcome: "",
+          sponsorAppeal: "",
+        }),
+    categoryName: getString(row, "categoryName"),
+    categorySlug: getString(row, "categorySlug"),
+    categorySymbolKey: getString(row, "categorySymbolKey"),
+    proposerName: getString(row, "proposerName"),
+    totalVotes,
+    supporterCount,
+    categoryRank,
+    allocatedTier,
+    userVotes: 0,
+    userCost: 0,
+    taskPulseScore,
+    taskPulseVotes,
+    positivePulseCount,
+    negativePulseCount,
+    userTaskPulse: 0,
+    discussionCount,
+    bondStatus: task.stage === "review" || task.stage === "blocked" ? "watch" : "secure",
+    launchAt: hasTiming ? getNullableString(row, "launchAt") : null,
+    startedAt: hasTiming ? getNullableString(row, "startedAt") : null,
+    expectedMaxEndAt: hasTiming ? getNullableString(row, "expectedMaxEndAt") : null,
+    computeHoursUsed: hasTiming ? getNumber(row, "computeHoursUsed") : 0,
+    completionMode: hasTiming
+      ? getString(row, "completionMode") as TaskTimingRecord["completionMode"]
+      : task.stage === "blocked" ? "blocked" : "planned",
+    completionSummary: hasTiming
+      ? getString(row, "completionSummary")
+      : task.stage === "blocked" ? "Blocked before launch." : "Waiting for review and allocation.",
+    lastActivityAt,
+    updateCount,
+    latestUpdateLabel: getNullableString(row, "latestUpdateLabel"),
+    bookmarked: false,
+    illustrationUrl: hasIllustration ? getNullableString(row, "illustrationUrl") : null,
+    illustrationAlt: hasIllustration ? getNullableString(row, "illustrationAlt") : null,
+    illustrationSource: hasIllustration
+      ? getString(row, "illustrationSource") as TaskIllustrationRecord["source"]
+      : "deterministic",
+    illustrationUpdatedAt: hasIllustration ? getNullableString(row, "illustrationUpdatedAt") : null,
+    completedCheckpointCount,
+    trustedPulseScore,
+  };
+
+  summary.discoveryReasons = getDiscoveryReasons({
+    id: summary.id,
+    proposerId: summary.proposerId,
+    categoryId: summary.categoryId,
+    createdAt: summary.createdAt,
+    lastActivityAt: summary.lastActivityAt,
+    stage: summary.stage,
+    safetyStatus: summary.safetyStatus,
+    totalVotes: summary.totalVotes,
+    supporterCount: summary.supporterCount,
+    taskPulseScore: summary.taskPulseScore,
+    taskPulseVotes: summary.taskPulseVotes,
+    positivePulseCount: summary.positivePulseCount,
+    negativePulseCount: summary.negativePulseCount,
+    trustedPulseScore,
+    completedCheckpointCount,
+    updateCount: summary.updateCount,
+    categoryRank: summary.categoryRank,
+  });
+
+  return summary;
+}
+
+async function applyMarketplaceViewerState(tasks: TaskSummary[], viewerProfileId?: string | null) {
+  if (!viewerProfileId || tasks.length === 0) {
+    return tasks;
+  }
+
+  const placeholders = tasks.map(() => "?").join(", ");
+  const taskIds = tasks.map((task) => task.id);
+  const [viewerVotes, viewerPulses, bookmarks] = await Promise.all([
+    loadRows(`SELECT * FROM votes WHERE profileId = ? AND taskId IN (${placeholders})`, [viewerProfileId, ...taskIds]),
+    loadRows(`SELECT * FROM task_pulse_votes WHERE profileId = ? AND taskId IN (${placeholders})`, [viewerProfileId, ...taskIds]),
+    loadRows(`SELECT * FROM bookmarks WHERE profileId = ? AND taskId IN (${placeholders})`, [viewerProfileId, ...taskIds]),
+  ]);
+
+  const votesByTask = new Map(viewerVotes.map((row) => [getString(row, "taskId"), getNumber(row, "voteCount")]));
+  const pulseByTask = new Map(viewerPulses.map((row) => [getString(row, "taskId"), getNumber(row, "value")]));
+  const bookmarkedTaskIds = new Set(bookmarks.map((row) => getString(row, "taskId")));
+
+  return tasks.map((task) => {
+    const userVotes = votesByTask.get(task.id) ?? 0;
+    return {
+      ...task,
+      userVotes,
+      userCost: quadraticCost(userVotes),
+      userTaskPulse: pulseByTask.get(task.id) ?? 0,
+      bookmarked: bookmarkedTaskIds.has(task.id),
+    };
+  });
+}
+
+export async function getMarketplaceData(viewerProfileId: string | null | undefined, filters: MarketplaceFilters) {
+  const normalized = normalizeMarketplaceQuery(filters);
+  const pageSize = normalizeMarketplacePageSize(filters.pageSize ?? DEFAULT_MARKETPLACE_PAGE_SIZE);
+  const filter = buildMarketplaceFilterClause(normalized);
+  const filteredCtes = `
+    ${marketplaceCommonTableExpressions},
+    marketplace_filtered AS (
+      SELECT
+        marketplace_base.*,
+        CASE
+          WHEN stage = 'blocked' OR safetyStatus = 'blocked' THEN 5
+          WHEN stage = 'review' OR safetyStatus = 'pending' THEN 4
+          WHEN completedCheckpointCount > 0 OR updateCount > 0 THEN 0
+          WHEN julianday('now') - julianday(createdAt) <= 30 AND supporterCount <= 2 THEN 1
+          WHEN categoryRank = 1 THEN 2
+          ELSE 3
+        END AS discoveryBand,
+        CASE stage
+          WHEN 'running' THEN 5
+          WHEN 'scheduled' THEN 4
+          WHEN 'voting' THEN 3
+          WHEN 'shipped' THEN 2
+          WHEN 'review' THEN 1
+          ELSE 0
+        END AS stageWeight
+      FROM marketplace_base
+      WHERE ${filter.sql}
+    )
+  `;
+
+  const [countRow, categories, viewer] = await Promise.all([
+    loadOne(
+      `${filteredCtes}
+       SELECT
+         COUNT(*) AS count,
+         COALESCE(SUM(CASE WHEN stage IN ('running', 'scheduled') THEN 1 ELSE 0 END), 0) AS activeCount,
+         COALESCE(SUM(CASE WHEN sandboxCapitalUsd > 0 THEN 1 ELSE 0 END), 0) AS demoCount,
+         COALESCE(SUM(CASE WHEN stage = 'shipped' THEN 1 ELSE 0 END), 0) AS shippedCount
+       FROM marketplace_filtered`,
+      filter.args,
+    ),
+    loadCategories(),
+    viewerProfileId ? findProfileById(viewerProfileId) : Promise.resolve(null),
+  ]);
+
+  const totalResults = countRow ? getNumber(countRow, "count") : 0;
+  const totalPages = Math.max(1, Math.ceil(totalResults / pageSize));
+  const requestedPage = normalizeMarketplacePage(normalized.page);
+  const page = Math.min(requestedPage, totalPages);
+  const offset = (page - 1) * pageSize;
+  const orderBy = marketplaceOrderBy(normalized.sort);
+  const rows = await loadRows(
+    `${filteredCtes},
+     marketplace_diversified AS (
+       SELECT
+         marketplace_filtered.*,
+         ROW_NUMBER() OVER (PARTITION BY proposerId ORDER BY ${marketplaceDiscoveryBaseOrder}) AS proposerSlot,
+         ROW_NUMBER() OVER (PARTITION BY categoryId ORDER BY ${marketplaceDiscoveryBaseOrder}) AS categorySlot,
+         ROW_NUMBER() OVER (PARTITION BY discoveryBand ORDER BY ${marketplaceDiscoveryBaseOrder}) AS bandSlot
+       FROM marketplace_filtered
+     )
+     SELECT *
+     FROM marketplace_diversified
+     ORDER BY ${orderBy}
+     LIMIT ? OFFSET ?`,
+    [...filter.args, pageSize, offset],
+  );
+  const tasks = await applyMarketplaceViewerState(rows.map(mapMarketplaceTask), viewerProfileId);
+
+  return {
+    viewer,
+    categories,
+    tasks,
+    pageInfo: {
+      page,
+      pageSize,
+      totalResults,
+      totalPages,
+      hasPreviousPage: page > 1,
+      hasNextPage: page < totalPages,
+    },
+    resultCounts: {
+      active: countRow ? getNumber(countRow, "activeCount") : 0,
+      withDemos: countRow ? getNumber(countRow, "demoCount") : 0,
+      shipped: countRow ? getNumber(countRow, "shippedCount") : 0,
+    },
   };
 }
 
 export async function getTaskDetail(slug: string, viewerProfileId?: string | null): Promise<TaskDetail | null> {
-  const snapshot = await hydrate(viewerProfileId);
+  const submissionRow = await loadOne(`${kenSubmissionSelect} WHERE task.slug = ? LIMIT 1`, [slug]);
+  const submission = submissionRow ? mapKenSubmission(submissionRow) : null;
+  let includeUnapproved = false;
+  let includePrivateReviewEvents = false;
+  if (submission && submission.intakeStatus !== "approved") {
+    if (!viewerProfileId) return null;
+    const accountRow = await loadOne("SELECT * FROM accounts WHERE profileId = ? LIMIT 1", [viewerProfileId]);
+    const account = accountRow ? mapAccount(accountRow) : null;
+    const isProposer = submission.proposerProfileId === viewerProfileId;
+    const isReviewer = account ? isReviewerRole(account.systemRole) : false;
+    if (!isProposer && !isReviewer) return null;
+    includeUnapproved = true;
+    includePrivateReviewEvents = isReviewer;
+  }
+  const snapshot = await hydrate(viewerProfileId, { includeUnapprovedSubmissions: includeUnapproved });
   const task = snapshot.tasks.find((candidate) => candidate.slug === slug);
   if (!task) {
     return null;
@@ -2222,13 +3094,24 @@ export async function getTaskDetail(slug: string, viewerProfileId?: string | nul
     run: snapshot.runMap.get(task.id) ?? null,
     checkpoints: (snapshot.checkpointMap.get(task.id) ?? []).sort((left, right) => left.dueAt.localeCompare(right.dueAt)),
     governanceEvents: snapshot.governanceByTask.get(task.id) ?? [],
+    runDecisions: snapshot.runDecisionsByTask.get(task.id) ?? [],
     comments: snapshot.discussionFor(task.id),
     runUpdates: snapshot.runUpdatesByTask.get(task.id) ?? [],
+    intakeReview: submission
+      ? {
+          submission: includePrivateReviewEvents
+            ? submission
+            : redactKenSubmissionForPublic(submission),
+          events: await listReviewEvents("ken-submission", submission.id, includePrivateReviewEvents),
+          canParticipate: submission.intakeStatus === "approved",
+        }
+      : null,
   };
 }
 
 export async function getGovernanceData(viewerProfileId?: string | null) {
   const snapshot = await hydrate(viewerProfileId);
+  const capacity = await getCapacityState(snapshot.economics);
   return {
     viewer: snapshot.viewer,
     governance: snapshot.governance,
@@ -2236,27 +3119,145 @@ export async function getGovernanceData(viewerProfileId?: string | null) {
     blockedTasks: snapshot.tasks.filter((task) => task.allocatedTier === "blocked"),
     categories: snapshot.categories,
     profiles: snapshot.profiles,
+    capacity,
   };
 }
 
 export async function getEconomicsData(viewerProfileId?: string | null): Promise<{
   viewer: ProfileSummary | null;
   summary: EconomicsSummary;
+  capacity: CapacityStateResolution;
   revenueStreams: RevenueStreamSummary[];
   treasuryEntries: TreasuryEntryRecord[];
   sponsorshipCommitments: SponsorshipCommitmentRecord[];
   fundedTasks: TaskSummary[];
 }> {
   const snapshot = await hydrate(viewerProfileId);
+  const capacity = await getCapacityState(snapshot.economics);
   const fundedTaskIds = new Set(snapshot.tasks.filter((task) => task.sponsorPoolUsd > 0).map((task) => task.id));
   return {
     viewer: snapshot.viewer,
     summary: snapshot.economics,
+    capacity,
     revenueStreams: snapshot.revenueSummaries,
     treasuryEntries: snapshot.treasuryEntries,
     sponsorshipCommitments: snapshot.sponsorshipCommitments,
     fundedTasks: snapshot.tasks.filter((task) => fundedTaskIds.has(task.id)).slice(0, 8),
   };
+}
+
+export async function recordRunDecision(input: {
+  taskId: string;
+  checkpointId?: string | null;
+  eventType: RunDecisionEventRecord["eventType"];
+  decisionCode: RunDecisionEventRecord["decisionCode"];
+  publicReason: string;
+  artifactLabel?: string | null;
+  artifactUrl?: string | null;
+  artifactDigest?: string | null;
+  actorAccountId: string;
+  actorRole: Exclude<RunDecisionEventRecord["actorRole"], "system">;
+}) {
+  const task = await findTaskById(input.taskId);
+  if (!task) throw new Error("The selected Ken does not exist.");
+  if (!isRunDecisionCompatible(input.eventType, input.decisionCode)) {
+    throw new Error("The decision code does not match the selected event type.");
+  }
+  const publicReason = input.publicReason.trim().slice(0, 2000);
+  if (publicReason.length < 20) {
+    throw new Error("A public run decision reason of at least 20 characters is required.");
+  }
+  const checkpointId = input.checkpointId?.trim() || null;
+  if (checkpointId) {
+    const checkpoint = await loadOne("SELECT taskId FROM checkpoints WHERE id = ? LIMIT 1", [checkpointId]);
+    if (!checkpoint || getString(checkpoint, "taskId") !== task.id) {
+      throw new Error("The selected checkpoint does not belong to this Ken.");
+    }
+  }
+  if (input.eventType === "checkpoint" && !checkpointId) {
+    throw new Error("Checkpoint decisions require a checkpoint.");
+  }
+
+  const artifactLabel = input.artifactLabel?.trim().slice(0, 240) || null;
+  const artifactUrl = input.artifactUrl?.trim().slice(0, 1000) || null;
+  const artifactDigest = input.artifactDigest?.trim().toLowerCase() || null;
+  if (artifactUrl && !artifactUrl.startsWith("/") && !/^https?:\/\//i.test(artifactUrl)) {
+    throw new Error("Artifact URLs must be site-relative or use HTTP(S).");
+  }
+  if (artifactDigest && !/^sha256:[a-f0-9]{64}$/.test(artifactDigest)) {
+    throw new Error("Artifact digests must use sha256 followed by 64 hexadecimal characters.");
+  }
+  if (input.eventType === "release" && (!artifactLabel || (!artifactUrl && !artifactDigest))) {
+    throw new Error("Release decisions require an artifact label and either a URL or SHA-256 digest.");
+  }
+
+  const event: RunDecisionEventRecord = {
+    id: randomUUID(),
+    taskId: task.id,
+    checkpointId,
+    eventType: input.eventType,
+    decisionCode: input.decisionCode,
+    publicReason,
+    artifactLabel,
+    artifactUrl,
+    artifactDigest,
+    actorAccountId: input.actorAccountId,
+    actorRole: input.actorRole,
+    createdAt: new Date().toISOString(),
+  };
+  const statements: InStatement[] = [
+    {
+      sql: INSERT_RUN_DECISION_SQL,
+      args: [
+        event.id,
+        event.taskId,
+        event.checkpointId,
+        event.eventType,
+        event.decisionCode,
+        event.publicReason,
+        event.artifactLabel,
+        event.artifactUrl,
+        event.artifactDigest,
+        event.actorAccountId,
+        event.actorRole,
+        event.createdAt,
+      ],
+    },
+  ];
+
+  if (checkpointId && input.eventType === "checkpoint") {
+    const checkpointStatus = input.decisionCode === "checkpoint-approved" ? "complete" : "active";
+    const releaseStatus = input.decisionCode === "checkpoint-approved" ? "approved" : "held";
+    statements.push(
+      { sql: "UPDATE checkpoints SET status = ? WHERE id = ?", args: [checkpointStatus, checkpointId] },
+      { sql: "UPDATE checkpoint_gates SET releaseStatus = ? WHERE checkpointId = ?", args: [releaseStatus, checkpointId] },
+    );
+  }
+
+  const transition = runDecisionTransition(input.decisionCode);
+  if (transition) {
+    statements.push(
+      { sql: "UPDATE tasks SET stage = ? WHERE id = ?", args: [transition.stage, task.id] },
+      {
+        sql: `INSERT INTO task_timings (
+          taskId, launchAt, startedAt, expectedMaxEndAt, computeHoursUsed,
+          completionMode, completionSummary, updatedAt
+        ) VALUES (?, NULL, NULL, NULL, 0, ?, ?, ?)
+        ON CONFLICT(taskId) DO UPDATE SET
+          completionMode = excluded.completionMode,
+          completionSummary = excluded.completionSummary,
+          updatedAt = excluded.updatedAt`,
+        args: [task.id, transition.completionMode, publicReason, event.createdAt],
+      },
+      {
+        sql: "UPDATE runs SET status = ? WHERE taskId = ?",
+        args: [transition.stage === "scheduled" ? "scheduled" : "complete", task.id],
+      },
+    );
+  }
+
+  await batch(statements, "write");
+  return { event, slug: task.slug };
 }
 
 export async function createAccount(input: {
@@ -2403,9 +3404,14 @@ export async function ensureTestAuthAccount(mode: TestAuthMode) {
   const now = new Date().toISOString();
   const existing = await findAccountByEmail(config.email);
   const systemRole = config.systemRole;
-  const voiceCredits = systemRole === "owner" ? 120 : 12;
-  const credibility = systemRole === "owner" ? 0.98 : 0.66;
-  const attestationLevel = systemRole === "owner" ? "expert" : "provisional";
+  const elevated = systemRole !== "contributor";
+  const voiceCredits = systemRole === "owner" ? 120 : systemRole === "admin" ? 48 : systemRole === "moderator" ? 24 : 12;
+  const credibility = systemRole === "owner" ? 0.98 : systemRole === "admin" ? 0.9 : systemRole === "moderator" ? 0.82 : 0.66;
+  const attestationLevel = systemRole === "owner" ? "expert" : elevated ? "verified" : "provisional";
+  const roleLabel = `Local validation ${systemRole}`;
+  const accountDescription = `Local-only deterministic ${systemRole} account used for CI and browser validation. Disabled outside loopback development or an isolated audit lab.`;
+  const attestation = `Local ${systemRole} validation account.`;
+  const verificationNote = elevated ? `Local-only ${systemRole} bypass account.` : null;
   const profileId = existing?.profileId ?? `local-${mode}`;
 
   if (existing) {
@@ -2420,17 +3426,15 @@ export async function ensureTestAuthAccount(mode: TestAuthMode) {
           args: [
             config.username,
             config.name,
-            systemRole === "owner" ? "Local validation owner" : "Local validation contributor",
-            systemRole === "owner"
-              ? "Local-only deterministic owner account used for CI and browser validation. Disabled outside loopback development."
-              : "Local-only deterministic contributor account used for CI and browser validation. Disabled outside loopback development.",
+            roleLabel,
+            accountDescription,
             "KenMatch validation",
-            systemRole === "owner" ? "Local owner validation account." : "Local contributor validation account.",
+            attestation,
             attestationLevel,
             voiceCredits,
             credibility,
-            systemRole === "owner" ? "approved" : "none",
-            systemRole === "owner" ? "Local-only owner bypass account." : null,
+            elevated ? "approved" : "none",
+            verificationNote,
             existing.profileId,
           ],
         },
@@ -2445,7 +3449,7 @@ export async function ensureTestAuthAccount(mode: TestAuthMode) {
           args: [
             existing.profileId,
             "Local test auth bypass",
-            systemRole === "owner" ? "verified" : "review",
+            elevated ? "verified" : "review",
             "low",
             now,
             serializeList(["Loopback only", "Non-production only", "Deterministic account"]),
@@ -2473,12 +3477,10 @@ export async function ensureTestAuthAccount(mode: TestAuthMode) {
           config.username,
           0,
           config.name,
-          systemRole === "owner" ? "Local validation owner" : "Local validation contributor",
-          systemRole === "owner"
-            ? "Local-only deterministic owner account used for CI and browser validation. Disabled outside loopback development."
-            : "Local-only deterministic contributor account used for CI and browser validation. Disabled outside loopback development.",
+          roleLabel,
+          accountDescription,
           "KenMatch validation",
-          systemRole === "owner" ? "Local owner validation account." : "Local contributor validation account.",
+          attestation,
           attestationLevel,
           "active",
           voiceCredits,
@@ -2492,9 +3494,9 @@ export async function ensureTestAuthAccount(mode: TestAuthMode) {
           "[]",
           null,
           null,
-          systemRole === "owner" ? "approved" : "none",
+          elevated ? "approved" : "none",
           null,
-          systemRole === "owner" ? "Local-only owner bypass account." : null,
+          verificationNote,
           now,
         ],
       },
@@ -2503,7 +3505,7 @@ export async function ensureTestAuthAccount(mode: TestAuthMode) {
         args: [
           profileId,
           "Local test auth bypass",
-          systemRole === "owner" ? "verified" : "review",
+          elevated ? "verified" : "review",
           "low",
           now,
           serializeList(["Loopback only", "Non-production only", "Deterministic account"]),
@@ -2563,6 +3565,251 @@ export interface CreateProposalInput {
   dataValueNote: string;
 }
 
+export interface ReviewQueueFilters {
+  status?: string;
+  assignee?: string;
+  query?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface ReviewActorInput {
+  accountId: string;
+  profileId: string;
+  role: SystemRole;
+}
+
+function reviewEventStatement(input: {
+  dedupeKey: string;
+  entityType: ReviewEntityType;
+  entityId: string;
+  action: ReviewEventAction;
+  fromStatus?: string | null;
+  toStatus?: string | null;
+  actorAccountId?: string | null;
+  publicNote?: string | null;
+  internalNote?: string | null;
+  metadata?: Record<string, unknown> | null;
+  isPublic?: boolean;
+  createdAt: string;
+}): InStatement {
+  return {
+    sql: INSERT_REVIEW_EVENT_SQL,
+    args: [
+      randomUUID(),
+      input.dedupeKey,
+      input.entityType,
+      input.entityId,
+      input.action,
+      input.fromStatus ?? null,
+      input.toStatus ?? null,
+      input.actorAccountId ?? null,
+      input.publicNote?.slice(0, 2000) ?? null,
+      input.internalNote?.slice(0, 4000) ?? null,
+      input.metadata ? JSON.stringify(input.metadata).slice(0, 12_000) : null,
+      input.isPublic ? 1 : 0,
+      input.createdAt,
+    ],
+  };
+}
+
+function normalizeQueuePage(value: number | undefined) {
+  return Number.isInteger(value) && Number(value) > 0 ? Number(value) : 1;
+}
+
+function normalizeQueuePageSize(value: number | undefined) {
+  if (!Number.isInteger(value) || Number(value) <= 0) return 12;
+  return Math.min(Number(value), 50);
+}
+
+async function reviewStatusCounts(table: "category_proposals" | "ken_submissions", statusColumn: "reviewStatus" | "intakeStatus") {
+  const rows = await loadRows(`SELECT ${statusColumn} AS status, COUNT(*) AS count FROM ${table} GROUP BY ${statusColumn}`);
+  return Object.fromEntries(rows.map((row) => [getString(row, "status"), getNumber(row, "count")]));
+}
+
+export async function listCategoryProposalQueue(
+  filters: ReviewQueueFilters = {},
+): Promise<ReviewQueuePage<CategoryProposalRecord>> {
+  const pageSize = normalizeQueuePageSize(filters.pageSize);
+  const requestedPage = normalizeQueuePage(filters.page);
+  const conditions: string[] = [];
+  const args: Value[] = [];
+  if (filters.status && filters.status !== "all") {
+    conditions.push("proposal.reviewStatus = ?");
+    args.push(filters.status);
+  }
+  if (filters.assignee && filters.assignee !== "all") {
+    conditions.push(filters.assignee === "unassigned" ? "proposal.assigneeAccountId IS NULL" : "proposal.assigneeAccountId = ?");
+    if (filters.assignee !== "unassigned") args.push(filters.assignee);
+  }
+  if (filters.query?.trim()) {
+    conditions.push("LOWER(proposal.name || ' ' || proposal.description || ' ' || proposal.publicBenefit) LIKE ? ESCAPE '!'");
+    args.push(`%${escapeLikePattern(filters.query.trim().toLowerCase())}%`);
+  }
+  const where = conditions.length > 0 ? conditions.join(" AND ") : "1 = 1";
+  const [countRow, counts] = await Promise.all([
+    loadOne(`SELECT COUNT(*) AS count FROM category_proposals proposal WHERE ${where}`, args),
+    reviewStatusCounts("category_proposals", "reviewStatus"),
+  ]);
+  const totalItems = countRow ? getNumber(countRow, "count") : 0;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const page = Math.min(requestedPage, totalPages);
+  const rows = await loadRows(
+    `SELECT proposal.*, profile.name AS proposerName
+     FROM category_proposals proposal
+     LEFT JOIN profiles profile ON profile.id = proposal.proposerProfileId
+     WHERE ${where}
+     ORDER BY
+       CASE proposal.reviewStatus
+         WHEN 'appealed' THEN 0
+         WHEN 'held' THEN 1
+         WHEN 'second-review' THEN 2
+         WHEN 'pending' THEN 3
+         WHEN 'needs-revision' THEN 4
+         ELSE 5
+       END,
+       proposal.updatedAt ASC,
+       proposal.id ASC
+     LIMIT ? OFFSET ?`,
+    [...args, pageSize, (page - 1) * pageSize],
+  );
+  return { items: rows.map(mapCategoryProposal), page, pageSize, totalItems, totalPages, counts };
+}
+
+export async function listKenSubmissionQueue(
+  filters: ReviewQueueFilters = {},
+): Promise<ReviewQueuePage<KenSubmissionRecord>> {
+  const pageSize = normalizeQueuePageSize(filters.pageSize);
+  const requestedPage = normalizeQueuePage(filters.page);
+  const conditions: string[] = [];
+  const args: Value[] = [];
+  if (filters.status && filters.status !== "all") {
+    conditions.push("submission.intakeStatus = ?");
+    args.push(filters.status);
+  }
+  if (filters.assignee && filters.assignee !== "all") {
+    conditions.push(filters.assignee === "unassigned" ? "submission.assigneeAccountId IS NULL" : "submission.assigneeAccountId = ?");
+    if (filters.assignee !== "unassigned") args.push(filters.assignee);
+  }
+  if (filters.query?.trim()) {
+    conditions.push("LOWER(task.title || ' ' || task.summary || ' ' || task.publicBenefit) LIKE ? ESCAPE '!'");
+    args.push(`%${escapeLikePattern(filters.query.trim().toLowerCase())}%`);
+  }
+  const where = conditions.length > 0 ? conditions.join(" AND ") : "1 = 1";
+  const [countRow, counts] = await Promise.all([
+    loadOne(
+      `SELECT COUNT(*) AS count
+       FROM ken_submissions submission
+       JOIN tasks task ON task.id = submission.taskId
+       WHERE ${where}`,
+      args,
+    ),
+    reviewStatusCounts("ken_submissions", "intakeStatus"),
+  ]);
+  const totalItems = countRow ? getNumber(countRow, "count") : 0;
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const page = Math.min(requestedPage, totalPages);
+  const rows = await loadRows(
+    `${kenSubmissionSelect}
+     WHERE ${where}
+     ORDER BY
+       CASE submission.intakeStatus
+         WHEN 'appealed' THEN 0
+         WHEN 'held' THEN 1
+         WHEN 'second-review' THEN 2
+         WHEN 'pending' THEN 3
+         WHEN 'needs-revision' THEN 4
+         ELSE 5
+       END,
+       submission.updatedAt ASC,
+       submission.id ASC
+     LIMIT ? OFFSET ?`,
+    [...args, pageSize, (page - 1) * pageSize],
+  );
+  return { items: rows.map(mapKenSubmission), page, pageSize, totalItems, totalPages, counts };
+}
+
+export async function listReviewEvents(
+  entityType: ReviewEntityType,
+  entityId: string,
+  includePrivate = false,
+) {
+  const rows = await loadRows(
+    `SELECT event.*, profile.name AS actorName
+     FROM review_events event
+     LEFT JOIN accounts account ON account.id = event.actorAccountId
+     LEFT JOIN profiles profile ON profile.id = account.profileId
+     WHERE event.entityType = ? AND event.entityId = ? ${includePrivate ? "" : "AND event.isPublic = 1"}
+     ORDER BY event.createdAt ASC, event.id ASC`,
+    [entityType, entityId],
+  );
+  return rows.map((row) => {
+    const event = mapReviewEvent(row);
+    return includePrivate ? event : redactReviewEventForPublic(event);
+  });
+}
+
+export async function listReviewEventsForQueue(
+  entityType: ReviewEntityType,
+  entityIds: string[],
+) {
+  if (entityIds.length === 0) return {} as Record<string, ReviewEventRecord[]>;
+  const placeholders = entityIds.map(() => "?").join(", ");
+  const rows = await loadRows(
+    `SELECT event.*, profile.name AS actorName
+     FROM review_events event
+     LEFT JOIN accounts account ON account.id = event.actorAccountId
+     LEFT JOIN profiles profile ON profile.id = account.profileId
+     WHERE event.entityType = ? AND event.entityId IN (${placeholders})
+     ORDER BY event.createdAt ASC, event.id ASC`,
+    [entityType, ...entityIds],
+  );
+  const grouped: Record<string, ReviewEventRecord[]> = Object.fromEntries(
+    entityIds.map((entityId) => [entityId, []]),
+  );
+  for (const row of rows) {
+    const event = mapReviewEvent(row);
+    grouped[event.entityId]?.push(event);
+  }
+  return grouped;
+}
+
+export async function listPublicReviewOutcomes(limit = 100) {
+  const rows = await loadRows(
+    `SELECT
+       event.*,
+       profile.name AS actorName,
+       COALESCE(category_proposal.name, task.title, event.entityId) AS entityLabel,
+       category_proposal.slug AS categorySlug,
+       task.slug AS taskSlug
+     FROM review_events event
+     LEFT JOIN accounts account ON account.id = event.actorAccountId
+     LEFT JOIN profiles profile ON profile.id = account.profileId
+     LEFT JOIN category_proposals category_proposal
+       ON event.entityType = 'category-proposal' AND category_proposal.id = event.entityId
+     LEFT JOIN ken_submissions submission
+       ON event.entityType = 'ken-submission' AND submission.id = event.entityId
+     LEFT JOIN tasks task ON task.id = submission.taskId
+     WHERE event.isPublic = 1
+       AND event.action IN ('revision-requested', 'held', 'approved', 'merged', 'rejected', 'appeal-resolved')
+     ORDER BY event.createdAt DESC, event.id DESC
+     LIMIT ?`,
+    [Math.min(Math.max(limit, 1), 250)],
+  );
+  return rows.map((row) => {
+    const event = redactReviewEventForPublic(mapReviewEvent(row));
+    return {
+      ...event,
+      entityLabel: getString(row, "entityLabel"),
+      href: getNullableString(row, "taskSlug")
+        ? `/kens/${getString(row, "taskSlug")}`
+        : getNullableString(row, "categorySlug")
+          ? `/kens?category=${encodeURIComponent(getString(row, "categorySlug"))}`
+          : "/reviews",
+    };
+  });
+}
+
 export async function createCategoryProposal(input: {
   name: string;
   description: string;
@@ -2573,75 +3820,304 @@ export async function createCategoryProposal(input: {
   if (!profile) {
     throw new Error("Contributor profile not found.");
   }
-
-  const now = new Date().toISOString();
-  const base = slugify(input.name) || randomUUID().slice(0, 8);
-  let slug = base;
-  let iteration = 2;
-  while (await loadOne("SELECT id FROM categories WHERE slug = ? UNION SELECT id FROM category_proposals WHERE slug = ? LIMIT 1", [slug, slug])) {
-    slug = `${base}-${iteration}`;
-    iteration += 1;
+  if (new Set(input.exampleKens.map((item) => normalizeReviewText(item)).filter(Boolean)).size < 2) {
+    throw new Error("Provide at least two distinct example Kens.");
   }
 
-  await execute(
-    `INSERT INTO category_proposals (
-      id, proposerProfileId, name, slug, description, publicBenefit, exampleKens,
-      reviewStatus, reviewNote, reviewedBy, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', NULL, NULL, ?, ?)`,
+  const now = new Date().toISOString();
+  const slug = normalizedReviewSlug(input.name) || randomUUID().slice(0, 8);
+  const existingCategory = await loadOne("SELECT id, name FROM categories WHERE slug = ? LIMIT 1", [slug]);
+  if (existingCategory) {
+    throw new Error(`A category named ${getString(existingCategory, "name")} already uses this normalized name. Propose a boundary change instead.`);
+  }
+  const existingProposal = await loadOne(
+    `SELECT id FROM category_proposals
+     WHERE slug = ? AND reviewStatus NOT IN ('rejected', 'merged')
+     LIMIT 1`,
+    [slug],
+  );
+  if (existingProposal) {
+    throw new Error("An active proposal already uses this normalized category name.");
+  }
+  const [categories, proposals] = await Promise.all([
+    loadCategories(),
+    loadRows(
+      "SELECT id, name, description FROM category_proposals WHERE reviewStatus NOT IN ('rejected', 'merged')",
+    ),
+  ]);
+  const intake = evaluateCategoryIntake(input, [
+    ...categories.map((category) => ({ id: category.id, name: category.name, description: category.description })),
+    ...proposals.map((proposal) => ({
+      id: getString(proposal, "id"),
+      name: getString(proposal, "name"),
+      description: getString(proposal, "description"),
+    })),
+  ]);
+  const proposalId = randomUUID();
+  await batch(
     [
-      randomUUID(),
-      proposerId,
-      input.name.trim().slice(0, 80),
-      slug,
-      input.description.trim().slice(0, 800),
-      input.publicBenefit.trim().slice(0, 800),
-      serializeList(input.exampleKens.slice(0, 8)),
-      now,
-      now,
+      {
+        sql: `INSERT INTO category_proposals (
+          id, proposerProfileId, name, slug, description, publicBenefit, exampleKens,
+          reviewStatus, reviewNote, internalReviewNote, reviewedBy, assigneeAccountId,
+          mergedCategoryId, intakeResultJson, reviewedAt, firstApprovalBy, createdAt, updatedAt
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', NULL, NULL, NULL, NULL, NULL, ?, NULL, NULL, ?, ?)`,
+        args: [
+          proposalId,
+          proposerId,
+          input.name.trim().slice(0, 80),
+          slug,
+          input.description.trim().slice(0, 800),
+          input.publicBenefit.trim().slice(0, 800),
+          serializeList(input.exampleKens.slice(0, 8)),
+          JSON.stringify(intake),
+          now,
+          now,
+        ],
+      },
+      reviewEventStatement({
+        dedupeKey: `category-proposal:${proposalId}:submitted`,
+        entityType: "category-proposal",
+        entityId: proposalId,
+        action: "submitted",
+        toStatus: "pending",
+        publicNote: "Category proposal entered review.",
+        isPublic: false,
+        createdAt: now,
+      }),
+      reviewEventStatement({
+        dedupeKey: `category-proposal:${proposalId}:automated-check:v1`,
+        entityType: "category-proposal",
+        entityId: proposalId,
+        action: "automated-check",
+        fromStatus: "pending",
+        toStatus: "pending",
+        metadata: { intake },
+        isPublic: false,
+        createdAt: now,
+      }),
     ],
+    "write",
   );
 
   return slug;
 }
 
-export async function decideCategoryProposal(
-  proposalId: string,
-  reviewStatus: CategoryProposalRecord["reviewStatus"],
-  reviewNote: string | null,
-  reviewedBy: string,
+const finalReviewStatuses = new Set(["approved", "merged", "rejected"]);
+
+function reviewEventAction(action: ReviewAction, toStatus: string): ReviewEventAction {
+  if (action === "request-revision") return "revision-requested";
+  if (action === "hold") return "held";
+  if (action === "approve") return toStatus === "second-review" ? "approval-proposed" : "approved";
+  if (action === "merge") return "merged";
+  if (action === "reject") return "rejected";
+  if (action === "recuse") return "recused";
+  if (action === "assign") return "assigned";
+  if (action === "appeal") return "appealed";
+  return "appeal-resolved";
+}
+
+async function validateReviewActor(
+  actor: ReviewActorInput,
+  action: ReviewAction,
+  proposerProfileId: string,
+  entityType: ReviewEntityType,
+  entityId: string,
 ) {
-  const row = await loadOne("SELECT * FROM category_proposals WHERE id = ? LIMIT 1", [proposalId]);
+  const account = await findAccountById(actor.accountId);
+  if (
+    !account
+    || account.profileId !== actor.profileId
+    || account.systemRole !== actor.role
+    || !isReviewerRole(account.systemRole)
+  ) {
+    throw new Error("Reviewer session is no longer authorized.");
+  }
+  const recusal = await loadOne(
+    `SELECT id FROM review_events
+     WHERE entityType = ? AND entityId = ? AND action = 'recused' AND actorAccountId = ?
+     LIMIT 1`,
+    [entityType, entityId, actor.accountId],
+  );
+  assertReviewActionAuthorized({
+    role: actor.role,
+    action,
+    actorProfileId: actor.profileId,
+    proposerProfileId,
+    actorPreviouslyRecused: Boolean(recusal),
+  });
+}
+
+async function validateAssignee(accountId: string, proposerProfileId: string) {
+  const account = await findAccountById(accountId);
+  if (!account || !isReviewerRole(account.systemRole)) {
+    throw new Error("Choose an active moderator, administrator, or owner as assignee.");
+  }
+  if (account.profileId === proposerProfileId) {
+    throw new Error("A submission cannot be assigned to its proposer.");
+  }
+  return account;
+}
+
+export async function reviewCategoryProposal(input: {
+  proposalId: string;
+  action: Exclude<ReviewAction, "appeal">;
+  publicNote?: string | null;
+  internalNote?: string | null;
+  targetAssigneeAccountId?: string | null;
+  mergeCategoryId?: string | null;
+  actor: ReviewActorInput;
+}) {
+  const row = await loadOne("SELECT * FROM category_proposals WHERE id = ? LIMIT 1", [input.proposalId]);
   if (!row) throw new Error("Category proposal not found.");
   const proposal = mapCategoryProposal(row);
-  const now = new Date().toISOString();
-
-  if (reviewStatus === "approved") {
-    await batch(
-      [
-        {
-          sql: `INSERT INTO categories (id, slug, name, description, thesis)
-            VALUES (?, ?, ?, ?, ?)
-            ON CONFLICT(id) DO UPDATE SET
-              slug = excluded.slug,
-              name = excluded.name,
-              description = excluded.description,
-              thesis = excluded.thesis`,
-          args: [proposal.slug, proposal.slug, proposal.name, proposal.description, proposal.publicBenefit],
-        },
-        {
-          sql: "UPDATE category_proposals SET reviewStatus = ?, reviewNote = ?, reviewedBy = ?, updatedAt = ? WHERE id = ?",
-          args: [reviewStatus, reviewNote, reviewedBy, now, proposalId],
-        },
-      ],
-      "write",
-    );
-    return;
+  await validateReviewActor(
+    input.actor,
+    input.action,
+    proposal.proposerProfileId,
+    "category-proposal",
+    proposal.id,
+  );
+  if (
+    proposal.assigneeAccountId
+    && proposal.assigneeAccountId !== input.actor.accountId
+    && input.actor.role !== "owner"
+    && input.action !== "assign"
+    && !(proposal.reviewStatus === "second-review" && input.action === "approve")
+  ) {
+    throw new Error("This proposal is assigned to another reviewer. Reassign it or ask the owner to override.");
   }
 
-  await execute(
-    "UPDATE category_proposals SET reviewStatus = ?, reviewNote = ?, reviewedBy = ?, updatedAt = ? WHERE id = ?",
-    [reviewStatus, reviewNote, reviewedBy, now, proposalId],
+  const publicNote = input.publicNote?.trim().slice(0, 2000) || null;
+  const internalNote = input.internalNote?.trim().slice(0, 4000) || null;
+  if (decisionNeedsPublicReason(input.action) && !publicNote) {
+    throw new Error("Add a public reason for this review decision.");
+  }
+  if (finalReviewStatuses.has(proposal.reviewStatus)) {
+    const sameFinalDecision = isSameFinalDecision(proposal.reviewStatus, input.action);
+    if (sameFinalDecision) {
+      return {
+        changed: false,
+        status: proposal.reviewStatus,
+        proposerProfileId: proposal.proposerProfileId,
+        label: proposal.name,
+      };
+    }
+    throw new Error("This proposal already has a final outcome. An appeal is required before another decision.");
+  }
+
+  const now = new Date().toISOString();
+  let toStatus = proposal.reviewStatus;
+  let assigneeAccountId = proposal.assigneeAccountId;
+  let mergedCategoryId = proposal.mergedCategoryId;
+  let firstApprovalBy = proposal.firstApprovalBy;
+  const statements: InStatement[] = [];
+
+  if (input.action === "assign") {
+    if (!input.targetAssigneeAccountId) throw new Error("Choose a reviewer to assign.");
+    await validateAssignee(input.targetAssigneeAccountId, proposal.proposerProfileId);
+    assigneeAccountId = input.targetAssigneeAccountId;
+  } else if (input.action === "recuse") {
+    if (assigneeAccountId === input.actor.accountId) assigneeAccountId = null;
+  } else if (input.action === "merge") {
+    if (!input.mergeCategoryId) throw new Error("Choose the existing category to merge into.");
+    const target = await loadOne("SELECT id FROM categories WHERE id = ? LIMIT 1", [input.mergeCategoryId]);
+    if (!target) throw new Error("The merge target category was not found.");
+    mergedCategoryId = input.mergeCategoryId;
+    toStatus = "merged";
+  } else if (input.action === "approve") {
+    const collision = await loadOne(
+      "SELECT id, name FROM categories WHERE (slug = ? OR lower(trim(name)) = lower(trim(?))) AND id != ? LIMIT 1",
+      [proposal.slug, proposal.name, proposal.slug],
+    );
+    if (collision) {
+      throw new Error(`A matching category already exists (${getString(collision, "name")}). Merge this proposal instead.`);
+    }
+    const intake = parseIntakeResult<CategoryIntakeResult>(proposal.intakeResultJson, {
+      version: 1,
+      outcome: "review",
+      checks: [],
+      similarityHints: [],
+      normalizedName: normalizeReviewText(proposal.name),
+      normalizedSlug: proposal.slug,
+    });
+    const highRisk = intake.checks.some((checkItem) => checkItem.id === "safety-language" && checkItem.level === "attention");
+    toStatus = nextReviewStatus("approve", {
+      highRisk,
+      firstApprovalBy,
+      actorAccountId: input.actor.accountId,
+    });
+    if (toStatus === "second-review" && !firstApprovalBy) {
+      firstApprovalBy = input.actor.accountId;
+    }
+    if (toStatus === "approved") {
+      statements.push({
+        sql: INSERT_APPROVED_CATEGORY_SQL,
+        args: [proposal.slug, proposal.slug, proposal.name, proposal.description, proposal.publicBenefit, proposal.slug],
+      });
+    }
+  } else {
+    toStatus = nextReviewStatus(input.action);
+  }
+
+  const eventAction = reviewEventAction(input.action, toStatus);
+  const reviewedAt = input.action === "assign" || input.action === "recuse" ? proposal.reviewedAt : now;
+  statements.push(
+    {
+      sql: `UPDATE category_proposals
+            SET reviewStatus = ?, reviewNote = COALESCE(?, reviewNote),
+                internalReviewNote = COALESCE(?, internalReviewNote), reviewedBy = ?,
+                assigneeAccountId = ?, mergedCategoryId = ?, reviewedAt = ?,
+                firstApprovalBy = ?, updatedAt = ?
+            WHERE id = ?`,
+      args: [
+        toStatus,
+        publicNote,
+        internalNote,
+        input.actor.accountId,
+        assigneeAccountId,
+        mergedCategoryId,
+        reviewedAt,
+        firstApprovalBy,
+        now,
+        proposal.id,
+      ],
+    },
+    reviewEventStatement({
+      dedupeKey: [
+        "category-proposal",
+        proposal.id,
+        eventAction,
+        proposal.reviewStatus,
+        toStatus,
+        input.actor.accountId,
+        assigneeAccountId ?? "",
+        mergedCategoryId ?? "",
+      ].join(":"),
+      entityType: "category-proposal",
+      entityId: proposal.id,
+      action: eventAction,
+      fromStatus: proposal.reviewStatus,
+      toStatus,
+      actorAccountId: input.actor.accountId,
+      publicNote,
+      internalNote,
+      metadata: {
+        assigneeAccountId,
+        mergedCategoryId,
+        requiresSecondReview: toStatus === "second-review",
+      },
+      isPublic: Boolean(publicNote) && eventAction !== "assigned" && eventAction !== "recused",
+      createdAt: now,
+    }),
   );
+  await batch(statements, "write");
+  return {
+    changed: toStatus !== proposal.reviewStatus || assigneeAccountId !== proposal.assigneeAccountId,
+    status: toStatus,
+    proposerProfileId: proposal.proposerProfileId,
+    label: proposal.name,
+  };
 }
 
 export async function createProposal(input: CreateProposalInput, proposerId: string) {
@@ -2671,6 +4147,16 @@ export async function createProposal(input: CreateProposalInput, proposerId: str
 
   const slug = await uniqueSlug("tasks", input.title);
   const now = new Date().toISOString();
+  const existingTasks = await loadRows("SELECT id, title, summary FROM tasks ORDER BY createdAt DESC LIMIT 1000");
+  const intake = evaluateKenIntake(
+    input,
+    existingTasks.map((task) => ({
+      id: getString(task, "id"),
+      title: getString(task, "title"),
+      summary: getString(task, "summary"),
+    })),
+  );
+  const submissionId = randomUUID();
 
   await batch(
     [
@@ -2729,22 +4215,353 @@ export async function createProposal(input: CreateProposalInput, proposerId: str
         args: [slug, null, null, null, 0, "planned", "Waiting for review, public signal, and allocation.", now],
       },
       {
-        sql: "INSERT INTO governance_events (id, taskId, house, title, decision, outcome, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        sql: `INSERT INTO ken_submissions (
+          id, taskId, proposerProfileId, requestedTier, estimatedTier, intakeStatus, intakeResultJson,
+          reviewNote, internalReviewNote, assigneeAccountId, mergedTaskId, firstApprovalBy,
+          submittedAt, assignedAt, reviewedAt, updatedAt
+        ) VALUES (?, ?, ?, ?, ?, 'pending', ?, NULL, NULL, NULL, NULL, NULL, ?, NULL, NULL, ?)`,
         args: [
-          randomUUID(),
+          submissionId,
           slug,
-          "safety-council",
-          "Queued for safety review",
-          "New Ken entered the public intake queue. It can collect signal, comments, and quadratic support immediately, but execution remains gated until safety review and checkpoint policy are set.",
-          "Visible on the public board with its quality bond locked until the review state changes.",
+          proposerId,
+          input.requestedTier,
+          intake.estimatedTier,
+          JSON.stringify(intake),
+          now,
           now,
         ],
       },
+      reviewEventStatement({
+        dedupeKey: `ken-submission:${submissionId}:submitted`,
+        entityType: "ken-submission",
+        entityId: submissionId,
+        action: "submitted",
+        toStatus: "pending",
+        publicNote: "Ken entered the private intake queue.",
+        isPublic: false,
+        createdAt: now,
+      }),
+      reviewEventStatement({
+        dedupeKey: `ken-submission:${submissionId}:automated-check:v1`,
+        entityType: "ken-submission",
+        entityId: submissionId,
+        action: "automated-check",
+        fromStatus: "pending",
+        toStatus: "pending",
+        metadata: { intake },
+        isPublic: false,
+        createdAt: now,
+      }),
     ],
     "write",
   );
 
   return slug;
+}
+
+export async function reviewKenSubmission(input: {
+  submissionId: string;
+  action: Exclude<ReviewAction, "appeal">;
+  publicNote?: string | null;
+  internalNote?: string | null;
+  targetAssigneeAccountId?: string | null;
+  mergeTaskId?: string | null;
+  actor: ReviewActorInput;
+}) {
+  const row = await loadOne(`${kenSubmissionSelect} WHERE submission.id = ? LIMIT 1`, [input.submissionId]);
+  if (!row) throw new Error("Ken submission not found.");
+  const submission = mapKenSubmission(row);
+  await validateReviewActor(
+    input.actor,
+    input.action,
+    submission.proposerProfileId,
+    "ken-submission",
+    submission.id,
+  );
+  if (
+    submission.assigneeAccountId
+    && submission.assigneeAccountId !== input.actor.accountId
+    && input.actor.role !== "owner"
+    && input.action !== "assign"
+    && !(submission.intakeStatus === "second-review" && input.action === "approve")
+  ) {
+    throw new Error("This Ken is assigned to another reviewer. Reassign it or ask the owner to override.");
+  }
+
+  const publicNote = input.publicNote?.trim().slice(0, 2000) || null;
+  const internalNote = input.internalNote?.trim().slice(0, 4000) || null;
+  if (decisionNeedsPublicReason(input.action) && !publicNote) {
+    throw new Error("Add a public reason for this review decision.");
+  }
+  if (finalReviewStatuses.has(submission.intakeStatus)) {
+    const sameFinalDecision = isSameFinalDecision(submission.intakeStatus, input.action);
+    if (sameFinalDecision) {
+      return {
+        changed: false,
+        status: submission.intakeStatus,
+        taskSlug: submission.taskSlug,
+        proposerProfileId: submission.proposerProfileId,
+        label: submission.taskTitle,
+      };
+    }
+    throw new Error("This Ken already has a final outcome. The submitter must appeal before another decision.");
+  }
+
+  const now = new Date().toISOString();
+  let toStatus = submission.intakeStatus;
+  let assigneeAccountId = submission.assigneeAccountId;
+  let mergedTaskId = submission.mergedTaskId;
+  let firstApprovalBy = submission.firstApprovalBy;
+  const statements: InStatement[] = [];
+
+  if (input.action === "assign") {
+    if (!input.targetAssigneeAccountId) throw new Error("Choose a reviewer to assign.");
+    await validateAssignee(input.targetAssigneeAccountId, submission.proposerProfileId);
+    assigneeAccountId = input.targetAssigneeAccountId;
+  } else if (input.action === "recuse") {
+    if (assigneeAccountId === input.actor.accountId) assigneeAccountId = null;
+  } else if (input.action === "merge") {
+    if (!input.mergeTaskId || input.mergeTaskId === submission.taskId) {
+      throw new Error("Choose a different existing Ken to merge into.");
+    }
+    const target = await loadOne(
+      `SELECT task.id
+       FROM tasks task
+       LEFT JOIN ken_submissions target_submission ON target_submission.taskId = task.id
+       WHERE task.id = ?
+         AND (target_submission.id IS NULL OR target_submission.intakeStatus = 'approved')
+       LIMIT 1`,
+      [input.mergeTaskId],
+    );
+    if (!target) throw new Error("The merge target must be an existing public Ken.");
+    mergedTaskId = input.mergeTaskId;
+    toStatus = "merged";
+  } else if (input.action === "approve") {
+    const intake = parseIntakeResult<KenIntakeResult>(submission.intakeResultJson, {
+      version: 1,
+      outcome: "review",
+      checks: [],
+      similarityHints: [],
+      estimatedTier: submission.estimatedTier,
+      scopeMismatch: submission.estimatedTier !== submission.requestedTier,
+      highRisk: true,
+    });
+    toStatus = nextReviewStatus("approve", {
+      highRisk: intake.highRisk,
+      firstApprovalBy,
+      actorAccountId: input.actor.accountId,
+    });
+    if (toStatus === "second-review" && !firstApprovalBy) {
+      firstApprovalBy = input.actor.accountId;
+    }
+    if (toStatus === "approved") {
+      statements.push(
+        {
+          sql: "UPDATE tasks SET stage = 'voting', safetyStatus = 'approved', backend = ? WHERE id = ?",
+          args: ["Awaiting allocation and execution routing", submission.taskId],
+        },
+        {
+          sql: `INSERT INTO governance_events (id, taskId, house, title, decision, outcome, createdAt)
+                VALUES (?, ?, 'safety-council', ?, ?, ?, ?)`,
+          args: [
+            randomUUID(),
+            submission.taskId,
+            "Intake review approved",
+            publicNote ?? "The submission met the published intake requirements.",
+            "The Ken is now public and can receive pulse, comments, and scarce voice.",
+            now,
+          ],
+        },
+      );
+    }
+  } else {
+    toStatus = nextReviewStatus(input.action);
+  }
+
+  const eventAction = reviewEventAction(input.action, toStatus);
+  const reviewedAt = input.action === "assign" || input.action === "recuse" ? submission.reviewedAt : now;
+  const assignedAt =
+    input.action === "assign" && assigneeAccountId !== submission.assigneeAccountId
+      ? now
+      : submission.assignedAt;
+  statements.push(
+    {
+      sql: `UPDATE ken_submissions
+            SET intakeStatus = ?, reviewNote = COALESCE(?, reviewNote),
+                internalReviewNote = COALESCE(?, internalReviewNote),
+                assigneeAccountId = ?, mergedTaskId = ?, firstApprovalBy = ?,
+                assignedAt = ?, reviewedAt = ?, updatedAt = ?
+            WHERE id = ?`,
+      args: [
+        toStatus,
+        publicNote,
+        internalNote,
+        assigneeAccountId,
+        mergedTaskId,
+        firstApprovalBy,
+        assignedAt,
+        reviewedAt,
+        now,
+        submission.id,
+      ],
+    },
+    reviewEventStatement({
+      dedupeKey: [
+        "ken-submission",
+        submission.id,
+        eventAction,
+        submission.intakeStatus,
+        toStatus,
+        input.actor.accountId,
+        assigneeAccountId ?? "",
+        mergedTaskId ?? "",
+      ].join(":"),
+      entityType: "ken-submission",
+      entityId: submission.id,
+      action: eventAction,
+      fromStatus: submission.intakeStatus,
+      toStatus,
+      actorAccountId: input.actor.accountId,
+      publicNote,
+      internalNote,
+      metadata: {
+        assigneeAccountId,
+        mergedTaskId,
+        requestedTier: submission.requestedTier,
+        estimatedTier: submission.estimatedTier,
+        requiresSecondReview: toStatus === "second-review",
+      },
+      isPublic: Boolean(publicNote) && eventAction !== "assigned" && eventAction !== "recused",
+      createdAt: now,
+    }),
+  );
+  await batch(statements, "write");
+  return {
+    changed: toStatus !== submission.intakeStatus || assigneeAccountId !== submission.assigneeAccountId,
+    status: toStatus,
+    taskSlug: submission.taskSlug,
+    proposerProfileId: submission.proposerProfileId,
+    label: submission.taskTitle,
+  };
+}
+
+export async function appealReviewDecision(input: {
+  entityType: ReviewEntityType;
+  entityId: string;
+  proposerProfileId: string;
+  publicNote: string;
+}) {
+  const note = input.publicNote.trim().slice(0, 2000);
+  if (note.length < 20) throw new Error("Explain the factual basis for the appeal.");
+  const now = new Date().toISOString();
+
+  if (input.entityType === "category-proposal") {
+    const row = await loadOne("SELECT * FROM category_proposals WHERE id = ? LIMIT 1", [input.entityId]);
+    if (!row) throw new Error("Category proposal not found.");
+    const proposal = mapCategoryProposal(row);
+    if (proposal.proposerProfileId !== input.proposerProfileId) throw new Error("Only the proposer can appeal this decision.");
+    if (!["rejected", "merged"].includes(proposal.reviewStatus)) {
+      throw new Error("Only a rejected or merged category outcome can be appealed.");
+    }
+    await batch([
+      {
+        sql: `UPDATE category_proposals
+              SET reviewStatus = 'appealed', reviewNote = ?, reviewedBy = NULL,
+                  assigneeAccountId = NULL, firstApprovalBy = NULL, updatedAt = ?
+              WHERE id = ?`,
+        args: [note, now, proposal.id],
+      },
+      reviewEventStatement({
+        dedupeKey: `category-proposal:${proposal.id}:appealed:${proposal.updatedAt}`,
+        entityType: "category-proposal",
+        entityId: proposal.id,
+        action: "appealed",
+        fromStatus: proposal.reviewStatus,
+        toStatus: "appealed",
+        publicNote: note,
+        isPublic: true,
+        createdAt: now,
+      }),
+    ]);
+    return;
+  }
+
+  const row = await loadOne(`${kenSubmissionSelect} WHERE submission.id = ? LIMIT 1`, [input.entityId]);
+  if (!row) throw new Error("Ken submission not found.");
+  const submission = mapKenSubmission(row);
+  if (submission.proposerProfileId !== input.proposerProfileId) throw new Error("Only the submitter can appeal this decision.");
+  if (!["rejected", "merged"].includes(submission.intakeStatus)) {
+    throw new Error("Only a rejected or merged Ken outcome can be appealed.");
+  }
+  await batch([
+    {
+      sql: `UPDATE ken_submissions
+            SET intakeStatus = 'appealed', reviewNote = ?, assigneeAccountId = NULL,
+                firstApprovalBy = NULL, updatedAt = ?
+            WHERE id = ?`,
+      args: [note, now, submission.id],
+    },
+    reviewEventStatement({
+      dedupeKey: `ken-submission:${submission.id}:appealed:${submission.updatedAt}`,
+      entityType: "ken-submission",
+      entityId: submission.id,
+      action: "appealed",
+      fromStatus: submission.intakeStatus,
+      toStatus: "appealed",
+      publicNote: note,
+      isPublic: true,
+      createdAt: now,
+    }),
+  ]);
+}
+
+export async function listMyReviewSubmissions(profileId: string) {
+  const [categoryRows, kenRows, eventRows] = await Promise.all([
+    loadRows(
+      `SELECT proposal.*, profile.name AS proposerName
+       FROM category_proposals proposal
+       LEFT JOIN profiles profile ON profile.id = proposal.proposerProfileId
+       WHERE proposal.proposerProfileId = ?
+       ORDER BY proposal.updatedAt DESC`,
+      [profileId],
+    ),
+    loadRows(`${kenSubmissionSelect} WHERE submission.proposerProfileId = ? ORDER BY submission.updatedAt DESC`, [profileId]),
+    loadRows(
+      `SELECT event.*, profile.name AS actorName
+       FROM review_events event
+       LEFT JOIN accounts account ON account.id = event.actorAccountId
+       LEFT JOIN profiles profile ON profile.id = account.profileId
+       WHERE event.isPublic = 1
+         AND (
+           (event.entityType = 'category-proposal' AND event.entityId IN (
+             SELECT id FROM category_proposals WHERE proposerProfileId = ?
+           ))
+           OR
+           (event.entityType = 'ken-submission' AND event.entityId IN (
+             SELECT id FROM ken_submissions WHERE proposerProfileId = ?
+           ))
+         )
+       ORDER BY event.createdAt ASC, event.id ASC`,
+      [profileId, profileId],
+    ),
+  ]);
+  return {
+    categories: categoryRows.map(mapCategoryProposal).map(redactCategoryProposalForSubmitter),
+    kens: kenRows.map(mapKenSubmission).map(redactKenSubmissionForPublic),
+    events: eventRows.map(mapReviewEvent).map(redactReviewEventForPublic),
+  };
+}
+
+async function findKenSubmissionForTask(taskId: string) {
+  const row = await loadOne(`${kenSubmissionSelect} WHERE submission.taskId = ? LIMIT 1`, [taskId]);
+  return row ? mapKenSubmission(row) : null;
+}
+
+async function assertTaskPublishedForParticipation(taskId: string) {
+  const submission = await findKenSubmissionForTask(taskId);
+  if (submission && submission.intakeStatus !== "approved") {
+    throw new Error("This Ken is still in intake review and cannot receive public participation yet.");
+  }
 }
 
 export async function saveVote(taskId: string, profileId: string, voteCount: number, rationale: string) {
@@ -2759,6 +4576,7 @@ export async function saveVote(taskId: string, profileId: string, voteCount: num
   if (task.stage === "blocked" || task.safetyStatus === "blocked") {
     throw new Error("Blocked Kens cannot receive quadratic support.");
   }
+  await assertTaskPublishedForParticipation(taskId);
 
   const snapshot = await hydrate(profileId);
   if (!snapshot.viewer) {
@@ -2798,6 +4616,7 @@ export async function saveTaskPulse(taskId: string, profileId: string, value: -1
   if (task.stage === "blocked" || task.safetyStatus === "blocked") {
     throw new Error("Blocked Kens stay visible, but public voting is frozen.");
   }
+  await assertTaskPublishedForParticipation(taskId);
 
   const snapshot = await hydrate(profileId);
   if (!snapshot.viewer) {
@@ -2834,6 +4653,7 @@ export async function createComment(input: {
   if (!(await findTaskById(input.taskId))) {
     throw new Error("Ken not found.");
   }
+  await assertTaskPublishedForParticipation(input.taskId);
 
   const snapshot = await hydrate(input.profileId);
   if (!snapshot.viewer) {
@@ -2862,10 +4682,11 @@ export async function createComment(input: {
 }
 
 export async function saveCommentVote(commentId: string, profileId: string, value: -1 | 0 | 1) {
-  const comment = await loadOne("SELECT id FROM comments WHERE id = ? LIMIT 1", [commentId]);
+  const comment = await loadOne("SELECT id, taskId FROM comments WHERE id = ? LIMIT 1", [commentId]);
   if (!comment) {
     throw new Error("Comment not found.");
   }
+  await assertTaskPublishedForParticipation(getString(comment, "taskId"));
 
   const snapshot = await hydrate(profileId);
   if (!snapshot.viewer) {
@@ -2947,12 +4768,17 @@ export async function consumeRateLimit(input: {
 export async function logSecurityEvent(input: {
   eventType: string;
   detail: string;
-  ipAddress?: string | null;
+  networkIdentifier?: string | null;
   actorId?: string | null;
 }) {
+  const networkHash = hashPrivateIdentifier(
+    input.networkIdentifier,
+    "security-network",
+    visitorHashSalt,
+  );
   await execute(
-    "INSERT INTO security_events (id, eventType, ipAddress, actorId, detail, createdAt) VALUES (?, ?, ?, ?, ?, ?)",
-    [randomUUID(), input.eventType, input.ipAddress ?? null, input.actorId ?? null, input.detail, new Date().toISOString()],
+    "INSERT INTO security_events (id, eventType, networkHash, actorId, detail, createdAt) VALUES (?, ?, ?, ?, ?, ?)",
+    [randomUUID(), input.eventType, networkHash, input.actorId ?? null, input.detail, new Date().toISOString()],
   );
 }
 
@@ -3172,14 +4998,8 @@ function mapEmailToken(row: DbRow): EmailTokenRecord {
 function mapVisitor(row: DbRow): VisitorRecord {
   return {
     id: getString(row, "id"),
-    visitorHash: getString(row, "visitorHash"),
     countryCode: getNullableString(row, "countryCode"),
     countryName: getNullableString(row, "countryName"),
-    region: getNullableString(row, "region"),
-    city: getNullableString(row, "city"),
-    latitude: typeof row.latitude === "number" ? row.latitude : null,
-    longitude: typeof row.longitude === "number" ? row.longitude : null,
-    userAgent: getNullableString(row, "userAgent"),
     firstSeenAt: getString(row, "firstSeenAt"),
     lastSeenAt: getString(row, "lastSeenAt"),
     pageViews: getNumber(row, "pageViews"),
@@ -3272,6 +5092,11 @@ export async function findAccountByEmailExported(email: string) {
 
 export async function findAccountByIdExported(accountId: string) {
   return findAccountById(accountId);
+}
+
+export async function findAccountByProfileIdExported(profileId: string) {
+  const row = await loadOne("SELECT * FROM accounts WHERE profileId = ? LIMIT 1", [profileId]);
+  return row ? mapAccount(row) : null;
 }
 
 export async function updateProfileDetails(
@@ -3386,31 +5211,47 @@ export async function recordVisitor(input: {
   visitorHash: string;
   countryCode: string | null;
   countryName: string | null;
-  region: string | null;
-  city: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  userAgent: string | null;
 }) {
-  const existing = await loadOne("SELECT * FROM visitors WHERE visitorHash = ? LIMIT 1", [input.visitorHash]);
+  const existing = await loadOne(
+    `SELECT id, countryCode, countryName, firstSeenAt, lastSeenAt, pageViews, accountCreated
+     FROM visitors
+     WHERE visitorHash = ?
+     LIMIT 1`,
+    [input.visitorHash],
+  );
   const now = new Date().toISOString();
   if (existing) {
     await execute(
-      "UPDATE visitors SET lastSeenAt = ?, pageViews = pageViews + 1 WHERE visitorHash = ?",
-      [now, input.visitorHash],
+      `UPDATE visitors
+       SET lastSeenAt = ?,
+           pageViews = pageViews + 1,
+           countryCode = COALESCE(countryCode, ?),
+           countryName = COALESCE(countryName, ?)
+       WHERE visitorHash = ?`,
+      [now, input.countryCode, input.countryName, input.visitorHash],
     );
-    return { isNew: false, record: mapVisitor(existing) };
+    await recordDailyVisitorActivity({
+      visitorId: getString(existing, "id"),
+      countryCode: getNullableString(existing, "countryCode") ?? input.countryCode,
+      countryName: getNullableString(existing, "countryName") ?? input.countryName,
+      firstSeenAt: getString(existing, "firstSeenAt"),
+      seenAt: now,
+    });
+    return {
+      isNew: false,
+      record: {
+        ...mapVisitor(existing),
+        countryCode: getNullableString(existing, "countryCode") ?? input.countryCode,
+        countryName: getNullableString(existing, "countryName") ?? input.countryName,
+        lastSeenAt: now,
+        pageViews: getNumber(existing, "pageViews") + 1,
+      },
+    };
   }
   const record: VisitorRecord = {
     id: randomUUID(),
-    visitorHash: input.visitorHash,
     countryCode: input.countryCode,
     countryName: input.countryName,
-    region: input.region,
-    city: input.city,
-    latitude: input.latitude,
-    longitude: input.longitude,
-    userAgent: input.userAgent,
     firstSeenAt: now,
     lastSeenAt: now,
     pageViews: 1,
@@ -3418,24 +5259,50 @@ export async function recordVisitor(input: {
   };
   await execute(
     `INSERT INTO visitors (
-      id, visitorHash, countryCode, countryName, region, city, latitude, longitude, userAgent,
-      firstSeenAt, lastSeenAt, pageViews, accountCreated
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0)`,
+      id, visitorHash, countryCode, countryName, firstSeenAt, lastSeenAt, pageViews, accountCreated
+    ) VALUES (?, ?, ?, ?, ?, ?, 1, 0)`,
     [
       record.id,
-      record.visitorHash,
+      input.visitorHash,
       record.countryCode,
       record.countryName,
-      record.region,
-      record.city,
-      record.latitude,
-      record.longitude,
-      record.userAgent,
       record.firstSeenAt,
       record.lastSeenAt,
     ],
   );
+  await recordDailyVisitorActivity({
+    visitorId: record.id,
+    countryCode: record.countryCode,
+    countryName: record.countryName,
+    firstSeenAt: now,
+    seenAt: now,
+  });
   return { isNew: true, record };
+}
+
+async function recordDailyVisitorActivity(input: {
+  visitorId: string;
+  countryCode: string | null;
+  countryName: string | null;
+  firstSeenAt: string;
+  seenAt: string;
+}) {
+  const day = input.seenAt.slice(0, 10);
+  await execute(
+    `INSERT INTO visitor_daily_activity (
+       day, visitorId, countryCode, countryName, pageViews, firstSeenAt, lastSeenAt
+     ) VALUES (?, ?, ?, ?, 1, ?, ?)
+     ON CONFLICT(day, visitorId) DO UPDATE SET
+       countryCode = COALESCE(visitor_daily_activity.countryCode, excluded.countryCode),
+       countryName = COALESCE(visitor_daily_activity.countryName, excluded.countryName),
+       pageViews = visitor_daily_activity.pageViews + 1,
+       lastSeenAt = excluded.lastSeenAt`,
+    [day, input.visitorId, input.countryCode, input.countryName, input.firstSeenAt, input.seenAt],
+  );
+  const cutoff = new Date(Date.parse(`${day}T00:00:00.000Z`) - VISITOR_ANALYTICS_RETENTION_DAYS * 24 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
+  await execute("DELETE FROM visitor_daily_activity WHERE day < ?", [cutoff]);
 }
 
 export async function markVisitorAccountCreated(visitorHash: string) {
@@ -3443,13 +5310,16 @@ export async function markVisitorAccountCreated(visitorHash: string) {
 }
 
 export async function listVisitors(limit = 1000) {
-  const rows = await loadRows("SELECT * FROM visitors ORDER BY lastSeenAt DESC LIMIT ?", [limit]);
+  const rows = await loadRows(
+    "SELECT id, countryCode, countryName, firstSeenAt, lastSeenAt, pageViews, accountCreated FROM visitors ORDER BY lastSeenAt DESC LIMIT ?",
+    [limit],
+  );
   return rows.map(mapVisitor);
 }
 
 export async function aggregateVisitorsByCountry(): Promise<VisitorAggregate[]> {
   const rows = await loadRows(
-    `SELECT countryCode, countryName, AVG(latitude) AS latitude, AVG(longitude) AS longitude,
+    `SELECT countryCode, countryName, NULL AS latitude, NULL AS longitude,
             COUNT(*) AS visitorCount, MAX(lastSeenAt) AS lastSeenAt
      FROM visitors
      WHERE countryCode IS NOT NULL
@@ -3495,6 +5365,257 @@ export async function getVisitorStats(): Promise<VisitorStats> {
       visitorCount: getNumber(row, "visitorCount"),
     })),
   };
+}
+
+function mapAnalyticsSummary(row: DbRow | null, newAccounts: number): AnalyticsSummaryValues {
+  const uniqueVisitors = row ? getNumber(row, "uniqueVisitors") : 0;
+  const firstTimeVisitors = row ? getNumber(row, "firstTimeVisitors") : 0;
+  return {
+    uniqueVisitors,
+    pageViews: row ? getNumber(row, "pageViews") : 0,
+    newAccounts,
+    countries: row ? getNumber(row, "countries") : 0,
+    firstTimeVisitors,
+    returningVisitors: Math.max(0, uniqueVisitors - firstTimeVisitors),
+    unknownCountryVisitors: row ? getNumber(row, "unknownCountryVisitors") : 0,
+  };
+}
+
+export async function getAdminHistoricalAnalytics(input: {
+  rangeDays?: number | string;
+  bucket?: string;
+} = {}): Promise<AdminHistoricalAnalytics> {
+  const filters = normalizeAnalyticsFilters(input);
+  const period = analyticsPeriod(filters.rangeDays);
+  const visitorBucket = analyticsBucketSql("day", filters.bucket);
+  const accountBucket = analyticsBucketSql("day", filters.bucket);
+  const notificationBucket = analyticsBucketSql("day", filters.bucket);
+  const summarySql = `SELECT
+      COUNT(DISTINCT visitorId) AS uniqueVisitors,
+      COALESCE(SUM(pageViews), 0) AS pageViews,
+      COUNT(DISTINCT CASE WHEN countryCode IS NOT NULL AND trim(countryCode) != '' THEN countryCode END) AS countries,
+      COUNT(DISTINCT CASE WHEN substr(firstSeenAt, 1, 10) BETWEEN ? AND ? THEN visitorId END) AS firstTimeVisitors,
+      COUNT(DISTINCT CASE WHEN countryCode IS NULL OR trim(countryCode) = '' THEN visitorId END) AS unknownCountryVisitors
+    FROM visitor_daily_activity
+    WHERE day BETWEEN ? AND ?`;
+
+  const [
+    visitorTrendRows,
+    accountTrendRows,
+    notificationTrendRows,
+    currentVisitorRow,
+    previousVisitorRow,
+    currentAccountRow,
+    previousAccountRow,
+    currentCountryRows,
+    previousCountryRows,
+    currentNotificationRow,
+    previousNotificationRow,
+    telemetryRow,
+  ] = await Promise.all([
+    loadRows(
+      `SELECT ${visitorBucket} AS bucket,
+              COUNT(DISTINCT visitorId) AS uniqueVisitors,
+              COALESCE(SUM(pageViews), 0) AS pageViews,
+              COUNT(DISTINCT CASE WHEN substr(firstSeenAt, 1, 10) = day THEN visitorId END) AS firstTimeVisitors,
+              COUNT(DISTINCT CASE WHEN countryCode IS NULL OR trim(countryCode) = '' THEN visitorId END) AS unknownCountryVisitors
+       FROM visitor_daily_activity
+       WHERE day BETWEEN ? AND ?
+       GROUP BY bucket
+       ORDER BY bucket ASC`,
+      [period.startDate, period.endDate],
+    ),
+    loadRows(
+      `WITH account_days AS (
+         SELECT substr(createdAt, 1, 10) AS day FROM accounts
+       )
+       SELECT ${accountBucket} AS bucket, COUNT(*) AS newAccounts
+       FROM account_days
+       WHERE day BETWEEN ? AND ?
+       GROUP BY bucket
+       ORDER BY bucket ASC`,
+      [period.startDate, period.endDate],
+    ),
+    loadRows(
+      `WITH notification_days AS (
+         SELECT substr(createdAt, 1, 10) AS day, status FROM notification_delivery_events
+       )
+       SELECT ${notificationBucket} AS bucket,
+              SUM(CASE WHEN status = 'sent' THEN 1 ELSE 0 END) AS sent,
+              SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) AS failed,
+              SUM(CASE WHEN status = 'not-configured' THEN 1 ELSE 0 END) AS skipped
+       FROM notification_days
+       WHERE day BETWEEN ? AND ?
+       GROUP BY bucket
+       ORDER BY bucket ASC`,
+      [period.startDate, period.endDate],
+    ),
+    loadOne(summarySql, [period.startDate, period.endDate, period.startDate, period.endDate]),
+    loadOne(summarySql, [
+      period.previousStartDate,
+      period.previousEndDate,
+      period.previousStartDate,
+      period.previousEndDate,
+    ]),
+    loadOne("SELECT COUNT(*) AS count FROM accounts WHERE substr(createdAt, 1, 10) BETWEEN ? AND ?", [
+      period.startDate,
+      period.endDate,
+    ]),
+    loadOne("SELECT COUNT(*) AS count FROM accounts WHERE substr(createdAt, 1, 10) BETWEEN ? AND ?", [
+      period.previousStartDate,
+      period.previousEndDate,
+    ]),
+    loadRows(
+      `SELECT COALESCE(countryCode, 'unknown') AS countryCode,
+              COALESCE(countryName, 'Unknown') AS countryName,
+              COUNT(DISTINCT visitorId) AS visitors,
+              COALESCE(SUM(pageViews), 0) AS pageViews,
+              MAX(lastSeenAt) AS lastSeenAt
+       FROM visitor_daily_activity
+       WHERE day BETWEEN ? AND ?
+       GROUP BY COALESCE(countryCode, 'unknown'), COALESCE(countryName, 'Unknown')
+       ORDER BY visitors DESC, countryName ASC`,
+      [period.startDate, period.endDate],
+    ),
+    loadRows(
+      `SELECT COALESCE(countryCode, 'unknown') AS countryCode,
+              COALESCE(countryName, 'Unknown') AS countryName,
+              COUNT(DISTINCT visitorId) AS visitors
+       FROM visitor_daily_activity
+       WHERE day BETWEEN ? AND ?
+       GROUP BY COALESCE(countryCode, 'unknown'), COALESCE(countryName, 'Unknown')`,
+      [period.previousStartDate, period.previousEndDate],
+    ),
+    loadOne(
+      `SELECT SUM(CASE WHEN status = 'sent' THEN 1 ELSE 0 END) AS sent,
+              SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) AS failed,
+              SUM(CASE WHEN status = 'not-configured' THEN 1 ELSE 0 END) AS skipped
+       FROM notification_delivery_events
+       WHERE substr(createdAt, 1, 10) BETWEEN ? AND ?`,
+      [period.startDate, period.endDate],
+    ),
+    loadOne(
+      `SELECT SUM(CASE WHEN status = 'sent' THEN 1 ELSE 0 END) AS sent,
+              SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) AS failed,
+              SUM(CASE WHEN status = 'not-configured' THEN 1 ELSE 0 END) AS skipped
+       FROM notification_delivery_events
+       WHERE substr(createdAt, 1, 10) BETWEEN ? AND ?`,
+      [period.previousStartDate, period.previousEndDate],
+    ),
+    loadOne(
+      `SELECT
+         (SELECT MIN(day) FROM visitor_daily_activity) AS collectionStartedAt,
+         (SELECT MAX(lastSeenAt) FROM visitor_daily_activity) AS latestActivityAt,
+         (SELECT MIN(firstSeenAt) FROM visitors) AS legacyVisitorStartedAt,
+         (SELECT MAX(createdAt) FROM notification_delivery_events) AS latestNotificationAt`,
+    ),
+  ]);
+
+  const current = mapAnalyticsSummary(currentVisitorRow, currentAccountRow ? getNumber(currentAccountRow, "count") : 0);
+  const previous = mapAnalyticsSummary(previousVisitorRow, previousAccountRow ? getNumber(previousAccountRow, "count") : 0);
+  const visitorByBucket = new Map(visitorTrendRows.map((row) => [getString(row, "bucket"), row]));
+  const accountsByBucket = new Map(accountTrendRows.map((row) => [getString(row, "bucket"), row]));
+  const notificationsByBucket = new Map(notificationTrendRows.map((row) => [getString(row, "bucket"), row]));
+  const points = buildAnalyticsBuckets(period, filters.bucket).map(({ key, label }) => {
+    const visitor = visitorByBucket.get(key);
+    const accounts = accountsByBucket.get(key);
+    const notifications = notificationsByBucket.get(key);
+    const uniqueVisitors = visitor ? getNumber(visitor, "uniqueVisitors") : 0;
+    const firstTimeVisitors = visitor ? getNumber(visitor, "firstTimeVisitors") : 0;
+    return {
+      key,
+      label,
+      uniqueVisitors,
+      pageViews: visitor ? getNumber(visitor, "pageViews") : 0,
+      newAccounts: accounts ? getNumber(accounts, "newAccounts") : 0,
+      firstTimeVisitors,
+      returningVisitors: Math.max(0, uniqueVisitors - firstTimeVisitors),
+      unknownCountryVisitors: visitor ? getNumber(visitor, "unknownCountryVisitors") : 0,
+      notificationsSent: notifications ? getNumber(notifications, "sent") : 0,
+      notificationsFailed: notifications ? getNumber(notifications, "failed") : 0,
+      notificationsSkipped: notifications ? getNumber(notifications, "skipped") : 0,
+    };
+  });
+
+  const countryMap = new Map<string, AdminHistoricalAnalytics["countries"][number]>();
+  for (const row of previousCountryRows) {
+    const countryCode = getString(row, "countryCode");
+    countryMap.set(countryCode, {
+      countryCode,
+      countryName: getString(row, "countryName"),
+      currentVisitors: 0,
+      previousVisitors: getNumber(row, "visitors"),
+      pageViews: 0,
+      share: 0,
+      lastSeenAt: null,
+    });
+  }
+  for (const row of currentCountryRows) {
+    const countryCode = getString(row, "countryCode");
+    countryMap.set(countryCode, {
+      countryCode,
+      countryName: getString(row, "countryName"),
+      currentVisitors: getNumber(row, "visitors"),
+      previousVisitors: countryMap.get(countryCode)?.previousVisitors ?? 0,
+      pageViews: getNumber(row, "pageViews"),
+      share: current.uniqueVisitors > 0 ? getNumber(row, "visitors") / current.uniqueVisitors : 0,
+      lastSeenAt: getNullableString(row, "lastSeenAt"),
+    });
+  }
+
+  const collectionStartedAt = telemetryRow ? getNullableString(telemetryRow, "collectionStartedAt") : null;
+  const legacyVisitorStartedAt = telemetryRow ? getNullableString(telemetryRow, "legacyVisitorStartedAt") : null;
+  return {
+    filters,
+    period,
+    points,
+    current,
+    previous,
+    countries: [...countryMap.values()].sort(
+      (left, right) => right.currentVisitors - left.currentVisitors || right.previousVisitors - left.previousVisitors || left.countryName.localeCompare(right.countryName),
+    ),
+    notificationHealth: {
+      sent: currentNotificationRow ? getNumber(currentNotificationRow, "sent") : 0,
+      failed: currentNotificationRow ? getNumber(currentNotificationRow, "failed") : 0,
+      skipped: currentNotificationRow ? getNumber(currentNotificationRow, "skipped") : 0,
+      previousSent: previousNotificationRow ? getNumber(previousNotificationRow, "sent") : 0,
+      previousFailed: previousNotificationRow ? getNumber(previousNotificationRow, "failed") : 0,
+      previousSkipped: previousNotificationRow ? getNumber(previousNotificationRow, "skipped") : 0,
+      latestAt: telemetryRow ? getNullableString(telemetryRow, "latestNotificationAt") : null,
+    },
+    telemetry: {
+      collectionStartedAt,
+      latestActivityAt: telemetryRow ? getNullableString(telemetryRow, "latestActivityAt") : null,
+      retainedDays: VISITOR_ANALYTICS_RETENTION_DAYS,
+      hasPreUpgradeGap: Boolean(
+        legacyVisitorStartedAt && (!collectionStartedAt || legacyVisitorStartedAt.slice(0, 10) < collectionStartedAt),
+      ),
+    },
+  };
+}
+
+export async function recordNotificationDelivery(input: {
+  purpose?: string;
+  status: "sent" | "failed" | "not-configured";
+  transportSource: "env" | "database" | "none";
+  recipientCount: number;
+}) {
+  const createdAt = new Date().toISOString();
+  await execute(
+    `INSERT INTO notification_delivery_events (
+       id, purpose, status, transportSource, recipientCount, createdAt
+     ) VALUES (?, ?, ?, ?, ?, ?)`,
+    [
+      randomUUID(),
+      (input.purpose ?? "transactional").trim().slice(0, 60) || "transactional",
+      input.status,
+      input.transportSource,
+      Math.max(0, Math.min(input.recipientCount, 100)),
+      createdAt,
+    ],
+  );
+  const cutoff = new Date(Date.now() - VISITOR_ANALYTICS_RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString();
+  await execute("DELETE FROM notification_delivery_events WHERE createdAt < ?", [cutoff]);
 }
 
 export async function listTaskIllustrations(): Promise<TaskIllustrationRecord[]> {
@@ -3561,6 +5682,77 @@ export async function setSiteSetting(key: string, value: string, updatedBy: stri
   } else {
     await execute("INSERT INTO site_settings (key, value, updatedAt, updatedBy) VALUES (?, ?, ?, ?)", [key, value, now, updatedBy]);
   }
+}
+
+function isCapacityState(value: unknown): value is CapacityState {
+  return value === "normal" || value === "constrained" || value === "new-launches-paused" || value === "critical-maintenance-only";
+}
+
+export async function getCapacityOverrideState(): Promise<CapacityOverrideState> {
+  const record = await getSiteSetting("operations.capacity");
+  if (!record) return DEFAULT_CAPACITY_OVERRIDE;
+  try {
+    const parsed = JSON.parse(record.value) as Partial<CapacityOverrideState>;
+    const mode = parsed.mode === "manual" ? "manual" : "automatic";
+    const manualState = isCapacityState(parsed.manualState) ? parsed.manualState : null;
+    return {
+      mode,
+      manualState: mode === "manual" ? manualState : null,
+      publicReason: typeof parsed.publicReason === "string" ? parsed.publicReason.trim().slice(0, 1000) : "",
+      updatedAt: record.updatedAt,
+      updatedBy: record.updatedBy,
+    };
+  } catch {
+    return DEFAULT_CAPACITY_OVERRIDE;
+  }
+}
+
+export async function setCapacityOverrideState(
+  input: Pick<CapacityOverrideState, "mode" | "manualState" | "publicReason">,
+  updatedBy: string | null,
+) {
+  const mode = input.mode === "manual" ? "manual" : "automatic";
+  const manualState = mode === "manual" && isCapacityState(input.manualState) ? input.manualState : null;
+  const publicReason = input.publicReason.trim().slice(0, 1000);
+  if (mode === "manual" && (!manualState || publicReason.length < 20)) {
+    throw new Error("Manual capacity restrictions require a state and a public reason of at least 20 characters.");
+  }
+  const payload: CapacityOverrideState = {
+    mode,
+    manualState,
+    publicReason: mode === "manual" ? publicReason : "",
+    updatedAt: new Date().toISOString(),
+    updatedBy,
+  };
+  await setSiteSetting("operations.capacity", JSON.stringify(payload), updatedBy);
+}
+
+export async function getCapacityState(summary?: EconomicsSummary): Promise<CapacityStateResolution> {
+  let economics = summary;
+  if (!economics) {
+    const [revenueStreams, treasuryEntries, sponsorshipCommitments] = await Promise.all([
+      loadRevenueStreams(),
+      loadTreasuryEntries(),
+      loadSponsorshipCommitments(),
+    ]);
+    const monthlyPublicBurnUsd = treasuryEntries
+      .filter((entry) => entry.bucket === "compute-treasury" && entry.direction === "outflow")
+      .reduce((total, entry) => total + entry.amountUsd, 0);
+    economics = summarizeEconomics(
+      revenueStreams,
+      treasuryEntries,
+      sponsorshipCommitments,
+      monthlyPublicBurnUsd,
+      0,
+      env.KENMATCH_TREASURY_TARGET_MONTHS,
+    );
+  }
+  const automaticState = deriveAutomaticCapacityState(
+    economics.coverageMonths,
+    economics.coverageTargetMonths,
+    economics.monthlyPublicBurnUsd,
+  );
+  return resolveCapacityState(automaticState, await getCapacityOverrideState());
 }
 
 const DEFAULT_MAINTENANCE_STATE: MaintenanceState = {
@@ -3695,8 +5887,6 @@ function mapContactSubmission(row: DbRow): ContactSubmissionRecord {
     attachmentCount: getNumber(row, "attachmentCount"),
     emailStatus: emailStatus === "sent" || emailStatus === "failed" ? emailStatus : "not-configured",
     emailError: getNullableString(row, "emailError"),
-    ipAddress: getNullableString(row, "ipAddress"),
-    userAgent: getNullableString(row, "userAgent"),
     createdAt: getString(row, "createdAt"),
   };
 }
@@ -3709,8 +5899,6 @@ export async function createContactSubmission(input: {
   attachments: Array<Pick<ContactAttachmentRecord, "fileName" | "mimeType" | "sizeBytes" | "contentBase64">>;
   emailStatus: ContactSubmissionRecord["emailStatus"];
   emailError?: string | null;
-  ipAddress?: string | null;
-  userAgent?: string | null;
 }) {
   const now = new Date().toISOString();
   const id = randomUUID();
@@ -3718,8 +5906,8 @@ export async function createContactSubmission(input: {
     [
       {
         sql: `INSERT INTO contact_submissions (
-          id, title, topic, replyEmail, bodyMarkdown, attachmentCount, emailStatus, emailError, ipAddress, userAgent, createdAt
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          id, title, topic, replyEmail, bodyMarkdown, attachmentCount, emailStatus, emailError, createdAt
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         args: [
           id,
           input.title.trim().slice(0, 140),
@@ -3729,8 +5917,6 @@ export async function createContactSubmission(input: {
           input.attachments.length,
           input.emailStatus,
           input.emailError?.slice(0, 500) ?? null,
-          input.ipAddress ?? null,
-          input.userAgent?.slice(0, 500) ?? null,
           now,
         ],
       },
@@ -3755,12 +5941,20 @@ export async function createContactSubmission(input: {
 }
 
 export async function listContactSubmissions(limit = 100): Promise<ContactSubmissionRecord[]> {
-  const rows = await loadRows("SELECT * FROM contact_submissions ORDER BY createdAt DESC LIMIT ?", [limit]);
+  const rows = await loadRows(
+    `SELECT id, title, topic, replyEmail, bodyMarkdown, attachmentCount, emailStatus, emailError, createdAt
+     FROM contact_submissions ORDER BY createdAt DESC LIMIT ?`,
+    [limit],
+  );
   return rows.map(mapContactSubmission);
 }
 
 export async function getContactSubmission(id: string): Promise<ContactSubmissionRecord | null> {
-  const row = await loadOne("SELECT * FROM contact_submissions WHERE id = ? LIMIT 1", [id]);
+  const row = await loadOne(
+    `SELECT id, title, topic, replyEmail, bodyMarkdown, attachmentCount, emailStatus, emailError, createdAt
+     FROM contact_submissions WHERE id = ? LIMIT 1`,
+    [id],
+  );
   if (!row) return null;
   const attachments = await loadRows(
     "SELECT * FROM contact_attachments WHERE submissionId = ? ORDER BY createdAt ASC",
@@ -3775,6 +5969,8 @@ const DEFAULT_NOTIFICATION_SETTINGS: AdminNotificationSettings = {
   notifyOnFirstVisit: true,
   notifyOnVerificationRequest: true,
   notifyOnProposal: true,
+  notifyOnCategoryProposal: true,
+  notifyOnReviewDecision: true,
   dailyDigest: false,
   updatedAt: new Date(0).toISOString(),
 };
@@ -3792,6 +5988,8 @@ export async function getAdminNotificationSettings(): Promise<AdminNotificationS
       notifyOnFirstVisit: parsed.notifyOnFirstVisit ?? true,
       notifyOnVerificationRequest: parsed.notifyOnVerificationRequest ?? true,
       notifyOnProposal: parsed.notifyOnProposal ?? true,
+      notifyOnCategoryProposal: parsed.notifyOnCategoryProposal ?? true,
+      notifyOnReviewDecision: parsed.notifyOnReviewDecision ?? true,
       dailyDigest: parsed.dailyDigest ?? false,
       updatedAt: record.updatedAt,
     };
@@ -4008,33 +6206,84 @@ export async function recordAudit(input: {
   action: string;
   detail: string;
   metadata?: Record<string, unknown> | null;
-  ipAddress?: string | null;
 }) {
   await execute(
-    "INSERT INTO audit_log (id, accountId, action, detail, metadata, ipAddress, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    "INSERT INTO audit_log (id, accountId, action, detail, metadata, createdAt) VALUES (?, ?, ?, ?, ?, ?)",
     [
       randomUUID(),
       input.accountId,
       input.action.slice(0, 80),
-      input.detail.slice(0, 1000),
-      input.metadata ? JSON.stringify(input.metadata).slice(0, 4000) : null,
-      input.ipAddress ?? null,
+      input.detail,
+      input.metadata ? JSON.stringify(input.metadata) : null,
       new Date().toISOString(),
     ],
   );
 }
 
 export async function listAuditLog(limit = 200): Promise<AuditLogRecord[]> {
-  const rows = await loadRows("SELECT * FROM audit_log ORDER BY createdAt DESC LIMIT ?", [limit]);
-  return rows.map((row) => ({
+  const rows = await loadRows(
+    "SELECT id, accountId, action, detail, metadata, createdAt FROM audit_log ORDER BY createdAt DESC LIMIT ?",
+    [limit],
+  );
+  return rows.map(mapAuditLogRecord);
+}
+
+function mapAuditLogRecord(row: DbRow): AuditLogRecord {
+  return {
     id: getString(row, "id"),
     accountId: getNullableString(row, "accountId"),
     action: getString(row, "action"),
     detail: getString(row, "detail"),
     metadata: getNullableString(row, "metadata"),
-    ipAddress: getNullableString(row, "ipAddress"),
     createdAt: getString(row, "createdAt"),
-  }));
+  };
+}
+
+export async function listAuditLogPage(input: {
+  query?: string;
+  action?: string;
+  page?: number | string;
+  pageSize?: number | string;
+} = {}): Promise<AuditLogPage> {
+  const requested = normalizeAuditLogFilters(input);
+  const clauses: string[] = [];
+  const args: Value[] = [];
+
+  if (requested.action !== "all") {
+    clauses.push("action = ?");
+    args.push(requested.action);
+  }
+  if (requested.query) {
+    const pattern = `%${escapeAuditLikePattern(requested.query.toLowerCase())}%`;
+    clauses.push(
+      "(LOWER(action) LIKE ? ESCAPE '!' OR LOWER(detail) LIKE ? ESCAPE '!' OR LOWER(COALESCE(metadata, '')) LIKE ? ESCAPE '!')",
+    );
+    args.push(pattern, pattern, pattern);
+  }
+
+  const where = clauses.length > 0 ? ` WHERE ${clauses.join(" AND ")}` : "";
+  const [countRows, actionRows] = await Promise.all([
+    loadRows(`SELECT COUNT(*) AS count FROM audit_log${where}`, args),
+    loadRows("SELECT DISTINCT action FROM audit_log ORDER BY action ASC"),
+  ]);
+  const totalItems = getCount(countRows);
+  const totalPages = Math.max(1, Math.ceil(totalItems / requested.pageSize));
+  const page = Math.min(requested.page, totalPages);
+  const rows = await loadRows(
+    `SELECT id, accountId, action, detail, metadata, createdAt
+     FROM audit_log${where} ORDER BY createdAt DESC, id DESC LIMIT ? OFFSET ?`,
+    [...args, requested.pageSize, (page - 1) * requested.pageSize],
+  );
+
+  return {
+    items: rows.map(mapAuditLogRecord),
+    actions: actionRows.map((row) => getString(row, "action")).filter(Boolean),
+    filters: { ...requested, page },
+    page,
+    pageSize: requested.pageSize,
+    totalItems,
+    totalPages,
+  };
 }
 
 export async function getAdminDashboard() {
@@ -4042,50 +6291,56 @@ export async function getAdminDashboard() {
     accounts,
     profiles,
     pendingVerifications,
-    recentAudit,
     visitors,
     visitorStats,
     countryAggregates,
-    categoryProposals,
     maintenance,
     changelog,
     smtp,
     illustrations,
     marketplace,
+    capacity,
   ] = await Promise.all([
     loadAccounts(),
     loadProfiles(),
     loadRows("SELECT * FROM profiles WHERE verificationStatus = 'pending' ORDER BY verificationRequestedAt ASC").then((rows) => rows.map(mapProfile)),
-    listAuditLog(50),
     listVisitors(500),
     getVisitorStats(),
     aggregateVisitorsByCountry(),
-    loadCategoryProposals(),
     getMaintenanceState(),
     listChangelogEntries(true, 12),
     getAdminSmtpSettings(),
     listTaskIllustrations(),
     hydrate(null),
+    getCapacityState(),
   ]);
   return {
     accounts,
     profiles,
     pendingVerifications,
-    recentAudit,
     visitors,
     visitorStats,
     countryAggregates,
-    categoryProposals,
     maintenance,
     changelog,
     smtp,
     illustrations,
     tasks: marketplace.tasks,
+    capacity,
+    checkpoints: marketplace.tasks.flatMap((task) => marketplace.checkpointMap.get(task.id) ?? []),
+    runDecisions: marketplace.tasks.flatMap((task) => marketplace.runDecisionsByTask.get(task.id) ?? [])
+      .sort((left, right) => right.createdAt.localeCompare(left.createdAt)),
   };
 }
 
-export async function getProfilePageData(profileId: string) {
-  const [profile, snapshot] = await Promise.all([findProfileById(profileId), hydrate(profileId)]);
+export async function getProfilePageData(profileId: string, viewerProfileId?: string | null) {
+  const [profile, snapshot, privateReviews] = await Promise.all([
+    findProfileById(profileId),
+    hydrate(viewerProfileId),
+    viewerProfileId === profileId
+      ? listMyReviewSubmissions(profileId)
+      : Promise.resolve(null),
+  ]);
   if (!profile) return null;
   const summary = snapshot.profiles.find((candidate) => candidate.id === profileId) ?? null;
   const ownTasks = snapshot.tasks.filter((task) => task.proposerId === profileId);
@@ -4097,6 +6352,7 @@ export async function getProfilePageData(profileId: string) {
     ownTasks,
     bookmarkedTasks,
     accountSystemRole: account?.systemRole ?? "contributor",
+    privateReviews,
   };
 }
 
@@ -4119,7 +6375,7 @@ export async function searchIndex(viewerProfileId?: string | null): Promise<Sear
       type: "profile",
       title: publicProfileName(profile),
       subtitle: `@${profile.username} · ${profile.role} · ${profile.specialty}`,
-      url: `/people/${profile.id}`,
+      url: profilePath(profile),
       badge: profile.attestationLevel,
     });
   }
@@ -4169,6 +6425,7 @@ export async function searchIndex(viewerProfileId?: string | null): Promise<Sear
     { id: "economics", type: "page", title: "Economics", subtitle: "Treasury, revenue engines, sponsorship pools.", url: "/economics" },
     { id: "about", type: "page", title: "About / Contact", subtitle: "Creator, mission, and contact info.", url: "/about" },
     { id: "faq", type: "page", title: "FAQ", subtitle: "What Kens are and how KenMatch works.", url: "/faq" },
+    { id: "reviews", type: "page", title: "Public review outcomes", subtitle: "Reason-coded Ken and category intake decisions.", url: "/reviews" },
     { id: "changelog", type: "page", title: "Changelog", subtitle: "Significant product, data, and operations updates.", url: "/about#changelog" },
   );
   return items;

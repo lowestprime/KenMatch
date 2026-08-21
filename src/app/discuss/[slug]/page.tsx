@@ -1,13 +1,39 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { DiscussionCommentForm, DiscussionSaveForm, DiscussionVoteForm } from "@/components/discussion-forms";
-import { getDiscussionPost } from "@/lib/discussion-db";
+import { JsonLd } from "@/components/json-ld";
+import { getDiscussionPost, getDiscussionPostSeoRecord } from "@/lib/discussion-db";
+import {
+  breadcrumbJsonLd,
+  buildPrivateMetadata,
+  buildPublicMetadata,
+  canonicalUrl,
+  seoDescription,
+} from "@/lib/seo";
 import { getViewerSession } from "@/lib/session";
 import { formatDateTime } from "@/lib/utils";
 import type { DiscussionCommentSummary } from "@/lib/discussion-db";
 
-export const metadata = { title: "Discussion thread" };
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const post = await getDiscussionPostSeoRecord(slug);
+  if (!post) {
+    return buildPrivateMetadata("Discussion unavailable", "This public discussion thread is not available.");
+  }
+  return buildPublicMetadata({
+    title: post.title,
+    description: seoDescription(post.bodyMarkdown),
+    path: `/discuss/${encodeURIComponent(post.slug)}`,
+    type: "article",
+    imageAlt: `${post.title}, a KenMatch discussion`,
+  });
+}
 
 function CommentTree({ comments, slug, viewerSignedIn }: { comments: DiscussionCommentSummary[]; slug: string; viewerSignedIn: boolean }) {
   if (comments.length === 0) return <p style={{ color: "var(--muted)" }}>No comments yet. Add the first concrete refinement, objection, source, or decision criterion.</p>;
@@ -39,9 +65,35 @@ export default async function DiscussionThreadPage({ params }: { params: Promise
   const viewerSignedIn = Boolean(viewer);
   const post = await getDiscussionPost(slug, viewer?.profile.id);
   if (!post) notFound();
+  const postUrl = canonicalUrl(`/discuss/${encodeURIComponent(post.slug)}`);
+  const structuredData = [
+    breadcrumbJsonLd([
+      { name: "KenMatch", path: "/" },
+      { name: "Discussion", path: "/discuss" },
+      { name: post.title, path: `/discuss/${encodeURIComponent(post.slug)}` },
+    ]),
+    {
+      "@context": "https://schema.org",
+      "@type": "DiscussionForumPosting",
+      "@id": `${postUrl}#discussion`,
+      headline: post.title,
+      abstract: seoDescription(post.bodyMarkdown, 400),
+      url: postUrl,
+      datePublished: post.createdAt,
+      dateModified: post.updatedAt,
+      commentCount: post.commentCount,
+      author: {
+        "@type": "Person",
+        name: post.profileUsername ? `@${post.profileUsername}` : post.profileName,
+      },
+      about: post.topic,
+      isPartOf: { "@id": `${canonicalUrl("/")}#website` },
+    },
+  ];
 
   return (
     <div className="page-stack">
+      {structuredData.map((data, index) => <JsonLd key={index} data={data} />)}
       <section className="panel hero-panel">
         <span className="eyebrow">Discussion · {post.topic}</span>
         <h1>{post.title}</h1>

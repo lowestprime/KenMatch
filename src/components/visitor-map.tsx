@@ -138,8 +138,9 @@ export function VisitorMap({ aggregates, stats }: { aggregates: VisitorAggregate
     })
     .filter((value): value is MappedAggregate => value !== null), [aggregates, maxCount, total]);
 
-  const topCountries = [...mapped].sort((a, b) => b.visitorCount - a.visitorCount).slice(0, 8);
-  const active = activeCode ? mapped.find((item) => item.countryCode === activeCode) ?? null : topCountries[0] ?? null;
+  const rankedCountries = [...mapped].sort((a, b) => b.visitorCount - a.visitorCount);
+  const topCountries = rankedCountries.slice(0, 8);
+  const active = activeCode ? mapped.find((item) => item.countryCode === activeCode) ?? null : rankedCountries[0] ?? null;
 
   return (
     <div className="visitor-map-shell" role="region" aria-label="Interactive visitor geography">
@@ -165,7 +166,7 @@ export function VisitorMap({ aggregates, stats }: { aggregates: VisitorAggregate
           <g className="visitor-land-mass" aria-hidden="true">
             {LAND_PATHS.map((path, index) => <path key={index} d={path} />)}
           </g>
-          <g className="visitor-country-layer">
+          <g className="visitor-country-layer" aria-hidden="true">
             {Object.entries(COUNTRY_REGIONS).map(([code, region]) => {
               const aggregate = byCode.get(code);
               const intensity = aggregate ? Math.max(0.2, aggregate.visitorCount / maxCount) : 0;
@@ -183,8 +184,6 @@ export function VisitorMap({ aggregates, stats }: { aggregates: VisitorAggregate
                   rx={Math.min(region.width, region.height) * 0.28}
                   opacity={aggregate ? 0.28 + intensity * 0.58 : 0.12}
                   onMouseEnter={() => aggregate?.countryCode && setActiveCode(aggregate.countryCode)}
-                  onFocus={() => aggregate?.countryCode && setActiveCode(aggregate.countryCode)}
-                  tabIndex={aggregate ? 0 : -1}
                 />
               );
             })}
@@ -194,10 +193,22 @@ export function VisitorMap({ aggregates, stats }: { aggregates: VisitorAggregate
               <path key={`arc-${point.countryCode ?? point.countryName}`} d={`M500 250 Q ${(500 + point.x) / 2} ${Math.min(point.y, 250) - 60} ${point.x} ${point.y}`} />
             ))}
           </g>
-          <g className="visitor-bubble-layer">
+          <g className="visitor-bubble-layer" aria-hidden="true">
             {mapped.map((point) => {
               const key = point.countryCode ?? `${point.x}-${point.y}`;
               const isActive = active?.countryCode === point.countryCode;
+              return (
+                <g key={key} transform={`translate(${point.x}, ${point.y})`}>
+                  <circle className="visitor-pulse-ring" r={point.radius + 8} />
+                  <circle className="visitor-pulse" data-active={isActive || undefined} r={point.radius} />
+                  <circle className="visitor-bubble-core" r={Math.max(3, point.radius * 0.34)} />
+                </g>
+              );
+            })}
+          </g>
+          <g className="visitor-bubble-hit-layer">
+            {mapped.map((point) => {
+              const key = point.countryCode ?? `${point.x}-${point.y}`;
               return (
                 <g
                   key={key}
@@ -210,9 +221,7 @@ export function VisitorMap({ aggregates, stats }: { aggregates: VisitorAggregate
                   onFocus={() => setActiveCode(point.countryCode)}
                   onClick={() => setActiveCode(point.countryCode)}
                 >
-                  <circle className="visitor-pulse-ring" r={point.radius + 8} />
-                  <circle className="visitor-pulse" data-active={isActive || undefined} r={point.radius} />
-                  <circle className="visitor-bubble-core" r={Math.max(3, point.radius * 0.34)} />
+                  <circle className="visitor-bubble-target" r={point.radius + 8} />
                 </g>
               );
             })}
@@ -240,9 +249,9 @@ export function VisitorMap({ aggregates, stats }: { aggregates: VisitorAggregate
           <span><strong>{stats.countries}</strong> countries</span>
         </div>
       ) : null}
-      {topCountries.length > 0 ? (
-        <div className="visitor-country-list" aria-label="Top visitor countries">
-          {topCountries.map((country) => (
+      {rankedCountries.length > 0 ? (
+        <div className="visitor-country-list" aria-label="Visitor countries, highest traffic first">
+          {rankedCountries.map((country) => (
             <button
               key={country.countryCode ?? country.countryName ?? "unknown"}
               type="button"

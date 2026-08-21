@@ -15,6 +15,40 @@ This task is not just a UI refresh. It combines:
 This file is not a substitute for implementation.
 If active, it must stay current as the work progresses.
 
+## Active completion program — 2026-08-21
+
+- Task title: Comprehensive product completion, governance, ranking resilience, and deterministic visual archive
+- Source of truth: the July 27, 2026 completion program and its generated claim/constraint ledger
+- Branch: `codex/kenmatch-completion-visual-archive-20260727`
+- Status: COMPLETE
+- Last updated: 2026-08-21
+
+### Current evidence
+
+| Workstream | Status | Current evidence |
+| --- | --- | --- |
+| A. Product truth, FAQ, and glossary | DONE | Searchable/deep-linkable FAQ, strategic sourced entries, product-truth matrix, glossary route, JSON-LD, unit tests, build, and local browser checks |
+| B. Bounded discovery and feed resilience | DONE | Deterministic aggregation and pagination, URL-driven filters, reset behavior, supporting indexes, 100,000-row fixture checks, unit tests, build, and local browser checks |
+| C. Deterministic intake review | DONE | Private pre-publication intake, deterministic checks, collision handling, category creation, proposer status, reviewer queue, append-only history, unit/database tests, and signed-in/signed-out browser checks |
+| D. Transparent moderation and dual control | DONE | Role-scoped triage/final actions, durable recusals, conflict rules, two-person high-risk approval, public outcome history, private notes, idempotent transitions, and independent-reviewer browser checks |
+| Auth transition integrity | DONE | Authority-preserving request-origin checks, exact-host redirects, shared immediate sign-out on desktop/mobile, redirect-sentinel handling, focused tests, and zero-console-error browser checks |
+| E. Lifecycle graphical abstract | DONE | Canonical eight-stage model; interactive Overview/Governance map; Ken-detail progression; keyboard, screen-reader, Light/OLED, 320 px, forced-color, reduced-motion, and print/PDF evidence |
+| F. Theme and long-page system | DONE | Before/after computed styles and screenshots; centralized neutral Light/true-black OLED tokens; fixed breakpoint typography; 28-route overflow sweep; actual-height reading progress; server-filtered/paginated, expandable audit history; focused tests and browser evidence |
+| G. Historical admin analytics | DONE | Privacy-safe daily aggregates; 7/30/90/365-day and day/week/month views; equal previous-period comparisons; account, country, visitor-mix, and delivery health; 400-day retention; no raw request metadata; accessible SVG/table surfaces; focused tests, production build, database inspection, and desktop/mobile browser evidence |
+| H. Technical SEO and launch strategy | DONE | Public-only dynamic sitemap, robots/noindex/canonical policy, route metadata and schemas, current-intent research, ethical launch docs, non-authoritative r/kenmatch integration, 92-test/static/build checks, desktop/mobile browser evidence, and matching development plus standalone production response audits |
+| I. Capacity and output resilience | DONE | Committed-unrestricted coverage state machine; restrictive manual controls; protected-work and recovery rules; ten reason-coded stop paths; append-only checkpoint/correction/stop/release events; explicit artifact/digest release gates; public quality history; objective/subjective matrix; 98-test/static/build checks; isolated desktop/mobile browser and admin-mutation evidence |
+| J. Deterministic visual archive | DONE | Four-worker deterministic coordinator, convergence/resume identity, request safety, private/shareable reports and PDFs, checksums, and validated Tier 1 synthetic, Tier 2 production-clone, and Tier 3 live-readonly smoke/full archives |
+| K. Final validation and release evidence | DONE | Exact candidate `72dcf5579fd5674624a0602af623acd7b61c7331` deployed healthy and validated live; ephemeral audit data removed; 495 requirements reconciled with zero unresolved applicable items; tracked closure evidence and exact-head checks complete the release record |
+
+### Completion controls
+
+- `scripts/generate-completion-ledger.mjs` regenerates the auditable claim and constraint inventory.
+- `docs/kenmatch-completion-ledger.json` is the machine-readable state record.
+- `docs/kenmatch-completion-ledger.md` is the reviewer-facing state record.
+- `docs/release-evidence.json` binds the exact candidate, benchmark decision, formal runs, deployment, cleanup, and scope boundaries used for final disposition.
+- A workstream moves to DONE only after its implementation, focused tests, project checks, and direct UI or artifact evidence are all recorded.
+- The earlier April plan below remains historical context. Its workstream letters are not aliases for the July completion program.
+
 ## Status model
 Allowed statuses:
 - TODO: not yet audited or implemented
@@ -539,3 +573,25 @@ Run the app locally and verify at minimum:
 - `docker build -t kenmatch-smoke .` -> clean; Docker build runs regenerated route types, typecheck, and finalized Next build
 - Docker runtime smoke on port 3019 -> 200 on `/api/health`, `/`, `/kens`, `/about`, `/verification`, `/forgot-password`, `/reset`, `/verify`, `/admin`, `/account`, `/economics`, `/people`, `/auth`, `/icon.svg`, `/icon-dark.svg`, `/apple-touch-icon.svg`, and `/manifest.webmanifest`; `/kens` includes durable sandbox model labels
 - Startup deadlock fixed in `src/lib/db.ts`: initialization no longer calls normal DB helpers that wait on the initialization promise itself.
+
+## 2026-07-29 deterministic visual archive
+
+### Status
+
+- [x] Add dual-gated, public-field-only route/database/asset inventory.
+- [x] Suppress visitor telemetry and reject unsafe methods in validated audit context.
+- [x] Add exact contributor/moderator/admin/owner snapshot-lab identities.
+- [x] Pin Playwright, Sharp, PDFKit, browser image, and package lock.
+- [x] Reconcile source, database, required, and rendered routes.
+- [x] Capture the complete Light/OLED and nine-viewport matrix with overlapping tiles.
+- [x] Add focus, keyboard, overflow, motion, forced-colors, label, heading, asset, placeholder, seam, blank, and duplicate diagnostics.
+- [x] Add private HTML/PDF reports, explicit anonymous share review, redacted atlas, validation, and checksums.
+- [x] Add isolated synthetic/production-clone Compose and live-readonly Compose.
+- [x] Add clone integrity/cleanup, native Windows smoke, retention, and operator runbook.
+- [ ] Run full tier 1 against the final candidate SHA.
+- [ ] Run full tier 2 from a fresh production data clone.
+- [ ] Deploy the exact passing SHA and run live smoke plus full tier 3.
+- [ ] Regenerate the requirement ledger only from final static/browser/deployment evidence.
+
+The remaining unchecked gates are execution gates, not missing implementation.
+See `docs/visual-archive.md` for the exact order and evidence contract.

@@ -1,5 +1,12 @@
 import Link from "next/link";
 
+import { buildPrivateMetadata } from "@/lib/seo";
+
+export const metadata = buildPrivateMetadata(
+  "Page not found",
+  "The requested KenMatch page, Ken, profile, or discussion is unavailable.",
+);
+
 export default function NotFound() {
   return (
     <div className="page-stack">

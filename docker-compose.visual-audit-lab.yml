@@ -1,0 +1,116 @@
+services:
+  kenmatch-audit-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_TURNSTILE_SITE_KEY: ""
+    image: kenmatch-visual-audit-app:${TARGET_COMMIT_SHA:?TARGET_COMMIT_SHA is required}
+    container_name: kenmatch-audit-app
+    hostname: kenmatch-audit-app
+    init: true
+    restart: "no"
+    user: "${AUDIT_UID:-1000}:${AUDIT_GID:-1000}"
+    read_only: true
+    tmpfs:
+      - /tmp:size=128m,noexec,nosuid,nodev
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: 3000
+      TMPDIR: /tmp
+      KENMATCH_DB_FILE: /app/data/kenmatch.sqlite
+      KENMATCH_PUBLIC_ORIGIN: http://kenmatch-audit-app:3000
+      KENMATCH_CANONICAL_ORIGIN: http://kenmatch-audit-app:3000
+      KENMATCH_ALLOWED_HOSTS: kenmatch-audit-app
+      KENMATCH_ALLOW_SIGNUPS: "false"
+      KENMATCH_REQUIRE_EMAIL_VERIFICATION: "false"
+      KENMATCH_ENABLE_DEMO_PROFILE_SWITCHER: "false"
+      KENMATCH_ENABLE_TEST_AUTH_BYPASS: "true"
+      KENMATCH_TEST_AUTH_BYPASS_TOKEN: ${KENMATCH_TEST_AUTH_BYPASS_TOKEN:?test auth token is required}
+      KENMATCH_AUDIT_TOKEN: ${KENMATCH_AUDIT_TOKEN:?audit token is required}
+      KENMATCH_AUDIT_TIER: ${AUDIT_EVIDENCE_TIER:?audit tier is required}
+      KENMATCH_AUDIT_DATA_PROVENANCE: ${AUDIT_DATA_PROVENANCE:?audit provenance is required}
+      KENMATCH_AUDIT_LAB_MODE: "true"
+      KENMATCH_BUILD_SHA: ${TARGET_COMMIT_SHA}
+      KENMATCH_OWNER_EMAIL: test-owner@kenmatch.local
+      KENMATCH_ADMIN_EMAILS: ""
+      KENMATCH_NOTIFICATION_EMAILS: ""
+      KENMATCH_SMTP_HOST: ""
+      KENMATCH_SMTP_USER: ""
+      KENMATCH_SMTP_PASS: ""
+      KENMATCH_TURNSTILE_SECRET_KEY: ""
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ""
+      STRIPE_SECRET_KEY: ""
+      STRIPE_WEBHOOK_SECRET: ""
+      KENMATCH_VISITOR_HASH_SALT: ${KENMATCH_VISITOR_HASH_SALT:?lab visitor salt is required}
+    volumes:
+      - ${AUDIT_LAB_DATA_DIR:?lab data directory is required}:/app/data
+    networks:
+      - visual-audit-lab
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3000/api/health?probe=readiness').then(r=>{if(!r.ok)throw r.status}).catch(()=>process.exit(1))\""]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  audit-runner:
+    build:
+      context: .
+      dockerfile: visual-audit/Dockerfile
+    image: kenmatch-visual-audit-runner:1.61.0
+    init: true
+    restart: "no"
+    user: "${AUDIT_UID:-1000}:${AUDIT_GID:-1000}"
+    read_only: true
+    shm_size: 1gb
+    tmpfs:
+      - /tmp:size=1g,nosuid,nodev
+      - /audit-secrets:size=1m,noexec,nosuid,nodev,mode=0700,uid=${AUDIT_UID:-1000},gid=${AUDIT_GID:-1000}
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    depends_on:
+      kenmatch-audit-app:
+        condition: service_healthy
+    environment:
+      TARGET_MODE: snapshot-lab
+      AUDIT_SCOPE: ${AUDIT_SCOPE:-full}
+      AUDIT_EVIDENCE_TIER: ${AUDIT_EVIDENCE_TIER}
+      AUDIT_DATA_PROVENANCE: ${AUDIT_DATA_PROVENANCE}
+      BASE_URL: http://kenmatch-audit-app:3000
+      TARGET_COMMIT_SHA: ${TARGET_COMMIT_SHA}
+      AUDIT_RUN_ID: ${AUDIT_RUN_ID:?audit run id is required}
+      REPO_ROOT: /workspace/repo
+      RUN_OUTPUT_ROOT: /audit-output
+      AUDIT_TMP_ROOT: /audit-tmp
+      AUDIT_HOST_FILESYSTEM: ${AUDIT_HOST_FILESYSTEM:-native}
+      AUDIT_TOKEN_SOURCE_FILE: /audit-state/audit-token
+      AUDIT_TOKEN_FILE: /audit-secrets/audit-token
+      TEST_AUTH_TOKEN_SOURCE_FILE: /audit-state/test-auth-token
+      TEST_AUTH_TOKEN_FILE: /audit-secrets/test-auth-token
+      AUDIT_SNAPSHOT_EVIDENCE_FILE: /audit-state/snapshot-evidence.json
+      AUDIT_SHAREABLE_APPROVAL_FILE: /audit-state/shareable-approval.json
+      AUDIT_RESUME: ${AUDIT_RESUME:-true}
+      AUDIT_ACCELERATOR_RECORD: ${AUDIT_ACCELERATOR_RECORD:-chromium-headless-software}
+      AUDIT_STRICT_DIAGNOSTICS: "true"
+      VISUAL_AUDIT_CAPTURE_WORKERS: ${VISUAL_AUDIT_CAPTURE_WORKERS:-1}
+      APPROVED_BASELINE_ROOT: ${APPROVED_BASELINE_ROOT:-}
+    volumes:
+      - .:/workspace/repo:ro
+      - ${AUDIT_OUTPUT_DIR:?audit output directory is required}:/audit-output
+      - ${AUDIT_STATE_DIR:?audit state directory is required}:/audit-state:ro
+      - ${AUDIT_TMP_DIR:?audit temp directory is required}:/audit-tmp
+    networks:
+      - visual-audit-lab
+    command: ["dist/run.js"]
+
+networks:
+  visual-audit-lab:
+    internal: true

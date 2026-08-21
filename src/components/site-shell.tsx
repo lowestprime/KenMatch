@@ -4,15 +4,17 @@ import { KenMatchMark } from "@/components/kenmatch-mark";
 import { HeaderScrollController } from "@/components/header-scroll-controller";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SearchCommand } from "@/components/search-command";
+import { SkipLink } from "@/components/skip-link";
 import { VisitorBeacon } from "@/components/visitor-beacon";
 import { MobileNav } from "@/components/mobile-nav";
 import { PrimaryNav } from "@/components/primary-nav";
 import { ProfileMenu } from "@/components/profile-menu";
+import { ReadingProgress } from "@/components/reading-progress";
 import { ReleasePolishStyles } from "@/components/release-polish-styles";
 import { CommunityPolishStyles } from "@/components/community-polish-styles";
 import { ReleaseHardeningStyles } from "@/components/release-hardening-styles";
 import { getCategoryVisualOverrideCss } from "@/lib/category-visual-settings";
-import type { ViewerSession } from "@/lib/types";
+import type { CapacityStateResolution, ViewerSession } from "@/lib/types";
 
 const primaryNav = [
   { href: "/", label: "Overview" },
@@ -24,9 +26,18 @@ const primaryNav = [
   { href: "/economics", label: "Backing" },
   { href: "/about", label: "About" },
   { href: "/faq", label: "FAQ" },
+  { href: "/glossary", label: "Glossary" },
 ];
 
-export async function SiteShell({ viewer, children }: { viewer: ViewerSession | null; children: React.ReactNode }) {
+export async function SiteShell({
+  viewer,
+  capacity,
+  children,
+}: {
+  viewer: ViewerSession | null;
+  capacity: CapacityStateResolution;
+  children: React.ReactNode;
+}) {
   const showAdminLink = Boolean(viewer && (viewer.account.systemRole === "admin" || viewer.account.systemRole === "owner" || viewer.account.systemRole === "moderator"));
   const categoryVisualCss = await getCategoryVisualOverrideCss();
   const viewerKey = viewer?.account.id ?? "guest";
@@ -37,16 +48,15 @@ export async function SiteShell({ viewer, children }: { viewer: ViewerSession | 
       <CommunityPolishStyles />
       <ReleaseHardeningStyles />
       {categoryVisualCss ? <style dangerouslySetInnerHTML={{ __html: categoryVisualCss }} /> : null}
-      <a href="#main-content" className="skip-link">Skip to content</a>
+      <SkipLink />
       <VisitorBeacon />
       <HeaderScrollController />
-      <div className="ambient ambient-a" />
-      <div className="ambient ambient-b" />
+      <ReadingProgress />
       <header className="site-header">
         <div className="site-header-inner">
-          <div className="site-brand-row">
+          <div className={`site-brand-row${viewer ? " is-authenticated" : ""}`}>
             <Link href="/" className="site-brand" aria-label="KenMatch home">
-              <KenMatchMark className="brand-mark" />
+              <KenMatchMark className="brand-mark" eager />
               <span className="site-brand-text"><strong>KenMatch</strong><span>Transparent allocation of frontier AI compute</span></span>
             </Link>
             <PrimaryNav items={primaryNav} />
@@ -59,19 +69,30 @@ export async function SiteShell({ viewer, children }: { viewer: ViewerSession | 
           </div>
         </div>
       </header>
-      <main id="main-content" className="site-main">{children}</main>
+      {capacity.state !== "normal" ? (
+        <aside className={`capacity-site-banner is-${capacity.state}`} aria-label="Current funding and capacity state">
+          <div>
+            <strong>{capacity.policy.label}.</strong> {capacity.policy.summary} {capacity.policy.newLaunches}
+          </div>
+          <Link href="/economics#capacity-state">View policy</Link>
+        </aside>
+      ) : null}
+      <main id="main-content" className="site-main" tabIndex={-1}>{children}</main>
       <footer className="site-footer">
         <div className="site-footer-inner">
           <div className="site-footer-top">
             <Link href="/" className="site-brand site-brand-footer" aria-label="KenMatch home">
-              <KenMatchMark className="brand-mark brand-mark-footer" />
+              <KenMatchMark className="brand-mark brand-mark-footer" eager />
               <span className="site-brand-text"><strong>KenMatch</strong><span>Public allocation for frontier AI work</span></span>
             </Link>
             <div className="site-footer-links" aria-label="Platform links">
               <Link className="footer-badge" href="/discuss">Discuss</Link>
               <Link className="footer-badge" href="/profiles">Profiles</Link>
               <Link className="footer-badge" href="/faq#contact">Contact</Link>
+              <Link className="footer-badge" href="/glossary">Glossary</Link>
+              <Link className="footer-badge" href="/reviews">Review outcomes</Link>
               <Link className="footer-badge" href="/about#changelog">Changelog</Link>
+              <a className="footer-badge" href="https://www.reddit.com/r/kenmatch/" target="_blank" rel="noopener noreferrer">r/kenmatch community</a>
               <a className="footer-badge" href="https://github.com/lowestprime/KenMatch" target="_blank" rel="noopener noreferrer">GitHub</a>
             </div>
           </div>

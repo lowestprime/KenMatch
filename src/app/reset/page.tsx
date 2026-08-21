@@ -1,8 +1,12 @@
 import Link from "next/link";
 
 import { ResetPasswordForm } from "@/components/reset-password-form";
+import { buildPrivateMetadata } from "@/lib/seo";
 
-export const metadata = { title: "Reset password" };
+export const metadata = buildPrivateMetadata(
+  "Reset password",
+  "Use a private, expiring token to reset a KenMatch account password.",
+);
 
 export default async function ResetPasswordPage({
   searchParams,

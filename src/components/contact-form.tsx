@@ -44,6 +44,7 @@ export function ContactForm({ turnstileSiteKey }: { turnstileSiteKey?: string })
         <textarea
           name="bodyMarkdown"
           className="field contact-body-field"
+          rows={7}
           required
           minLength={20}
           maxLength={8000}

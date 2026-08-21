@@ -24,7 +24,21 @@ export function PrimaryNav({ items }: { items: PrimaryNavItem[] }) {
       nav.scrollTo({ left: 0, behavior: "auto" });
       return;
     }
-    active.scrollIntoView({ block: "nearest", inline: "nearest", behavior: "auto" });
+
+    const navRect = nav.getBoundingClientRect();
+    const activeRect = active.getBoundingClientRect();
+    const edgePadding = 8;
+    if (activeRect.left < navRect.left + edgePadding) {
+      nav.scrollTo({
+        left: Math.max(0, nav.scrollLeft - (navRect.left + edgePadding - activeRect.left)),
+        behavior: "auto",
+      });
+    } else if (activeRect.right > navRect.right - edgePadding) {
+      nav.scrollTo({
+        left: nav.scrollLeft + (activeRect.right - (navRect.right - edgePadding)),
+        behavior: "auto",
+      });
+    }
   }, [pathname]);
 
   return (

@@ -82,7 +82,7 @@ Users earn &ldquo;proof-of-value&rdquo; credits by doing work the community can 
 3. Accurately curating (supporting proposals that later prove to be genuinely valuable).
 4. Contributing measurable infrastructure support (e.g., verified computation or evaluation labor) under clear rules.
 
-The governance literature on token platforms emphasizes that token issuance can align incentives under some conditions, but token voting also introduces capture risks and demands careful mechanism design. KenMatch therefore treats tokens as **allocation credentials**, not a speculative asset class. ([13](https://www.philadelphiafed.org/the-economy/banking-and-financial-markets/token-based-platform-governance))([14](https://www.sciencedirect.com/science/article/pii/S2405896325031519))
+KenMatch stores these as ordinary, non-transferable account credits in its database. They are not blockchain tokens, wallet assets, stakeable instruments, or speculative property. Research on token-platform governance remains useful mainly as a warning about concentration and capture; the current product deliberately avoids those mechanisms. ([13](https://www.philadelphiafed.org/the-economy/banking-and-financial-markets/token-based-platform-governance))([14](https://www.sciencedirect.com/science/article/pii/S2405896325031519))
 
 ## 🗳️ Safeguarded Democratic Ranking
 
@@ -114,19 +114,11 @@ KenMatch&rsquo;s baseline tiering is:
 
 Modern accelerator systems are power-dense (e.g., DGX-class systems are in the tens of kilowatts), and at national and global scale data center electricity demand is now a material planning variable. Long-horizon allocations must therefore be explicit about duration, checkpointing, and rollback, as well as about evaluation and stopping conditions. ([6](https://www.energy.gov/articles/doe-releases-new-report-evaluating-increase-electricity-demand-data-centers))([7](https://www.iea.org/reports/energy-and-ai/energy-demand-from-ai))([10](https://www.nvidia.com/en-us/data-center/dgx-b200/))
 
-## 📚 Execution Layer Neutrality
+## 📚 Execution Boundary
 
-KenMatch is **execution-layer neutral** by design: it can route long-horizon computation to (1) enterprise APIs, (2) dedicated clusters, and/or (3) decentralized computation networks with verifiable work.
+KenMatch keeps its public allocation and review record independent of any future execution provider. The current public prototype does **not** autonomously invoke frontier-model APIs, rent dedicated clusters, or schedule decentralized compute. It demonstrates proposal, ranking, funding context, review, checkpoint, and audit workflows with clearly labeled sandbox records.
 
-Decentralized computation is an active design space with concrete architectures:
-
-1. decentralized marketplaces for leasing computation capacity and managing deployments, bids, and leases, ([20](https://akash.network/docs/getting-started/what-is-akash/))([21](https://akash.network/docs/learn/core-concepts/deployments/))([23](https://bittensor.com/whitepaper))([22](https://docs.gensyn.ai/home/the-gensyn-protocol))
-
-2. protocols for running ML computation across heterogeneous devices with trustless verification, ([22](https://docs.gensyn.ai/home/the-gensyn-protocol))
-
-3. and peer-to-peer &ldquo;intelligence markets&rdquo; that reward contributors based on ledgered value signals. ([23](https://bittensor.com/whitepaper))
-
-KenMatch contends that **the collective deserves a legitimate mechanism to determine which ideas and problems will benefit from the long-horizon effort of advanced API-accessible models**, without defaulting to wealth as the allocator.
+Any future execution integration must be introduced as a separately reviewed system with provider-policy controls, workload isolation, cost limits, artifact verification, and explicit public disclosure. KenMatch&rsquo;s present claim is narrower: the public deserves a legible mechanism for deciding which bounded ideas merit sustained attention, without making wealth the default ranking signal.
 
 ## 🤝 Stewardship, Legitimacy, and Public Benefit
 
@@ -152,7 +144,7 @@ The allocation problem is practical: compute, review time, and operational atten
 
 ## ✨ Features
 
-- Public proposal feed with search, categories, stage/tier filters, and realistic community-facing examples.
+- Bounded public proposal feed with canonical resettable filters, deterministic category-local lane rank, transparent discovery reasons, proposer/category diversity, and SQL pagination.
 - Linked contributor profiles plus real account creation, email verification, password reset, and cookie-backed sessions.
 - Earned quadratic voice for scarce allocation, with separate up/down pulse voting for broad public curation.
 - Threaded comments with replies, voting, and small stakes for discussion quality.
@@ -171,10 +163,15 @@ The allocation problem is practical: compute, review time, and operational atten
 - Universal sitewide search, mobile navigation drawer, bookmark/share affordances, and linked public profile surfaces.
 - Ken timing metadata: created and updated timestamps, launch countdown, submission age, compute usage, remaining runtime window, and completion state.
 - Incremental run audit history for partial delivery, early completion, and checkpoint-by-checkpoint evidence notes.
+- Explicit funding-capacity states derived from committed unrestricted coverage, with restrictive-only manual overrides and a public site notice.
+- Append-only checkpoint, correction, stop, and release decisions with public reasons, actor/role attribution, artifact URLs or SHA-256 digests, and lifecycle transitions.
+- Private intake gates for user-submitted Kens and categories, with deterministic advisory checks, bounded reviewer queues, reason-coded public outcomes, appeals, and append-only history.
+- Moderator powers are limited to triage; final publish, merge, or reject actions require admin/owner authority, and high-risk publication requires two distinct privileged reviewers.
 - Economics and treasury views with committed versus projected support, sponsor pools, restricted funding, simulated runway, safety reserve coverage, and sponsor covenant details.
 - Governance view with blocked Kens, attestation state, enforceable participation limits, review timing, and visible decision logs.
 - Security headers, host filtering, request-origin checks, structured rate limits, optional Turnstile verification, and public-safe health checks.
 - Standalone Next.js Docker build, non-root container runtime, loopback-only Synology deployment, and public-hosting guidance for Cloudflare Tunnel or equivalent origin shielding.
+- Private deterministic visual archives with pinned Playwright capture, source/DB/rendered route reconciliation, Light/OLED viewport matrices, snapshot-clone isolation, live read-only request enforcement, reviewed redacted atlases, and checksum validation.
 
 ## 🏗️ Stack
 
@@ -183,6 +180,13 @@ The allocation problem is practical: compute, review time, and operational atten
 - [Tailwind CSS v4](https://tailwindcss.com/blog/tailwindcss-v4)
 - [libSQL TypeScript client](https://docs.turso.tech/sdk/ts/quickstart) for local-file or remote libSQL persistence
 - [`zod`](https://zod.dev) for form and environment validation
+
+The private release evidence workflow is documented in
+[`docs/visual-archive.md`](docs/visual-archive.md). Generated captures, reports,
+PDFs, cloned data, browser state, and audit secrets remain outside Git.
+The tracked, sanitized exact-candidate closure record is
+[`docs/release-evidence.json`](docs/release-evidence.json), with requirement-level
+disposition in [`docs/kenmatch-completion-ledger.md`](docs/kenmatch-completion-ledger.md).
 
 ## 💻 Local Development
 
@@ -243,6 +247,7 @@ KenMatch ships with a standalone Next.js build configuration and a Docker image 
 - For local development, KenMatch constructs a file-backed SQLite-compatible database via libSQL.
 - For public deployment, `DATABASE_URL` and `DATABASE_AUTH_TOKEN` can be specified for managed remote libSQL database integration.
 - Security headers, host filtering, and mutation-origin checks live in [src/proxy.ts](./src/proxy.ts), which Next.js 16 reports as the app proxy/middleware boundary during production builds.
+- The allocation and feed-discovery contract, scale boundary, adversarial cases, and deliberate limits are documented in [docs/ranking-discovery.md](./docs/ranking-discovery.md).
 - For public Synology NAS deployment, read [docs/synology-nas-deploy.md](./docs/synology-nas-deploy.md) and [docs/public-security-hardening.md](./docs/public-security-hardening.md) before exposing the service.
 
 ## 🛣️ Main Routes
@@ -258,11 +263,15 @@ KenMatch ships with a standalone Next.js build configuration and a Docker image 
 - `/account` profile, avatar, links, verification request, and bookmarks
 - `/people/[slug]` linked public profile surface for contributors referenced from Kens, comments, and account cards
 - `/verification` public identity and participation guidance
-- `/about` owner-editable About / Contact page
-- `/about/changelog` public changelog
+- `/faq` searchable product, participation, privacy, and contact answers
+- `/glossary` searchable product and governance terminology
+- `/reviews` public intake and moderation outcomes
+- `/discuss` public discussion index
+- `/about` owner-editable About / Contact page with the public changelog at `/about#changelog`
 - `/admin` owner/admin/moderator operations portal
 
-Legacy `/tasks` routes now redirect to `/kens` routes.
+Legacy `/tasks` routes redirect to `/kens`; `/about/changelog` and `/changelog`
+redirect to `/about#changelog`.
 
 ## 🗺️ Repository Map
 
@@ -276,6 +285,8 @@ Legacy `/tasks` routes now redirect to `/kens` routes.
 - `src/lib/seed.ts` and `src/lib/seed-plus.ts` realistic demo data
 - `docs/architecture.md` implementation structure
 - `docs/requirements-traceability.md` conception-to-code mapping
+- `docs/release-evidence.json` sanitized exact-candidate validation and deployment record
+- `docs/visual-archive.md` deterministic Tier 1/2/3 release-evidence workflow
 - `docs/synology-nas-deploy.md` Synology NAS deployment guide
 - `docs/public-security-hardening.md` public-hosting security checklist
 - `cloudflared/config.yml.example` Cloudflare Tunnel example configuration for NAS deployments

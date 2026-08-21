@@ -7,14 +7,15 @@
     "dev": "next dev",
     "build": "next build --experimental-build-mode compile --webpack && next build --experimental-build-mode generate-env --webpack && node scripts/repair-next-route-chunks.mjs",
     "start": "node scripts/prepare-standalone-assets.mjs && node .next/standalone/server.js",
+    "audit:seo": "node scripts/audit-seo.mjs",
     "lint": "eslint .",
     "typecheck": "node -e \"const fs=require('node:fs'); for (const p of ['.next/types','.next/dev/types']) fs.rmSync(p,{recursive:true,force:true});\" && next typegen && tsc --noEmit",
     "test": "node -e \"const fs=require('node:fs'),cp=require('node:child_process');const files=[];(function walk(d){for(const e of fs.readdirSync(d,{withFileTypes:true})){if(e.name==='@eaDir'||e.name==='node_modules')continue;const p=d+'/'+e.name;if(e.isDirectory())walk(p);else if(/\\\\.test\\\\.ts$/.test(e.name))files.push(p)}})('tests');const r=cp.spawnSync(process.execPath,['--experimental-strip-types','--test','--experimental-test-isolation=none',...files],{stdio:'inherit'});process.exit(r.status??1)\""
   },
   "dependencies": {
     "@libsql/client": "^0.17.0",
-    "next": "^16.2.4",
-    "nodemailer": "^8.0.5",
+    "next": "^16.2.12",
+    "nodemailer": "^9.0.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "server-only": "^0.0.1",
@@ -28,9 +29,17 @@
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
     "eslint": "^9.39.1",
-    "eslint-config-next": "^16.1.0",
-    "postcss": "^8.5.6",
+    "eslint-config-next": "^16.2.12",
+    "minimatch": "file:vendor/minimatch-compat",
+    "postcss": "^8.5.23",
     "tailwindcss": "^4.1.14",
     "typescript": "^5.9.3"
+  },
+  "overrides": {
+    "minimatch": "$minimatch",
+    "postcss": "$postcss",
+    "next": {
+      "sharp": "0.35.3"
+    }
   }
 }

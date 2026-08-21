@@ -1,6 +1,7 @@
 import type { ChangeEventHandler, KeyboardEventHandler, Ref } from "react";
 
 export function SearchField({
+  id,
   value,
   onChange,
   onKeyDown,
@@ -11,6 +12,7 @@ export function SearchField({
   clearLabel = "Clear search",
   onClear,
 }: {
+  id?: string;
   value: string;
   onChange: ChangeEventHandler<HTMLInputElement>;
   onKeyDown?: KeyboardEventHandler<HTMLInputElement>;
@@ -28,6 +30,7 @@ export function SearchField({
         <path d="m20 20-3.5-3.5" />
       </svg>
       <input
+        id={id}
         ref={inputRef}
         aria-label={label}
         placeholder={placeholder}

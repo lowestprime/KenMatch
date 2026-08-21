@@ -70,6 +70,44 @@ export type CompletionMode = (typeof completionModes)[number];
 export const updateStatuses = ["planned", "on-track", "at-risk", "partial", "shipped"] as const;
 export type UpdateStatus = (typeof updateStatuses)[number];
 
+export const capacityStates = ["normal", "constrained", "new-launches-paused", "critical-maintenance-only"] as const;
+export type CapacityState = (typeof capacityStates)[number];
+
+export const capacityOverrideModes = ["automatic", "manual"] as const;
+export type CapacityOverrideMode = (typeof capacityOverrideModes)[number];
+
+export const runDecisionEventTypes = ["checkpoint", "correction", "stop", "release"] as const;
+export type RunDecisionEventType = (typeof runDecisionEventTypes)[number];
+
+export const checkpointDecisionCodes = ["checkpoint-approved", "checkpoint-held", "checkpoint-revision-required"] as const;
+export type CheckpointDecisionCode = (typeof checkpointDecisionCodes)[number];
+
+export const correctionDecisionCodes = ["correction-issued", "correction-accepted"] as const;
+export type CorrectionDecisionCode = (typeof correctionDecisionCodes)[number];
+
+export const stopDecisionCodes = [
+  "safety-escalation",
+  "failed-acceptance",
+  "provenance-failure",
+  "budget-runtime-cap",
+  "repeated-provider-tool-failure",
+  "duplication-supersession",
+  "scope-invalidation",
+  "reviewer-redirect",
+  "successful-early-completion",
+  "owner-emergency",
+] as const;
+export type StopDecisionCode = (typeof stopDecisionCodes)[number];
+
+export const releaseDecisionCodes = ["release-approved", "release-partial", "release-rejected", "release-rolled-back"] as const;
+export type ReleaseDecisionCode = (typeof releaseDecisionCodes)[number];
+
+export type RunDecisionCode =
+  | CheckpointDecisionCode
+  | CorrectionDecisionCode
+  | StopDecisionCode
+  | ReleaseDecisionCode;
+
 export const systemRoles = ["owner", "admin", "moderator", "contributor"] as const;
 export type SystemRole = (typeof systemRoles)[number];
 
@@ -79,8 +117,48 @@ export type EmailTokenPurpose = (typeof emailTokenPurposes)[number];
 export const verificationStatuses = ["none", "pending", "approved", "rejected"] as const;
 export type VerificationStatus = (typeof verificationStatuses)[number];
 
-export const categoryProposalStatuses = ["pending", "approved", "rejected"] as const;
+export const categoryProposalStatuses = [
+  "pending",
+  "needs-revision",
+  "held",
+  "second-review",
+  "approved",
+  "merged",
+  "rejected",
+  "appealed",
+] as const;
 export type CategoryProposalStatus = (typeof categoryProposalStatuses)[number];
+
+export const kenSubmissionStatuses = [
+  "pending",
+  "needs-revision",
+  "held",
+  "second-review",
+  "approved",
+  "merged",
+  "rejected",
+  "appealed",
+] as const;
+export type KenSubmissionStatus = (typeof kenSubmissionStatuses)[number];
+
+export const reviewEntityTypes = ["category-proposal", "ken-submission"] as const;
+export type ReviewEntityType = (typeof reviewEntityTypes)[number];
+
+export const reviewEventActions = [
+  "submitted",
+  "automated-check",
+  "assigned",
+  "recused",
+  "revision-requested",
+  "held",
+  "approval-proposed",
+  "approved",
+  "merged",
+  "rejected",
+  "appealed",
+  "appeal-resolved",
+] as const;
+export type ReviewEventAction = (typeof reviewEventActions)[number];
 
 export interface CategoryRecord {
   id: string;
@@ -102,9 +180,64 @@ export interface CategoryProposalRecord {
   exampleKens: string[];
   reviewStatus: CategoryProposalStatus;
   reviewNote: string | null;
+  internalReviewNote: string | null;
   reviewedBy: string | null;
+  assigneeAccountId: string | null;
+  mergedCategoryId: string | null;
+  intakeResultJson: string;
+  reviewedAt: string | null;
+  firstApprovalBy: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface KenSubmissionRecord {
+  id: string;
+  taskId: string;
+  taskSlug: string;
+  taskTitle: string;
+  taskSummary: string;
+  proposerProfileId: string;
+  proposerName: string | null;
+  requestedTier: RequestedTier;
+  estimatedTier: RequestedTier;
+  intakeStatus: KenSubmissionStatus;
+  intakeResultJson: string;
+  riskFlags: string[];
+  reviewNote: string | null;
+  internalReviewNote: string | null;
+  assigneeAccountId: string | null;
+  mergedTaskId: string | null;
+  firstApprovalBy: string | null;
+  submittedAt: string;
+  assignedAt: string | null;
+  reviewedAt: string | null;
+  updatedAt: string;
+}
+
+export interface ReviewEventRecord {
+  id: string;
+  entityType: ReviewEntityType;
+  entityId: string;
+  action: ReviewEventAction;
+  fromStatus: string | null;
+  toStatus: string | null;
+  actorAccountId: string | null;
+  actorName: string | null;
+  publicNote: string | null;
+  internalNote: string | null;
+  metadataJson: string | null;
+  isPublic: boolean;
+  createdAt: string;
+}
+
+export interface ReviewQueuePage<T> {
+  items: T[];
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+  counts: Record<string, number>;
 }
 
 export interface ProfileRecord {
@@ -193,14 +326,8 @@ export interface BookmarkRecord {
 
 export interface VisitorRecord {
   id: string;
-  visitorHash: string;
   countryCode: string | null;
   countryName: string | null;
-  region: string | null;
-  city: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  userAgent: string | null;
   firstSeenAt: string;
   lastSeenAt: string;
   pageViews: number;
@@ -231,6 +358,8 @@ export interface AdminNotificationSettings {
   notifyOnFirstVisit: boolean;
   notifyOnVerificationRequest: boolean;
   notifyOnProposal: boolean;
+  notifyOnCategoryProposal: boolean;
+  notifyOnReviewDecision: boolean;
   dailyDigest: boolean;
   updatedAt: string;
 }
@@ -251,6 +380,34 @@ export interface MaintenanceState {
   expectedReturn: string;
   updatedAt: string;
   updatedBy: string | null;
+}
+
+export interface CapacityOverrideState {
+  mode: CapacityOverrideMode;
+  manualState: CapacityState | null;
+  publicReason: string;
+  updatedAt: string;
+  updatedBy: string | null;
+}
+
+export interface CapacityPolicy {
+  state: CapacityState;
+  label: string;
+  summary: string;
+  newLaunches: string;
+  existingRuns: string;
+  protectedWork: string;
+  restrictions: string;
+  recovery: string;
+}
+
+export interface CapacityStateResolution {
+  state: CapacityState;
+  automaticState: CapacityState;
+  source: "automatic" | "manual-restrictive-override";
+  publicReason: string;
+  policy: CapacityPolicy;
+  override: CapacityOverrideState;
 }
 
 export const changelogTypes = ["launch", "feature", "data", "security", "operations"] as const;
@@ -275,6 +432,11 @@ export interface FAQEntry {
   answer: string;
   category: "basics" | "participation" | "allocation" | "backing" | "safety" | "privacy" | "operations";
   keywords: string[];
+  sources?: Array<{
+    label: string;
+    url: string;
+    retrievedAt: string;
+  }>;
 }
 
 export interface ContactAttachmentRecord {
@@ -296,8 +458,6 @@ export interface ContactSubmissionRecord {
   attachmentCount: number;
   emailStatus: "sent" | "not-configured" | "failed";
   emailError: string | null;
-  ipAddress: string | null;
-  userAgent: string | null;
   createdAt: string;
   attachments?: ContactAttachmentRecord[];
 }
@@ -358,7 +518,6 @@ export interface AuditLogRecord {
   action: string;
   detail: string;
   metadata: string | null;
-  ipAddress: string | null;
   createdAt: string;
 }
 
@@ -496,6 +655,21 @@ export interface GovernanceEventRecord {
   createdAt: string;
 }
 
+export interface RunDecisionEventRecord {
+  id: string;
+  taskId: string;
+  checkpointId: string | null;
+  eventType: RunDecisionEventType;
+  decisionCode: RunDecisionCode;
+  publicReason: string;
+  artifactLabel: string | null;
+  artifactUrl: string | null;
+  artifactDigest: string | null;
+  actorAccountId: string | null;
+  actorRole: SystemRole | "system";
+  createdAt: string;
+}
+
 export interface RevenueStreamRecord {
   id: string;
   slug: string;
@@ -622,6 +796,9 @@ export interface TaskSummary extends TaskRecord, TaskFinanceRecord {
   illustrationAlt: string | null;
   illustrationSource: KenIllustrationSource;
   illustrationUpdatedAt: string | null;
+  completedCheckpointCount?: number;
+  trustedPulseScore?: number;
+  discoveryReasons?: DiscoveryReason[];
 }
 
 export interface CheckpointDetail extends CheckpointRecord, CheckpointGateRecord {}
@@ -650,8 +827,14 @@ export interface TaskDetail extends TaskSummary {
   run: ComputeRunRecord | null;
   checkpoints: CheckpointDetail[];
   governanceEvents: GovernanceEventRecord[];
+  runDecisions: RunDecisionEventRecord[];
   comments: DiscussionComment[];
   runUpdates: RunUpdateRecord[];
+  intakeReview: {
+    submission: KenSubmissionRecord;
+    events: ReviewEventRecord[];
+    canParticipate: boolean;
+  } | null;
 }
 
 export interface CategorySummary extends CategoryRecord {
@@ -685,6 +868,8 @@ export interface EconomicsSummary {
   committedTreasuryMonthlyUsd: number;
   founderMonthlyUsd: number;
   treasuryBalanceUsd: number;
+  committedComputeBalanceUsd: number;
+  committedUnrestrictedTreasuryUsd: number;
   monthlyPublicBurnUsd: number;
   coverageMonths: number;
   coverageTargetMonths: number;
@@ -697,6 +882,7 @@ export interface EconomicsSummary {
   sponsorPoolsUsd: number;
   sponsorCommitmentsUsd: number;
   safetyReserveUsd: number;
+  committedSafetyReserveUsd: number;
   verifiedFundingStreams: number;
 }
 
@@ -706,10 +892,39 @@ export interface MarketplaceFilters {
   tier?: AllocationTier | "all";
   stage?: TaskStage | "all";
   sort?: SortOption;
+  page?: number;
+  pageSize?: number;
 }
 
 export const sortOptions = ["active", "pulse", "voice", "recent", "newest"] as const;
 export type SortOption = (typeof sortOptions)[number];
+
+export const discoveryReasons = [
+  "checkpoint-momentum",
+  "new-under-reviewed",
+  "category-leader",
+  "high-voice",
+  "broad-pulse",
+  "active-run",
+  "under-review",
+  "blocked",
+] as const;
+export type DiscoveryReason = (typeof discoveryReasons)[number];
+
+export interface MarketplacePageInfo {
+  page: number;
+  pageSize: number;
+  totalResults: number;
+  totalPages: number;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
+}
+
+export interface MarketplaceResultCounts {
+  active: number;
+  withDemos: number;
+  shipped: number;
+}
 
 export interface SearchResultItem {
   id: string;

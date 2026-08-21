@@ -2,15 +2,14 @@ import Link from "next/link";
 
 import { DiscussionPostForm, DiscussionSaveForm, DiscussionVoteForm } from "@/components/discussion-forms";
 import { listDiscussionPosts } from "@/lib/discussion-db";
+import { buildPublicMetadata, hasQueryVariant } from "@/lib/seo";
 import { getViewerSession } from "@/lib/session";
 import { formatDateTime } from "@/lib/utils";
 
-export const metadata = {
-  title: "Discussion",
-  description: "KenMatch discussion space for prompt design, governance, funding norms, safety review, and ecosystem debate.",
-};
-
 type DiscussSearchParams = Record<string, string | string[] | undefined>;
+interface DiscussPageProps {
+  searchParams?: Promise<DiscussSearchParams>;
+}
 
 const topics = [
   ["all", "All"],
@@ -46,11 +45,19 @@ function queryHref(next: Record<string, string | undefined>) {
   return qs ? `/discuss?${qs}` : "/discuss";
 }
 
-export default async function DiscussPage({
-  searchParams,
-}: {
-  searchParams?: Promise<DiscussSearchParams>;
-}) {
+export async function generateMetadata({ searchParams }: DiscussPageProps) {
+  const params = await (searchParams ?? Promise.resolve({} as DiscussSearchParams));
+  const queryVariant = hasQueryVariant(params);
+  return buildPublicMetadata({
+    title: queryVariant ? "Filtered discussions" : "Discussion",
+    description:
+      "Join public threads about Ken design, evidence, governance, funding boundaries, safety review, and reusable work before scarce compute is assigned.",
+    path: "/discuss",
+    index: !queryVariant,
+  });
+}
+
+export default async function DiscussPage({ searchParams }: DiscussPageProps) {
   const [viewer, params] = await Promise.all([
     getViewerSession(),
     searchParams ?? Promise.resolve({} as DiscussSearchParams),

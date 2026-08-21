@@ -3,6 +3,9 @@ import type { RequestedTier, TaskStage } from "@/lib/types";
 export const INITIAL_ALLOCATION_CREDITS = 3;
 export const MONTHLY_REPLENISHMENT_CREDITS = 3;
 
+export type KenLifecycleStageId = TaskStage | "draft" | "checkpoint-review" | "audit";
+export type KenLifecycleTone = "blue" | "purple" | "gold" | "red" | "violet";
+
 export const TOKEN_ASSIGNMENT_RULES = [
   {
     id: "new-account-baseline",
@@ -50,61 +53,162 @@ export const SUBMISSION_APPROVAL_CRITERIA = [
   "Funding, if attached, is disclosed as compute/review support and never as rank, vote, or checkpoint override.",
 ] as const;
 
-export const KEN_LIFECYCLE_STAGES: Array<{
-  id: TaskStage | "draft" | "checkpoint-review" | "audit";
+export const KEN_LIFECYCLE_STAGES: ReadonlyArray<{
+  id: KenLifecycleStageId;
+  step: number;
   label: string;
+  shortLabel: string;
   summary: string;
   publicGate: string;
+  tone: KenLifecycleTone;
 }> = [
   {
     id: "draft",
+    step: 1,
     label: "1 · Draft",
+    shortLabel: "Draft",
     summary: "The proposer turns an idea into a bounded Ken with evidence, deliverables, risks, and a requested run lane.",
     publicGate: "The form must be specific enough for public review before it should spend community attention.",
+    tone: "blue",
   },
   {
     id: "review",
+    step: 2,
     label: "2 · Intake review",
+    shortLabel: "Intake review",
     summary: "Moderators and the public check category fit, operating boundaries, evidence quality, and whether the work is inspectable.",
     publicGate: "Vague or non-public-benefit requests remain blocked or are returned for revision.",
+    tone: "purple",
   },
   {
     id: "voting",
+    step: 3,
     label: "3 · Public signal",
+    shortLabel: "Public signal",
     summary: "Readers add pulse feedback and scarce allocation voice. Quadratic cost makes concentrated influence progressively more expensive.",
     publicGate: "Broad support and written rationale matter more than one account pushing a favorite.",
+    tone: "violet",
   },
   {
     id: "scheduled",
+    step: 4,
     label: "4 · Board approval",
+    shortLabel: "Board approval",
     summary: "Eligible Kens are ranked within their category into Months, Weeks, or Days lanes and receive a run plan with checkpoint cadence.",
     publicGate: "Rank, budget, and checkpoint requirements must be visible before work begins.",
+    tone: "gold",
   },
   {
     id: "running",
+    step: 5,
     label: "5 · Monitored run",
+    shortLabel: "Monitored run",
     summary: "The run publishes progress updates, artifacts, decision logs, and checkpoint evidence instead of disappearing into a private session.",
     publicGate: "Checkpoint gates can continue, redirect, pause, or hold release depending on public evidence.",
+    tone: "red",
   },
   {
     id: "checkpoint-review",
+    step: 6,
     label: "6 · Checkpoint review",
+    shortLabel: "Checkpoint review",
     summary: "Maintainers and reviewers inspect output quality, reproducibility, provenance, changes in risk, and whether the Ken still matches its public promise.",
     publicGate: "Failed checkpoints require revision, partial release, or blocking rather than silent completion.",
+    tone: "purple",
   },
   {
     id: "shipped",
+    step: 7,
     label: "7 · Public delivery",
+    shortLabel: "Public delivery",
     summary: "Approved outputs ship with the evidence trail, limitations, review history, and any sponsor or contributor context attached.",
     publicGate: "The final artifact must remain auditable and cite the checkpoint path that justified release.",
+    tone: "blue",
   },
   {
     id: "audit",
+    step: 8,
     label: "8 · Post-run audit",
+    shortLabel: "Post-run audit",
     summary: "The board records what worked, what failed, what should be reused, and which contributors earned credit for useful improvements.",
     publicGate: "Contributor awards and future replenishment decisions should point back to visible work.",
+    tone: "gold",
   },
 ];
+
+export const CHECKPOINT_DECISIONS = ["continue", "redirect", "pause", "block"] as const;
+export const DELIVERY_OUTCOMES = ["complete", "partial", "early"] as const;
+
+export const KEN_LIFECYCLE_SIGNALS: ReadonlyArray<{
+  id: string;
+  label: string;
+  marker: string;
+  summary: string;
+  stageIds: readonly KenLifecycleStageId[];
+}> = [
+  {
+    id: "bounded-public-brief",
+    label: "Bounded public brief",
+    marker: "BRIEF",
+    summary: "Evidence, deliverables, risks, and acceptance checks define the work before ranking begins.",
+    stageIds: ["draft", "review"],
+  },
+  {
+    id: "pulse-versus-voice",
+    label: "Pulse is not voice",
+    marker: "P ≠ V",
+    summary: "Pulse is quick public sentiment. Scarce quadratic voice is the category-local allocation signal.",
+    stageIds: ["voting"],
+  },
+  {
+    id: "lane-assignment",
+    label: "Lane assignment",
+    marker: "D/W/M",
+    summary: "Eligible category rank assigns a Days, Weeks, or Months operating lane with a visible compute cap.",
+    stageIds: ["scheduled"],
+  },
+  {
+    id: "money-rank-separation",
+    label: "Support is not rank",
+    marker: "$ ≠ RANK",
+    summary: "Sponsor support expands compute and review capacity; it never buys voice, rank, or checkpoint approval.",
+    stageIds: ["scheduled", "running"],
+  },
+  {
+    id: "checkpoint-decisions",
+    label: "Reason-coded checkpoint",
+    marker: "GATE",
+    summary: `Every gate records one of: ${CHECKPOINT_DECISIONS.join(", ")}.`,
+    stageIds: ["running", "checkpoint-review"],
+  },
+  {
+    id: "delivery-variants",
+    label: "Useful work can ship early",
+    marker: "OUTPUT",
+    summary: `Delivery can be ${DELIVERY_OUTCOMES.join(", ")} when the evidence and limitations support that outcome.`,
+    stageIds: ["checkpoint-review", "shipped"],
+  },
+  {
+    id: "credit-and-aftermath",
+    label: "Credit follows visible work",
+    marker: "AUDIT",
+    summary: "The final audit records contributor credit, corrections, reusable evidence, failures, and unresolved limits.",
+    stageIds: ["shipped", "audit"],
+  },
+];
+
+const TASK_STAGE_TO_LIFECYCLE_STAGE: Record<TaskStage, KenLifecycleStageId> = {
+  review: "review",
+  voting: "voting",
+  scheduled: "scheduled",
+  running: "running",
+  shipped: "shipped",
+  blocked: "checkpoint-review",
+};
+
+export function lifecycleStageForTask(stage: TaskStage): KenLifecycleStageId {
+  return TASK_STAGE_TO_LIFECYCLE_STAGE[stage];
+}
 
 export const LANE_OPERATING_POLICIES: Record<RequestedTier, { label: string; bondCredits: number; checkpointCadence: string; approvalTarget: string; bestFor: string }> = {
   days: {

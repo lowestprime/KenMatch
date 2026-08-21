@@ -27,10 +27,26 @@ This file maps the stable product requirements from `KenMatch_Conception.md` to 
 
 ### Long-run execution with checkpoints, rollback, and visible stopping conditions
 - Run configuration, checkpoints, and rollback notes live in `runs`, `checkpoints`, and `checkpoint_gates` in `src/lib/db.ts`.
-- UI rendering appears in `src/app/kens/[slug]/page.tsx`.
+- Append-only checkpoint, correction, stop, and release decisions live in `run_decision_events`; terminal decisions atomically update task stage, timing, and run status without erasing prior reasons.
+- `src/lib/run-governance.ts` defines all ten stop reasons and separates programmatic checks, automated warnings, and human review decisions.
+- UI rendering appears in `src/app/kens/[slug]/page.tsx` and `src/app/governance/page.tsx`.
 
 ### Partial achievement, early completion, and incremental audit trail
 - `task_timings` and `run_updates` in `src/lib/db.ts` model launch windows, compute used, completion mode, and incremental evidence.
+
+### Accessible lifecycle graphical abstract
+- `src/lib/allocation-policy.ts` is the single source for the eight stages, checkpoint outcomes, delivery variants, pulse/voice distinction, lane assignment, sponsor/rank separation, and contributor-credit aftermath.
+- `src/components/ken-lifecycle-map.tsx` renders that policy as a keyboard-operable graphical abstract on Overview and Governance and as current/completed/upcoming progression on Ken detail.
+- The renderer includes a complete screen-reader narrative, visible non-color state labels, arrow/Home/End keyboard navigation, reduced-motion and forced-color rules, a two-column 320 px layout, and a static print narrative.
+- `tests/lifecycle-policy.test.ts` locks stage order, policy references, funding/rank separation, checkpoint decisions, delivery outcomes, and persisted-stage mapping. Browser evidence and the print contract are recorded in `docs/lifecycle-graphical-abstract.md`.
+
+### Transparent category and Ken intake
+- `src/lib/intake-review.ts` records deterministic boundary, readiness, similarity, lane, and bounded risk checks at submission.
+- `ken_submissions`, enriched `category_proposals`, and append-only `review_events` preserve status, assignment, timestamps, public reasons, private notes, merge targets, appeals, and immutable transition history.
+- Pending user-created Kens are excluded from feed, search, profiles, ranking, pulse, comments, and voice allocation. The proposer and authorized reviewers retain a private detail route.
+- `src/lib/review-policy.ts` limits moderators to triage, requires admin/owner authority for final outcomes, rejects own-submission decisions, makes recusal durable, and requires two distinct privileged approvals for high-risk publication.
+- `/admin`, `/account#submission-reviews`, and `/reviews` provide role-appropriate queue, submitter, and public-outcome views. Private reviewer notes never enter submitter or public projections.
+- Browser evidence covers private-to-public transitions, normalized category collisions, idempotent approval, and distinct-account high-risk quorum. Contract tests cover deterministic intake, authorization, conflict, recusal, event deduplication, and category uniqueness.
 - `src/components/ken-timing-strip.tsx` and `src/app/kens/[slug]/page.tsx` render the countdown, elapsed time, progress, and run audit updates.
 
 ### Visible blocked work and transparent governance
@@ -41,11 +57,19 @@ This file maps the stable product requirements from `KenMatch_Conception.md` to 
 - Threaded comments with voting are implemented in `src/components/discussion-thread.tsx` and persisted in `comments` and `comment_votes` in `src/lib/db.ts`.
 - Created timestamps are displayed directly in the public thread UI.
 
+### Scale-safe feed ranking and discovery
+- `src/lib/allocation.ts` retains deterministic category-local lane allocation and an ID tie-break; money is not an input.
+- `src/lib/discovery.ts` defines canonical filter URLs, reason labels, trusted-pulse ordering, freshness/evidence bands, and proposer/category diversity.
+- `src/lib/db.ts` filters, aggregates, ranks, and pages in SQLite/libSQL instead of hydrating the repository-wide corpus for `/kens`.
+- `tests/discovery.test.ts` exercises exact ties, concentrated proposers, coordinated untrusted pulse, sparse categories, old checkpoint evidence, blocked work, and 100,000 synthetic Kens.
+- The public contract and limits are maintained in `docs/ranking-discovery.md`.
+
 ### Funding, treasury, and commercialization split
 - Ken finance metadata is stored in `task_finance`.
 - Revenue streams, sponsor commitments, and treasury ledger data live in `revenue_streams`, `sponsorship_commitments`, and `treasury_entries`.
-- Supporting summary logic in `src/lib/economics.ts` distinguishes committed support from projected support, simulated runway, restricted funding, and safety reserve coverage so optimistic sponsorship does not masquerade as committed treasury support.
-- Public rendering is implemented on `src/app/economics/page.tsx`.
+- Supporting summary logic in `src/lib/economics.ts` distinguishes committed support from projected support, simulated balances, restricted funding, and protected safety reserves. Only committed unrestricted compute funds count toward usable coverage.
+- `src/lib/run-governance.ts` resolves normal, constrained, new-launches-paused, and critical-maintenance-only states. A database setting may impose a stricter public override but cannot relax the automatic floor.
+- Public rendering is implemented on `src/app/economics/page.tsx`, `src/app/governance/page.tsx`, and the non-normal site-wide capacity notice.
 
 ### High-skill creative and research outputs
 - The prior broad `creative-works`, `public-interest`, and `everyday-services` demo categories are explicitly retired in `src/lib/seed.ts`.
@@ -54,6 +78,9 @@ This file maps the stable product requirements from `KenMatch_Conception.md` to 
 ### Modern public-facing interface and theming
 - Responsive shell, compact sticky header, and visual system live in `src/components/site-shell.tsx` and `src/app/globals.css`.
 - Light and true-black OLED themes are implemented in `src/components/theme-toggle.tsx`, `src/app/layout.tsx`, and `src/app/globals.css`.
+- Semantic theme tokens have one owner in `src/app/globals.css`; Light uses a cool-neutral daytime field and OLED retains a true-black base. Baseline and final computed-style, overflow, and screenshot evidence are recorded in `docs/visual-system-and-long-page-audit.md`.
+- Editorial long routes opt into the actual-height-gated `src/components/reading-progress.tsx`; task-oriented routes retain normal document scrolling without a progress indicator.
+- Admin audit history uses server-side filtering and pagination in `src/lib/db.ts`, structured redaction in `src/lib/audit-log.ts`, and expandable/copyable full metadata in `src/components/admin/audit-feed.tsx`.
 - Product icon and favicon support are implemented through the exact static assets in `public/`, `src/components/kenmatch-mark.tsx`, the single manifest handler at `src/app/manifest.webmanifest/route.ts`, and compatibility redirects for the legacy SVG endpoints.
 - Ken category identity is implemented by the inline, theme-aware renderer in `src/components/ken-visual.tsx`, static palette assignments in `src/lib/taxonomy.ts`, database-backed color overrides, and repository-tracked reference exports under `public/category-icons/`.
 
@@ -64,9 +91,35 @@ This file maps the stable product requirements from `KenMatch_Conception.md` to 
 - User profile management, avatar customization, verification requests, and bookmarks are implemented in `src/app/account/page.tsx`, `src/components/profile-editor.tsx`, and `profiles` / `bookmarks`.
 
 ### Visitor telemetry and persistence resilience
-- Unique visitors are anonymized with a salted hash and persisted in `visitors` through `src/lib/visitor.ts`.
+- Unique visitors are represented by a purpose-salted coarse signature and persisted in `visitors` through `src/lib/visitor.ts`; raw IP addresses, user-agent strings, and precise geography are not retained.
 - The admin visitor map is rendered by `src/components/visitor-map.tsx` and uses Cloudflare geolocation request headers when present.
+- `visitor_daily_activity` and `notification_delivery_events` provide 400-day bounded history for traffic, accounts, country distribution, and delivery health. `src/lib/db.ts` performs server-side bucketing and equal previous-period comparisons.
+- `src/components/admin/historical-analytics.tsx` renders dependency-free accessible SVG figures plus complete semantic table equivalents. It is queried only after the owner/admin role gate and is not exposed through a public endpoint.
+- Earlier lifetime traffic is never reconstructed into fabricated daily history; pre-upgrade gaps and unknown-country observations are stated directly. The complete measurement and retention contract is in `docs/admin-historical-analytics.md`.
 - Synology persistence and recovery steps are documented in `docs/synology-nas-deploy.md`; live writes are stored outside the container image in the mounted `data/` directory.
+
+### Technical discovery and community integration
+
+- `src/lib/seo.ts` centralizes canonical URLs, route-specific public/private
+  metadata, social-preview dimensions, and the feed query indexing policy.
+- `src/app/robots.ts` and `src/app/sitemap.ts` expose crawler policy plus
+  public-only static Kens, profiles, and discussion records. Private intake,
+  suspended profiles, account/auth/admin/API paths, and noncanonical query
+  variants are excluded or noindex.
+- Root, FAQ, Ken, profile, and discussion schemas describe visible records only;
+  private or unavailable entities never receive public detail schema.
+- `src/proxy.ts` applies canonical-origin redirects and response-level noindex
+  headers to sensitive surfaces while preserving the requested path and query.
+- `scripts/audit-seo.mjs` validates the actual candidate responses, and
+  `tests/seo.test.ts` locks canonical/query policy, schema-safe serialization,
+  social PNG dimensions, and sitemap SQL compatibility.
+- `src/components/site-shell.tsx` and `src/app/about/page.tsx` link to
+  r/kenmatch as an external community without claiming unverified ownership.
+  `/discuss` remains the canonical public record.
+- Search, launch, ethical outreach, crisis-response, and subreddit operations are
+  documented in `docs/marketing/seo-and-content-strategy.md`,
+  `docs/marketing/launch-and-community-strategy.md`, and
+  `docs/community/reddit-launch-guide.md`.
 
 ### Public deployment and self-hosting readiness
 - Standalone Next.js output is configured in `next.config.ts`.
@@ -76,7 +129,42 @@ This file maps the stable product requirements from `KenMatch_Conception.md` to 
 - Synology-specific public-hosting guidance and hardening checklists live in `docs/synology-nas-deploy.md` and `docs/public-security-hardening.md`.
 - Synology NAS deployment instructions live in `docs/synology-nas-deploy.md`.
 
+### Deterministic visual release evidence
+
+- `visual-audit/src/inventory.ts` reconciles source routes with the protected
+  public database inventory; `visual-audit/src/coverage.ts` adds rendered links,
+  canonical Light/OLED coverage, nine exact viewport profiles, role states,
+  lifecycle states, forms, empty/error/loading states, and interactions.
+- `visual-audit/src/rendered-routes.ts`, `convergence.ts`, and `plan-state.ts`
+  normalize query ordering, collapse pagination/filter value permutations into
+  stable query-shape representatives, enforce monotonic target keys, and bound
+  fixed-point discovery with precise plan-identity failures.
+- `visual-audit/src/capture.ts`, `stitch.ts`, and `accessibility.ts` own
+  read-only request interception, deterministic settling, overlapping tile
+  capture, independent scroll-container capture, seam checks, link/asset
+  discovery, and accessibility diagnostics.
+- `src/lib/visual-audit-context.ts`, `src/proxy.ts`,
+  `src/lib/visitor.ts`, and `/api/visual-audit/inventory` enforce the server
+  boundary. The inventory omits private IDs, personal data, contacts, network
+  hashes, audit bodies, secrets, and private paths.
+- Tier 1/2 clone preparation, source hashing, cleanup proof, live tier 3,
+  explicit shareable review, report/PDF generation, validation, checksums, and
+  safe retention are implemented in `visual-audit/scripts/` and documented in
+  `docs/visual-archive.md`.
+
 ## Honest boundaries
+
+### Validated release closure
+
+`docs/release-evidence.json` binds release candidate `72dcf5579fd5674624a0602af623acd7b61c7331` to the selected four-worker software capture mode, a fresh immutable production snapshot, five passing formal archives, the exact deployed image, healthy app/tunnel state, and removal of ephemeral live-audit records.
+
+Tier 1 synthetic smoke/full completed 78/78 and 1,225/1,225 captures; Tier 2 production-clone full completed 1,245/1,245; Tier 3 live-readonly smoke/full completed 78/78 and 1,191/1,191. Every run has zero unexpected serious diagnostics, zero successful unsafe requests, and validated private/shareable report, PDF, and checksum artifacts.
+
+`docs/kenmatch-completion-ledger.json` reconciles 495 canonical requirements as 445 `DONE`, 21 `NOT_APPLICABLE`, and 29 `SUPERSEDED`, with zero unresolved applicable requirements. The Markdown companion exposes every non-`DONE` rationale.
+
+The incomplete historical run `20260801T080604Z-tier1-full-bfece455a0f0` remains immutable failed evidence at 1,259/1,261 captures with no completion timestamp; it was not resumed, relabeled, or used as release evidence.
+
+The generated archives and production clone remain private and ignored. The tracked record contains hashes, counts, identities, and dispositions without copied user data, audit credentials, or ephemeral account identifiers.
 
 ### Internal naming
 - The public product language is now `Ken` / `Kens`.

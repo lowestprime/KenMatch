@@ -2,6 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { createSession, ensureTestAuthAccount, recordAudit, updateAccountLastLogin } from "@/lib/db";
 import {
+  isIsolatedAuditLabTestAuthContext,
+  isTestAuthStorageStateResponse,
   isTestAuthBypassAvailable,
   isValidTestAuthBypassToken,
   isValidTestAuthMode,
@@ -9,6 +11,7 @@ import {
 } from "@/lib/test-auth";
 import { ACTIVE_SESSION_COOKIE, sessionCookieOptions } from "@/lib/session";
 import { env } from "@/lib/env";
+import { trustedRouteOrigin } from "@/lib/request-origin";
 
 export const dynamic = "force-dynamic";
 
@@ -54,12 +57,14 @@ export async function GET(request: NextRequest) {
   <body>
     <main>
       <h1>Local test auth</h1>
-      <p>This route only exists on loopback development hosts when the local test-auth bypass is explicitly enabled.</p>
+      <p>This route only exists in an explicitly enabled local or isolated audit-lab development environment.</p>
       <form method="post">
         <label for="token">Bypass token</label>
         <input id="token" name="token" type="password" autocomplete="off" required />
         <button name="mode" value="user" type="submit">Sign in as test contributor</button>
-        <button name="mode" value="admin" type="submit">Sign in as test owner</button>
+        <button name="mode" value="moderator" type="submit">Sign in as test moderator</button>
+        <button name="mode" value="admin" type="submit">Sign in as test administrator</button>
+        <button name="mode" value="owner" type="submit">Sign in as test owner</button>
       </form>
     </main>
   </body>
@@ -80,6 +85,7 @@ export async function POST(request: NextRequest) {
   const formData = await request.formData();
   const token = formData.get("token");
   const mode = formData.get("mode");
+  const responseMode = formData.get("responseMode");
   if (!isValidTestAuthBypassToken(token) || !isValidTestAuthMode(mode)) {
     return unavailable();
   }
@@ -87,14 +93,29 @@ export async function POST(request: NextRequest) {
   const accountId = await ensureTestAuthAccount(mode);
   const session = await createSession(accountId);
   await updateAccountLastLogin(accountId);
-  await recordAudit({
-    accountId,
-    action: "auth.test-bypass",
-    detail: `Local-only test auth bypass for ${TEST_AUTH_USERS[mode].email}.`,
-  });
+  if (!isIsolatedAuditLabTestAuthContext(requestHost(request))) {
+    await recordAudit({
+      accountId,
+      action: "auth.test-bypass",
+      detail: `Local-only test auth bypass for ${TEST_AUTH_USERS[mode].email}.`,
+    });
+  }
 
-  const destination = new URL(mode === "admin" ? "/admin" : "/account", request.nextUrl.origin);
-  const response = NextResponse.redirect(destination, 303);
+  let response: NextResponse;
+  if (isTestAuthStorageStateResponse(responseMode)) {
+    response = new NextResponse(null, { status: 204 });
+  } else {
+    const routeOrigin = trustedRouteOrigin({
+      forwardedHost: request.headers.get("x-forwarded-host"),
+      host: request.headers.get("host"),
+      forwardedProto: request.headers.get("x-forwarded-proto"),
+      fallbackProtocol: request.nextUrl.protocol,
+      production: false,
+    });
+    if (!routeOrigin) return unavailable();
+    const destination = new URL(mode === "user" ? "/account" : "/admin", routeOrigin);
+    response = NextResponse.redirect(destination, 303);
+  }
   response.cookies.set(ACTIVE_SESSION_COOKIE, session.token, sessionCookieOptions(env.KENMATCH_SESSION_DAYS * 24 * 60 * 60));
   response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
   response.headers.set("X-Robots-Tag", "noindex, nofollow");

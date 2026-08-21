@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 
 import { CategoryProposalForm } from "@/components/category-proposal-form";
@@ -6,12 +5,15 @@ import { ProposalForm } from "@/components/proposal-form";
 import { KEN_LIFECYCLE_STAGES, SUBMISSION_APPROVAL_CRITERIA, TOKEN_ASSIGNMENT_RULES } from "@/lib/allocation-policy";
 import { getHomeData } from "@/lib/db";
 import { KEN_DEFINITION } from "@/lib/faq";
+import { buildPublicMetadata } from "@/lib/seo";
 import { getViewerSession } from "@/lib/session";
 
-export const metadata: Metadata = {
+export const metadata = buildPublicMetadata({
   title: "Propose a Ken",
-  description: "Submit a new Ken for public review, voting, and checkpointed launch on KenMatch.",
-};
+  description:
+    "Shape and submit a bounded Ken with public benefit, evidence, risks, deliverables, acceptance checks, and a checkpointed run plan.",
+  path: "/submit",
+});
 
 export default async function SubmitPage() {
   const viewer = await getViewerSession();
@@ -63,7 +65,7 @@ export default async function SubmitPage() {
       ) : (
         <div className="panel space-y-4">
           <div className="font-display text-2xl font-semibold text-foreground">Sign in required</div>
-          <p className="text-sm leading-7 text-muted">Submitting a Ken creates a public review record and a bond-backed accountability trail, so anonymous intake is intentionally disabled.</p>
+          <p className="text-sm leading-7 text-muted">Submitting a Ken creates a private intake record and a bond-backed accountability trail. Approval creates the public voting record, so anonymous intake is intentionally disabled.</p>
           <Link href="/auth" className="cta-primary inline-flex">Sign in or create account</Link>
         </div>
       )}

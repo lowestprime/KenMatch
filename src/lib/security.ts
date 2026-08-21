@@ -3,35 +3,30 @@ import "server-only";
 import { headers } from "next/headers";
 
 import { consumeRateLimit, logSecurityEvent } from "@/lib/db";
-import { allowedHosts, env } from "@/lib/env";
+import { allowedHosts, env, visitorHashSalt } from "@/lib/env";
+import { hashPrivateIdentifier } from "@/lib/privacy";
+import {
+  normalizeAuthority,
+  normalizeHostname,
+  normalizeOrigin,
+  trustedRequestOrigin,
+} from "@/lib/request-origin";
 
 const trustedFetchSites = new Set(["same-origin", "same-site", "none", ""]);
 
 export interface RequestSecurityContext {
   host: string;
+  authority: string;
   origin: string | null;
   secFetchSite: string;
   forwardedProto: string | null;
   ipAddress: string | null;
-  userAgent: string;
-}
-
-function normalizeHost(value: string | null | undefined) {
-  return (value ?? "").trim().toLowerCase().replace(/:\d+$/, "");
-}
-
-function trustedOriginForHost(host: string, forwardedProto: string | null) {
-  if (env.KENMATCH_PUBLIC_ORIGIN) {
-    return env.KENMATCH_PUBLIC_ORIGIN.toLowerCase();
-  }
-
-  const protocol = (forwardedProto ?? (env.NODE_ENV === "production" ? "https" : "http")).toLowerCase();
-  return `${protocol}://${host}`;
 }
 
 export async function getRequestSecurityContext(): Promise<RequestSecurityContext> {
   const headerStore = await headers();
-  const host = normalizeHost(headerStore.get("x-forwarded-host") ?? headerStore.get("host"));
+  const rawHost = headerStore.get("x-forwarded-host") ?? headerStore.get("host");
+  const host = normalizeHostname(rawHost);
   const forwardedFor = headerStore.get("cf-connecting-ip")
     ?? headerStore.get("x-real-ip")
     ?? headerStore.get("x-forwarded-for")
@@ -40,11 +35,11 @@ export async function getRequestSecurityContext(): Promise<RequestSecurityContex
 
   return {
     host,
+    authority: normalizeAuthority(rawHost),
     origin: headerStore.get("origin"),
     secFetchSite: (headerStore.get("sec-fetch-site") ?? "").toLowerCase(),
     forwardedProto: headerStore.get("x-forwarded-proto"),
     ipAddress,
-    userAgent: headerStore.get("user-agent") ?? "",
   };
 }
 
@@ -56,7 +51,7 @@ export async function logAndRejectAbuse(context: RequestSecurityContext, reason:
   await logSecurityEvent({
     eventType: "abuse-rejected",
     detail: reason,
-    ipAddress: context.ipAddress,
+    networkIdentifier: context.ipAddress,
   });
   return "Request rejected.";
 }
@@ -75,8 +70,13 @@ async function assertSameOrigin(context: RequestSecurityContext) {
   await assertAllowedHost(context);
 
   if (context.origin) {
-    const trustedOrigin = trustedOriginForHost(context.host, context.forwardedProto);
-    if (context.origin.toLowerCase() !== trustedOrigin) {
+    const trustedOrigin = trustedRequestOrigin({
+      authority: context.authority,
+      forwardedProto: context.forwardedProto,
+      publicOrigin: env.KENMATCH_PUBLIC_ORIGIN,
+      production: env.NODE_ENV === "production",
+    });
+    if (!trustedOrigin || normalizeOrigin(context.origin) !== trustedOrigin) {
       throw new Error(await logAndRejectAbuse(context, "Origin did not match trusted origin for host."));
     }
     return;
@@ -142,16 +142,24 @@ export async function guardMutationRequest(input: {
       eventType: "honeypot-trip",
       detail: `${input.action}: hidden form field was filled`,
       actorId: input.actorId,
-      ipAddress: context.ipAddress,
+      networkIdentifier: context.ipAddress,
     });
     throw new Error("Request rejected.");
   }
 
   if (input.rateLimit) {
-    const identifier = [context.ipAddress ?? "unknown", ...(input.rateLimit.identifierParts ?? [])]
+    const rawIdentifier = [context.ipAddress ?? "unknown", ...(input.rateLimit.identifierParts ?? [])]
       .filter(Boolean)
       .join("|")
       .toLowerCase();
+    const identifier = hashPrivateIdentifier(
+      rawIdentifier,
+      `rate-limit:${input.rateLimit.scope}`,
+      visitorHashSalt,
+    );
+    if (!identifier) {
+      throw new Error("Unable to construct the abuse-prevention key.");
+    }
     const limitState = await consumeRateLimit({
       scope: input.rateLimit.scope,
       identifier,
@@ -163,7 +171,7 @@ export async function guardMutationRequest(input: {
         eventType: "rate-limit-hit",
         detail: `${input.action}: ${input.rateLimit.scope} exhausted until ${limitState.resetAt}`,
         actorId: input.actorId,
-        ipAddress: context.ipAddress,
+        networkIdentifier: context.ipAddress,
       });
       throw new Error("Too many attempts. Please wait a moment and try again.");
     }

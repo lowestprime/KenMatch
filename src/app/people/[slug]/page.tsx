@@ -1,21 +1,40 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+import { notFound, permanentRedirect } from "next/navigation";
 
 import { Avatar } from "@/components/avatar";
+import { JsonLd } from "@/components/json-ld";
 import { getProfilePageData, listProfiles } from "@/lib/db";
+import {
+  breadcrumbJsonLd,
+  buildPrivateMetadata,
+  buildPublicMetadata,
+  canonicalUrl,
+  seoDescription,
+} from "@/lib/seo";
 import { getViewerSession } from "@/lib/session";
 
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
-}) {
+}): Promise<Metadata> {
   const { slug } = await params;
   const profiles = await listProfiles();
-  const profile = profiles.find((p) => p.id === slug || p.username === slug || p.name === slug);
-  if (!profile) return { title: "Contributor" };
+  const profile = profiles.find((p) => p.id === slug || p.username === slug)
+    ?? profiles.find((p) => p.name.toLowerCase().replace(/\s+/g, "-") === slug);
+  if (!profile || profile.moderationStatus === "suspended") {
+    return buildPrivateMetadata("Contributor unavailable", "This public contributor profile is not available.");
+  }
   const publicName = profile.showRealName === false && profile.username ? `@${profile.username}` : profile.name;
-  return { title: publicName, description: profile.bio };
+  const canonicalSlug = profile.username ?? profile.id;
+  return buildPublicMetadata({
+    title: publicName,
+    description: seoDescription(profile.bio),
+    path: `/people/${encodeURIComponent(canonicalSlug)}`,
+    type: "profile",
+    imageAlt: `${publicName} on KenMatch`,
+  });
 }
 
 export default async function ProfilePage({
@@ -26,16 +45,47 @@ export default async function ProfilePage({
   const { slug } = await params;
   const profiles = await listProfiles();
   const profile = profiles.find((p) => p.id === slug || p.username === slug) ?? profiles.find((p) => p.name.toLowerCase().replace(/\s+/g, "-") === slug);
-  if (!profile) notFound();
-  const [data, viewer] = await Promise.all([getProfilePageData(profile.id), getViewerSession()]);
+  if (!profile || profile.moderationStatus === "suspended") notFound();
+  const canonicalSlug = profile.username ?? profile.id;
+  if (slug !== canonicalSlug) permanentRedirect(`/people/${encodeURIComponent(canonicalSlug)}`);
+  const viewer = await getViewerSession();
+  const data = await getProfilePageData(profile.id, viewer?.profile.id);
   if (!data) notFound();
   const summary = data.summary;
   if (!summary) notFound();
   const isSelf = viewer?.profile.id === summary.id;
   const publicName = summary.showRealName ? summary.name : `@${summary.username}`;
+  const profileUrl = canonicalUrl(`/people/${encodeURIComponent(canonicalSlug)}`);
+  const structuredData = [
+    breadcrumbJsonLd([
+      { name: "KenMatch", path: "/" },
+      { name: "Profiles", path: "/profiles" },
+      { name: publicName, path: `/people/${encodeURIComponent(canonicalSlug)}` },
+    ]),
+    {
+      "@context": "https://schema.org",
+      "@type": "ProfilePage",
+      "@id": `${profileUrl}#profile-page`,
+      url: profileUrl,
+      dateCreated: profile.createdAt,
+      mainEntity: {
+        "@type": "Person",
+        "@id": `${profileUrl}#person`,
+        name: publicName,
+        alternateName: `@${summary.username}`,
+        description: summary.bio,
+        url: profileUrl,
+        knowsAbout: summary.specialty,
+        sameAs: summary.links
+          .map((link) => link.url)
+          .filter((url) => url.startsWith("https://") || url.startsWith("http://")),
+      },
+    },
+  ];
 
   return (
     <div className="page-stack">
+      {structuredData.map((data, index) => <JsonLd key={index} data={data} />)}
       <section className="panel hero-panel">
         <div className="profile-hero">
           <Avatar profile={summary} size={96} />

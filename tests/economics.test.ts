@@ -184,10 +184,12 @@ test("summarizeEconomics derives structured funding balances and coverage policy
   assert.equal(summary.treasuryMonthlyUsd, 109_000);
   assert.equal(summary.founderMonthlyUsd, 26_000);
   assert.equal(summary.treasuryBalanceUsd, 54_000);
+  assert.equal(summary.committedComputeBalanceUsd, 46_000);
+  assert.equal(summary.committedUnrestrictedTreasuryUsd, 34_000);
   assert.equal(summary.monthlyPublicBurnUsd, 46_000);
-  assert.equal(summary.coverageMonths, 1.2);
+  assert.equal(summary.coverageMonths, 0.7);
   assert.equal(summary.coverageTargetMonths, 6);
-  assert.equal(summary.coverageGapMonths, 4.8);
+  assert.equal(summary.coverageGapMonths, 5.3);
   assert.equal(summary.coverageStatus, "critical");
   assert.equal(summary.restrictedFundingUsd, 18_000);
   assert.equal(summary.committedRestrictedFundingUsd, 18_000);
@@ -196,5 +198,76 @@ test("summarizeEconomics derives structured funding balances and coverage policy
   assert.equal(summary.sponsorPoolsUsd, 18_000);
   assert.equal(summary.sponsorCommitmentsUsd, 18_000);
   assert.equal(summary.safetyReserveUsd, 6_000);
+  assert.equal(summary.committedSafetyReserveUsd, 6_000);
   assert.equal(summary.verifiedFundingStreams, 2);
+});
+
+test("coverage excludes simulated, projected, restricted, and safety-reserve balances", () => {
+  const entries = [
+    {
+      id: "committed-general",
+      streamId: null,
+      title: "Committed general",
+      description: "Usable",
+      bucket: "compute-treasury",
+      direction: "inflow",
+      amountUsd: 60_000,
+      fundingState: "committed",
+      restrictionMode: "unrestricted",
+      restrictionScope: "general",
+      restrictionTargetId: null,
+      restrictionTargetLabel: null,
+      createdAt: "2026-01-01T00:00:00.000Z",
+    },
+    {
+      id: "projected-general",
+      streamId: null,
+      title: "Projected",
+      description: "Unavailable",
+      bucket: "compute-treasury",
+      direction: "inflow",
+      amountUsd: 600_000,
+      fundingState: "projected",
+      restrictionMode: "unrestricted",
+      restrictionScope: "general",
+      restrictionTargetId: null,
+      restrictionTargetLabel: null,
+      createdAt: "2026-01-01T00:00:00.000Z",
+    },
+    {
+      id: "restricted-category",
+      streamId: null,
+      title: "Restricted",
+      description: "Mismatched",
+      bucket: "compute-treasury",
+      direction: "inflow",
+      amountUsd: 600_000,
+      fundingState: "committed",
+      restrictionMode: "restricted",
+      restrictionScope: "category",
+      restrictionTargetId: "science",
+      restrictionTargetLabel: "Science",
+      createdAt: "2026-01-01T00:00:00.000Z",
+    },
+    {
+      id: "safety",
+      streamId: null,
+      title: "Safety reserve",
+      description: "Protected",
+      bucket: "safety-reserve",
+      direction: "inflow",
+      amountUsd: 600_000,
+      fundingState: "committed",
+      restrictionMode: "restricted",
+      restrictionScope: "safety-reserve",
+      restrictionTargetId: "safety-reserve",
+      restrictionTargetLabel: "Safety reserve",
+      createdAt: "2026-01-01T00:00:00.000Z",
+    },
+  ] as const;
+
+  const summary = summarizeEconomics([], [...entries], [], 10_000, 0, 6);
+  assert.equal(summary.committedUnrestrictedTreasuryUsd, 60_000);
+  assert.equal(summary.coverageMonths, 6);
+  assert.equal(summary.coverageStatus, "healthy");
 });

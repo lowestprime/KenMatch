@@ -5,6 +5,7 @@ import type {
   SponsorshipCommitmentRecord,
   TreasuryEntryRecord,
 } from "@/lib/types";
+import { deriveAutomaticCapacityState } from "./run-governance.ts";
 
 export function summarizeRevenueStream(stream: RevenueStreamRecord): RevenueStreamSummary {
   const treasuryMonthlyUsd = Math.round((stream.monthlyRevenueUsd * stream.treasurySharePercent) / 100);
@@ -35,7 +36,21 @@ export function summarizeEconomics(
   const treasuryBalanceUsd = entries
     .filter((entry) => entry.bucket === "compute-treasury")
     .reduce((total, entry) => total + (entry.direction === "inflow" ? entry.amountUsd : -entry.amountUsd), 0);
-  const coverageMonths = monthlyPublicBurnUsd > 0 ? Number((treasuryBalanceUsd / monthlyPublicBurnUsd).toFixed(1)) : 0;
+  const committedComputeBalanceUsd = entries
+    .filter((entry) => entry.bucket === "compute-treasury" && entry.fundingState === "committed")
+    .reduce((total, entry) => total + (entry.direction === "inflow" ? entry.amountUsd : -entry.amountUsd), 0);
+  const committedUnrestrictedTreasuryUsd = entries
+    .filter((entry) =>
+      entry.bucket === "compute-treasury" &&
+      entry.fundingState === "committed" &&
+      entry.restrictionMode === "unrestricted" &&
+      entry.restrictionScope === "general"
+    )
+    .reduce((total, entry) => total + (entry.direction === "inflow" ? entry.amountUsd : -entry.amountUsd), 0);
+  const usableCommittedTreasuryUsd = Math.max(committedUnrestrictedTreasuryUsd, 0);
+  const coverageMonths = monthlyPublicBurnUsd > 0
+    ? Number((usableCommittedTreasuryUsd / monthlyPublicBurnUsd).toFixed(1))
+    : 0;
   const restrictedFundingUsd = entries
     .filter((entry) => entry.restrictionMode === "restricted")
     .reduce((total, entry) => total + (entry.direction === "inflow" ? entry.amountUsd : -entry.amountUsd), 0);
@@ -56,9 +71,19 @@ export function summarizeEconomics(
   const safetyReserveUsd = entries
     .filter((entry) => entry.bucket === "safety-reserve" || entry.restrictionScope === "safety-reserve")
     .reduce((total, entry) => total + (entry.direction === "inflow" ? entry.amountUsd : -entry.amountUsd), 0);
+  const committedSafetyReserveUsd = entries
+    .filter((entry) =>
+      entry.fundingState === "committed" &&
+      (entry.bucket === "safety-reserve" || entry.restrictionScope === "safety-reserve")
+    )
+    .reduce((total, entry) => total + (entry.direction === "inflow" ? entry.amountUsd : -entry.amountUsd), 0);
   const coverageGapMonths = Number(Math.max(coverageTargetMonths - coverageMonths, 0).toFixed(1));
-  const coverageStatus =
-    coverageMonths >= coverageTargetMonths ? "healthy" : coverageMonths >= Math.max(1, coverageTargetMonths / 2) ? "watch" : "critical";
+  const automaticCapacityState = deriveAutomaticCapacityState(coverageMonths, coverageTargetMonths, monthlyPublicBurnUsd);
+  const coverageStatus = automaticCapacityState === "normal"
+    ? "healthy"
+    : automaticCapacityState === "constrained"
+      ? "watch"
+      : "critical";
   const verifiedFundingStreams = committed.length;
 
   return {
@@ -68,6 +93,8 @@ export function summarizeEconomics(
     committedTreasuryMonthlyUsd,
     founderMonthlyUsd,
     treasuryBalanceUsd,
+    committedComputeBalanceUsd,
+    committedUnrestrictedTreasuryUsd,
     monthlyPublicBurnUsd,
     coverageMonths,
     coverageTargetMonths,
@@ -80,6 +107,7 @@ export function summarizeEconomics(
     sponsorPoolsUsd,
     sponsorCommitmentsUsd,
     safetyReserveUsd,
+    committedSafetyReserveUsd,
     verifiedFundingStreams,
   };
 }

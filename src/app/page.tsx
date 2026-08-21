@@ -1,19 +1,27 @@
 import Link from "next/link";
 
 import { CategorySymbol } from "@/components/ken-visual";
+import { KenLifecycleMap } from "@/components/ken-lifecycle-map";
 import { TaskCard } from "@/components/task-card";
 import {
-  KEN_LIFECYCLE_STAGES,
   LANE_OPERATING_POLICIES,
   SUBMISSION_APPROVAL_CRITERIA,
   TOKEN_ASSIGNMENT_RULES,
 } from "@/lib/allocation-policy";
 import { getHomeData } from "@/lib/db";
 import { KEN_DEFINITION } from "@/lib/faq";
+import { buildPublicMetadata } from "@/lib/seo";
 import { getViewerProfileId } from "@/lib/session";
 import { categoryFilterHref, laneFilterHref } from "@/lib/taxonomy";
-import type { AllocationTier, RequestedTier } from "@/lib/types";
+import type { AllocationTier } from "@/lib/types";
 import { formatCurrency, formatNumber } from "@/lib/utils";
+
+export const metadata = buildPublicMetadata({
+  title: "Rank sustained AI work",
+  description:
+    "Propose and rank bounded public Kens for sustained AI-assisted work with visible sources, checkpoints, review, and funding boundaries.",
+  path: "/",
+});
 
 export default async function HomePage() {
   const viewerProfileId = await getViewerProfileId();
@@ -62,7 +70,7 @@ export default async function HomePage() {
               </Link>
             ))}
           </div>
-          <div className="metric-grid">
+          <div className="metric-grid home-metric-grid">
             {[ ["Kens", formatNumber(metrics.proposals)], ["Running", formatNumber(metrics.activeRuns)], ["Bonded voice", formatNumber(metrics.bondedVoice)], ["Committed treasury / month", formatCurrency(metrics.treasuryMonthlyUsd)] ].map(([label, value]) => (
               <div key={label} className="metric-card"><div className="eyebrow">{label}</div><div className="metric-value">{value}</div></div>
             ))}
@@ -70,24 +78,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="panel protocol-panel">
-        <div className="section-heading">
-          <div>
-            <div className="eyebrow">How the board works</div>
-            <h2 className="font-display text-3xl font-semibold text-foreground">From proposal to audited output</h2>
-          </div>
-          <Link href="/submit" className="cta-secondary cta-compact">Start a Ken</Link>
-        </div>
-        <div className="lifecycle-grid">
-          {KEN_LIFECYCLE_STAGES.map((stage) => (
-            <article key={stage.id} className="protocol-card interactive-surface">
-              <h3>{stage.label}</h3>
-              <p>{stage.summary}</p>
-              <small>{stage.publicGate}</small>
-            </article>
-          ))}
-        </div>
-      </section>
+      <KenLifecycleMap id="lifecycle" />
 
       <section className="section-grid" data-columns="2">
         <div className="panel space-y-4">
@@ -137,8 +128,8 @@ export default async function HomePage() {
           <div className="grid gap-4">
             {categories.map((category) => (
               <Link key={category.id} href={categoryFilterHref(category.slug)} className="category-summary-card interactive-surface">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
+                <div className="category-summary-header flex items-center justify-between gap-3">
+                  <div className="category-summary-main flex items-center gap-3">
                     <CategorySymbol
                       categorySlug={category.slug}
                       categoryName={category.name}
@@ -148,7 +139,7 @@ export default async function HomePage() {
                     />
                     <div className="font-display text-xl font-semibold text-foreground">{category.name}</div>
                   </div>
-                  <span className="tag">{category.proposalCount} Kens</span>
+                  <span className="category-summary-count tag">{category.proposalCount} Kens</span>
                 </div>
                 <p className="mt-2 text-sm leading-7 text-muted">{category.thesis}</p>
               </Link>

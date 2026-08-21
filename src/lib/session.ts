@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 
 import { getViewerSessionByToken } from "@/lib/db";
 import { env } from "@/lib/env";
+import { shouldUseSecureSessionCookie } from "@/lib/test-auth";
 
 export const ACTIVE_SESSION_COOKIE = env.KENMATCH_SESSION_COOKIE;
 
@@ -9,7 +10,7 @@ export function sessionCookieOptions(maxAge?: number) {
   return {
     httpOnly: true,
     sameSite: "strict" as const,
-    secure: env.NODE_ENV === "production",
+    secure: shouldUseSecureSessionCookie(),
     path: "/",
     maxAge,
     priority: "high" as const,

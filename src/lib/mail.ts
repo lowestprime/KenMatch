@@ -2,7 +2,7 @@ import "server-only";
 
 import nodemailer from "nodemailer";
 
-import { getEffectiveSmtpConfig, recordAdminSmtpTest } from "@/lib/db";
+import { getEffectiveSmtpConfig, recordAdminSmtpTest, recordNotificationDelivery } from "@/lib/db";
 
 let cachedTransporter: nodemailer.Transporter | null = null;
 let cachedTransporterKey = "";
@@ -38,6 +38,24 @@ export interface MailPayload {
     content: Buffer;
     contentType: string;
   }>;
+  purpose?: string;
+}
+
+function recipientCount(to: MailPayload["to"]) {
+  return Array.isArray(to) ? to.length : to.split(",").filter((value) => value.trim()).length;
+}
+
+async function recordMailHealth(payload: MailPayload, status: "sent" | "failed" | "not-configured", source: "env" | "database" | "none") {
+  try {
+    await recordNotificationDelivery({
+      purpose: payload.purpose,
+      status,
+      transportSource: source,
+      recipientCount: recipientCount(payload.to),
+    });
+  } catch (error) {
+    console.warn("[mail] unable to record delivery health", error);
+  }
 }
 
 export async function sendMail(payload: MailPayload): Promise<{ ok: boolean; info?: unknown; error?: string }> {
@@ -47,6 +65,7 @@ export async function sendMail(payload: MailPayload): Promise<{ ok: boolean; inf
       console.warn(`[mail] SMTP not configured. Skipping outbound email "${payload.subject}".`);
       cachedWarnedNoSmtp = true;
     }
+    await recordMailHealth(payload, "not-configured", "none");
     return { ok: false, error: "SMTP not configured" };
   }
   try {
@@ -59,9 +78,11 @@ export async function sendMail(payload: MailPayload): Promise<{ ok: boolean; inf
       replyTo: payload.replyTo,
       attachments: payload.attachments,
     });
+    await recordMailHealth(payload, "sent", transport.source);
     return { ok: true, info };
   } catch (error) {
     console.error("[mail] send failed", error);
+    await recordMailHealth(payload, "failed", transport.source);
     return { ok: false, error: error instanceof Error ? error.message : String(error) };
   }
 }
@@ -70,6 +91,7 @@ export async function sendSmtpTestMail(input: { to: string; actorId: string | nu
   const transport = await getTransporter();
   if (!transport) {
     await recordAdminSmtpTest("error", "SMTP is not configured.", input.actorId);
+    await recordNotificationDelivery({ purpose: "smtp-test", status: "not-configured", transportSource: "none", recipientCount: 1 });
     return { ok: false, error: "SMTP is not configured." };
   }
   try {
@@ -81,10 +103,12 @@ export async function sendSmtpTestMail(input: { to: string; actorId: string | nu
       text: "KenMatch SMTP validation succeeded. This test confirms only that the configured server accepted a message.",
     });
     await recordAdminSmtpTest("success", `Test email accepted by ${transport.source} SMTP.`, input.actorId);
+    await recordNotificationDelivery({ purpose: "smtp-test", status: "sent", transportSource: transport.source, recipientCount: 1 });
     return { ok: true, info };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     await recordAdminSmtpTest("error", message, input.actorId);
+    await recordNotificationDelivery({ purpose: "smtp-test", status: "failed", transportSource: transport.source, recipientCount: 1 });
     return { ok: false, error: message };
   }
 }
@@ -102,7 +126,7 @@ export function buildVerificationEmail(input: { name: string; url: string }) {
     <p style="color:#8b93a8;font-size:13px">If the button doesn't work, copy this link into your browser:<br><span style="word-break:break-all">${escapeHtml(url)}</span></p>
     <p style="color:#8b93a8;font-size:13px;margin-top:24px">This link expires in 48 hours. If you didn't sign up, you can safely ignore this message.</p>
     </div></body></html>`;
-  return { subject, text, html };
+  return { subject, text, html, purpose: "email-verification" };
 }
 
 export function buildPasswordResetEmail(input: { name: string; url: string }) {
@@ -118,7 +142,7 @@ export function buildPasswordResetEmail(input: { name: string; url: string }) {
     <p style="color:#8b93a8;font-size:13px">If the button doesn't work, copy this link into your browser:<br><span style="word-break:break-all">${escapeHtml(url)}</span></p>
     <p style="color:#8b93a8;font-size:13px;margin-top:24px">This link expires in 30 minutes. If you didn't request a reset, you can ignore this message.</p>
     </div></body></html>`;
-  return { subject, text, html };
+  return { subject, text, html, purpose: "password-reset" };
 }
 
 export function buildSignupNotificationEmail(input: {
@@ -126,7 +150,6 @@ export function buildSignupNotificationEmail(input: {
   name: string;
   role: string;
   specialty: string;
-  ipAddress?: string | null;
   country?: string | null;
 }) {
   const subject = `[KenMatch] New account: ${input.name}`;
@@ -137,26 +160,21 @@ export function buildSignupNotificationEmail(input: {
     `Name: ${input.name}`,
     `Role: ${input.role}`,
     `Specialty: ${input.specialty}`,
-    input.ipAddress ? `IP: ${input.ipAddress}` : null,
     input.country ? `Country: ${input.country}` : null,
   ].filter(Boolean).join("\n");
-  return { subject, text };
+  return { subject, text, purpose: "admin-signup" };
 }
 
 export function buildVisitorNotificationEmail(input: {
   country?: string | null;
-  region?: string | null;
-  city?: string | null;
-  userAgent?: string | null;
 }) {
-  const location = [input.city, input.region, input.country].filter(Boolean).join(", ");
+  const location = input.country ?? "";
   const subject = `[KenMatch] New visitor${location ? ` from ${location}` : ""}`;
   const text = [
     `A new unique visitor accessed KenMatch.`,
     location ? `Location: ${location}` : null,
-    input.userAgent ? `Agent: ${input.userAgent}` : null,
   ].filter(Boolean).join("\n");
-  return { subject, text };
+  return { subject, text, purpose: "admin-new-visitor" };
 }
 
 export function buildVerificationRequestEmail(input: { name: string; note: string; profileUrl: string }) {
@@ -169,7 +187,7 @@ export function buildVerificationRequestEmail(input: { name: string; note: strin
     ``,
     `Review: ${input.profileUrl}`,
   ].join("\n");
-  return { subject, text };
+  return { subject, text, purpose: "admin-verification-request" };
 }
 
 export function buildContactSubmissionEmail(input: {
@@ -198,7 +216,7 @@ export function buildContactSubmissionEmail(input: {
     <p style="color:#b8c4d6;margin:0 0 16px"><strong>Topic:</strong> ${escapeHtml(input.topic)}<br><strong>Reply:</strong> ${escapeHtml(input.replyEmail)}<br><strong>Attachments:</strong> ${input.attachmentCount}</p>
     <pre style="white-space:pre-wrap;word-break:break-word;background:#000;border:1px solid #24283a;border-radius:12px;padding:16px;color:#f4f8ff;font-family:ui-monospace,SFMono-Regular,Consolas,monospace">${escapeHtml(input.bodyMarkdown)}</pre>
     </div></body></html>`;
-  return { subject, text, html, replyTo: input.replyEmail };
+  return { subject, text, html, replyTo: input.replyEmail, purpose: "contact-submission" };
 }
 
 function escapeHtml(value: string) {

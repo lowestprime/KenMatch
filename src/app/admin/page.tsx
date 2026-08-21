@@ -5,38 +5,112 @@ import { AdminAccounts } from "@/components/admin/accounts";
 import { AdminAuditFeed } from "@/components/admin/audit-feed";
 import { AdminCategoryProposals } from "@/components/admin/category-proposals";
 import { AdminCategoryVisuals } from "@/components/admin/category-visuals";
+import { AdminHistoricalAnalyticsPanel } from "@/components/admin/historical-analytics";
+import { AdminKenSubmissions } from "@/components/admin/ken-submissions";
 import { AdminNotifications } from "@/components/admin/notifications";
 import {
+  AdminCapacityPanel,
   AdminChangelogPanel,
   AdminIllustrationPanel,
   AdminMaintenancePanel,
+  AdminRunDecisionPanel,
   AdminSmtpPanel,
 } from "@/components/admin/operations";
 import { AdminVerifications } from "@/components/admin/verifications";
 import { AdminVisitors } from "@/components/admin/visitors";
 import { VisitorMap } from "@/components/visitor-map";
 import { listCategoryVisualSettings } from "@/lib/category-visual-settings";
-import { getAdminDashboard, getAdminNotificationSettings } from "@/lib/db";
+import {
+  getAdminDashboard,
+  getAdminHistoricalAnalytics,
+  getAdminNotificationSettings,
+  listAuditLogPage,
+  listCategoriesForReview,
+  listCategoryProposalQueue,
+  listKenSubmissionQueue,
+  listReviewEventsForQueue,
+} from "@/lib/db";
+import { buildPrivateMetadata } from "@/lib/seo";
 import { getViewerSession } from "@/lib/session";
+import { categoryProposalStatuses, kenSubmissionStatuses } from "@/lib/types";
 
-export const metadata = { title: "Admin" };
+export const metadata = buildPrivateMetadata(
+  "Admin",
+  "Private KenMatch operations, moderation, review, configuration, audit, and analytics controls.",
+);
 
-export default async function AdminPage() {
+type AdminSearchParams = Record<string, string | string[] | undefined>;
+
+function paramValue(params: AdminSearchParams, key: string) {
+  const value = params[key];
+  return Array.isArray(value) ? value[0] ?? "" : value ?? "";
+}
+
+export default async function AdminPage({ searchParams }: { searchParams: Promise<AdminSearchParams> }) {
   const viewer = await getViewerSession();
   if (!viewer) redirect("/auth");
   if (viewer.account.systemRole !== "owner" && viewer.account.systemRole !== "admin" && viewer.account.systemRole !== "moderator") {
     redirect("/");
   }
+  const isOwner = viewer.account.systemRole === "owner";
+  const isAdmin = isOwner || viewer.account.systemRole === "admin";
 
-  const [dashboard, notifications, categoryVisuals] = await Promise.all([
+  const params = await searchParams;
+  const scalarParams = Object.fromEntries(
+    Object.entries(params).flatMap(([key, value]) => {
+      const scalar = Array.isArray(value) ? value[0] : value;
+      return scalar === undefined ? [] : [[key, scalar]];
+    }),
+  );
+  const categoryFilters = {
+    status: paramValue(params, "categoryStatus") || "pending",
+    assignee: paramValue(params, "categoryAssignee") || "all",
+    query: paramValue(params, "categoryQ"),
+    page: Number(paramValue(params, "categoryPage")) || 1,
+    pageSize: 10,
+  };
+  const kenFilters = {
+    status: paramValue(params, "kenStatus") || "pending",
+    assignee: paramValue(params, "kenAssignee") || "all",
+    query: paramValue(params, "kenQ"),
+    page: Number(paramValue(params, "kenPage")) || 1,
+    pageSize: 10,
+  };
+  const [dashboard, notifications, categoryVisuals, categoryQueue, kenQueue, categories, auditPage, historicalAnalytics] = await Promise.all([
     getAdminDashboard(),
     getAdminNotificationSettings(),
     listCategoryVisualSettings(),
+    listCategoryProposalQueue(categoryFilters),
+    listKenSubmissionQueue(kenFilters),
+    listCategoriesForReview(),
+    listAuditLogPage({
+      query: paramValue(params, "auditQ"),
+      action: paramValue(params, "auditAction"),
+      page: paramValue(params, "auditPage"),
+      pageSize: paramValue(params, "auditPageSize"),
+    }),
+    isAdmin
+      ? getAdminHistoricalAnalytics({
+          rangeDays: paramValue(params, "analyticsRange"),
+          bucket: paramValue(params, "analyticsBucket"),
+        })
+      : Promise.resolve(null),
+  ]);
+  const [categoryEvents, kenEvents] = await Promise.all([
+    listReviewEventsForQueue("category-proposal", categoryQueue.items.map((item) => item.id)),
+    listReviewEventsForQueue("ken-submission", kenQueue.items.map((item) => item.id)),
   ]);
 
-  const isOwner = viewer.account.systemRole === "owner";
   const canEditAccounts = isOwner;
   const canModerate = true;
+  const profileById = new Map(dashboard.profiles.map((profile) => [profile.id, profile]));
+  const reviewers = dashboard.accounts
+    .filter((account) => ["owner", "admin", "moderator"].includes(account.systemRole))
+    .map((account) => ({
+      id: account.id,
+      label: profileById.get(account.profileId)?.name ?? account.email,
+      role: account.systemRole,
+    }));
 
   return (
     <div className="page-stack">
@@ -51,15 +125,17 @@ export default async function AdminPage() {
           <span>· {dashboard.accounts.length} accounts</span>
           <span>· {dashboard.profiles.length} profiles</span>
           <span>· {dashboard.pendingVerifications.length} pending verifications</span>
-          <span>· {dashboard.categoryProposals.filter((item) => item.reviewStatus === "pending").length} category proposals</span>
+          <span>· {categoryQueue.counts.pending ?? 0} pending category proposals</span>
+          <span>· {kenQueue.counts.pending ?? 0} pending Ken submissions</span>
           <span>· {categoryVisuals.filter((item) => item.updatedAt).length} custom category visuals</span>
           <span>· {dashboard.visitors.length} unique visitors tracked</span>
           <span>· maintenance {dashboard.maintenance.mode}</span>
         </div>
       </section>
 
+      {isAdmin ? <>
       <section className="section-grid" data-columns="2">
-        <div className="panel grid gap-3">
+        <div id="visitor-map" className="panel grid gap-3 scroll-mt-28">
           <h2>Visitor map</h2>
           <p style={{ color: "var(--muted)" }}>
             Approximate country-level traffic from Cloudflare geolocation headers. Visitor IDs are salted hashes; the map is for operating awareness, not personal tracking.
@@ -74,16 +150,26 @@ export default async function AdminPage() {
           <AdminNotifications settings={notifications} smtp={dashboard.smtp} />
         </div>
       </section>
+      </> : null}
 
+      {isAdmin && historicalAnalytics ? (
+        <AdminHistoricalAnalyticsPanel
+          data={historicalAnalytics}
+          smtp={dashboard.smtp}
+          params={scalarParams}
+        />
+      ) : null}
+
+      {isAdmin ? <>
       <section className="section-grid" data-columns="2">
-        <div className="panel grid gap-3">
+        <div id="maintenance-controls" className="panel grid gap-3 scroll-mt-28">
           <h2>Maintenance mode</h2>
           <p style={{ color: "var(--muted)" }}>
             Pause public writes and show a clean public maintenance page while keeping admin recovery, auth, health, and assets reachable.
           </p>
           <AdminMaintenancePanel maintenance={dashboard.maintenance} />
         </div>
-        <div className="panel grid gap-3">
+        <div id="smtp-status" className="panel grid gap-3 scroll-mt-28">
           <h2>SMTP configuration</h2>
           <p style={{ color: "var(--muted)" }}>
             Environment SMTP remains authoritative. Owner-managed database SMTP is available only when env SMTP is absent and secrets can be encrypted at rest.
@@ -94,13 +180,34 @@ export default async function AdminPage() {
 
       <section className="section-grid" data-columns="2">
         <div className="panel grid gap-3">
+          <h2>Funding and capacity state</h2>
+          <p style={{ color: "var(--muted)" }}>
+            Automatic state uses only committed unrestricted compute coverage. Manual controls can impose a stricter pause, never relax the treasury floor.
+          </p>
+          <AdminCapacityPanel capacity={dashboard.capacity} />
+        </div>
+        <div className="panel grid gap-3">
+          <h2>Run decisions and release gates</h2>
+          <p style={{ color: "var(--muted)" }}>
+            Record checkpoint, correction, stop, and release outcomes with a public reason and verifiable artifact reference.
+          </p>
+          <AdminRunDecisionPanel
+            tasks={dashboard.tasks}
+            checkpoints={dashboard.checkpoints}
+            decisions={dashboard.runDecisions}
+          />
+        </div>
+      </section>
+
+      <section className="section-grid" data-columns="2">
+        <div id="changelog-controls" className="panel grid gap-3 scroll-mt-28">
           <h2>Changelog</h2>
           <p style={{ color: "var(--muted)" }}>
             Publish compact release notes so public users can tell what changed without reading commits or deployment logs.
           </p>
           <AdminChangelogPanel entries={dashboard.changelog} />
         </div>
-        <div className="panel grid gap-3">
+        <div id="illustration-controls" className="panel grid gap-3 scroll-mt-28">
           <h2>Ken illustrations</h2>
           <p style={{ color: "var(--muted)" }}>
             Admin-uploaded Ken images are optional and persist in the data volume. Kens without uploaded art use the public category/lane symbol.
@@ -108,8 +215,9 @@ export default async function AdminPage() {
           <AdminIllustrationPanel tasks={dashboard.tasks} illustrations={dashboard.illustrations} />
         </div>
       </section>
+      </> : null}
 
-      {canModerate ? (
+      {isAdmin ? (
         <section className="panel grid gap-3">
           <h2>Category visual system</h2>
           <p style={{ color: "var(--muted)" }}>
@@ -119,7 +227,7 @@ export default async function AdminPage() {
         </section>
       ) : null}
 
-      {canModerate ? (
+      {isAdmin ? (
         <section className="panel grid gap-3">
           <h2>Verification queue</h2>
           <p style={{ color: "var(--muted)" }}>
@@ -144,25 +252,83 @@ export default async function AdminPage() {
       ) : null}
 
       {canModerate ? (
-        <section className="panel grid gap-3">
-          <h2>Category proposals</h2>
-          <p style={{ color: "var(--muted)" }}>
-            Review user-proposed categories. Approval creates a public category that appears in filters and new Ken submission.
-          </p>
-          <AdminCategoryProposals items={dashboard.categoryProposals} />
+        <section id="ken-submissions" className="panel grid gap-3 scroll-mt-28">
+          <div>
+            <h2>Submitted Ken review queue</h2>
+            <p style={{ color: "var(--muted)" }}>
+              Deterministic readiness checks are advisory. Moderators can triage, assign, recuse, request revision, and hold; only admins or the owner can publish, merge, or reject.
+            </p>
+          </div>
+          <ReviewQueueControls
+            prefix="ken"
+            statuses={kenSubmissionStatuses}
+            filters={kenFilters}
+            reviewers={reviewers}
+            params={params}
+            anchor="ken-submissions"
+          />
+          <AdminKenSubmissions
+            items={kenQueue.items}
+            reviewers={reviewers}
+            publicTasks={dashboard.tasks}
+            eventsByEntity={kenEvents}
+            currentAccountId={viewer.account.id}
+            currentRole={viewer.account.systemRole}
+          />
+          <ReviewPagination
+            prefix="ken"
+            page={kenQueue.page}
+            totalPages={kenQueue.totalPages}
+            totalItems={kenQueue.totalItems}
+            params={params}
+            anchor="ken-submissions"
+          />
         </section>
       ) : null}
 
-      <section className="section-grid" data-columns="2">
-        <div className="panel grid gap-3 admin-compact-panel">
+      {canModerate ? (
+        <section id="category-proposals" className="panel grid gap-3 scroll-mt-28">
+          <h2>Category proposals</h2>
+          <p style={{ color: "var(--muted)" }}>
+            Review user-proposed categories with normalized collision checks, advisory similarity hints, durable decisions, and deterministic fallback visuals.
+          </p>
+          <ReviewQueueControls
+            prefix="category"
+            statuses={categoryProposalStatuses}
+            filters={categoryFilters}
+            reviewers={reviewers}
+            params={params}
+            anchor="category-proposals"
+          />
+          <AdminCategoryProposals
+            items={categoryQueue.items}
+            reviewers={reviewers}
+            categories={categories}
+            eventsByEntity={categoryEvents}
+            currentAccountId={viewer.account.id}
+            currentRole={viewer.account.systemRole}
+          />
+          <ReviewPagination
+            prefix="category"
+            page={categoryQueue.page}
+            totalPages={categoryQueue.totalPages}
+            totalItems={categoryQueue.totalItems}
+            params={params}
+            anchor="category-proposals"
+          />
+        </section>
+      ) : null}
+
+      {isAdmin ? <>
+        <section className="panel grid gap-3 admin-compact-panel">
           <h2>Unique visitors</h2>
           <AdminVisitors visitors={dashboard.visitors.slice(0, 32)} stats={dashboard.visitorStats} />
-        </div>
-        <div className="panel grid gap-3 admin-compact-panel">
+        </section>
+        <section id="audit-log" className="panel grid gap-3 scroll-mt-28">
           <h2>Audit log</h2>
-          <AdminAuditFeed entries={dashboard.recentAudit} />
-        </div>
-      </section>
+          <AdminAuditFeed data={auditPage} params={scalarParams} />
+        </section>
+      </> : null}
 
       <section className="panel grid gap-3">
         <h2>Quick links</h2>
@@ -176,5 +342,96 @@ export default async function AdminPage() {
         </div>
       </section>
     </div>
+  );
+}
+
+function ReviewQueueControls({
+  prefix,
+  statuses,
+  filters,
+  reviewers,
+  params,
+  anchor,
+}: {
+  prefix: "category" | "ken";
+  statuses: readonly string[];
+  filters: { status: string; assignee: string; query: string };
+  reviewers: Array<{ id: string; label: string; role: string }>;
+  params: AdminSearchParams;
+  anchor: string;
+}) {
+  const otherPrefix = prefix === "category" ? "ken" : "category";
+  return (
+    <form className="review-queue-toolbar" action={`/admin#${anchor}`}>
+      {Object.entries(params).map(([key, value]) => {
+        if (!key.startsWith(otherPrefix) || Array.isArray(value) || value === undefined) return null;
+        return <input key={key} type="hidden" name={key} value={value} />;
+      })}
+      <label className="field-label">
+        <span>Status</span>
+        <select className="field" name={`${prefix}Status`} defaultValue={filters.status}>
+          <option value="all">All statuses</option>
+          {statuses.map((status) => <option key={status} value={status}>{status.replaceAll("-", " ")}</option>)}
+        </select>
+      </label>
+      <label className="field-label">
+        <span>Assignee</span>
+        <select className="field" name={`${prefix}Assignee`} defaultValue={filters.assignee}>
+          <option value="all">All reviewers</option>
+          <option value="unassigned">Unassigned</option>
+          {reviewers.map((reviewer) => <option key={reviewer.id} value={reviewer.id}>{reviewer.label}</option>)}
+        </select>
+      </label>
+      <label className="field-label">
+        <span>Search queue</span>
+        <input className="field" type="search" name={`${prefix}Q`} defaultValue={filters.query} placeholder="Title, summary, public benefit" />
+      </label>
+      <button className="cta-secondary cta-compact" type="submit">Apply queue filters</button>
+      <Link className="cta-secondary cta-compact" href={`/admin?${otherQueueParams(params, otherPrefix)}#${anchor}`}>Reset this queue</Link>
+    </form>
+  );
+}
+
+function otherQueueParams(params: AdminSearchParams, prefix: string) {
+  const next = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (!key.startsWith(prefix) || Array.isArray(value) || value === undefined || value === "") continue;
+    next.set(key, value);
+  }
+  return next.toString();
+}
+
+function ReviewPagination({
+  prefix,
+  page,
+  totalPages,
+  totalItems,
+  params,
+  anchor,
+}: {
+  prefix: "category" | "ken";
+  page: number;
+  totalPages: number;
+  totalItems: number;
+  params: AdminSearchParams;
+  anchor: string;
+}) {
+  const href = (target: number) => {
+    const next = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) {
+      if (Array.isArray(value) || value === undefined || value === "") continue;
+      next.set(key, value);
+    }
+    next.set(`${prefix}Page`, String(target));
+    return `/admin?${next.toString()}#${anchor}`;
+  };
+  return (
+    <nav className="review-pagination" aria-label={`${prefix} review queue pages`}>
+      <span>{totalItems} records · page {page} of {totalPages}</span>
+      <div>
+        {page > 1 ? <Link className="cta-secondary cta-compact" href={href(page - 1)}>Previous</Link> : null}
+        {page < totalPages ? <Link className="cta-secondary cta-compact" href={href(page + 1)}>Next</Link> : null}
+      </div>
+    </nav>
   );
 }

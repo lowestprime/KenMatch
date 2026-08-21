@@ -3,6 +3,7 @@ import Link from "next/link";
 import { CategoryFilterChip, LaneFilterChip } from "@/components/filter-chip-link";
 import { KenBookmarkButton } from "@/components/ken-bookmark-button";
 import { KenVisual } from "@/components/ken-visual";
+import { discoveryReasonLabels } from "@/lib/discovery";
 import { formatCurrency, formatDateTime, labelForStage } from "@/lib/utils";
 import type { TaskSummary } from "@/lib/types";
 
@@ -28,9 +29,14 @@ export function TaskCard({ task, signedIn = false }: { task: TaskSummary; signed
           <div className="task-card-hero-row">
             <div className="task-card-copy">
               <div className="task-card-kicker">Proposed by {task.proposerName} · {formatDateTime(task.createdAt)}</div>
-              <h3 className="task-card-title">
+              {task.discoveryReasons && task.discoveryReasons.length > 0 ? (
+                <div className="task-discovery-reasons" aria-label="Why this Ken appears here">
+                  {task.discoveryReasons.map((reason) => <span key={reason}>{discoveryReasonLabels[reason]}</span>)}
+                </div>
+              ) : null}
+              <h2 className="task-card-title">
                 <Link href={`/kens/${task.slug}`} aria-label={`Open ${task.title}`}>{task.title}</Link>
-              </h3>
+              </h2>
               <p className="task-card-summary">{task.summary}</p>
             </div>
             <Link href={`/kens/${task.slug}`} className="task-card-visual-link" aria-label={`Open ${task.title}`}>

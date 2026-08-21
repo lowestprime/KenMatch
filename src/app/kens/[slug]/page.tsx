@@ -1,16 +1,49 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { CategoryFilterChip, LaneFilterChip } from "@/components/filter-chip-link";
 import { DiscussionThread } from "@/components/discussion-thread";
+import { JsonLd } from "@/components/json-ld";
 import { KenBookmarkButton } from "@/components/ken-bookmark-button";
+import { KenLifecycleMap } from "@/components/ken-lifecycle-map";
 import { KenVisual } from "@/components/ken-visual";
 import { KenSandboxStrip } from "@/components/ken-sandbox-strip";
 import { KenTimingStrip } from "@/components/ken-timing-strip";
+import { RunQualityContract } from "@/components/run-quality-contract";
 import { TaskPulsePanel } from "@/components/task-pulse-panel";
 import { VotePanel } from "@/components/vote-panel";
-import { getTaskDetail } from "@/lib/db";
+import { getPublicKenSeoRecord, getTaskDetail } from "@/lib/db";
+import {
+  breadcrumbJsonLd,
+  buildPrivateMetadata,
+  buildPublicMetadata,
+  canonicalUrl,
+  seoDescription,
+} from "@/lib/seo";
 import { getViewerSession } from "@/lib/session";
 import { formatCurrency, formatDateTime, formatHoursToHuman, labelForStage } from "@/lib/utils";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const ken = await getPublicKenSeoRecord(slug);
+  if (!ken) {
+    return buildPrivateMetadata(
+      "Ken unavailable",
+      "This Ken is not public, does not exist, or remains in private intake review.",
+    );
+  }
+  return buildPublicMetadata({
+    title: ken.title,
+    description: seoDescription(ken.summary),
+    path: `/kens/${encodeURIComponent(ken.slug)}`,
+    type: "article",
+    imageAlt: `${ken.title}, a ${ken.categoryName} Ken on KenMatch`,
+  });
+}
 
 export default async function KenDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -21,9 +54,47 @@ export default async function KenDetailPage({ params }: { params: Promise<{ slug
   if (!task) {
     notFound();
   }
+  const intakeBlocked = Boolean(task.intakeReview && !task.intakeReview.canParticipate);
+  const participationMessage = intakeBlocked
+    ? `This Ken is ${task.intakeReview?.submission.intakeStatus.replaceAll("-", " ")} in intake and cannot receive public participation yet.`
+    : publicParticipationMessage;
+  const isPublicKen = !task.intakeReview || task.intakeReview.submission.intakeStatus === "approved";
+  const kenUrl = canonicalUrl(`/kens/${encodeURIComponent(task.slug)}`);
+  const structuredData = isPublicKen
+    ? [
+        breadcrumbJsonLd([
+          { name: "KenMatch", path: "/" },
+          { name: "Kens", path: "/kens" },
+          { name: task.title, path: `/kens/${encodeURIComponent(task.slug)}` },
+        ]),
+        {
+          "@context": "https://schema.org",
+          "@type": "CreativeWork",
+          "@id": `${kenUrl}#ken`,
+          name: task.title,
+          description: task.summary,
+          url: kenUrl,
+          dateCreated: task.createdAt,
+          dateModified: task.lastActivityAt,
+          creativeWorkStatus: labelForStage(task.stage),
+          author: {
+            "@type": "Person",
+            name: task.proposerName,
+          },
+          about: {
+            "@type": "DefinedTerm",
+            name: task.categoryName,
+            url: canonicalUrl(`/kens?category=${encodeURIComponent(task.categorySlug)}`),
+          },
+          isPartOf: { "@id": `${canonicalUrl("/")}#website` },
+          keywords: [task.categoryName, `${task.allocatedTier} lane`, "sustained AI-assisted work"],
+        },
+      ]
+    : [];
 
   return (
     <div className="page-stack">
+      {structuredData.map((data, index) => <JsonLd key={index} data={data} />)}
       <section className="panel hero-panel card-sheen space-y-6">
         <div className="flex flex-wrap gap-3">
           <LaneFilterChip tier={task.allocatedTier} />
@@ -52,6 +123,51 @@ export default async function KenDetailPage({ params }: { params: Promise<{ slug
           ))}
         </div>
       </section>
+
+      {task.intakeReview ? (
+        <section className="panel grid gap-4" aria-labelledby="intake-review-heading">
+          <div className="category-review-head">
+            <div>
+              <div className="eyebrow">Transparent intake record</div>
+              <h2 id="intake-review-heading" className="font-display text-2xl font-semibold text-foreground">Submission review</h2>
+            </div>
+            <span className={`status-chip is-${task.intakeReview.submission.intakeStatus}`}>
+              {task.intakeReview.submission.intakeStatus.replaceAll("-", " ")}
+            </span>
+          </div>
+          <div className="review-lane-summary">
+            <span>Requested <strong>{task.intakeReview.submission.requestedTier}</strong></span>
+            <span>Scope estimate <strong>{task.intakeReview.submission.estimatedTier}</strong></span>
+            <span>{task.intakeReview.submission.assigneeAccountId ? "Reviewer assigned" : "Awaiting assignment"}</span>
+          </div>
+          {task.intakeReview.submission.reviewNote ? (
+            <p className="admin-hint"><strong>Public review note:</strong> {task.intakeReview.submission.reviewNote}</p>
+          ) : null}
+          {intakeBlocked ? (
+            <p className="text-sm leading-7 text-muted">
+              This private detail record is visible only to its submitter and authorized reviewers. It does not appear in search, profiles, ranking, pulse, or public feed results until approved.
+            </p>
+          ) : null}
+          <details className="review-history">
+            <summary>Public review history ({task.intakeReview.events.filter((event) => event.isPublic).length})</summary>
+            <ol className="review-history-list">
+              {task.intakeReview.events.filter((event) => event.isPublic).map((event) => (
+                <li key={event.id}>
+                  <div><strong>{event.action.replaceAll("-", " ")}</strong><span>{formatDateTime(event.createdAt)}</span></div>
+                  {event.publicNote ? <p>{event.publicNote}</p> : null}
+                </li>
+              ))}
+            </ol>
+          </details>
+        </section>
+      ) : null}
+
+      <KenLifecycleMap
+        density="progress"
+        currentTaskStage={task.stage}
+        eyebrow="Ken progression"
+        title="Current position in the public lifecycle"
+      />
 
       <section className="detail-layout">
         <div className="space-y-6">
@@ -144,12 +260,14 @@ export default async function KenDetailPage({ params }: { params: Promise<{ slug
             )}
           </div>
 
+          <RunQualityContract task={task} />
+
           <DiscussionThread
             taskId={task.id}
             slug={task.slug}
             comments={task.comments}
-            disabled={!viewerProfile?.canComment}
-            disabledMessage={publicParticipationMessage}
+            disabled={intakeBlocked || !viewerProfile?.canComment}
+            disabledMessage={participationMessage}
           />
         </div>
 
@@ -160,8 +278,8 @@ export default async function KenDetailPage({ params }: { params: Promise<{ slug
             userPulse={task.userTaskPulse}
             positivePulseCount={task.positivePulseCount}
             negativePulseCount={task.negativePulseCount}
-            disabled={!viewerProfile?.canPulse}
-            disabledMessage={publicParticipationMessage}
+            disabled={intakeBlocked || !viewerProfile?.canPulse}
+            disabledMessage={participationMessage}
           />
           <VotePanel
             taskId={task.id}
@@ -169,8 +287,8 @@ export default async function KenDetailPage({ params }: { params: Promise<{ slug
             initialVotes={task.userVotes}
             availableCredits={viewerProfile?.availableCredits ?? 0}
             totalCredits={viewerProfile?.effectiveVoiceCredits ?? 0}
-            disabled={!viewerProfile?.canAllocateVoice}
-            disabledMessage={publicParticipationMessage}
+            disabled={intakeBlocked || !viewerProfile?.canAllocateVoice}
+            disabledMessage={participationMessage}
           />
 
           <div className="panel space-y-4">

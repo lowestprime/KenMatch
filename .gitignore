@@ -13,6 +13,19 @@ coverage/
 .npm-cache/
 .volta/
 deploy-backups/
+.playwright-cli/
+output/playwright/
+output/seo-audit/
+visual-audits/
+visual-audit/.auth/
+visual-audit/.secrets/
+visual-audit/.state/
+visual-audit/.benchmarks/
+visual-audit/storage-state*.json
+visual-audit/**/*.sqlite
+visual-audit/**/*.sqlite-shm
+visual-audit/**/*.sqlite-wal
+visual-audit/**/*.trace.zip
 
 # Python
 __pycache__/
@@ -22,6 +35,7 @@ venv/
 
 # Logs / temp
 *.log
+.tmp/
 tmp/
 temp/
 

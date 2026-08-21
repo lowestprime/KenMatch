@@ -286,6 +286,62 @@ export async function listDiscussionPosts({
   return (await rows(`${postSelect} ${whereSql} ORDER BY ${orderBy} LIMIT 80`, args)).map(mapPost);
 }
 
+export async function listDiscussionSitemapEntries() {
+  const result = await rows(
+    `SELECT slug, MAX(createdAt, updatedAt) AS lastModified
+     FROM discussion_posts
+     ORDER BY slug ASC`,
+  );
+  return result.map((row) => ({
+    slug: getString(row, "slug"),
+    lastModified: getString(row, "lastModified"),
+  }));
+}
+
+export async function listVisualAuditDiscussionInventory() {
+  const result = await rows(
+    `SELECT slug, topic
+     FROM discussion_posts
+     ORDER BY slug ASC`,
+  );
+  return result.map((row) => ({
+    slug: getString(row, "slug"),
+    topic: getString(row, "topic"),
+  }));
+}
+
+export async function getDiscussionPostSeoRecord(slug: string) {
+  const row = await one(
+    `SELECT
+       post.slug,
+       post.title,
+       post.bodyMarkdown,
+       post.topic,
+       post.createdAt,
+       post.updatedAt,
+       profile.name AS profileName,
+       profile.username AS profileUsername,
+       (SELECT COUNT(*) FROM discussion_comments WHERE postId = post.id) AS commentCount
+     FROM discussion_posts post
+     JOIN profiles profile ON profile.id = post.profileId
+     WHERE post.slug = ?
+     LIMIT 1`,
+    [slug],
+  );
+  if (!row) return null;
+  return {
+    slug: getString(row, "slug"),
+    title: getString(row, "title"),
+    bodyMarkdown: getString(row, "bodyMarkdown"),
+    topic: getString(row, "topic"),
+    createdAt: getString(row, "createdAt"),
+    updatedAt: getString(row, "updatedAt"),
+    profileName: getString(row, "profileName"),
+    profileUsername: getNullableString(row, "profileUsername"),
+    commentCount: getNumber(row, "commentCount"),
+  };
+}
+
 export async function getDiscussionPost(slug: string, profileId?: string | null): Promise<DiscussionDetail | null> {
   const viewerId = profileId ?? "";
   const postRow = await one(`${postSelect} WHERE p.slug = ?`, [viewerId, viewerId, slug]);
