@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-21T09:38:30.928Z",
+  "generated_at": "2026-08-21T09:41:12.462Z",
   "generator": "scripts/generate-completion-ledger.mjs",
   "repository": {
     "path": ".",
@@ -540,7 +540,7 @@
       "path": "PLANS.md",
       "line_count": 597,
       "heading_count": 46,
-      "sha256": "2684d427ac8ee3e5082332971fe4ba42bdc4070605091fe37939573ebfab7f5f",
+      "sha256": "8681636b83019592bc484ca57d9a59e4db120f6ac4cbf9db256177732b169b59",
       "extracted_requirements": 4,
       "historical_claims": 0,
       "reference_constraints": 0,
