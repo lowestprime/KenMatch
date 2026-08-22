@@ -55,3 +55,16 @@ test("live category renderer retains the new core identity and runtime microindi
     assert.ok(source.includes(token), `Missing ${token}`);
   }
 });
+
+test("light-theme category indicators retain an OLED canvas and legible status mark", async () => {
+  const css = await readFile(path.join(process.cwd(), "src", "app", "globals.css"), "utf8");
+  const lightRule = css.match(/html\[data-theme="light"\] \.category-symbol \{(?<body>[\s\S]*?)\n\}/)?.groups?.body;
+
+  assert.ok(lightRule, "Missing the light-theme category symbol rule");
+  assert.ok(lightRule.includes("--symbol-surface: color-mix(in srgb, #05030b 94%, var(--symbol-background));"));
+  assert.ok(lightRule.includes("--symbol-ink: #ffffff;"));
+  assert.ok(lightRule.includes("--symbol-status-surface: color-mix(in srgb, #05030b 82%, var(--symbol-primary));"));
+  assert.ok(lightRule.includes("--symbol-status-ink: #ffffff;"));
+  assert.doesNotMatch(lightRule, /#ffffff 96%/);
+  assert.match(css, /\.category-symbol-status-mark \{[\s\S]*?stroke: var\(--symbol-status-ink\);/);
+});
