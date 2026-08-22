@@ -249,6 +249,18 @@ export const seedSponsorshipCommitments: SponsorshipCommitmentRecord[] = [
 
 export const seedChangelogEntries: ChangelogEntryRecord[] = [
   {
+    id: "purple-progress-about-polish",
+    entryDate: "2026-08-22",
+    title: "Purple text accents and global page progress shipped",
+    entryType: "feature",
+    summary: "KenMatch replaced blue interface text with accessible purple accents, added gradient page progress to every route, and tightened About and shared hero typography.",
+    details: "The same maintenance release resolved the brace-expansion, js-yaml, and nanoid advisories through patch-only lockfile updates and verified a clean npm audit.",
+    visible: true,
+    createdAt: "2026-08-22T12:00:00.000Z",
+    updatedAt: "2026-08-22T12:00:00.000Z",
+    updatedBy: null,
+  },
+  {
     id: "oled-auth-faq-map-upgrade",
     entryDate: "2026-05-01",
     title: "OLED theme, auth state, FAQ, filters, and visitor map upgraded",
