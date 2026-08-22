@@ -6,7 +6,7 @@
   --color-panel: #fafbfe;
   --color-muted: #596377;
   --color-border: rgba(28, 38, 62, 0.15);
-  --color-teal: #315dff;
+  --color-teal: #6d28d9;
   --color-ember: #c43e5b;
   --color-gold: #946600;
   --shadow-soft: 0 24px 64px rgba(28, 38, 62, 0.11);
@@ -23,7 +23,8 @@
   --muted: #596377;
   --line: rgba(28, 38, 62, 0.15);
   --line-soft: rgba(28, 38, 62, 0.07);
-  --accent-strong: #315dff;
+  --accent-text: #6d28d9;
+  --accent-strong: var(--accent-text);
   --accent-glow: #6746d9;
   --accent-warm: #c43e5b;
   --accent-gold: #946600;
@@ -32,10 +33,10 @@
   --mark-front-muted-2: #6746d9;
   --danger: #b4233d;
   --danger-soft: rgba(180, 35, 61, 0.12);
-  --success: #2563eb;
-  --success-soft: rgba(37, 99, 235, 0.12);
+  --success: var(--accent-text);
+  --success-soft: rgba(109, 40, 217, 0.12);
   --accent-blue: #315dff;
-  --accent-purple: #6746d9;
+  --accent-purple: #6d28d9;
   --accent-red: #c43e5b;
   --rainbow-border: linear-gradient(115deg, #315dff 0%, #6746d9 28%, #946600 55%, #c43e5b 78%, #7657d8 100%);
   --brand-mark-shell: #6746d9;
@@ -55,7 +56,7 @@ html[data-theme="oled"] {
   --color-panel: #000000;
   --color-muted: #aeb8c8;
   --color-border: rgba(210, 220, 238, 0.16);
-  --color-teal: #6ea8ff;
+  --color-teal: #c4a5ff;
   --color-ember: #ff6b6b;
   --color-gold: #ffd166;
   --page: #000000;
@@ -68,7 +69,8 @@ html[data-theme="oled"] {
   --muted: #aeb8c8;
   --line: rgba(210, 220, 238, 0.16);
   --line-soft: rgba(210, 220, 238, 0.07);
-  --accent-strong: #6ea8ff;
+  --accent-text: #c4a5ff;
+  --accent-strong: var(--accent-text);
   --accent-glow: #8b5cf6;
   --accent-warm: #ff6b6b;
   --accent-gold: #ffd166;
@@ -77,10 +79,10 @@ html[data-theme="oled"] {
   --mark-front-muted-2: #b58cff;
   --danger: #f87171;
   --danger-soft: rgba(248, 113, 113, 0.16);
-  --success: #6ea8ff;
-  --success-soft: rgba(110, 168, 255, 0.14);
+  --success: var(--accent-text);
+  --success-soft: rgba(196, 165, 255, 0.14);
   --accent-blue: #6ea8ff;
-  --accent-purple: #b58cff;
+  --accent-purple: #c4a5ff;
   --accent-red: #ff6b6b;
   --rainbow-border: linear-gradient(115deg, #6ea8ff 0%, #b58cff 28%, #ffd166 55%, #ff6b6b 78%, #8b5cf6 100%);
   --brand-mark-shell: #000000;
@@ -2639,7 +2641,7 @@ body.mobile-nav-open { overflow: hidden; }
 .hero-panel .sm\:text-5xl,
 .hero-panel .lg\:text-6xl {
   font-size: 4.2rem;
-  line-height: 1.02;
+  line-height: 1.03;
   letter-spacing: 0;
 }
 
@@ -4678,29 +4680,32 @@ html[data-theme="light"] .category-symbol {
 
 .about-hero {
   display: grid;
-  grid-template-columns: minmax(0, 0.96fr) minmax(20rem, 0.74fr);
-  align-items: end;
-  gap: clamp(1rem, 2.2vw, 2.4rem);
+  grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 0.65fr);
+  align-items: start;
+  gap: clamp(1.1rem, 2vw, 2rem);
 }
 
 .about-hero-copy {
   display: grid;
-  gap: 0.85rem;
-  max-width: 52rem;
+  align-content: start;
+  gap: clamp(0.65rem, 1vw, 0.85rem);
+  min-width: 0;
 }
 
 .about-hero h1 {
-  max-width: 49rem;
-  font-size: 4.75rem;
-  line-height: 0.98;
+  max-width: 18ch;
+  font-size: 3.9rem;
+  line-height: 1.02;
+  text-wrap: balance;
 }
 
 .about-hero p {
-  max-width: 46rem;
+  max-width: 66ch;
 }
 
 .about-hero-summary {
   display: grid;
+  align-self: start;
   gap: 0.65rem;
 }
 
@@ -4765,8 +4770,8 @@ html[data-theme="light"] .category-symbol {
   }
 
   .about-hero h1 {
-    max-width: 100%;
-    font-size: 3.5rem;
+    max-width: 18ch;
+    font-size: 3.2rem;
   }
 
   .ken-detail-heading {
@@ -4815,10 +4820,11 @@ html[data-theme="light"] .category-symbol {
   }
 
   .about-hero h1 {
-    font-size: 2.65rem;
+    font-size: 2rem;
   }
 
   .about-hero .hero-actions {
+    display: grid;
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -5512,12 +5518,14 @@ html[data-theme="oled"] .ken-lifecycle-map {
 
 .reading-progress-value {
   display: block;
+  height: 100%;
   width: 100%;
   min-height: 0.22rem;
   border-radius: inherit;
   background: linear-gradient(180deg, var(--accent-blue), var(--accent-purple), var(--accent-gold), var(--accent-red));
   box-shadow: 0 0 0.45rem color-mix(in srgb, var(--accent-purple) 28%, transparent);
-  transition: height 90ms linear;
+  transform-origin: top;
+  transition: transform 90ms linear;
 }
 
 @media (prefers-reduced-motion: reduce) {

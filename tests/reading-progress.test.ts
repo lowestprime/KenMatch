@@ -1,25 +1,21 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
-import {
-  calculateReadingProgress,
-  isLongReadingPath,
-  qualifiesAsLongReadingSurface,
-} from "../src/lib/reading-progress.ts";
+import { calculatePageProgress } from "../src/lib/reading-progress.ts";
 
-test("reading progress is limited to editorial routes with meaningful length", () => {
-  for (const pathname of ["/about", "/economics", "/faq", "/glossary", "/governance", "/about/"]) {
-    assert.equal(isLongReadingPath(pathname), true);
-  }
-  for (const pathname of ["/", "/kens", "/admin", "/submit", "/kens/example"]) {
-    assert.equal(isLongReadingPath(pathname), false);
-  }
-  assert.equal(qualifiesAsLongReadingSurface(2400, 800), true);
-  assert.equal(qualifiesAsLongReadingSurface(1600, 800), false);
+const progressComponent = readFileSync(new URL("../src/components/reading-progress.tsx", import.meta.url), "utf8");
+
+test("page progress is global and follows the document scroll surface", () => {
+  assert.match(progressComponent, /document\.scrollingElement \?\? document\.documentElement/);
+  assert.match(progressComponent, /new ResizeObserver\(schedule\)/);
+  assert.match(progressComponent, /aria-label="Page progress"/);
+  assert.doesNotMatch(progressComponent, /isLongReadingPath|long-reading-route|routeEligible/);
 });
 
-test("reading progress clamps before, within, and after the article", () => {
-  assert.equal(calculateReadingProgress(0, 200, 2200, 800), 0);
-  assert.equal(calculateReadingProgress(900, 200, 2200, 800), 50);
-  assert.equal(calculateReadingProgress(5000, 200, 2200, 800), 100);
+test("page progress clamps before, within, and after the document", () => {
+  assert.equal(calculatePageProgress(0, 2200, 800), 0);
+  assert.equal(calculatePageProgress(700, 2200, 800), 50);
+  assert.equal(calculatePageProgress(5000, 2200, 800), 100);
+  assert.equal(calculatePageProgress(0, 800, 800), 100);
 });
