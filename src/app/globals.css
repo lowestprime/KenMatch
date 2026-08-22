@@ -4453,9 +4453,12 @@ body.mobile-nav-open { overflow: hidden; }
 
 .category-symbol {
   --symbol-surface: color-mix(in srgb, #000000 94%, var(--symbol-background));
+  --symbol-surface-edge: transparent;
   --symbol-ink: #ffffff;
   --symbol-core-start: #ffffff;
   --symbol-core-end: #000000;
+  --symbol-status-surface: var(--symbol-surface);
+  --symbol-status-ink: var(--symbol-ink);
   width: 100%;
   height: auto;
   overflow: visible;
@@ -4463,10 +4466,17 @@ body.mobile-nav-open { overflow: hidden; }
 }
 
 html[data-theme="light"] .category-symbol {
-  --symbol-surface: color-mix(in srgb, #ffffff 96%, var(--symbol-background));
-  --symbol-ink: #050505;
-  --symbol-core-start: #000000;
-  --symbol-core-end: #ffffff;
+  /* Category identity stays on an OLED canvas instead of washing out against light cards. */
+  --symbol-surface: color-mix(in srgb, #05030b 94%, var(--symbol-background));
+  --symbol-surface-edge: color-mix(in srgb, var(--symbol-secondary) 36%, #ffffff);
+  --symbol-ink: #ffffff;
+  --symbol-core-start: #ffffff;
+  --symbol-core-end: #05030b;
+  --symbol-status-surface: color-mix(in srgb, #05030b 82%, var(--symbol-primary));
+  --symbol-status-ink: #ffffff;
+  filter:
+    drop-shadow(0 1px 1px rgb(18 12 34 / 0.18))
+    drop-shadow(0 8px 18px color-mix(in srgb, var(--symbol-primary) 14%, transparent));
 }
 
 .category-symbol-inline {
@@ -4476,6 +4486,8 @@ html[data-theme="light"] .category-symbol {
 
 .category-symbol-surface {
   fill: var(--symbol-surface);
+  stroke: var(--symbol-surface-edge);
+  stroke-width: 1;
 }
 
 .category-symbol-ring,
@@ -4525,7 +4537,7 @@ html[data-theme="light"] .category-symbol {
 }
 
 .category-symbol-status-surface {
-  fill: var(--symbol-surface);
+  fill: var(--symbol-status-surface);
   stroke: color-mix(in srgb, var(--symbol-ink) 18%, transparent);
   stroke-width: 0.9;
 }
@@ -4535,8 +4547,17 @@ html[data-theme="light"] .category-symbol {
 }
 
 .category-symbol-status-mark {
-  stroke: var(--symbol-ink);
+  stroke: var(--symbol-status-ink);
   stroke-width: 2;
+}
+
+html[data-theme="light"] .category-symbol-status-surface {
+  stroke: color-mix(in srgb, var(--symbol-tertiary) 64%, #ffffff);
+  stroke-width: 1.15;
+}
+
+html[data-theme="light"] .category-symbol-status-mark {
+  stroke-width: 2.25;
 }
 
 .category-symbol.is-blocked .category-symbol-status-ring,
